@@ -51,3 +51,9 @@ section.chap{scroll-margin-top:16px}section.chap h2{scroll-margin-top:16px}
 .chap figure{margin:12px 0}.chap figure img{max-width:100%;height:auto;border:1px solid #3A3A3A;border-radius:8px}
 .chap figcaption{color:#9A9A9A;font-size:14px}.backtop{font-size:14px;margin:14px 0 0}.backtop a{color:#9A9A9A}
 .side a[aria-current]{border-bottom:0}
+
+.lang{position:relative}.lang summary{list-style:none;cursor:pointer;color:#B4B4B4;padding:4px 10px;border:1px solid #3A3A3A;border-radius:6px;font-size:14px}
+.lang summary::-webkit-details-marker{display:none}.lang summary::after{content:" ▾"}.lang[open] summary,.lang summary:hover{color:#E4E4E4;background:#242424}
+.langpop{position:absolute;right:0;top:calc(100% + 6px);background:#1E1E1E;border:1px solid #3A3A3A;border-radius:8px;padding:8px 6px;min-width:170px;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.langpop ul{list-style:none;margin:0;padding:0}.langpop a{display:block;padding:5px 10px;color:#CFCFCF;text-decoration:none;border-radius:4px}.langpop a:hover,.langpop a:focus-visible{background:#2A2A2A;color:#E4E4E4}
+.langpop .muted{margin:6px 10px 2px;font-size:12px}
