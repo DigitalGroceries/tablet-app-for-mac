@@ -2,7 +2,7 @@
 
 > **UNDER CONSTRUCTION**
 
-Free settings for your drawing tablet on a Mac with Apple silicon.
+A free tablet app for Mac: settings for your Wacom drawing tablet (tested with a Wacom Intuos4) on macOS with Apple silicon. A free alternative to the Wacom driver for Mac, built on OpenTabletDriver.
 
 ## [⬇ Download for Mac](https://github.com/DigitalGroceries/tablet-app-for-mac/releases/latest/download/Tablet-App-for-Mac.dmg)
 
