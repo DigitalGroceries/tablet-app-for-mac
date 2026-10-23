@@ -42,3 +42,11 @@ button.copy{font:inherit;font-size:14px;background:#3A3A3A;color:var(--head);bor
 .attn .istep img{display:block;max-width:min(100%,480px);height:auto;margin:10px 0 0;border-radius:10px;border:1px solid #3A3A3A}
 
 .dlcount{color:#9A9A9A;font-size:.95rem;margin:8px 0 0}
+
+html{scroll-behavior:smooth}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+section.chap{scroll-margin-top:16px}section.chap h2{scroll-margin-top:16px}
+.side{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto}
+.side ol{padding-left:1.4em;margin:0}.side li{margin:2px 0}.side a{color:#B4B4B4;text-decoration:none;display:inline-block;padding:2px 6px;border-radius:4px}
+.side a:hover{color:#E4E4E4;background:#242424}.side a[aria-current]{color:#E4E4E4;background:#2A2A2A;box-shadow:inset 2px 0 0 #8C8C8C}
+.chap figure{margin:12px 0}.chap figure img{max-width:100%;height:auto;border:1px solid #3A3A3A;border-radius:8px}
+.chap figcaption{color:#9A9A9A;font-size:14px}.backtop{font-size:14px;margin:14px 0 0}.backtop a{color:#9A9A9A}
