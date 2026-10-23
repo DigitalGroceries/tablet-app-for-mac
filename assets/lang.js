@@ -1,6 +1,6 @@
 // Language menu (Google Translate page proxy) and, when viewed through the proxy, real download links.
 (function () {
-  var L = [['en', 'English'], ['es', 'Español'], ['de', 'Deutsch'], ['fr', 'Français'], ['ja', '日本語'], ['zh-CN', '中文']];
+  var L = [['en', 'English'], ['es', 'Español'], ['de', 'Deutsch'], ['fr', 'Français'], ['bg', 'Български'], ['ru', 'Русский'], ['ja', '日本語'], ['zh-CN', '中文']];
   var onProxy = /\.translate\.goog$/.test(location.hostname);
   var path = location.pathname, real = 'https://digitalgroceries.github.io' + path;
   var menu = document.getElementById('langmenu');
