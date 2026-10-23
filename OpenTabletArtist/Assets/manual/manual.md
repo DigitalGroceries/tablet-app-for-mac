@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-Version 6. British English. Screens are from a Mac running Version 4; the duplicate About button is taken out of them.
+Version 6. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
 
 ## Before you start
 
