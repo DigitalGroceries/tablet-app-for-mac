@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Full functional + visual sweep of every page. Real Skia rendering (not headless
+       drawing) so each page and theme can be screenshotted into shots/. Run:
+       dotnet test tests/OpenTabletArtist.SweepTests   (report: shots/sweep-report.md) -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>OpenTabletArtist.SweepTests</RootNamespace>
+    <!-- Same assembly name as the UI suite only to reach the app internals it already may (InternalsVisibleTo); no app source change. -->
+    <AssemblyName>OpenTabletArtist.UiTests</AssemblyName>
+    <NoWarn>$(NoWarn);CS0618;CS8602;CS8604</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Skia" Version="12.1.3" />
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+  </ItemGroup>
+  <ItemGroup><Using Include="Xunit" /></ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\OpenTabletArtist.Tests\Fakes.cs" Link="Fakes.cs" />
+    <Compile Include="..\OpenTabletArtist.Tests\TestAppDataRoot.cs" Link="TestAppDataRoot.cs" />
+    <Compile Include="..\OtdInterop.Tests\MemorySettingsFileStore.cs" Link="MemorySettingsFileStore.cs" />
+    <Compile Include="..\OtdInterop.Tests\FakeDaemonTransport.cs" Link="FakeDaemonTransport.cs" />
+    <Compile Include="..\OtdInterop.Tests\NullOtdLog.cs" Link="NullOtdLog.cs" />
+    <Compile Include="..\OpenTabletArtist.UiTests\FakeLifecycle.cs" Link="FakeLifecycle.cs" />
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="..\..\OpenTabletArtist\OpenTabletArtist.csproj" /></ItemGroup>
+</Project>

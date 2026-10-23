@@ -1,0 +1,94 @@
+# Dependency update automation for OTA's own dependencies (#741).
+#
+# Deliberately separate from otd-release-watch.yml: that watches the OpenTabletDriver submodule, which
+# is a hardware-facing driver update and needs its own judgement. These are OTA's NuGet packages and
+# GitHub Actions, where the risk is the opposite one — quietly drifting years behind, or pinning an
+# action to a tag that moves under us.
+#
+# Grouped and monthly so the repository gets one reviewable PR per ecosystem rather than a stream of
+# single-package bumps nobody reads.
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      # Group by what has to move TOGETHER, not by what shares a name. A package whose pinned version is
+      # dictated by another package belongs with it: split across two PRs, neither can merge.
+      avalonia:
+        # Avalonia's own packages are released together and must move together — a partial bump produces
+        # a runtime type mismatch rather than a build error.
+        #
+        # SkiaSharp is here because its pin exists to match what Avalonia.Skia pulls (see the comment on
+        # the PackageReference). Grouped as "other" it produced exactly the deadlock this is meant to
+        # prevent: the Avalonia bump wanted SkiaSharp >= 3.119.4 and failed NU1605 against our pin, while
+        # the separate SkiaSharp PR proposed 4.152.1, a major version Avalonia does not ask for.
+        # HarfBuzzSharp would belong here too if it ever becomes a direct reference — Avalonia.Skia
+        # carries it transitively today.
+        patterns:
+          - "Avalonia*"
+          - "SkiaSharp*"
+          - "HarfBuzzSharp*"
+      rpc:
+        # MessagePack is pinned as a security floor over what StreamJsonRpc pulls transitively (NU1903),
+        # and deliberately held on the 2.5.x line. Proposing it on its own invites a major bump that
+        # breaks that constraint with nothing nearby to explain why.
+        patterns:
+          - "StreamJsonRpc"
+          - "MessagePack*"
+          - "Newtonsoft.Json"
+      test-tooling:
+        patterns:
+          - "xunit*"
+      other:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "Avalonia*"
+          - "SkiaSharp*"
+          - "HarfBuzzSharp*"
+          - "StreamJsonRpc"
+          - "MessagePack*"
+          - "Newtonsoft.Json"
+          - "xunit*"
+
+    ignore:
+      # xunit 4 cannot be taken until Avalonia.Headless.XUnit is built against it: that package is
+      # compiled against xunit.v3.extensibility.core 3.2.2, its NuGet dependency is a floor rather than
+      # a pin, and 4.x changed a method it calls — so restore resolves 4.x happily and every UI test
+      # then fails at discovery with MissingMethodException, in a build that warns about nothing.
+      # See the note in tests/OpenTabletArtist.UiTests/OpenTabletArtist.UiTests.csproj.
+      #
+      # This used to also cover Microsoft.NET.Test.Sdk and coverlet.collector, because the majors moved
+      # the stack to Microsoft Testing Platform together. That move has landed (#756) and those two
+      # packages are gone from the tree, so only the xunit line is still gated.
+      #
+      # Minor and patch updates still come through. Remove this when the Avalonia package catches up.
+      - dependency-name: "xunit*"
+        update-types: ["version-update:semver-major"]
+
+      # SkiaSharp tracks whatever Avalonia.Skia pulls — that is the entire reason the pin exists (see
+      # the PackageReference comment). Grouping it with Avalonia made the coupling visible but could not
+      # make Dependabot choose the sibling's version: it proposed SkiaSharp 4.x against an Avalonia that
+      # ships 3.119.x. Ignoring majors keeps it on Avalonia's line, so the grouped PR lands on the
+      # version Avalonia actually asks for. Revisit when Avalonia itself moves to SkiaSharp 4.
+      - dependency-name: "SkiaSharp*"
+        update-types: ["version-update:semver-major"]
+
+      # MessagePack is a security floor over what StreamJsonRpc pulls transitively (NU1903,
+      # GHSA-hv8m-jj95-wg3x) and deliberately held on the 2.5.x line for compatibility. A major bump
+      # breaks that constraint. Patches on 2.5.x — the ones that matter here — still come through.
+      - dependency-name: "MessagePack*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns:
+          - "*"

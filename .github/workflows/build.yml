@@ -1,0 +1,156 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+    # Documentation is checked and published by docs.yml on its own cadence.
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - 'mkdocs.yml'
+      - 'scripts/docs/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - 'mkdocs.yml'
+      - 'scripts/docs/**'
+      - '.github/workflows/docs.yml'
+
+jobs:
+  build-test:
+    # Windows is the shipping platform. The Linux lane guards against Windows-only assumptions creeping
+    # back in (hardcoded '\' / '.exe' paths, unguarded P/Invoke, CA1416). The macOS lane is the actual
+    # target platform for the port — it builds the daemon + app + tests on macOS as each phase lands (#140).
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout (with OpenTabletDriver submodule)
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      # Card-roles guard (#574): the shared Border.GlassPanel escape-hatch class was removed; every card
+      # must declare a role — Section (grouping) / Alert (severity) / SelectableCard (pickable). Fail the
+      # build if a bare GlassPanel class creeps back in.
+      - name: Guard removed card escape-hatch class
+        shell: bash
+        run: |
+          if grep -rn 'Classes="GlassPanel"' --include='*.axaml' OpenTabletArtist; then
+            echo "::error::A card escape-hatch class was reintroduced (#574) — use Section / Alert / SelectableCard instead."
+            exit 1
+          fi
+
+      # The same box, rebuilt by hand. The guard above greps for the CLASS, so a Border that reaches for
+      # GlassBgBrush directly walks straight past it — which is exactly how the tablet-config rows kept a
+      # card long after #574 removed them. Only a Border that ROOTS a DataTemplate is flagged: that is a
+      # row card, and rows are what c:Entity is for. Chips, progress tracks and the color-picker surface
+      # use the same brush legitimately and are not DataTemplate roots, so they are untouched.
+      - name: Guard hand-rolled glass row cards
+        # Once, not per-OS: it is a static text check, and python3 is not dependable under Git Bash on
+        # the Windows image.
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          python3 - <<'PYEOF'
+          import glob, sys
+          bad = []
+          for path in glob.glob('OpenTabletArtist/**/*.axaml', recursive=True):
+              lines = open(path, encoding='utf-8-sig').read().splitlines()
+              for i, line in enumerate(lines):
+                  if '<DataTemplate' not in line:
+                      continue
+                  # The template's first element, plus the few attribute lines that follow it.
+                  rest = [l for l in lines[i + 1:i + 8] if l.strip()]
+                  if not rest or not rest[0].lstrip().startswith('<Border'):
+                      continue
+                  if any('GlassBgBrush' in l for l in rest[:4]):
+                      bad.append(path + ':' + str(i + 2))
+          for b in bad:
+              print(b)
+          if bad:
+              print('::error::A DataTemplate roots a Border painted with GlassBgBrush - that is a '
+                    'hand-rolled card (#574). Use c:Entity for a row, or c:Section / c:Alert.')
+              sys.exit(1)
+          PYEOF
+
+      - name: Set up .NET (daemon targets net8.0, app targets net10.0)
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      # Builds the whole solution: the OTD daemon (from the submodule) + the app + tests.
+      - name: Build
+        run: dotnet build OpenTabletArtist.slnx -c Debug
+
+      # The library's own suite (#807 Phase 6). It references OtdInterop and nothing else — no app, no
+      # Avalonia — which is the point of it, and BoundaryDependencyTests fails if that stops being true.
+      # Named here because the workflow runs projects rather than the solution: a suite that only built
+      # would pass every push while testing nothing.
+      - name: Library tests
+        run: dotnet test tests/OtdInterop.Tests/OtdInterop.Tests.csproj -c Debug --no-build
+
+      - name: Health library tests
+        run: dotnet test tests/OtdHealth.Tests/OtdHealth.Tests.csproj -c Debug --no-build
+
+      - name: Health collector and analyzer tests
+        run: dotnet test tests/OtdHealth.Collector.Tests/OtdHealth.Collector.Tests.csproj -c Debug --no-build
+
+      # The unit tests are headless — they exercise Domain/ViewModel logic without creating windows or
+      # rendering, so no display/xvfb is needed (they run the same way on the Windows lane).
+      - name: Test
+        run: dotnet test tests/OpenTabletArtist.Tests/OpenTabletArtist.Tests.csproj -c Debug --no-build
+
+      # UI smoke tests (#741): these DO build views, on Avalonia's headless platform — still no display
+      # needed. They are the only thing standing between a refactor and a broken runtime binding, since
+      # the app disables compiled bindings globally, so a binding that no longer resolves is a warning at
+      # runtime rather than a build error.
+      - name: UI smoke tests
+        run: dotnet test tests/OpenTabletArtist.UiTests/OpenTabletArtist.UiTests.csproj -c Debug --no-build
+
+      # The release bundle unpacks to one visible file, so somebody who downloads the zip can tell what to
+      # run (#586). release.yml asserts that — but release.yml runs only on a `v*` tag, so the assertion
+      # caught nothing until a release was already being cut, and OtdInterop.xml sat in the publish root
+      # from #807 until v0.77.0 failed on it weeks later (#962). This is the same check, here, on the
+      # branch, where the cost of the fix is one line instead of an abandoned release and a re-pointed tag.
+      #
+      # Windows only: it is a self-contained win-x64 single-file publish, which is what the release does.
+      #
+      # Deliberately NOT gated on which files changed. Gating would cut a minute off most runs and would
+      # also have skipped the very change that caused this — #807 added a project without touching the
+      # app's csproj — and a check that stops running is worth less than a check that costs a minute.
+      - name: Verify the publish layout
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: ./scripts/verify-publish-layout.ps1
+
+      # Formatting, on CHANGED files only (#741). The existing tree disagrees with `dotnet format` in
+      # thousands of places — almost all of it aligned continuations that read better than what the
+      # formatter would produce — and reformatting it wholesale would bury real history under whitespace.
+      # Holding new and edited files to the conventions in .editorconfig converges the tree as it is
+      # worked on, at no review cost.
+      - name: Format check (changed files)
+        if: matrix.os == 'ubuntu-latest' && github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          changed=$(git diff --name-only --diff-filter=ACM "origin/${{ github.base_ref }}"...HEAD -- '*.cs' \
+                    | grep -v '^external/' || true)
+          if [ -z "$changed" ]; then
+            echo "No C# files changed."
+            exit 0
+          fi
+          echo "Checking:"; echo "$changed" | sed 's/^/  /'
+          # shellcheck disable=SC2086
+          dotnet format OpenTabletArtist.slnx --verify-no-changes --include $changed \
+            || {
+              echo "::error::Changed C# files don't match .editorconfig. Run: dotnet format OpenTabletArtist.slnx --include <files>"
+              exit 1
+            }

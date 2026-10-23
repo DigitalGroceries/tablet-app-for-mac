@@ -1,0 +1,608 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OpenTabletDriver.Desktop;
+using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
+using OtdInterop;
+
+namespace OpenTabletArtist.ViewModels;
+
+/// <summary>How the overlay captures: 4 corners (→ perspective homography, #195) or an N×M grid
+/// (→ per-node bilinear offsets, #196).</summary>
+public enum CalibrationMode { Corners, Grid }
+
+/// <summary>The capture mode + grid size chosen before calibrating.</summary>
+public readonly record struct CalibrationOptions(CalibrationMode Mode, int Cols, int Rows);
+
+/// <summary>A user-pickable calibration preset (label + the options it maps to), for the mode selector.</summary>
+public sealed record CalibrationModeChoice(string Label, CalibrationMode Mode, int Cols, int Rows)
+{
+    public CalibrationOptions ToOptions() => new(Mode, Cols, Rows);
+
+    /// <summary>How many targets this mode asks for — the grid's product, or the four corners. Lets the
+    /// tab match a stored calibration back to the choice that produced it, so its button can name the
+    /// density ("Repeat 9-point calibration") instead of a vague "Recalibrate" (#cal-state-first).</summary>
+    public int Points => Mode == CalibrationMode.Corners ? 4 : Cols * Rows;
+
+    /// <summary>Roughly how long it takes, for the picker. Each target is a ~3s hold plus moving to it.</summary>
+    public string Duration => Points <= 4 ? "~20 s" : Points <= 9 ? "~30 s" : "~80 s";
+}
+
+/// <summary>
+/// Drives the pointer-calibration overlay (#127). Coordinates are exposed <em>normalized</em>
+/// to the mapped display (0..1) so the view can place targets/live dot on a Canvas without caring
+/// about DPI scaling. The measured raw positions come from the daemon debug stream (mapping- and
+/// Windows-Ink-independent); on completion <see cref="CalibrationSolver"/> fits the affine and it is
+/// written via <see cref="CalibrationProfile"/>.
+///
+/// During capture the existing calibration is disabled so taps are recorded uncorrected (so "Clear"
+/// truly returns to identity and we don't calibrate on top of an old correction).
+/// </summary>
+public partial class CalibrationViewModel : ObservableObject
+{
+    public sealed record Context(
+        string TabletName,
+        TabletDigitizerSpec Digitizer,
+        MappingArea Input,
+        MappingArea Output,
+        DisplayInfo Display,
+        Settings Settings,
+        Func<Settings, Task<SettingsApplyOutcome>> Apply,
+        IDaemonDebugSession Daemon,
+        CalibrationMode Mode = CalibrationMode.Corners,
+        int GridCols = 3,
+        int GridRows = 3);
+
+    /// <summary>
+    /// <c>Interrupted</c> is a write this overlay was refused (#923).
+    /// </summary>
+    /// <remarks>
+    /// Distinct from <c>Failed</c>, which is taps that would not solve and is answered by taking them
+    /// again. Here the document this overlay has been editing is no longer the one in play — something
+    /// else replaced it — so nothing it writes will land, and Redo would only fail the same way.
+    /// </remarks>
+    public enum Phase { Capturing, Confirming, Failed, Interrupted }
+
+    // Target positions normalized to the display (0..1). Corners = 4 inset corners (TL, TR, BR, BL);
+    // Grid = a cols×rows lattice, row-major.
+    private readonly List<(double X, double Y)> _targets;
+
+    private static List<(double X, double Y)> BuildTargets(CalibrationMode mode, int cols, int rows)
+    {
+        if (mode == CalibrationMode.Corners)
+            return new() { (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9) };
+
+        var list = new List<(double X, double Y)>(cols * rows);
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+            {
+                double x = cols <= 1 ? 0.5 : 0.08 + 0.84 * c / (cols - 1);
+                double y = rows <= 1 ? 0.5 : 0.08 + 0.84 * r / (rows - 1);
+                list.Add((x, y));
+            }
+        return list;
+    }
+
+    private const double HitRadiusN = 0.06;   // accept samples only this close to the active target
+    /// <summary>Hold-to-average (#457): the pen must rest on the target long enough to gather this many
+    /// on-target samples, which are then averaged into the recorded point — a steady hold cancels jitter
+    /// far better than a quick tap. A filling ring shows the progress. Tunable; roughly 1–2 s of holding
+    /// at typical tablet report rates. (Public so the tests can drive a full hold.)</summary>
+    public const int HoldSamplesTarget = 600;
+
+    private readonly Context _ctx;
+    private readonly DaemonPenInputSource _input;
+    private readonly CalibrationProfile.CalibrationData? _original;
+    private readonly List<Vector2> _measuredRaw = new();   // one per completed target
+    private readonly List<int> _tapSampleCounts = new();     // samples averaged for each completed tap (#460)
+    private readonly List<Vector2> _measuredTilt = new();    // averaged pen tilt (TiltX, TiltY °) per tap (#481)
+    private readonly List<Vector2> _tapAccum = new();        // raw samples for the in-progress hold
+    private readonly List<Vector2> _tiltAccum = new();       // tilt samples for the in-progress hold (#481)
+
+    public CalibrationViewModel(Context ctx)
+    {
+        _ctx = ctx;
+        _targets = BuildTargets(ctx.Mode, ctx.GridCols, ctx.GridRows);
+        _input = new DaemonPenInputSource(ctx.Daemon);
+        _input.Sample += OnSample;
+        _original = CalibrationProfile.ReadProfile(ctx.Settings.Profiles.FirstOrDefault(p => p.Tablet == ctx.TabletName));
+        UpdateInstruction();
+    }
+
+    // --- Observable state for the overlay ---
+
+    [ObservableProperty] private Phase _currentPhase = Phase.Capturing;
+    [ObservableProperty] private int _currentTarget;          // 0..3 index being captured
+    [ObservableProperty] private string _instruction = "";
+    [ObservableProperty] private double _liveDotX;            // normalized 0..1 within the display
+    [ObservableProperty] private double _liveDotY;
+    [ObservableProperty] private bool _liveDotVisible;
+    /// <summary>0..1 progress of the current hold on the active target (#457); the overlay fills a ring
+    /// with it. Resets to 0 when the pen leaves the target or a point completes.</summary>
+    [ObservableProperty] private double _holdProgress;
+
+    public bool IsCapturing => CurrentPhase == Phase.Capturing;
+    public bool IsConfirming => CurrentPhase == Phase.Confirming;
+    public bool IsFailed => CurrentPhase == Phase.Failed;
+    /// <summary>A write was refused, so this overlay can do nothing further but close (#923).</summary>
+    public bool IsInterrupted => CurrentPhase == Phase.Interrupted;
+    /// <summary>Keeping is offered for a settled preview only, never over work still in flight.</summary>
+    public bool ShowApply => IsConfirming && !IsWorking;
+    public bool ShowRedo => IsConfirming || IsFailed;
+    /// <summary>Clearing is a write too, so it goes with the rest when they cannot land (#923).</summary>
+    public bool ShowClear => !IsInterrupted;
+
+    /// <summary>
+    /// An interrupted overlay can only be closed, so the button that closes it says so (#924).
+    /// </summary>
+    /// <remarks>
+    /// Cancel is the one control that stays, because closing is the only thing left to do. Leaving it
+    /// labelled "Cancel" asks the artist to decide whether cancelling is safe, when there is nothing
+    /// left to cancel.
+    /// </remarks>
+    public string CancelLabel => IsInterrupted ? "Close (Esc)" : "Cancel (Esc)";
+    /// <summary>Undo removes just the last recorded point (#458) — available once at least one is captured.</summary>
+    public bool CanUndoPoint => _measuredRaw.Count > 0 && !IsInterrupted;
+
+    /// <summary>Normalized target positions for the view to draw (in capture order).</summary>
+    public IReadOnlyList<(double X, double Y)> Targets => _targets;
+    /// <summary>How many targets are captured (for ticking them off in the view).</summary>
+    public int CapturedCount => _measuredRaw.Count;
+
+    /// <summary>Progress readout for the panel — "Point 4 of 9" while capturing, "9 of 9 captured" after.</summary>
+    public string ProgressText => IsCapturing
+        ? $"Point {Math.Min(CurrentTarget + 1, _targets.Count)} of {_targets.Count}"
+        : $"{CapturedCount} of {_targets.Count} captured";
+
+    /// <summary>Raised when the overlay should close.</summary>
+    public event Action? CloseRequested;
+
+    partial void OnCurrentPhaseChanged(Phase value)
+    {
+        OnPropertyChanged(nameof(IsCapturing));
+        OnPropertyChanged(nameof(IsConfirming));
+        OnPropertyChanged(nameof(IsFailed));
+        OnPropertyChanged(nameof(IsInterrupted));
+        OnPropertyChanged(nameof(ShowApply));
+        OnPropertyChanged(nameof(ShowRedo));
+        OnPropertyChanged(nameof(ShowClear));
+        OnPropertyChanged(nameof(CancelLabel));
+        OnPropertyChanged(nameof(CanUndoPoint));
+        OnPropertyChanged(nameof(ProgressText));
+    }
+
+    partial void OnCurrentTargetChanged(int value) => OnPropertyChanged(nameof(ProgressText));
+
+    /// <summary>
+    /// The overlay's own operations, one at a time and in the order they were asked for (#924).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Calibration is a conversation with the driver, not a single write: bypass the existing
+    /// correction, capture, preview, and either keep it or put back what was there. Each command used to
+    /// run the moment the artist pressed it, so Cancel could arrive while the preview it was meant to
+    /// undo was still in flight {D} and the hold counts a write from submission, so the overlay looked
+    /// stale <em>to itself</em> and refused its own restore. It closed leaving the preview live.
+    /// </para>
+    /// <para>
+    /// Waiting is also what gives a refusal its meaning. Once the overlay's own writes are settled, the
+    /// only thing left that can refuse one is another hand {D} which is what the message says.
+    /// </para>
+    /// </remarks>
+    private Task _sequence = Task.CompletedTask;
+    private int _working;
+
+    /// <summary>
+    /// This editing session has ended (#925).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Separate from the queue, because ordering the overlay's operations is not the same as ending
+    /// them. Closing used to be just another operation, so work admitted before it still ran after: a
+    /// tap landing while Cancel waited queued a Finish that applied a whole new calibration once the
+    /// overlay had gone, over settings nobody was looking at any more.
+    /// </para>
+    /// <para>
+    /// Set the moment a closing command is <em>asked for</em>, not when its turn comes, so the pen
+    /// stream and every other command stop at once. Work already queued honours it when it reaches the
+    /// front.
+    /// </para>
+    /// </remarks>
+    private bool _closing;
+
+    /// <summary>Whether one of this overlay's own operations is in flight.</summary>
+    private bool IsWorking => _working > 0;
+
+    private Task Sequenced(Func<Task> step) => Queue(step, closing: false);
+
+    /// <summary>Queues a step that ends the session, which nothing may cancel out from under it.</summary>
+    private Task Closing(Func<Task> step) => Queue(step, closing: true);
+
+    private Task Queue(Func<Task> step, bool closing)
+    {
+        // Counted here rather than inside the continuation, so a command asked for while another is
+        // running sees it.
+        _working++;
+        OnPropertyChanged(nameof(ShowApply));
+        return _sequence = After(_sequence, step, closing);
+    }
+
+    private async Task After(Task previous, Func<Task> step, bool closing)
+    {
+        try
+        {
+            // Each step reports its own outcome through the phase, so a failed predecessor is not this
+            // one's to re-raise -- only to wait for.
+            try { await previous; } catch { }
+
+            // Asked again at the front of the queue, because the answer can change while a step waits:
+            // this is where work admitted before a close, or before an interruption, finds out (#925).
+            // One gate rather than a guard in every step — the per-caller version is how Redo came to
+            // talk an interrupted overlay back into capturing.
+            if (!closing && (_closing || IsInterrupted)) return;
+            await step();
+        }
+        finally
+        {
+            _working--;
+            OnPropertyChanged(nameof(ShowApply));
+        }
+    }
+
+    /// <summary>Ends the session and asks the window to go.</summary>
+    private void Close()
+    {
+        _closing = true;
+        CloseRequested?.Invoke();
+    }
+
+    /// <summary>
+    /// Writes the overlay's settings, and says whether they landed (#923).
+    /// </summary>
+    /// <remarks>
+    /// The outcome used to be discarded, so a refused write went on to say "Move the pen around {D} does
+    /// the cursor track the nib?" over a driver that had never been sent anything. Losing a calibration
+    /// because the document was replaced underneath is an acceptable simplification; being told it
+    /// worked is not.
+    /// </remarks>
+    private async Task<bool> WriteAsync()
+    {
+        var outcome = await _ctx.Apply(_ctx.Settings);
+        if (outcome.IsLive) return true;
+
+        // Refused and written-but-unconfirmed are different facts, and the library keeps them apart
+        // (#924). A readback that fails after the driver accepted the write leaves a calibration that may
+        // well be in effect; saying it was not applied is as wrong as the preview this replaced.
+        //
+        // The recovery points back into the app rather than out to OpenTabletDriver (#925). Which remedy
+        // applies depends on whether the session is paused, disconnected or merely unread, and this
+        // overlay knows none of that -- the host does, and says so on the page the artist came from.
+        CurrentPhase = Phase.Interrupted;
+        Instruction = outcome.Status == SettingsApplyStatus.ChangedElsewhere
+            ? "Something else changed these settings while calibration was open, so this calibration "
+              + "was not applied. Close this and start it again."
+            : "This calibration could not be confirmed with the OTD daemon, so it may or may not be "
+              + "in effect. Close this and check the connection status on the tablet's page; once the "
+              + "settings have been reloaded, its Calibration tab shows what the daemon actually holds.";
+        return false;
+    }
+
+    // --- Lifecycle ---
+
+    /// <summary>Disable any existing calibration (so capture is uncorrected) and start the pen stream.</summary>
+    public Task StartAsync() => Sequenced(async () =>
+    {
+        if (!await BypassCalibrationAsync()) return;
+
+        // Asked again before the stream is turned on (#926). The gate decides whether a step may start;
+        // it cannot speak for what the step does after its own awaits, and this one waits for the
+        // driver. Closing the window in that interval stops the stream first, and the continuation would
+        // then turn it back on — the input source keeps its desired state across its own awaits, so the
+        // earlier stop does not win, and the driver is left reporting to an overlay nobody can see.
+        if (_closing || IsInterrupted) return;
+        await _input.StartAsync();
+    });
+
+    /// <summary>Ends the session and stops the pen stream. The window calls this as it goes.</summary>
+    public async Task StopAsync()
+    {
+        _closing = true;
+        _input.Sample -= OnSample;
+        await _input.StopAsync();
+    }
+
+    /// <summary>Disable whatever calibration is <em>currently</em> active so taps are captured
+    /// uncorrected — covers both the calibration that existed at open and a preview applied before a
+    /// Redo (otherwise recapture would be corrected by the matrix we're replacing). (Cursor review)</summary>
+    private async Task<bool> BypassCalibrationAsync()
+    {
+        var current = CalibrationProfile.ReadProfile(_ctx.Settings.Profiles.FirstOrDefault(p => p.Tablet == _ctx.TabletName));
+        if (current is { Enabled: true })
+        {
+            // Re-write the current calibration disabled, preserving its model + payload.
+            CalibrationProfile.Write(_ctx.Settings, _ctx.TabletName, current with { Enabled = false });
+            return await WriteAsync();
+        }
+        return true;
+    }
+
+    // The mapped display's origin (top-left) in OTD virtual-desktop space — the SAME space
+    // AbsolutePositionMapper.MapToDesktop returns. Derived from the Output area (which is stored in
+    // that 0-based, min-shifted space), NOT _ctx.Display.X/Y: those are raw screen coords that differ
+    // by the desktop min-shift whenever a monitor sits at a negative origin (a display left of / above
+    // the primary — common with 3+ monitors, and seen on macOS). Mixing the two put the live dot (and
+    // the solver's targets) off by that shift, so hit-testing never matched and capture silently failed
+    // even though the pen reports were perfect (#140).
+    private float OutputOriginX => _ctx.Output.CenterX - _ctx.Output.Width / 2;
+    private float OutputOriginY => _ctx.Output.CenterY - _ctx.Output.Height / 2;
+
+    // --- Capture (also the unit-testable core: feed PenSamples via OnSample) ---
+
+    public void OnSample(PenSample s)
+    {
+        // Nothing the pen does after a close has been asked for belongs to this session (#925). The
+        // stream is stopped as well, but a sample already on its way must not start new work either.
+        if (_closing) return;
+
+        // Map the raw position to the display (uncorrected) for the live dot + hit-testing.
+        var raw = new Vector2((float)s.RawX, (float)s.RawY);
+        var desktop = AbsolutePositionMapper.MapToDesktop(raw, _ctx.Digitizer, _ctx.Input, _ctx.Output, false, false);
+        if (desktop is { } d)
+        {
+            LiveDotX = (d.X - OutputOriginX) / Math.Max(1, _ctx.Output.Width);
+            LiveDotY = (d.Y - OutputOriginY) / Math.Max(1, _ctx.Output.Height);
+            LiveDotVisible = true;
+        }
+        else
+        {
+            LiveDotVisible = false;
+        }
+
+        if (CurrentPhase != Phase.Capturing) return;
+
+        // Hold-to-average (#457): while the pen rests on the active target, accumulate on-target samples
+        // and fill the progress ring; commit once it's been held long enough. Leaving the target (lift or
+        // move away) before it fills abandons the partial hold — the ring resets and the user re-holds.
+        bool onTarget = s.IsDown && LiveDotVisible && Near(LiveDotX, LiveDotY, _targets[CurrentTarget]);
+        if (onTarget)
+        {
+            _tapAccum.Add(raw);
+            _tiltAccum.Add(new Vector2((float)s.TiltX, (float)s.TiltY));   // pen tilt while held (#481)
+            HoldProgress = Math.Min(1.0, (double)_tapAccum.Count / HoldSamplesTarget);
+            if (_tapAccum.Count >= HoldSamplesTarget)
+                CommitTap();
+        }
+        else if (_tapAccum.Count > 0)
+        {
+            _tapAccum.Clear();
+            _tiltAccum.Clear();
+            HoldProgress = 0;
+        }
+    }
+
+    private void CommitTap()
+    {
+        var avg = new Vector2(_tapAccum.Average(p => p.X), _tapAccum.Average(p => p.Y));
+        _measuredRaw.Add(avg);
+        _tapSampleCounts.Add(_tapAccum.Count);   // remember how many samples this hold averaged (#460)
+        // Average the pen tilt over the hold — the natural angle the user drew at (#481).
+        _measuredTilt.Add(_tiltAccum.Count > 0
+            ? new Vector2(_tiltAccum.Average(t => t.X), _tiltAccum.Average(t => t.Y))
+            : new Vector2(float.NaN, float.NaN));
+        _tapAccum.Clear();
+        _tiltAccum.Clear();
+        HoldProgress = 0;
+        OnPropertyChanged(nameof(CapturedCount));
+        OnPropertyChanged(nameof(CanUndoPoint));
+
+        if (_measuredRaw.Count >= _targets.Count)
+            _ = Sequenced(FinishAsync);
+        else
+        {
+            CurrentTarget = _measuredRaw.Count;
+            UpdateInstruction();
+        }
+    }
+
+    private async Task FinishAsync()
+    {
+
+        // Targets are placed in OTD virtual-desktop space (via the Output origin) so they share the space
+        // MapToDesktop produces the measured points in — otherwise the solver pairs targets and taps that
+        // are off by the desktop min-shift on negative-origin layouts (#140).
+        var targetsDesktop = _targets.Select(t => new Vector2(
+            (float)(OutputOriginX + t.X * _ctx.Output.Width),
+            (float)(OutputOriginY + t.Y * _ctx.Output.Height))).ToList();
+
+        var fp = CalibrationProfile.Fingerprint(_ctx.Input, _ctx.Output, _ctx.Display.Number);
+
+        // ALL capture densities fit a least-squares AFFINE (#486). It's over-determined (6 DOF over
+        // 4/9/25 taps) so it averages tap noise instead of fitting it, and on flat pen displays the
+        // mapping is near-affine — measured most accurate at 4, 9 AND 25 points on a Wacom Movink 13,
+        // beating the per-node grid every time (the grid over-parameterizes and fits inter-node wiggle,
+        // #485; same failure mode as the reverted 4-point homography, #483). More taps just make the
+        // affine fit more robust. The grid/homography solvers stay in the codebase and remain reachable
+        // via Developer → Calibration I/O → Re-solve for testing tablets that genuinely need them (#486).
+        CalibrationProfile.CalibrationData? data = null;
+        if (CalibrationSolver.Solve(targetsDesktop, _measuredRaw, _ctx.Digitizer, _ctx.Input, _ctx.Output) is { } m)
+            data = new CalibrationProfile.CalibrationData(m, Enabled: true, Fingerprint: fp);
+
+        if (data is null)
+        {
+            CurrentPhase = Phase.Failed;
+            Instruction = "Couldn't compute a calibration from those taps; they may be too close together or off target. Redo.";
+            return;
+        }
+
+        // Attach the recorded points so the Calibration tab can show a positional report (#460).
+        data = data with { Report = BuildReport(targetsDesktop) };
+
+        // Apply for the live preview ("move the pen around"). Apply == persist in this app; Cancel restores.
+        CalibrationProfile.Write(_ctx.Settings, _ctx.TabletName, data);
+        if (!await WriteAsync()) return;
+
+        CurrentPhase = Phase.Confirming;
+        Instruction = "Move the pen. If the cursor tracks the nib, Apply; otherwise Redo.";
+    }
+
+    // The recorded points paired with their on-screen targets, for the tab report (#460). Coordinates
+    // are stored <em>relative to the calibrated display</em> (0..Width, 0..Height) rather than in
+    // virtual-desktop px, so they read naturally against the one display we calibrated instead of
+    // carrying that display's desktop offset (#461). Each point also carries the pixel-equivalent of its
+    // raw tap — the raw position mapped back to the screen through the (uncorrected) capture-time
+    // mapping — so the report can show, and score, how far the pen actually landed from the target.
+    private CalibrationReport BuildReport(IReadOnlyList<Vector2> targetsDesktop)
+    {
+        float ox = OutputOriginX, oy = OutputOriginY;   // display origin in OTD virtual-desktop space (#140)
+        var points = new List<CalibrationReportPoint>(_measuredRaw.Count);
+        for (int i = 0; i < _measuredRaw.Count && i < targetsDesktop.Count; i++)
+        {
+            var raw = _measuredRaw[i];
+            var measuredPx = AbsolutePositionMapper.MapToDesktop(raw, _ctx.Digitizer, _ctx.Input, _ctx.Output, false, false);
+            float mx = float.NaN, my = float.NaN;
+            if (measuredPx is { } m) { mx = m.X - ox; my = m.Y - oy; }
+            var tilt = i < _measuredTilt.Count ? _measuredTilt[i] : new Vector2(float.NaN, float.NaN);
+            points.Add(new CalibrationReportPoint(
+                targetsDesktop[i].X - ox, targetsDesktop[i].Y - oy,
+                raw.X, raw.Y,
+                mx, my,
+                i < _tapSampleCounts.Count ? _tapSampleCounts[i] : 0,
+                tilt.X, tilt.Y));
+        }
+        var display = $"{_ctx.Display.DisplayTitle} ({_ctx.Display.Width}×{_ctx.Display.Height})";
+        return new CalibrationReport(display, DateTime.Now.ToString("yyyy-MM-dd HH:mm"), points);
+    }
+
+    // --- Commands ---
+
+    /// <summary>
+    /// Keeps the preview — which is a close, so it goes through the same boundary as the rest (#925).
+    /// </summary>
+    /// <remarks>
+    /// It used to raise the close directly, so it could be pressed while Redo's bypass write was still
+    /// out: the overlay closed, the bypass landed afterwards, and the artist was left with calibration
+    /// disabled by the Redo they had abandoned — having just pressed the button that keeps it. Refused
+    /// while any of the overlay's own operations is in flight; the settings were already written during
+    /// the preview, so there is nothing here but the close itself.
+    /// </remarks>
+    [RelayCommand]
+    private Task Apply()
+    {
+        if (!IsConfirming || IsWorking) return Task.CompletedTask;
+        _closing = true;
+        return Closing(() => { Close(); return Task.CompletedTask; });
+    }
+
+    [RelayCommand]
+    private Task Redo() => Sequenced(RedoCoreAsync);
+
+    private async Task RedoCoreAsync()
+    {
+        _measuredRaw.Clear();
+        _tapSampleCounts.Clear();
+        _measuredTilt.Clear();
+        _tapAccum.Clear();
+        _tiltAccum.Clear();
+        HoldProgress = 0;
+        CurrentTarget = 0;
+        OnPropertyChanged(nameof(CapturedCount));
+        OnPropertyChanged(nameof(CanUndoPoint));
+        // Clear the preview correction before recapturing -- and if that write is refused there is
+        // nothing to recapture into, so the refusal stands rather than being talked back into Capturing.
+        if (!await BypassCalibrationAsync()) return;
+        CurrentPhase = Phase.Capturing;
+        UpdateInstruction();
+    }
+
+    /// <summary>Undo just the last recorded point (#458): pop it and re-arm that target. If we'd already
+    /// finished (Confirming/Failed), drop the preview correction so the re-tap is captured uncorrected.</summary>
+    [RelayCommand]
+    private Task UndoLastPoint() => Sequenced(UndoLastPointCoreAsync);
+
+    private async Task UndoLastPointCoreAsync()
+    {
+        if (_measuredRaw.Count == 0) return;
+
+        bool wasPreviewing = CurrentPhase != Phase.Capturing;
+        _measuredRaw.RemoveAt(_measuredRaw.Count - 1);
+        if (_tapSampleCounts.Count > 0) _tapSampleCounts.RemoveAt(_tapSampleCounts.Count - 1);
+        if (_measuredTilt.Count > 0) _measuredTilt.RemoveAt(_measuredTilt.Count - 1);
+        _tapAccum.Clear();
+        _tiltAccum.Clear();
+        HoldProgress = 0;
+        CurrentTarget = _measuredRaw.Count;
+        OnPropertyChanged(nameof(CapturedCount));
+        OnPropertyChanged(nameof(CanUndoPoint));
+
+        // We'd applied a preview; clear it so recapture is uncorrected. If that write is refused there
+        // is nothing to recapture into, and WriteAsync has already said so.
+        if (wasPreviewing && !await BypassCalibrationAsync()) return;
+        CurrentPhase = Phase.Capturing;
+        UpdateInstruction();
+    }
+
+    [RelayCommand]
+    private Task Clear()
+    {
+        _closing = true;
+        return Closing(ClearCoreAsync);
+    }
+
+    private async Task ClearCoreAsync()
+    {
+        // Closing, so it is not gated — but a refused write still leaves it open and interrupted
+        // rather than closing over a clear that never happened.
+        CalibrationProfile.Clear(_ctx.Settings, _ctx.TabletName);
+        if (!await WriteAsync()) return;
+        Close();
+    }
+
+    /// <summary>
+    /// Puts back whatever was there when the overlay opened, and closes either way.
+    /// </summary>
+    /// <remarks>
+    /// The one command with no interrupted guard: closing is what it is for, and it is the only thing
+    /// an interrupted overlay can still do. It waits its turn like the rest, so by the time it runs the
+    /// overlay's own writes have settled {D} and a refusal here really does mean another hand owns these
+    /// settings, which is exactly when the captured values must not go back.
+    /// </remarks>
+    [RelayCommand]
+    private Task Cancel()
+    {
+        _closing = true;
+        return Closing(CancelCoreAsync);
+    }
+
+    private async Task CancelCoreAsync()
+    {
+        if (_original is null)
+            CalibrationProfile.Clear(_ctx.Settings, _ctx.TabletName);
+        else
+            CalibrationProfile.Write(_ctx.Settings, _ctx.TabletName, _original);
+        await _ctx.Apply(_ctx.Settings);
+        Close();
+    }
+
+    private static bool Near(double x, double y, (double X, double Y) t)
+        => Math.Sqrt((x - t.X) * (x - t.X) + (y - t.Y) * (y - t.Y)) <= HitRadiusN;
+
+    private void UpdateInstruction()
+    {
+        int total = _targets.Count;
+        if (_ctx.Mode == CalibrationMode.Corners)
+        {
+            string[] corner = { "top-left", "top-right", "bottom-right", "bottom-left" };
+            var where = CurrentTarget < corner.Length ? corner[CurrentTarget] : $"#{CurrentTarget + 1}";
+            Instruction = $"Rest the pen on the {where} target and hold still until the ring fills ({CurrentTarget + 1} of {total}).";
+        }
+        else
+        {
+            Instruction = $"Rest the pen on target {CurrentTarget + 1} of {total} and hold still until the ring fills.";
+        }
+    }
+}

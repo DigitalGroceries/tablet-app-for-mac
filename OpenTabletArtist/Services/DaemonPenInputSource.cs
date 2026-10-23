@@ -1,0 +1,151 @@
+using System;
+using System.Diagnostics;
+using System.Threading;
+using Avalonia.Threading;
+using Newtonsoft.Json.Linq;
+using OpenTabletArtist.Domain;
+using OtdInterop;
+
+namespace OpenTabletArtist.Services;
+
+/// <summary>
+/// Driver-side pen input for the Test tab: turns the OTD daemon's <c>DeviceReport</c> stream into
+/// normalized <see cref="PenSample"/>s (the same stream Diagnostics uses, via
+/// <see cref="IDaemonDebugSession"/>). Unlike OS pointer input, this reflects what the driver sees
+/// before the Windows Ink output stage — so it works even when vmulti / Windows Ink isn't set up.
+/// </summary>
+public sealed class DaemonPenInputSource
+{
+    private readonly IDaemonDebugSession _daemon;
+    private readonly Func<JObject, bool>? _acceptReport;
+    private bool _wantRunning;  // desired state — survives across the awaits below
+    private bool _starting;     // a StartAsync is mid-flight (awaiting enable)
+    private bool _subscribed;
+
+    public DaemonPenInputSource(IDaemonDebugSession daemon, Func<JObject, bool>? acceptReport = null)
+    {
+        _daemon = daemon;
+        _acceptReport = acceptReport;
+    }
+
+    /// <summary>Raised on the UI thread for each parseable device report.</summary>
+    public event Action<PenSample>? Sample;
+
+    private long _penSamples;
+    private volatile bool _eraserInRange;
+
+    /// <summary>Whether <see cref="PenSampleCount"/> is being kept. Off by default so the per-report path
+    /// pays nothing for a counter nobody is looking at.</summary>
+    public volatile bool CountSamples;
+
+    /// <summary>How many pen samples have been parsed from the daemon's stream and queued to the UI thread
+    /// (counted at parse time, before the UI thread has handled them). Safe to read from any thread. The gap
+    /// between this and what the UI has handled is the backlog.</summary>
+    public long PenSampleCount => Interlocked.Read(ref _penSamples);
+
+    private volatile Action<JObject, PenSample>? _tap;
+
+    /// <summary>
+    /// Hands every parsed pen report, with the raw report it came from, to <paramref name="tap"/> on the thread that
+    /// received it, before it is queued to the UI. Pass null to detach. A stroke recording uses this so that its
+    /// boundary is the moment a report arrives: after the UI queue a report has lost which tablet it came from and
+    /// whether it arrived before or after Stop.
+    /// </summary>
+    public void SetTap(Action<JObject, PenSample>? tap) => _tap = tap;
+
+    /// <summary>Raised on the UI thread when a report carries auxiliary-button (express key) state,
+    /// with the current pressed/released state of each button. Pen-only reports don't fire it.</summary>
+    public event Action<bool[]>? AuxButtons;
+
+    /// <summary>Version 3: pen barrel-button states, raised for every pen report that carries them.</summary>
+    public event Action<bool[]>? PenButtons;
+
+    /// <summary>Wheel-button state per wheel (jagged: wheel → its buttons). Wheel-button reports only.</summary>
+    public event Action<bool[][]>? WheelButtons;
+
+    /// <summary>Absolute-wheel positions per wheel (touch rings). Absolute-wheel reports only.</summary>
+    public event Action<uint?[]>? WheelPositions;
+
+    /// <summary>Relative-wheel step deltas per wheel (scroll wheels). Relative-wheel reports only.</summary>
+    public event Action<int[]>? WheelDeltas;
+
+    public async Task StartAsync()
+    {
+        _wantRunning = true;
+        if (_subscribed || _starting) return;
+
+        _starting = true;
+        try
+        {
+            // Enable the daemon stream first; only subscribe if it succeeds — a subscribe-before-
+            // enable would leak the handler if the RPC throws (the #39 lesson from Diagnostics).
+            try { await _daemon.SetTabletDebugAsync(true); }
+            catch { return; }
+
+            // If Stop ran while we were awaiting the enable, undo it instead of subscribing —
+            // otherwise the stream would stay on after the page/source went inactive.
+            if (!_wantRunning)
+            {
+                try { await _daemon.SetTabletDebugAsync(false); } catch { }
+                return;
+            }
+
+            _daemon.DeviceReport -= OnDeviceReport; // idempotent
+            _daemon.DeviceReport += OnDeviceReport;
+            _subscribed = true;
+        }
+        finally { _starting = false; }
+    }
+
+    public async Task StopAsync()
+    {
+        // Only disable if we actually enabled (or an enable is in flight); avoids spurious RPCs
+        // when stopping a source that never started (e.g. leaving the page in App mode).
+        var wasActiveOrStarting = _subscribed || _starting;
+        _wantRunning = false;
+
+        if (_subscribed)
+        {
+            _daemon.DeviceReport -= OnDeviceReport;
+            _subscribed = false;
+        }
+        if (wasActiveOrStarting)
+            try { await _daemon.SetTabletDebugAsync(false); } catch { }
+    }
+
+    private void OnDeviceReport(JObject data)
+    {
+        // Stamp on arrival, before any parsing or queueing, so rate measurement sees the daemon's cadence
+        // rather than the UI thread's.
+        var arrived = Stopwatch.GetTimestamp();
+        if (_acceptReport != null && !_acceptReport(data)) return;
+
+        // Reports arrive off the UI thread; marshal before raising (subscribers touch UI state).
+        // Pen and aux state come on different report types, so parse/raise them independently.
+        // Which end is in use (R13). Reports that carry Eraser say so directly; Wacom Intuos-protocol tablets
+        // (e.g. PTK-440/470) announce the tool once in a tool report ("Tool") and then send plain pen reports,
+        // so remember the last tool until the pen leaves range.
+        var rep = data["Data"];
+        if (rep?["Tool"] is { } tool)
+            _eraserInRange = tool.Type == JTokenType.Integer ? tool.Value<int>() == 1 : string.Equals(tool.ToString(), "Eraser", StringComparison.OrdinalIgnoreCase);
+        else if (rep?["Eraser"] is { Type: JTokenType.Boolean } er)
+            _eraserInRange = er.Value<bool>();
+        if (DeviceReportSample.TryParse(data, out var sample))
+        {
+            sample = sample with { Timestamp = arrived, IsEraser = sample.IsEraser || _eraserInRange };
+            _tap?.Invoke(data, sample);
+            if (CountSamples) Interlocked.Increment(ref _penSamples);
+            Dispatcher.UIThread.Post(() => Sample?.Invoke(sample));
+        }
+        if (DeviceReportSample.TryParsePenButtons(data, out var penButtons))
+            Dispatcher.UIThread.Post(() => PenButtons?.Invoke(penButtons));
+        if (DeviceReportSample.TryParseAuxButtons(data, out var aux))
+            Dispatcher.UIThread.Post(() => AuxButtons?.Invoke(aux));
+        if (DeviceReportSample.TryParseWheelButtons(data, out var wheelButtons))
+            Dispatcher.UIThread.Post(() => WheelButtons?.Invoke(wheelButtons));
+        if (DeviceReportSample.TryParseWheelPositions(data, out var wheelPositions))
+            Dispatcher.UIThread.Post(() => WheelPositions?.Invoke(wheelPositions));
+        if (DeviceReportSample.TryParseWheelDeltas(data, out var wheelDeltas))
+            Dispatcher.UIThread.Post(() => WheelDeltas?.Invoke(wheelDeltas));
+    }
+}

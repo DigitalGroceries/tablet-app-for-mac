@@ -1,0 +1,13 @@
+--- a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/Keyboard/MacOSVirtualKeyboard.cs
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/Keyboard/MacOSVirtualKeyboard.cs
+@@ -102,6 +102,10 @@
+             { "F10", CGKeyCode.kVK_F10 },
+             { "F11", CGKeyCode.kVK_F11 },
+             { "F12", CGKeyCode.kVK_F12 },
++            // OTA build G: F13-F15 so a binding can send Photoshop's hidden Option+F13 / Option+F14 view rotation.
++            { "F13", CGKeyCode.kVK_F13 },
++            { "F14", CGKeyCode.kVK_F14 },
++            { "F15", CGKeyCode.kVK_F15 },
+             { "D0", CGKeyCode.kVK_ANSI_0 },
+             { "D1", CGKeyCode.kVK_ANSI_1 },
+             { "D2", CGKeyCode.kVK_ANSI_2 },

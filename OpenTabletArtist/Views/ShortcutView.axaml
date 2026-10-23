@@ -1,0 +1,19 @@
+<UserControl x:Class="OpenTabletArtist.Views.ShortcutView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls">
+
+    <!-- DataContext is the ShortcutViewModel. Moved out of the DEVELOPER page into SETTINGS. -->
+    <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+        <c:Section Title="Start-menu shortcut"
+                       Description="A per-user Start-menu shortcut to this app — check to create it, uncheck to remove it. A dev build run from its build folder isn't a registered app; this registers it under its name (needed by desktop-automation / screenshot tooling).">
+            <StackPanel Spacing="8">
+                <CheckBox Content="Create a Start-menu shortcut for this app"
+                          IsChecked="{Binding ShortcutExists}" />
+                <TextBlock Text="{Binding ShortcutStatus}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           IsVisible="{Binding HasShortcutStatus}" />
+            </StackPanel>
+        </c:Section>
+    </StackPanel>
+</UserControl>

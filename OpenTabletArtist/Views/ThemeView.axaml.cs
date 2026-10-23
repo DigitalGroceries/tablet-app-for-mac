@@ -1,0 +1,49 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Input.Platform;
+using Avalonia.Platform.Storage;
+using OpenTabletArtist.ViewModels;
+
+namespace OpenTabletArtist.Views;
+
+public partial class ThemeView : UserControl, ITabbedContent
+{
+    /// <inheritdoc />
+    public IReadOnlyList<RadioButton> VisibleTabButtons() =>
+        SubtabRail.Children.OfType<RadioButton>().Where(r => r.IsVisible).ToList();
+    public ThemeView() => InitializeComponent();
+
+    /// <summary>Opens the native file picker for a background image and hands the path to the view model
+    /// (which persists it and applies the Custom backdrop live). Done in code-behind so the VM stays free
+    /// of window/StorageProvider references.</summary>
+    private async void OnChooseImage(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ThemeViewModel vm) return;
+        var storage = TopLevel.GetTopLevel(this)?.StorageProvider;
+        if (storage is null) return;
+
+        var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Choose a background image",
+            AllowMultiple = false,
+            FileTypeFilter = new[] { FilePickerFileTypes.ImageAll },
+        });
+
+        var path = files.FirstOrDefault()?.TryGetLocalPath();
+        if (!string.IsNullOrWhiteSpace(path))
+            vm.BackgroundImagePath = path;
+    }
+
+    // BACKDROP → the glow list's "…" → Copy settings JSON. In code-behind rather than on the view model
+    // because the clipboard hangs off the TopLevel, which is what Dialogs.cs reaches for too. Came here
+    // with the glow editor from Developer (#appearance-merge).
+    private async void OnCopyGradientSettings(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ThemeViewModel vm) return;
+        if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
+        await clipboard.SetTextAsync(vm.Gradients.SettingsText);
+    }
+}

@@ -1,0 +1,259 @@
+using System;
+using System.Linq;
+using OpenTabletDriver.Desktop.Profiles;
+using OpenTabletArtist.Helpers;
+using OtdInterop;
+using OpenTabletArtist.ViewModels;
+
+namespace OpenTabletArtist.Services;
+
+/// <summary>
+/// The single seam for app dialogs. Page view models depend on this interface instead of
+/// constructing Windows or calling the static <see cref="Dialogs"/> helper, so every dialog
+/// flow (confirm/message/input, the per-tablet settings dialog, the read-only config viewer)
+/// is mockable in tests and the shell stays free of UI orchestration (#37).
+/// </summary>
+public interface IDialogService
+{
+    /// <summary>Builds a <see cref="TabletDetailViewModel"/> for the in-app Tablets page, wired to the
+    /// session (apply/save, reload, detection, live pen input, calibration owned by the main window).
+    /// <paramref name="onForget"/> removes the tablet's profile and is invoked by the page's Forget.</summary>
+    /// <summary>
+    /// The editor for one tablet, or null if the session has no profile for it.
+    ///
+    /// Takes a NAME, not a profile. The editor needs a profile that is a live reference inside the
+    /// settings it will submit, and since the session hands out a detached copy on every read, a caller
+    /// that resolved the profile from its own read would pair it with settings from a different copy —
+    /// the editor would then edit one object and submit another, and the user's change would never leave
+    /// the app. Resolving both here, from a single read, makes that unrepresentable.
+    /// </summary>
+    TabletDetailViewModel? CreateTabletDetail(string tabletName, Func<Task> onForget, Action? openConfigsPage = null);
+
+    /// <summary>Shows an informational message with an OK button.</summary>
+    Task ShowMessageAsync(string title, string message);
+
+    /// <summary>Shows a yes/no confirmation; returns true if confirmed.</summary>
+    Task<bool> ShowConfirmAsync(string title, string message);
+
+    /// <summary>Prompts for a line of text; returns null if cancelled.</summary>
+    Task<string?> ShowInputAsync(string title, string prompt, string defaultValue = "");
+
+    /// <summary>Opens the on-screen hotkey picker (optionally pre-filled with <paramref name="initial"/>);
+    /// returns the chosen chord, or null if cancelled. (#320)</summary>
+    Task<HotkeyChord?> ShowHotkeyCaptureAsync(HotkeyChord? initial = null);
+
+    /// <summary>Opens a read-only, scrollable monospace viewer (used for config JSON).</summary>
+    Task ShowTextViewerAsync(string title, string content);
+
+
+    /// <summary>Shows the built-in, searchable list of tablets OpenTabletDriver supports, highlighting
+    /// the connected tablet when <paramref name="detectedName"/> matches one (#155).</summary>
+    Task ShowSupportedTabletsAsync(string? detectedName);
+
+    /// <summary>Shows the review-and-save window for a recording that has just been stopped, and completes when it
+    /// is closed (after saving, discarding, or declining to). The recording's own view model carries everything.</summary>
+    Task ShowRecordingReviewAsync(StrokeRecordingViewModel recording);
+}
+
+/// <inheritdoc />
+public class DialogService : IDialogService
+{
+    private readonly AppSession _session;
+
+    public DialogService(AppSession session) => _session = session;
+
+    /// <inheritdoc />
+    public TabletDetailViewModel? CreateTabletDetail(string tabletName, Func<Task> onForget, Action? openConfigsPage = null)
+    {
+        // One read. CurrentSettings is a fresh copy each time, so two reads give two unrelated object
+        // graphs and the profile from one is not inside the other.
+        var settings = _session.CurrentSettings;
+        var profile = settings?.Profiles.FirstOrDefault(p => p.Tablet == tabletName);
+        if (settings == null || profile == null) return null;
+
+        return new TabletDetailViewModel(
+            profile,
+            settings,
+            applyAction: updated => _session.ApplyProfileAsync(
+                updated.Profiles.First(p => p.Tablet == tabletName)),
+            refreshAction: async () =>
+            {
+                await _session.ReloadAsync();
+                var current = _session.CurrentSettings;
+                return (current, current?.Profiles.FirstOrDefault(p => p.Tablet == tabletName));
+            },
+            tabletDigitizer: _session.GetTabletDigitizer(tabletName),
+            penInput: _session.Daemon, // live pen-pressure dot on the Dynamics tab (#102)
+            isDetected: () => _session.Profiles.Any(p => p.IsDetected && p.Profile.Tablet == tabletName),
+            deviceData: _session, // live detection updates while the page is open (#177)
+            forgetAction: onForget,
+            // Calibration overlay is owned by the main window (the page has no window of its own, #127).
+            onCalibrate: options =>
+            {
+                var owner = Dialogs.GetMainWindow();
+                if (owner == null) return Task.CompletedTask;
+                // Resolve the profile live (by tablet name) so the overlay follows the CURRENT display
+                // mapping. The VM swaps its _profile on refresh (#124), so a captured reference goes stale
+                // after a remap and would open the overlay on the previously-mapped display.
+                var current = _session.CurrentSettings?.Profiles.FirstOrDefault(p => p.Tablet == tabletName) ?? profile;
+                return ShowCalibrationAsync(current, owner, options);
+            },
+            // Express-key / wheel binding editor, owned by the main window (the page has no window).
+            editBinding: async (binding, title) =>
+            {
+                var owner = Dialogs.GetMainWindow();
+                return owner != null
+                    ? await Views.BindingEditorDialog.ShowAsync(owner, binding, title)
+                    : null;
+            },
+            // ABOUT tab → the config-override card's Review button navigates to the CONFIGS page (#467).
+            openConfigsPage: openConfigsPage);
+    }
+
+    /// <summary>Opens the 4-tap pointer-calibration overlay on the display this tablet is mapped to
+    /// (#127). Validates that the profile is in an Absolute mapping with a known digitizer + display.</summary>
+    public async Task ShowCalibrationAsync(Profile profile, Avalonia.Controls.Window owner,
+        ViewModels.CalibrationOptions options = default)
+    {
+        var tabletName = profile.Tablet;
+
+        // Calibration captures live pen taps, so the tablet must actually be connected. Check this
+        // first and say so plainly — otherwise a missing tablet falls through to the generic
+        // "set Windows Ink Absolute" message below, which is misleading (#178).
+        var isDetected = _session.Profiles.Any(p => p.IsDetected && p.Profile.Tablet == tabletName);
+        if (!isDetected)
+        {
+            await ShowMessageAsync("Tablet not detected",
+                "Calibration needs this tablet connected so it can read where the pen actually lands. " +
+                "Plug in / reconnect the tablet, wait for it to be detected, then try again.");
+            return;
+        }
+
+        var digi = _session.GetDigitizerSpec(tabletName);
+        var abs = profile.AbsoluteModeSettings;
+        if (digi is null || abs?.Tablet is not { } t || abs.Display is not { } disp
+            || t.Width <= 0 || t.Height <= 0 || disp.Width <= 0 || disp.Height <= 0
+            || _session.CurrentSettings is not { } settings)
+        {
+            await ShowMessageAsync("Calibration unavailable",
+                "Calibration needs an Absolute output mode with a known tablet area and display. " +
+                "Set this tablet to an Absolute output mode and map it to a display first.");
+            return;
+        }
+
+        var input = new Domain.MappingArea(t.X, t.Y, t.Width, t.Height, t.Rotation);
+        var output = new Domain.MappingArea(disp.X, disp.Y, disp.Width, disp.Height);
+
+        // Find the mapped monitor with the SAME 0-based-desktop-aware matching the rest of the app uses
+        // (DisplayMappingApplier.CurrentlyMapped / MappedCenter). The previous ad-hoc origin compare assumed
+        // the desktop origin was (0,0), so it broke whenever a monitor sits at a negative virtual-desktop
+        // coordinate — e.g. a display to the left of / above the primary (common with 3+ monitors, and seen
+        // on macOS): the stored area is in min-shifted coords, so it no longer equalled a raw display
+        // position and calibration wrongly reported "couldn't match". (#140)
+        var displays = DisplayEnumerator.Enumerate();
+        var display = Domain.DisplayMappingApplier.CurrentlyMapped(profile, displays);
+        if (display is null)
+        {
+            await ShowMessageAsync("Calibration unavailable",
+                "Couldn't match this tablet's mapped area to a connected display. Re-apply the display mapping and try again.");
+            return;
+        }
+
+        // Calibration captures the whole settings here and submits a profile from them when the artist
+        // finishes — minutes later, in the slow case. Two things follow (#922): nothing may adopt an
+        // outside change while it is open, and if the document is replaced anyway, this submission must
+        // be refused rather than quietly putting the captured values back. Both come from the scope.
+        using var editing = _session.ReserveEditing();
+
+        var ctx = new ViewModels.CalibrationViewModel.Context(
+            tabletName, digi.Value, input, output, display, settings,
+            s => editing.ApplyProfileAsync(s.Profiles.First(p => p.Tablet == tabletName)), _session.Daemon,
+            options.Mode, options.Cols, options.Rows);
+
+        var window = new Views.CalibrationOverlayWindow(new ViewModels.CalibrationViewModel(ctx), display);
+        await window.ShowDialog(owner);
+    }
+
+    // The confirm/message/input flows delegate to the static helper, which owns the actual
+    // Avalonia dialog building. Routing them through the interface is what makes them fakeable.
+    public Task ShowMessageAsync(string title, string message) => Dialogs.ShowMessageAsync(title, message);
+    public Task<bool> ShowConfirmAsync(string title, string message) => Dialogs.ShowConfirmAsync(title, message);
+    public Task<string?> ShowInputAsync(string title, string prompt, string defaultValue = "")
+        => Dialogs.ShowInputAsync(title, prompt, defaultValue);
+
+    public async Task<HotkeyChord?> ShowHotkeyCaptureAsync(HotkeyChord? initial = null)
+    {
+        var owner = Dialogs.GetMainWindow();
+        return owner != null ? await Views.HotkeyCaptureDialog.ShowAsync(owner, initial) : null;
+    }
+
+
+    public async Task ShowSupportedTabletsAsync(string? detectedName)
+    {
+        var owner = Dialogs.GetMainWindow();
+        if (owner != null) await Views.SupportedTabletsDialog.ShowAsync(owner, detectedName);
+    }
+
+    public async Task ShowRecordingReviewAsync(StrokeRecordingViewModel recording)
+    {
+        // With no window to hold it the dialog cannot be shown, which is an error: returning quietly would read as
+        // "closed without saving" and the recording would be discarded unseen.
+        var owner = Dialogs.GetMainWindow()
+                    ?? throw new InvalidOperationException("There is no window to show the recording over.");
+
+        await Views.StrokeRecordingDialog.ShowAsync(owner, recording);
+    }
+
+    public async Task ShowTextViewerAsync(string title, string content)
+    {
+        var parent = Dialogs.GetMainWindow();
+        if (parent == null) return;
+
+        var textBox = new Avalonia.Controls.TextBox
+        {
+            Text = content,
+            IsReadOnly = true,
+            AcceptsReturn = true,
+            TextWrapping = Avalonia.Media.TextWrapping.NoWrap,
+            FontFamily = new Avalonia.Media.FontFamily("Cascadia Mono, Consolas, monospace"),
+            FontSize = 12,
+        };
+
+        var scroll = new Avalonia.Controls.ScrollViewer
+        {
+            HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+            VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+            Content = textBox,
+        };
+
+        var closeBtn = new Avalonia.Controls.Button
+        {
+            Content = "Close",
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+            Padding = new Avalonia.Thickness(24, 8),
+            FontSize = 13,
+            Margin = new Avalonia.Thickness(0, 12, 0, 0),
+        };
+
+        var grid = new Avalonia.Controls.Grid
+        {
+            Margin = new Avalonia.Thickness(20),
+            RowDefinitions = new Avalonia.Controls.RowDefinitions("*,Auto"),
+        };
+        Avalonia.Controls.Grid.SetRow(scroll, 0);
+        Avalonia.Controls.Grid.SetRow(closeBtn, 1);
+        grid.Children.Add(scroll);
+        grid.Children.Add(closeBtn);
+
+        var dialog = new Avalonia.Controls.Window
+        {
+            Title = title,
+            Width = 720,
+            Height = 600,
+            WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner,
+            Content = grid,
+        };
+        closeBtn.Click += (_, _) => dialog.Close();
+        await dialog.ShowDialog(parent);
+    }
+}

@@ -1,0 +1,1488 @@
+<UserControl x:Class="OpenTabletArtist.Views.TabletDetailView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:h="using:OpenTabletArtist.Helpers"
+             xmlns:ctrl="using:OpenTabletArtist.Controls"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             xmlns:otac="using:OpenTabletArtist.Converters"
+             xmlns:views="using:OpenTabletArtist.Views">
+
+    <UserControl.Styles>
+        <Style Selector="Border.penBasicsInset">
+            <Setter Property="Background" Value="#262626" />
+            <Setter Property="BorderBrush" Value="#4A4A4A" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="BoxShadow" Value="inset 0 0 10 0 #33000000" />
+        </Style>
+        <!-- R12: tile icons follow the tile state; dark #141414 on the selected #D8D8D8 fill -->
+        <Style Selector=":is(Shape).tileIcon"><Setter Property="Fill" Value="{DynamicResource TextSecondaryBrush}" /></Style>
+        <Style Selector="RadioButton:checked :is(Shape).tileIcon"><Setter Property="Fill" Value="#141414" /></Style>
+        <!-- Build O: Wacom-style pane chrome. -->
+        <Style Selector="Border.wacomPane">
+            <Setter Property="Background" Value="{DynamicResource WacomPaneBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="10,8" />
+        </Style>
+        <Style Selector="Border.wacomWell">
+            <Setter Property="Background" Value="{DynamicResource WacomTileWellBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" /><Setter Property="MinHeight" Value="52" />
+        </Style>
+        <Style Selector="RepeatButton.wacomArrow">
+            <Setter Property="Width" Value="20" /><Setter Property="MinWidth" Value="20" /><Setter Property="Padding" Value="0" />
+            <Setter Property="VerticalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" /><Setter Property="FontSize" Value="11" />
+        </Style>
+        <Style Selector="Button.wacomPlusMinus">
+            <Setter Property="Width" Value="24" /><Setter Property="Height" Value="22" /><Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="HeaderedContentControl.wacomGroup">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{TemplateBinding Header}" FontSize="12" Margin="2,0,0,0" />
+                        <Border Background="{DynamicResource WacomPaneBrush}" BorderBrush="{DynamicResource GlassBorderBrush}"
+                                BorderThickness="1" CornerRadius="4" Padding="12,8">
+                            <ContentPresenter Content="{TemplateBinding Content}" />
+                        </Border>
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <!-- Build R5: larger About / Options… / ? buttons (the user's mock-up), one height, centred text. -->
+        <Style Selector="Button.bottomBar">
+            <Setter Property="MinWidth" Value="120" /><Setter Property="Height" Value="34" /><Setter Property="FontSize" Value="15" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <!-- Build N: Wacom-style Touch Ring page pieces. -->
+        <Style Selector="Border.expressKeyNub">
+            <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}" /><Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.expressKeyNub.pressed">
+            <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource SelectionTextBrush}" />
+        </Style>
+        <!-- Version 1: unselected badges are plain; the selected one is the brightest (#E4E4E4, dark
+             number). Number centred both ways. -->
+        <Style Selector="Border.ringBadge">
+            <Setter Property="Width" Value="26" /><Setter Property="Height" Value="26" /><Setter Property="CornerRadius" Value="13" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}" /><Setter Property="BorderThickness" Value="1" />
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="TextElement.FontSize" Value="14" />
+            <Setter Property="TextElement.FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="Border.ringBadge.activeMode">
+            <Setter Property="Background" Value="#E4E4E4" />
+            <Setter Property="BorderBrush" Value="#E4E4E4" />
+            <Setter Property="TextElement.Foreground" Value="#141414" />
+        </Style>
+        <Style Selector="Button.ringCentre">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="22" />
+            <Setter Property="Background" Value="#9A9A9A" />
+            <Setter Property="BorderBrush" Value="#B4B4B4" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Button.ringCentre:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#AAAAAA" />
+        </Style>
+        <Style Selector="Button.ringCentre:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#C4C4C4" />
+        </Style>
+        <Style Selector="Border.ringModeCard">
+            <Setter Property="Margin" Value="4" /><Setter Property="Padding" Value="10,4,10,8" />
+            <Setter Property="CornerRadius" Value="8" /><Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="Background" Value="{DynamicResource GlassBgBrush}" />
+        </Style>
+        <!-- Express-key row lights up while its physical button is held. Only colors change — no size, no
+             border thickness — so the highlight never nudges the layout. Since Entity went boxless
+             (#debox-entity) the accent tint carries this on its own: it fills the whole row edge to edge
+             instead of a card, which reads more like a key lighting up than a card gaining an outline.
+             BorderBrush still accents the row's bottom hairline. -->
+        <Style Selector="ctrl|Entity.expressCard.pressed">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Background" Value="{DynamicResource AccentMutedBrush}" />
+        </Style>
+        <!-- Calibration card that's currently in use: accent outline (overrides the Section border). -->
+        <Style Selector="ctrl|Section.calCurrent">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+        <!-- Connection status chip in the header, sized to sit beside the Refresh button — solid color by
+             state: neutral grey when the tablet isn't detected, green when it is. -->
+        <Style Selector="Border.tabletStatusChip">
+            <Setter Property="Background" Value="{DynamicResource NeutralBrush}" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <!-- Connected keeps the neutral chip (#593: no green status color); the text says the state. -->
+        <Style Selector="Border.tabletStatusChip.connected">
+            <Setter Property="Background" Value="{DynamicResource NeutralBrush}" />
+        </Style>
+        <!-- The switcher/detection statusDot + statusSquare styles moved into TabletSwitcherBar (#580). -->
+
+        <!-- The calibrate button's density picker. A default FlyoutPresenter caps at a width
+             narrower than three diagrams, which clipped the 25-point column behind a scrollbar. -->
+        <Style Selector="FlyoutPresenter.calPicker">
+            <Setter Property="MaxWidth" Value="720" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <!-- Hairline between the flat rows inside a wheel card. -->
+        <Style Selector="Border.wheelRowDivider">
+            <Setter Property="Height" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <UserControl.Resources>
+        <!-- Binding UI: a label + the current binding as text + an Edit button that opens the modal
+             type-tabbed editor (BindingEditorDialog). Bound to a ButtonBinding. ButtonBindingCard is a
+             full Entity card (with the button glyph) for the ExpressKeys tab; WheelBindingRow (below) is
+             a flat row for the direction/button rows that live directly inside a single wheel card. -->
+        <DataTemplate x:Key="ButtonBindingCard">
+            <ctrl:Entity Classes="expressCard" Classes.pressed="{Binding IsPressed}"
+                    Icon="{StaticResource IconButtonPointer}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Label}" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Summary}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </StackPanel>
+                    <!-- The card's actions behind one "…", the same menu the wheel rows carry
+                         (#row-actions, #692). This was a bare pencil glyph, which made Edit the only
+                         thing you could see to do to a button and left Clear reachable only by opening
+                         the editor and pressing Clear in there. Clear greys out when nothing is mapped.
+                         Command bindings, not Click handlers: both commands live on the row's own
+                         DataContext, which a flyout inherits. -->
+                    <ctrl:IconButton Grid.Column="1" Icon="{StaticResource IconDotsHorizontal}"
+                                     VerticalAlignment="Center"
+                                     ToolTip.Tip="More options for this action"
+                                     AutomationProperties.Name="More actions">
+                        <ctrl:IconButton.Flyout>
+                            <MenuFlyout>
+                                <MenuItem Header="Edit…" Command="{Binding EditCommand}" />
+                                <MenuItem Header="Clear" Command="{Binding ClearCommand}" />
+                            </MenuFlyout>
+                        </ctrl:IconButton.Flyout>
+                    </ctrl:IconButton>
+                </Grid>
+            </ctrl:Entity>
+        </DataTemplate>
+
+        <!-- Wheel binding as a flat ROW (no card): a wheel is a single Entity, and its direction/button
+             rows sit directly inside it separated by hairlines — nesting Entities-in-an-Entity read as
+             muddy card-in-card clutter. Bound to a ButtonBinding. -->
+        <DataTemplate x:Key="WheelBindingRow">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,8">
+                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Label}" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Summary}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                </StackPanel>
+                <!-- The row's actions behind one "…", as elsewhere in the app (#row-actions). Clear is new:
+                     it was reachable only by opening the editor and pressing Clear in there, and for a
+                     binding this editor can't model not even that worked. Both commands are on the row's
+                     own DataContext, which a flyout inherits, so these are Command bindings. -->
+                <ctrl:IconButton Grid.Column="1" Icon="{StaticResource IconDotsHorizontal}"
+                                 VerticalAlignment="Center"
+                                 ToolTip.Tip="More options for this action"
+                                 AutomationProperties.Name="More actions">
+                    <ctrl:IconButton.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="Edit…" Command="{Binding EditCommand}" />
+                            <MenuItem Header="Clear" Command="{Binding ClearCommand}" />
+                        </MenuFlyout>
+                    </ctrl:IconButton.Flyout>
+                </ctrl:IconButton>
+            </Grid>
+        </DataTemplate>
+        <!-- Build O: Wacom-style tile (icon over caption, blue frame when selected). Original look-alike. -->
+        <ControlTheme x:Key="WacomTile" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd" Background="{TemplateBinding Background}" BorderBrush="Transparent"
+                            BorderThickness="2" CornerRadius="{DynamicResource ButtonCornerRadius}" Padding="6,3" MinWidth="72">
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center"
+                                          Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="Background" Value="{DynamicResource AccentMutedBrush}" />
+            </Style>
+            <!-- R12: a selected tile is the app's selection look — #D8D8D8 fill, #141414 text and icon. -->
+            <Style Selector="^:checked">
+                <Setter Property="Foreground" Value="{DynamicResource SelectionTextBrush}" />
+            </Style>
+            <Style Selector="^:checked /template/ Border#Bd">
+                <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+                <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+            </Style>
+            <Style Selector="^:focus-visible /template/ Border#Bd">
+                <Setter Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}" />
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <!-- A single tablet's settings: the tabbed editor. Hosted as the in-app Tablets page, and by the
+         tray's focused Pen Dynamics dialog. DataContext is a TabletDetailViewModel. -->
+    <!-- The tablet name is this page's title, so the header sits at the SAME top position as every other
+         page's title — no extra top inset (#titlebar). Its right-aligned actions clear the native
+         min/max/close caption buttons by sitting just BELOW them (the two-line name makes the header tall
+         enough) — see the trailing row below. -->
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- Complex header (see docs/design/ux-terminology.md): the tablet name (model over brand) with a
+             trailing row of [status chip · Refresh · Forget], then an optional detail / refresh-warning line.
+             Hidden when hosted in the TABLET page (#542), which draws its own switcher header. -->
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,16">
+            <!-- Build R: only the name/status header hides on the TABLET page; the Device/Tool panel below always shows. -->
+            <StackPanel Spacing="8" IsVisible="{Binding ShowHeader}">
+            <ctrl:ComplexHeader Margin="0">
+                <ctrl:ComplexHeader.TitleContent>
+                    <!-- model (rest) large, over the brand (first word) small — the PageTitle look
+                         (Inter Light, uppercase) split across two lines.
+
+                         Off the type ramp on purpose: these two are a proportioned pair rather
+                         than two independent sizes, and the ramp has no step between its nav
+                         size and its display size for a header this shape. Move them together
+                         or not at all. -->
+                    <StackPanel VerticalAlignment="Center" MaxWidth="360">
+                        <TextBlock Text="{Binding TabletModel, Converter={x:Static otac:UpperCaseConverter.Instance}}"
+                                   FontFamily="{DynamicResource DisplayFontFamily}" FontSize="30" FontWeight="Light"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding TabletBrand, Converter={x:Static otac:UpperCaseConverter.Instance}}"
+                                   IsVisible="{Binding HasTabletBrand}"
+                                   FontFamily="{DynamicResource DisplayFontFamily}" FontSize="18" FontWeight="Light"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Margin="0,-2,0,0" />
+                    </StackPanel>
+                </ctrl:ComplexHeader.TitleContent>
+                <!-- Trailing: [status chip][Refresh], right-aligned. They clear the native min/max/close
+                     caption buttons by sitting BELOW them — the two-line tablet name makes the header tall
+                     enough that these vertically-centred actions fall under the caption zone. Forget lives
+                     on the Home tablet cards now (#575/#forget-home), not here. -->
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                    <Border Classes="tabletStatusChip" Classes.connected="{Binding IsTabletDetected}"
+                            Width="{Binding #RefreshBtn.Bounds.Width, Converter={x:Static otac:MultiplyConverter.Instance}, ConverterParameter=1.5}">
+                        <TextBlock Text="{Binding DetectionText}" FontWeight="SemiBold"
+                                   FontSize="{DynamicResource TypeCaptionSize}"
+                                   Foreground="{DynamicResource TextInverseBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <Button x:Name="RefreshBtn" Content="Refresh" Command="{Binding RefreshCommand}"
+                            ToolTip.Tip="Reload settings from daemon"
+                            Theme="{StaticResource GhostButton}" Padding="12,6" />
+                </StackPanel>
+            </ctrl:ComplexHeader>
+            <!-- When not detected, the chip just says "Not detected"; this line carries the fuller context. -->
+            <TextBlock Text="{Binding DetectionDetail}" FontStyle="Italic"
+                       Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"
+                       IsVisible="{Binding DetectionDetail, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+            <TextBlock Text="{Binding RefreshWarning}" FontStyle="Italic"
+                       Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"
+                       IsVisible="{Binding RefreshWarning, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+            <!-- Settings changed outside OTA (e.g. the OTD UX) while the user had an unsaved edit here.
+                 Non-destructive: Reload adopts the external values; otherwise it's picked up silently. -->
+            <!-- Build O: Wacom Tablet Properties-style Device / Tool / Application rows — icon tiles in white
+                 wells with < > scroll arrows, +/− beside Application. Icons are original drawings (no Wacom
+                 artwork). Tool decides which tabs show: Functions = ExpressKeys / Touch Ring; Pen = Pen /
+                 Eraser / Mapping; More = OTA's own tabs (About, Calibration, Filters, JSON). -->
+            <Border x:Name="WacomHeaderPane" Classes="wacomPane" Margin="0,6,0,0">
+            <Grid x:Name="WacomHeader" ColumnDefinitions="78,20,*,20,26" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="3">
+                <TextBlock Grid.Row="0" Text="Device:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
+                <RepeatButton Grid.Row="0" Grid.Column="1" Classes="wacomArrow" Content="&lt;" Tag="DeviceScroll" Click="OnTileScrollLeft" />
+                <Border Grid.Row="0" Grid.Column="2" Classes="wacomWell">
+                    <ScrollViewer x:Name="DeviceScroll" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="4,3">
+                            <RadioButton x:Name="DeviceTabletTile" GroupName="WacomDevice" Theme="{StaticResource WacomTile}" IsChecked="True" ToolTip.Tip="Tablet">
+                                <StackPanel Spacing="2">
+                                    <Viewbox Width="34" Height="26"><Canvas Width="34" Height="26"><Rectangle Width="34" Height="24" Canvas.Top="1" RadiusX="3" RadiusY="3" Classes="tileIcon" /><Rectangle Canvas.Left="10" Canvas.Top="4" Width="21" Height="18" Fill="{DynamicResource WacomTileWellBrush}" Opacity="0.35" /><Ellipse Canvas.Left="2" Canvas.Top="10" Width="6" Height="6" Stroke="{DynamicResource WacomTileWellBrush}" StrokeThickness="1.2" /></Canvas></Viewbox>
+                                    <TextBlock Text="{Binding TabletName}" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                </StackPanel>
+                            </RadioButton>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+                <RepeatButton Grid.Row="0" Grid.Column="3" Classes="wacomArrow" Content="&gt;" Tag="DeviceScroll" Click="OnTileScrollRight" />
+                <TextBlock Grid.Row="1" Text="Tool:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
+                <RepeatButton Grid.Row="1" Grid.Column="1" Classes="wacomArrow" Content="&lt;" Tag="ToolScroll" Click="OnTileScrollLeft" />
+                <Border Grid.Row="1" Grid.Column="2" Classes="wacomWell">
+                    <ScrollViewer x:Name="ToolScroll" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="4,3">
+                            <RadioButton x:Name="ToolFunctionsButton" GroupName="WacomTool" Theme="{StaticResource WacomTile}" Click="OnToolFunctions" ToolTip.Tip="Functions">
+                                <StackPanel Spacing="2">
+                                    <Viewbox Width="34" Height="26"><Canvas Width="34" Height="26"><Rectangle Canvas.Left="9" Width="16" Height="26" RadiusX="3" RadiusY="3" Classes="tileIcon" /><Ellipse Canvas.Left="12" Canvas.Top="8" Width="10" Height="10" Stroke="{DynamicResource WacomTileWellBrush}" StrokeThickness="1.5" /><Rectangle Canvas.Left="13" Canvas.Top="2" Width="8" Height="3" Fill="{DynamicResource WacomTileWellBrush}" Opacity="0.6" /><Rectangle Canvas.Left="13" Canvas.Top="21" Width="8" Height="3" Fill="{DynamicResource WacomTileWellBrush}" Opacity="0.6" /></Canvas></Viewbox>
+                                    <TextBlock Text="Functions" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="ToolPenButton" GroupName="WacomTool" Theme="{StaticResource WacomTile}" IsChecked="True" Click="OnToolPen" ToolTip.Tip="Pen">
+                                <StackPanel Spacing="2">
+                                    <ctrl:PenIcon x:Name="ToolPenIcon" />
+                                    <TextBlock Text="Pen" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="ToolMoreButton" GroupName="WacomTool" Theme="{StaticResource WacomTile}" Click="OnToolMore" ToolTip.Tip="More">
+                                <StackPanel Spacing="2">
+                                    <Viewbox Width="34" Height="26"><Canvas Width="34" Height="26"><Ellipse Canvas.Left="4" Canvas.Top="10" Width="6" Height="6" Classes="tileIcon" /><Ellipse Canvas.Left="14" Canvas.Top="10" Width="6" Height="6" Classes="tileIcon" /><Ellipse Canvas.Left="24" Canvas.Top="10" Width="6" Height="6" Classes="tileIcon" /></Canvas></Viewbox>
+                                    <TextBlock Text="More" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                </StackPanel>
+                            </RadioButton>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+                <RepeatButton Grid.Row="1" Grid.Column="3" Classes="wacomArrow" Content="&gt;" Tag="ToolScroll" Click="OnTileScrollRight" />
+                <TextBlock Grid.Row="2" Text="Application:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
+                <RepeatButton Grid.Row="2" Grid.Column="1" Classes="wacomArrow" Content="&lt;" Tag="ApplicationScroll" Click="OnTileScrollLeft" />
+                <Border Grid.Row="2" Grid.Column="2" Classes="wacomWell">
+                    <ScrollViewer x:Name="ApplicationScroll" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="4,3">
+                            <RadioButton x:Name="AppAllTile" GroupName="WacomApp" Theme="{StaticResource WacomTile}" IsChecked="True" ToolTip.Tip="All">
+                                <StackPanel Spacing="2">
+                                    <Viewbox Width="34" Height="26"><Canvas Width="34" Height="26"><Rectangle Canvas.Left="6" Canvas.Top="1" Width="10" Height="10" Classes="tileIcon" /><Rectangle Canvas.Left="18" Canvas.Top="1" Width="10" Height="10" Classes="tileIcon" Opacity="0.7" /><Rectangle Canvas.Left="6" Canvas.Top="13" Width="10" Height="10" Classes="tileIcon" Opacity="0.7" /><Rectangle Canvas.Left="18" Canvas.Top="13" Width="10" Height="10" Classes="tileIcon" Opacity="0.5" /></Canvas></Viewbox>
+                                    <TextBlock Text="All" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                </StackPanel>
+                            </RadioButton>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+                <RepeatButton Grid.Row="2" Grid.Column="3" Classes="wacomArrow" Content="&gt;" Tag="ApplicationScroll" Click="OnTileScrollRight" />
+                <StackPanel Grid.Row="2" Grid.Column="4" Spacing="2" VerticalAlignment="Center">
+                    <Button x:Name="AppAddButton" Classes="wacomPlusMinus" Content="+" IsEnabled="False"
+                            ToolTip.Tip="Application-specific settings: Tablet App for Mac has no per-app switching yet, so every setting applies to All." />
+                    <Button x:Name="AppRemoveButton" Classes="wacomPlusMinus" Content="−" IsEnabled="False"
+                            ToolTip.Tip="No application-specific settings to remove." />
+                </StackPanel>
+            </Grid>
+            </Border>
+
+        </StackPanel>
+
+        <!-- The tablet page's TAB MENU. It began as one row shared with the switcher dropdown and the
+             compact actions (Zune 2c, Option C); the switcher moved up to the shell's page menu
+             (#switcher-in-shell), so this row is the tabs alone — see the note just below.
+
+             The tabs are RadioButtons switched by ElementName: content gates on #XTab.IsChecked, and
+             code-behind reads the x:Names for live-input, deep-links and the screenshot sweep. Shown
+             only when this view is embedded in the TABLET page (!ShowHeader) — the tray dialog uses the
+             ComplexHeader above instead. -->
+        <Border Grid.Row="1" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1"
+                Margin="0,0,0,14" Padding="0,0,0,7">
+            <!-- Pivots only. The tablet switcher moved to the shell's top bar (#switcher-in-shell):
+                 it selects the app-wide active tablet, so it is chrome rather than page content, and
+                 taking it off this row gives the pivots the full width and the page back a band of
+                 vertical space. -->
+            <WrapPanel Orientation="Horizontal" x:Name="TabRail" VerticalAlignment="Center">
+                <!-- Build O: tabs follow the selected Tool tile, like Wacom. -->
+                <RadioButton Content="expresskeys" x:Name="ButtonsTab" IsVisible="{Binding #ToolFunctionsButton.IsChecked}"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
+                <RadioButton Content="touch ring" x:Name="WheelsTab"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3">
+                    <RadioButton.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="HasWheels" />
+                            <Binding Path="#ToolFunctionsButton.IsChecked" />
+                        </MultiBinding>
+                    </RadioButton.IsVisible>
+                </RadioButton>
+                <RadioButton Content="pen" x:Name="PenTab" IsChecked="True" IsVisible="{Binding #ToolPenButton.IsChecked}"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
+                <RadioButton Content="eraser" x:Name="EraserTab" IsVisible="{Binding #ToolPenButton.IsChecked}"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
+                <RadioButton Content="mapping" x:Name="MappingTab"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3">
+                    <RadioButton.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="HasAreaMapping" />
+                            <Binding Path="#ToolPenButton.IsChecked" />
+                        </MultiBinding>
+                    </RadioButton.IsVisible>
+                </RadioButton>
+                <RadioButton Content="about" x:Name="AboutTab" IsVisible="{Binding #ToolMoreButton.IsChecked}"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
+                <RadioButton Content="calibration" x:Name="CalibrationTab"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3">
+                    <RadioButton.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="HasAreaMapping" />
+                            <Binding Path="#ToolMoreButton.IsChecked" />
+                        </MultiBinding>
+                    </RadioButton.IsVisible>
+                </RadioButton>
+                <!-- R12: Max hover reachable again, under More (OTA). -->
+                <RadioButton Content="hover" x:Name="HoverTab" IsVisible="{Binding #ToolMoreButton.IsChecked}"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
+                <RadioButton Content="filters" x:Name="FiltersTab"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3">
+                    <RadioButton.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="ShowFiltersTab" />
+                            <Binding Path="#ToolMoreButton.IsChecked" />
+                        </MultiBinding>
+                    </RadioButton.IsVisible>
+                </RadioButton>
+                <RadioButton Content="json" x:Name="JsonTab"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3">
+                    <RadioButton.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="ShowJsonTab" />
+                            <Binding Path="#ToolMoreButton.IsChecked" />
+                        </MultiBinding>
+                    </RadioButton.IsVisible>
+                </RadioButton>
+            </WrapPanel>
+        </Border>
+
+        <!-- About tab content: a clean read-out of the tablet's specs, plus a Resources area that will
+             hold documentation / compatible-pen links over time. First tab, shown by default. -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
+                      IsVisible="{Binding #AboutTab.IsChecked}">
+            <StackPanel>
+                <!-- Two columns (#about-2col): specs (+ the config-override warning) left, resources right. -->
+                <Grid ColumnDefinitions="*,32,*">
+                <!-- LEFT — specifications. -->
+                <StackPanel Grid.Column="0">
+                <ctrl:Section>
+                    <StackPanel>
+                        <TextBlock Text="Model" Classes="Display section" Margin="0,0,0,0" />
+                        <!-- Spec rows; each is included by the VM only when the value is known. -->
+                        <ItemsControl ItemsSource="{Binding TabletFacts}" Margin="0,6,0,0"
+                                      IsVisible="{Binding HasTabletFacts}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="150,*" Margin="0,0,0,9">
+                                        <TextBlock Grid.Column="0" Text="{Binding Label}"
+                                                   Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Value}" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <!-- Specs only exist while the tablet is detected. -->
+                        <TextBlock Text="Connect this tablet to see its specifications."
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   Margin="0,10,0,0" TextWrapping="Wrap"
+                                   IsVisible="{Binding !HasTabletFacts}" />
+
+                    </StackPanel>
+                </ctrl:Section>
+
+                <!-- R14: the active-area facts and drawing lived here as well as on Mapping (the area's editor, with the
+                     same Area / Dimensions / Diagonal / Aspect ratio); Mapping is their one home now. -->
+
+                <!-- R14: the custom-config warning has one home, the Home page's health card (it used to be mirrored here, #467). -->
+
+                </StackPanel>
+
+                <!-- RIGHT — features (capabilities beyond the core dimensions; the split of the old spec
+                     list at the active-area aspect ratio). Hidden until the tablet is detected. -->
+                <StackPanel Grid.Column="2" VerticalAlignment="Top">
+                <ctrl:Section IsVisible="{Binding HasTabletFeatures}">
+                    <StackPanel>
+                        <TextBlock Text="Features" Classes="Display section" Margin="0,0,0,0" />
+                        <ItemsControl ItemsSource="{Binding TabletFeatures}" Margin="0,6,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="150,*" Margin="0,0,0,9">
+                                        <TextBlock Grid.Column="0" Text="{Binding Label}"
+                                                   Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Value}" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ctrl:Section>
+                </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Display Mapping tab content: pick a display + see the tablet's active area and the live
+             pen, all in one diagram (#250/#252). -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
+                      IsVisible="{Binding #MappingTab.IsChecked}">
+            <!-- One card, two columns: the tablet's active area on the left, the display it maps onto on
+                 the right. They're two halves of the same question ("what maps where"), so they read
+                 better side by side than stacked in separate cards. The pivot already says "mapping", so
+                 the section headings are gone (#map-merge). -->
+            <ctrl:Section IsVisible="{Binding HasAreaMapping}">
+                <Grid ColumnDefinitions="*,32,*">
+
+                    <!-- RIGHT: active area. -->
+                    <StackPanel Grid.Column="2">
+                        <!-- Diagram + stats when we have digitizer specs. -->
+                        <StackPanel IsVisible="{Binding TabletArea, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                            <ctrl:ActiveAreaDiagram x:Name="ActiveAreaDiagramControl"
+                                                    Area="{Binding TabletArea}"
+                                                    AccentBrush="{DynamicResource AccentBrush}"
+                                                    InkBrush="{DynamicResource TextPrimaryBrush}"
+                                                    Editable="True" />
+
+                            <!-- Size and rotation on one row, under the diagram they both act on (#199).
+                                 Drag the area / a corner up there; this slider is the same size control,
+                                 for precision.
+
+                                 Rotation was four radio buttons on a row of their own. Four mutually
+                                 exclusive values, set once when the tablet is turned and then left alone,
+                                 are what a dropdown is for — and collapsing them frees the row this now
+                                 shares with Size.
+
+                                 Maximize was a third control on the size row and is gone with them. It
+                                 was the only caller of the command behind it, and what goes with it is the
+                                 one-click centred fit: the slider at 100% grows the area to the same
+                                 maximum but about its current centre, so it is not the same operation.
+                                 Dragging on the diagram is how the area is centred now. -->
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="12" Margin="0,10,0,0">
+                                <TextBlock Grid.Column="0" Text="Size" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                                <Slider Grid.Column="1" Minimum="10" Maximum="100" MinWidth="120"
+                                        Value="{Binding ActiveAreaSizePercent}" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="2" Text="{Binding ActiveAreaSizePercent, StringFormat={}{0:0.0}%}"
+                                           MinWidth="38" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <TextBlock Grid.Column="3" Text="Rotation" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                                <ComboBox Grid.Column="4" MinWidth="104" VerticalAlignment="Center"
+                                          ItemsSource="{Binding RotationOptions}"
+                                          SelectedItem="{Binding SelectedRotation, Mode=TwoWay}"
+                                          IsEnabled="{Binding !RotationApplyRunning}"
+                                          ToolTip.Tip="Rotates the active area to match the tablet's orientation. 180° puts the ExpressKeys on the other side; 90° and 270° are portrait (the area shrinks to fit, keeping the display filled and undistorted). Recalibrate after rotating.">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Label}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </Grid>
+                            <!-- Full-tablet vs. active-area comparison table (#area-table): a row per metric,
+                                 a TABLET column (the whole digitizer) and an ACTIVE AREA column (the effective
+                                 mapped region). Every measurement carries both units, as the About tab's do
+                                 (#mapping-units) — there was a metric/imperial toggle to the right of this
+                                 table, and it made the artist set a switch in order to read a number. -->
+                            <Grid ColumnDefinitions="Auto,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                                  Margin="0,14,0,0" ColumnSpacing="16" RowSpacing="7">
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Tablet" Classes="SectionLabel" />
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Active area" Classes="SectionLabel" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Area"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="100%" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding ActiveAreaUsagePercentText}"
+                                           FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Dimensions"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                                <!-- These four carry both units, so they are the widest cells in the table
+                                     and the ones that stop fitting first: at MainWindow.MinWidth (800)
+                                     the column is ~127px against ~182px of text for the dimensions, which
+                                     were clipped. They wrap normally — no break point is reserved, and in
+                                     practice the space before the bracket is the one that gets used, so a
+                                     wrapped cell reads as millimetres over inches. The diagonals are
+                                     shorter and still fit on one line at 800. -->
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ActiveAreaFullText}"
+                                           FontWeight="SemiBold" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding ActiveAreaUsedText}"
+                                           FontWeight="SemiBold" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Diagonal"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding FullDiagonalText}"
+                                           FontWeight="SemiBold" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding UsedDiagonalText}"
+                                           FontWeight="SemiBold" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Aspect ratio"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding FullAspectText}"
+                                           FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding UsedAspectText}"
+                                           FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- No digitizer specs for this tablet — nothing to draw. -->
+                        <TextBlock Text="Active-area details aren't available for this tablet."
+                                   Margin="0,4,0,0" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   IsVisible="{Binding TabletArea, Converter={x:Static conv:ObjectConverters.IsNull}}" />
+                    </StackPanel>
+
+                    <!-- LEFT: the display it maps onto. -->
+                    <StackPanel Grid.Column="0">
+                        <!-- Flags a mapping that isn't a clean single-monitor one (#displaymap): an off-screen
+                             area is a warning (the pen hits dead zones); a custom/multi-display area is an
+                             informational note. Apply mapping below is the one-click fix for both. -->
+                        <Border IsVisible="{Binding ShowMappingOffScreen}" CornerRadius="0" Padding="12,10"
+                                Margin="0,0,0,12" Background="Transparent"
+                                BorderThickness="1.5" BorderBrush="{DynamicResource WarningBrush}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconAlert}" Width="15" Height="15"
+                                          VerticalAlignment="Top" Margin="0,1,0,0"
+                                          Foreground="{DynamicResource WarningBrush}" />
+                                <TextBlock Text="{Binding MappingValidityText}" FontWeight="SemiBold"
+                                           TextWrapping="Wrap" MaxWidth="360"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Border IsVisible="{Binding ShowMappingCustom}" CornerRadius="0" Padding="12,10"
+                                Margin="0,0,0,12" Background="Transparent"
+                                BorderThickness="1" BorderBrush="{DynamicResource DividerBrush}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconInformationOutline}" Width="15" Height="15"
+                                          VerticalAlignment="Top" Margin="0,1,0,0"
+                                          Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock Text="{Binding MappingValidityText}"
+                                           TextWrapping="Wrap" MaxWidth="360"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <!-- No Apply button: clicking a display in the diagram maps the tablet to it
+                             immediately, like every other edit on this tab. Only the Windows helper remains
+                             (below the diagram). (The manual "Refresh Display Settings" button is also gone —
+                             OnScreensChanged fires RefreshDisplaysCommand on any display change, so the list
+                             self-refreshes.) -->
+                        <!-- Screen area (Wacom's "Full" vs one monitor): "All displays" maps the pen across the
+                             whole extended desktop; clicking a display in the diagram maps it to that one. -->
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,10"
+                                    IsVisible="{Binding HasSeveralDisplays}">
+                            <TextBlock Text="Screen area:" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextMutedBrush}" />
+                            <Button Content="All displays" Padding="10,5"
+                                    Command="{Binding MapAllDisplaysCommand}"
+                                    ToolTip.Tip="Map the pen across every screen (the whole extended desktop)" />
+                            <TextBlock Text="✓ in use" VerticalAlignment="Center" FontWeight="SemiBold"
+                                       IsVisible="{Binding IsAllDisplaysMapped}"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="or click one display below" VerticalAlignment="Center"
+                                       IsVisible="{Binding !IsAllDisplaysMapped}"
+                                       Foreground="{DynamicResource TextMutedBrush}" />
+                            <CheckBox Content="Force proportions" IsChecked="{Binding ForceProportions}"
+                                      ToolTip.Tip="Keep the desktop's shape so circles stay round (force proportions)" />
+                        </StackPanel>
+                        <ctrl:ScreenMappingDiagram Displays="{Binding Displays}"
+                                                   SelectedNumber="{Binding SelectedDisplayNumber, Mode=TwoWay}"
+                                                   Area="{Binding TabletArea}"
+                                                   MappedOutput="{Binding MappedOutput}"
+                                                   MappingValidity="{Binding MappingValidity}"
+                                                   AccentBrush="{DynamicResource AccentBrush}"
+                                                   WarningBrush="{DynamicResource WarningBrush}"
+                                                   InkBrush="{DynamicResource TextPrimaryBrush}"
+                                                   Height="320" />
+                        <Button Content="Display Settings" Margin="0,10,0,0"
+                                Command="{Binding OpenDisplaySettingsCommand}"
+                                ToolTip.Tip="{x:Static h:PlatformText.DisplaySettingsTip}"
+                                Theme="{StaticResource GhostButton}" Padding="10,5" HorizontalAlignment="Left" />
+
+                        <!-- Per-display hardware: which connector/port and GPU drives each monitor. -->
+                        <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,14,0,12" />
+                        <ItemsControl ItemsSource="{Binding Displays}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" Margin="0,0,0,8">
+                                        <Border Grid.Column="0" Width="24" Height="24" CornerRadius="0"
+                                                Background="{DynamicResource AccentMutedBrush}" VerticalAlignment="Top">
+                                            <TextBlock Text="{Binding Number}" FontWeight="Bold"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource AccentBrush}" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="1">
+                                            <TextBlock Text="{Binding DisplayTitleWithPrimary}" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding DetailSubLine}"
+                                                       Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Grid>
+            </ctrl:Section>
+        </ScrollViewer>
+
+        <!-- Calibration tab content: split out of MAPPING (#252 merged it in; it has outgrown that).
+
+             STATE FIRST, then one named action (#cal-state-first). This tab used to open with a choice:
+             three equal cards for 4 / 9 / 25 points, each with its own accent START, under a "calibration
+             options" heading — with the current state relegated to a column beside a backup card. That
+             asked a question a first-time user has no way to answer (the difference between densities only
+             means something once you have tried one), while the captions underneath already said which to
+             start with. The layout and the copy disagreed.
+
+             Now: whether this tablet is calibrated is the first line; the primary button says exactly what
+             it will run; and the three diagrams live in a picker you open when you actually want to choose.
+             What the calibration corrected is drawn per point rather than averaged into a figure. -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
+                      IsVisible="{Binding #CalibrationTab.IsChecked}">
+            <WrapPanel ItemSpacing="32" LineSpacing="28">
+            <StackPanel Width="600" IsVisible="{Binding CanCalibrate}">
+
+                <!-- ── The state line. Plain ink at heading size: a fact, not a verdict. "Not calibrated"
+                     is the normal condition for most tablets and is styled exactly like being calibrated —
+                     no warning colour, no alert box. Turn off sits here rather than in a menu because
+                     comparing the correction on against off is something you do repeatedly. ── -->
+                <!-- Section heading in the same voice as the ABOUT tab's "model" / "active area" —
+                     Display.section, lower-case. The state below it is the answer this tab exists to give,
+                     so it takes the prominent content treatment (CardTitle) rather than a second heading:
+                     two lines at TypeSectionSize stacked would read as two headings and neither as content. -->
+                <TextBlock Classes="Display section" Text="This tablet" Margin="0,0,0,6" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" Margin="0,0,0,14">
+                    <StackPanel Grid.Column="0" MinWidth="0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding CalibrationStateHeadline}" Classes="CardTitle"
+                                   Margin="0,0,0,2" TextWrapping="Wrap" />
+                        <TextBlock Classes="Detail" Text="{Binding CalibrationDisplayText}" TextWrapping="Wrap" />
+                        <!-- Said out loud, because an empty state that looks like a problem reads as one. -->
+                        <TextBlock Classes="Detail" TextWrapping="Wrap" Margin="0,4,0,0"
+                                   IsVisible="{Binding !HasCalibration}"
+                                   Text="Calibrate only if the pointer sits away from the nib." />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="{Binding CalibrationToggleText}"
+                            Command="{Binding ToggleCalibrationEnabledCommand}"
+                            IsVisible="{Binding HasCalibration}"
+                            Theme="{StaticResource GhostButton}" Padding="12,6" VerticalAlignment="Center"
+                            ToolTip.Tip="Turns the correction on or off without clearing it, so you can compare." />
+                </Grid>
+
+                <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,0,0,16" />
+
+                <TextBlock Text="This calibration was made for a different display mapping. Recalibrate to keep it accurate."
+                           Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"
+                           IsVisible="{Binding CalibrationStale}" />
+
+                <!-- ── The action, naming its density. "Repeat 9-point calibration" leaves nothing to
+                     guess; a bare "Recalibrate" never said which of the three it would run. ── -->
+                <!-- ONE calibrate button, split. Pressing it does the obvious thing — repeat the density
+                     you already have, or 4 points for a first run — and the chevron opens the others. Two
+                     separate buttons made "start calibrating" look like two decisions when it is one.
+
+                     Composed from the app's own AccentButton rather than a themed SplitButton: nothing
+                     else here uses SplitButton, so it would arrive with Fluent's chrome and need a theme
+                     of its own to look like the buttons beside it. Spacing 0 and matching padding join
+                     the two halves into one control. -->
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="0">
+                        <Button Content="{Binding CalibrationPrimaryText}"
+                                Command="{Binding StartCalibrationCommand}"
+                                CommandParameter="{Binding CalibrationPrimaryChoice}"
+                                IsEnabled="{Binding CanRunCalibration}"
+                                Theme="{StaticResource AccentButton}" Padding="14,8"
+                                ToolTip.Tip="Run this calibration now" />
+                        <Button x:Name="CalibrateChevron" IsEnabled="{Binding CanRunCalibration}"
+                                Theme="{StaticResource AccentButton}" Padding="9,8"
+                                BorderThickness="0,1,1,1"
+                                ToolTip.Tip="Calibrate with a different number of points"
+                                AutomationProperties.Name="Calibrate with a different number of points">
+                            <PathIcon Data="{StaticResource IconChevronDown}" Width="12" Height="12"
+                                      VerticalAlignment="Center" />
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedLeft" FlyoutPresenterClasses="calPicker">
+                                    <!-- The full-size diagrams, in the flyout rather than on the tab: here
+                                         they are what you came to look at, so they get more room than the
+                                         three cards on the old tab gave them, not less. -->
+                                    <StackPanel Width="620" Margin="4">
+                                        <TextBlock Text="Calibrate with" Classes="CardTitle" Margin="0,0,0,10" />
+                                        <ItemsControl ItemsSource="{Binding CalibrationModeChoices}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate><UniformGrid Columns="3" /></ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Margin="0,0,10,0" Spacing="8">
+                                                        <Grid ColumnDefinitions="*,Auto">
+                                                            <TextBlock Grid.Column="0" Text="{Binding Label}" Classes="CardTitle" />
+                                                            <TextBlock Grid.Column="1" Classes="Detail" Text="{Binding Duration}"
+                                                                       VerticalAlignment="Center" />
+                                                        </Grid>
+                                                        <ctrl:CalibrationDots Points="{Binding Points}" Height="86"
+                                                                              DotBrush="{DynamicResource AccentBrush}" />
+                                                        <!-- Click handler, not a Command: a flyout's contents sit in a
+                                                             popup outside this row's visual tree, so
+                                                             $parent[ItemsControl] cannot resolve from in here. -->
+                                                        <Button Content="Start" Click="OnStartCalibrationChoice"
+                                                                Theme="{StaticResource GhostButton}" Padding="12,6"
+                                                                HorizontalAlignment="Stretch" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <ctrl:IconButton Icon="{StaticResource IconDotsHorizontal}" VerticalAlignment="Center"
+                                  ToolTip.Tip="More calibration actions"
+                                  AutomationProperties.Name="More calibration actions">
+                        <ctrl:IconButton.Flyout>
+                            <MenuFlyout>
+                                <MenuItem Header="View report…" Click="OnViewCalibrationReport"
+                                          IsEnabled="{Binding HasCalibrationReport}" />
+                                <MenuItem Header="Export calibration…" Click="OnExportCalibration"
+                                          IsEnabled="{Binding CanExportCalibration}" />
+                                <MenuItem Header="Import calibration…" Click="OnImportCalibration" />
+                                <Separator />
+                                <MenuItem Header="Clear calibration" Command="{Binding ClearCalibrationCommand}"
+                                          Foreground="{DynamicResource ErrorBrush}" />
+                            </MenuFlyout>
+                        </ctrl:IconButton.Flyout>
+                    </ctrl:IconButton>
+                </StackPanel>
+                <TextBlock Classes="Detail" Margin="0,6,0,0" TextWrapping="Wrap"
+                           IsVisible="{Binding HasCalibration}"
+                           Text="Your current calibration stays in place until a new one finishes." />
+
+                <!-- ── What it corrected, per point. The error is a field, not a figure: drift usually
+                     grows toward one corner, and an average hides where it is worst. The numbers stay,
+                     in the plural, as a caption. ── -->
+                <StackPanel Margin="0,22,0,0" IsVisible="{Binding HasCalibrationErrorMap}">
+                    <TextBlock Classes="SectionLabel" Text="What it corrected, per point" Margin="0,0,0,8" />
+                    <Grid ColumnDefinitions="330,20,*">
+                        <ctrl:CalibrationErrorMap Grid.Column="0" Height="196"
+                                                  Points="{Binding CalibrationErrorPoints}"
+                                                  DotBrush="{DynamicResource AccentBrush}"
+                                                  TargetBrush="{DynamicResource TextMutedBrush}" />
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="10">
+                            <TextBlock TextWrapping="Wrap"
+                                       Text="Rings are where you aimed; dots are where the uncorrected pen landed." />
+                            <!-- The exaggeration has to be stated. Unlabelled, a magnified offset reads as
+                                 a far worse tablet than you actually have. -->
+                            <TextBlock Classes="Detail" TextWrapping="Wrap"
+                                       Text="Offsets drawn at 8× so they are visible." />
+                            <TextBlock Text="{Binding CalibrationErrorSummary}" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                            <TextBlock Classes="Detail" TextWrapping="Wrap"
+                                       IsVisible="{Binding HasCalibrationFitWarning}"
+                                       Text="{Binding CalibrationFitWarning}" />
+                            <TextBlock Classes="Detail" TextWrapping="Wrap"
+                                       IsVisible="{Binding HasCalibrationTilt}"
+                                       Text="{Binding CalibrationTiltText}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- What calibration is, for anyone who opened this tab unsure whether they need it. -->
+            <StackPanel Width="300" VerticalAlignment="Top" IsVisible="{Binding CanCalibrate}">
+                <TextBlock Classes="Display section" Text="About calibration" Margin="0,0,0,8" />
+                <StackPanel Spacing="10">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="On some pen displays the pointer lands slightly away from the nib. Calibration measures that offset by asking you to hold the pen on a few targets, then corrects for it." />
+                    <TextBlock TextWrapping="Wrap"
+                               Text="It applies to the display this tablet is mapped to. Changing the mapping needs a new calibration; the line above says when." />
+                    <TextBlock TextWrapping="Wrap"
+                               Text="More points sample more of the surface. Four suits almost every tablet; reach for nine or twenty-five only if four leaves the pointer off in places." />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Width="600" IsVisible="{Binding !CanCalibrate}">
+                <TextBlock Text="Calibration is available in Absolute mode." Foreground="{DynamicResource TextMutedBrush}"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel Width="600" IsVisible="{Binding ShowConnectToCalibrateHint}">
+                <TextBlock Text="Connect this tablet to calibrate." Foreground="{DynamicResource TextMutedBrush}"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+            </WrapPanel>
+        </ScrollViewer>
+
+        <!-- Buttons tab: the tablet's auxiliary (express-key) buttons. -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
+                      IsVisible="{Binding #ButtonsTab.IsChecked}">
+            <!-- Definite-width blocks in a WrapPanel, the layout the rest of the app uses: the list
+                 stops stretching the full window (which put a row's "…" most of a screen from the label
+                 it acts on) and the about column gets to sit beside it, dropping underneath when the
+                 window is too narrow for both. -->
+            <WrapPanel ItemSpacing="32" LineSpacing="28">
+            <StackPanel Width="600">
+                <!-- Just the master enable toggle. There is no heading: the tab is already called
+                     "buttons" in 40 px an inch above, and "TABLET BUTTONS" only said it again in small
+                     caps — the about tab's headings name SECTIONS within a tab, which this single list
+                     does not have.
+
+                     "Clear all" used to sit here too. It wiped every express-key mapping on one click
+                     with no confirmation, and because it also dropped the suspend stash there was no way
+                     back — a few pixels from a toggle whose whole point is that it is reversible. Every
+                     row already carries Clear in its own "…", which is the same thing at a pace you can
+                     stop halfway through. -->
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,10"
+                            HorizontalAlignment="Left" IsVisible="{Binding ShowAuxControls}">
+                    <TextBlock Text="Enable buttons" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <ToggleSwitch IsChecked="{Binding AuxButtonsEnabled}" OnContent="" OffContent=""
+                                  MinWidth="0" VerticalAlignment="Center"
+                                  ToolTip.Tip="Turn all express keys on or off. Your mappings are kept and restored when you turn them back on." />
+                </StackPanel>
+
+                <!-- Two columns of cards so a dozen keys stay on one screen; the shared card template
+                     supplies the vertical gap between rows, the wrapper the gutter. Half of 600 keeps a
+                     row's "…" close to the label it belongs to. -->
+                <!-- Build N.1: Wacom-like layout — an original drawn tablet edge on the left with a key per row and a
+                     line from each key to its row (no Wacom artwork). The key lights while held on the tablet. -->
+                <Button x:Name="KeysDefaultButton" Content="Default" HorizontalAlignment="Right" Margin="0,0,0,8"
+                        Click="OnKeysDefault" IsVisible="{Binding ShowAuxControls}" IsEnabled="{Binding AuxButtonsEnabled}"
+                        ToolTip.Tip="Clear every ExpressKey action (no action). Asks first." />
+                <Grid x:Name="ExpressKeysDiagram" IsVisible="{Binding !NoAuxButtons}" Width="600" HorizontalAlignment="Left">
+                    <Border Width="64" HorizontalAlignment="Left" CornerRadius="14,0,0,14" BorderThickness="2,2,0,2"
+                            BorderBrush="{DynamicResource TextMutedBrush}" Background="{DynamicResource GlassBgBrush}" />
+                    <ItemsControl ItemsSource="{Binding AuxButtons}" Margin="0,10">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="64,36,*">
+                                    <Border Classes="expressKeyNub" Classes.pressed="{Binding IsPressed}" Width="30" Height="20" CornerRadius="5"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Index}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <Border Grid.Column="1" Height="1" VerticalAlignment="Center" Margin="-12,0,0,0"
+                                            Background="{DynamicResource TextMutedBrush}" />
+                                    <ContentControl Grid.Column="2" Content="{Binding}" ContentTemplate="{StaticResource ButtonBindingCard}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <!-- Empty state when the tablet has no auxiliary buttons. -->
+                <ctrl:Section IsVisible="{Binding NoAuxButtons}">
+                    <TextBlock Text="No auxiliary buttons configured"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+                </ctrl:Section>
+            </StackPanel>
+
+            <!-- What express keys are, for anyone who opened this tab unsure. Hidden when the tablet has
+                 none: explaining keys you do not have is noise. -->
+            <StackPanel Width="300" VerticalAlignment="Top" IsVisible="{Binding !NoAuxButtons}">
+                <TextBlock Classes="Display section" Text="About ExpressKeys" Margin="0,0,0,8" />
+                <StackPanel Spacing="10">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="The keys on the tablet itself, not on the pen. Each one can hold a keyboard shortcut, a mouse button or a scroll, and they belong to this tablet's profile." />
+                    <!-- The live highlight is the answer to "which key is Button 3?", and nothing on the
+                         tab said it was there. Saying so is the cheapest version of that fix. -->
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Press a key on the tablet to light its row here." />
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Enable buttons switches every key off without deleting anything, for when one sits where your hand rests. Turn it back on and your mappings return." />
+                </StackPanel>
+            </StackPanel>
+            </WrapPanel>
+        </ScrollViewer>
+
+        <!-- Wheels tab: per-wheel rotation bindings (CW/CCW) + sensitivity + wheel buttons. Reuses the
+             ExpressKeys binding-editor card. The pivot is hidden when the tablet reports no wheel. -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
+                      IsVisible="{Binding #WheelsTab.IsChecked}">
+            <!-- R18: a top band (Enable wheels + the wheel's own rows on the left, About in the top right
+                 corner), then the Touch Ring modes across the FULL width. The About block overlays the right of
+                 the band; the band's left part keeps clear of it (right margin on WheelTopBand). -->
+            <Grid x:Name="WheelsPage" Margin="0,0,4,0">
+            <StackPanel>
+                <!-- Just the master enable toggle, matching Buttons. The heading here said "TABLET
+                     WHEELS" under a tab called "wheels" — the same restatement, dropped for the same
+                     reason. ("Clear all" left this header earlier, when every row got its own Clear:
+                     #wheel-row-actions.) Each wheel still labels itself, when there is more than one. -->
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,10"
+                            HorizontalAlignment="Left" IsVisible="{Binding ShowWheelControls}">
+                    <TextBlock Text="Enable wheels" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <ToggleSwitch IsChecked="{Binding WheelEnabled}" OnContent="" OffContent=""
+                                  MinWidth="0" VerticalAlignment="Center"
+                                  ToolTip.Tip="Pauses or resumes all ring actions. Your actions are kept." />
+                </StackPanel>
+
+                <!-- One card per wheel: the live gauge on the left, and every mapping for that wheel
+                     (clockwise + counter-clockwise actions with sensitivity, and the wheel button)
+                     grouped on the right — so a wheel is a single self-contained unit (#310). -->
+                <ItemsControl ItemsSource="{Binding Wheels}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ctrl:Entity>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}" Classes="SectionLabel"
+                                               IsVisible="{Binding ShowTitle}" Margin="0,0,0,6" />
+
+                                    <Grid x:Name="WheelTopBand" ColumnDefinitions="Auto,*" ColumnSpacing="16" Margin="0,0,364,0">
+                                        <!-- Live gauge: marker + fading trail + current angle. -->
+                                        <!-- Build N.1: hidden while ring modes are on — the big ring picture below lights the position instead. -->
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" IsVisible="{Binding !RingModes.IsOn, FallbackValue=True}">
+                                            <ctrl:WheelGauge Position="{Binding LivePosition}"
+                                                             TurningClockwise="{Binding TurningClockwise}"
+                                                             TurningCounterClockwise="{Binding TurningCounterClockwise}"
+                                                             AccentBrush="{DynamicResource AccentBrush}"
+                                                             Width="104" Height="104" HorizontalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <!-- All mappings for this wheel, as flat rows in the one card. -->
+                                        <StackPanel Grid.Column="1" MinWidth="0">
+                                            <!-- Plain direction bindings — replaced by the mode list while ring modes are on. -->
+                                            <StackPanel IsVisible="{Binding !RingModes.IsOn, FallbackValue=True}">
+                                            <!-- Clockwise binding. -->
+                                            <ContentControl Content="{Binding Clockwise}"
+                                                            ContentTemplate="{StaticResource WheelBindingRow}" />
+
+                                            <Border Classes="wheelRowDivider" />
+
+                                            <!-- Counter-clockwise binding. -->
+                                            <ContentControl Content="{Binding CounterClockwise}"
+                                                            ContentTemplate="{StaticResource WheelBindingRow}" />
+                                            </StackPanel>
+
+                                            <!-- While ring modes are on, the ring button belongs to them. -->
+                                            <StackPanel Spacing="2" Margin="0,8" IsVisible="{Binding RingModes.IsOn, FallbackValue=False}">
+                                                <TextBlock Text="Centre button" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                                <TextBlock Text="Steps to the next ring mode."
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                            </StackPanel>
+
+                                            <!-- Per-direction "Sensitivity" (activation threshold) sliders were removed
+                                                 for the RC: the continuous slider is a poor fit for a setting whose only
+                                                 meaningful values are a few whole multiples of the wheel's step size, and
+                                                 it only matters once a rotation is bound. The WheelEditor plumbing
+                                                 (ClockwiseThreshold, ThresholdMin/Max/Tick, ApplyWheelThresholdAsync) is
+                                                 kept for when a better-designed control returns. See #584. -->
+
+                                            <!-- Wheel button(s), each its own row under a hairline. -->
+                                            <ItemsControl ItemsSource="{Binding Buttons}">
+                                                <ItemsControl.IsVisible>
+                                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                        <Binding Path="HasButtons" />
+                                                        <Binding Path="!RingModes.IsOn" FallbackValue="True" />
+                                                    </MultiBinding>
+                                                </ItemsControl.IsVisible>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel>
+                                                            <Border Classes="wheelRowDivider" />
+                                                            <ContentControl Content="{Binding}"
+                                                                            ContentTemplate="{StaticResource WheelBindingRow}" />
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Wacom-style Touch Ring modes: the ring button steps through up to four
+                                         modes, each sending its own keys per direction (brush size, zoom, …). -->
+                                    <Border Classes="wheelRowDivider" Margin="0,10,0,0" />
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,8,364,8">
+                                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                                            <TextBlock Text="Touch Ring modes" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                                            <TextBlock Text="{Binding RingModes.Summary}" TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        </StackPanel>
+                                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding RingModes.IsOn}"
+                                                      IsEnabled="{Binding RingModes.CanEdit}"
+                                                      OnContent="" OffContent="" MinWidth="0" VerticalAlignment="Center"
+                                                      AutomationProperties.Name="Ring modes"
+                                                      ToolTip.Tip="Up to four ring modes, each with its own keys. The centre button switches mode." />
+                                    </Grid>
+                                    <CheckBox Content="Show touch ring setting (on-screen mode display)"
+                                              IsChecked="{Binding RingModes.ShowOnScreen}"
+                                              IsVisible="{Binding RingModes.IsOn, FallbackValue=False}"
+                                              Margin="0,0,0,4" />
+<!-- Build N (Wacom-style): a Touch Ring picture with the four modes listed around it (like Wacom
+                                         Tablet Properties' Touch Ring tab), then one card per mode in a 2 × 2 grid with its
+                                         Function dropdown, Speed (Slow–Fast, typed or slider) and keys. Same view-models as M. -->
+                                    <StackPanel IsVisible="{Binding RingModes.IsOn, FallbackValue=False}" Spacing="8">
+                                        <!-- Build O: Wacom Touch Ring tab layout — the ring on the left (original drawing; live
+                                             position lit on it), then a table: Toggle | Function | Speed, one row per mode,
+                                             each joined to the ring by a line; Default bottom right. -->
+                                        <Grid x:Name="RingDiagram" ColumnDefinitions="Auto,*" ColumnSpacing="32" Margin="0,8,0,4">
+                                            <Grid Grid.Column="0" RowDefinitions="Auto,*" Width="170">
+                                                <TextBlock Text="Toggle" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,6" />
+                                                <StackPanel Grid.Row="1" VerticalAlignment="Top" Margin="0,24,0,0" Spacing="8">
+                                                <Panel Width="150" Height="150">
+                                                    <Ellipse Fill="{DynamicResource PenDiagramFillBrush}" />
+                                                    <Ellipse Margin="16" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="14" Opacity="0.6" />
+                                                    <ctrl:WheelGauge x:Name="BigRingGauge" ShowIdleDash="False" ShowReadout="False" IsHitTestVisible="False" Position="{Binding LivePosition}"
+                                                                     TurningClockwise="{Binding TurningClockwise}"
+                                                                     TurningCounterClockwise="{Binding TurningCounterClockwise}"
+                                                                     AccentBrush="{DynamicResource AccentBrush}" Margin="2" />
+                                                    <!-- R18: the centre button, lighter (#9A9A9A; nothing above #E4E4E4) and clickable: a click
+                                                         steps the highlighted mode like a press of the real button (UI only). -->
+                                                    <Button x:Name="RingCentreButton" Classes="ringCentre" Width="44" Height="44"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                            Command="{Binding RingModes.StepActiveCommand}"
+                                                            AutomationProperties.Name="Ring centre button"
+                                                            ToolTip.Tip="Show the next mode here. The tablet's own centre button switches the driver's mode.">
+                                                        <!-- Version 1: the active mode's number on the toggle button. -->
+                                                        <TextBlock x:Name="RingCentreNumber" Text="{Binding RingModes.ActiveMode}"
+                                                                   IsVisible="{Binding RingModes.HasActiveMode, FallbackValue=False}"
+                                                                   FontSize="20" FontWeight="Bold" Foreground="#141414"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" />
+                                                    </Button>
+                                                </Panel>
+                                                <!-- Version 1: angle and direction under the ring, bright and readable. -->
+                                                <TextBlock x:Name="RingReadout" Text="{Binding LiveReadout}" HorizontalAlignment="Center"
+                                                           FontSize="15" FontWeight="SemiBold" Foreground="#E4E4E4" MinHeight="20" TextAlignment="Center" />
+                                                </StackPanel>
+                                            </Grid>
+                                            <StackPanel Grid.Column="1" Spacing="0">
+                                                <Grid ColumnDefinitions="34,*,24,*" Margin="0,0,0,6">
+                                                    <TextBlock Grid.Column="1" Text="Function" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                                    <TextBlock Grid.Column="3" Text="Speed" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                                </Grid>
+                                                <ItemsControl ItemsSource="{Binding RingModes.Rows}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid ColumnDefinitions="34,*" Margin="0,0,0,22">
+                                                                <!-- connector from the ring to this row -->
+                                                                <Border Height="1" Width="40" Margin="-30,14,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
+                                                                        Background="{DynamicResource TextMutedBrush}" />
+                                                                <Border Classes="ringBadge" Classes.activeMode="{Binding IsActive}" Margin="0,4,0,0" VerticalAlignment="Top">
+                                                                    <TextBlock x:Name="RingBadgeNumber" Text="{Binding Number}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                               TextAlignment="Center" LineHeight="14" Margin="0,0,0,1" />
+                                                                </Border>
+                                                                <StackPanel Grid.Column="1">
+                                                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,2">
+                                                                        <TextBox x:Name="RingModeName" Text="{Binding Name, UpdateSourceTrigger=LostFocus}" FontSize="12" MinHeight="24" Padding="6,2"
+                                                                                 Width="{Binding NameBoxWidth}" MinWidth="0" HorizontalAlignment="Left" VerticalContentAlignment="Center"
+                                                                                 IsEnabled="{Binding CanEdit}" Watermark="Name"
+                                                                                 AutomationProperties.Name="{Binding Title}" />
+                                                                        <CheckBox Content="On" IsChecked="{Binding Enabled}"
+                                                                                  IsEnabled="{Binding CanEdit}"
+                                                                                  ToolTip.Tip="Off = Skip: the Toggle button skips this mode." />
+                                                                    </StackPanel>
+                                                                    <StackPanel IsEnabled="{Binding Enabled}">
+                                                                        <views:RingStepEditor />
+                                                                        <StackPanel IsVisible="{Binding UsesKeys}">
+                                                                            <ContentControl Content="{Binding Clockwise}"
+                                                                                            ContentTemplate="{StaticResource WheelBindingRow}" />
+                                                                            <ContentControl Content="{Binding CounterClockwise}"
+                                                                                            ContentTemplate="{StaticResource WheelBindingRow}" />
+                                                                        </StackPanel>
+                                                                    </StackPanel>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Grid>
+                                        <Button x:Name="RingDefaultButton" Content="Default" HorizontalAlignment="Right" MinWidth="90"
+                                                Click="OnRingDefault" IsEnabled="{Binding RingModes.CanEdit, FallbackValue=False}"
+                                                ToolTip.Tip="Reset the four ring modes to the defaults (asks first)." />
+                                    </StackPanel>
+                                </StackPanel>
+                            </ctrl:Entity>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- What the touch ring is (R18: rewritten; top right corner, level with Enable wheels). Always shown:
+                 the pivot itself is hidden when the tablet reports no wheel, so reaching this tab means there is one. -->
+            <StackPanel x:Name="AboutTouchRing" Width="340" HorizontalAlignment="Right" VerticalAlignment="Top">
+                <TextBlock Classes="Display section" Text="About the touch ring" Margin="0,0,0,8" />
+                <StackPanel Spacing="10">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Clockwise and anticlockwise turns can have different actions, and the centre button can have its own." />
+                    <TextBlock TextWrapping="Wrap"
+                               Text="The dial on screen follows the ring live, so you can check it&apos;s working before you set anything up." />
+                    <TextBlock TextWrapping="Wrap"
+                               Text="Turning off Enable wheels pauses all ring actions without deleting them." />
+                </StackPanel>
+            </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Hover tab content (#188) -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
+                      IsVisible="{Binding #HoverTab.IsChecked}">
+            <StackPanel IsEnabled="{Binding CanEditHover}">
+                <!-- Master On/Off header row. -->
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="2,2,2,10">
+                    <TextBlock Grid.Column="0" Text="Hover limit" Classes="SectionLabel" VerticalAlignment="Center" />
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  OnContent="On" OffContent="Off"
+                                  IsChecked="{Binding HoverLimitEnabled}" />
+                </Grid>
+
+                <ctrl:Section Margin="0,0,0,10"
+                        IsEnabled="{Binding HoverLimitEnabled}" Opacity="{Binding HoverControlsOpacity}">
+                    <StackPanel>
+                        <TextBlock Text="Stops cursor tracking once the pen lifts past this distance. Drawing is unaffected."
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" />
+                        <ctrl:LabeledSlider Label="Max hover" LabelWidth="80"
+                                            Minimum="1" Maximum="255"
+                                            Value="{Binding MaxHoverDistance}"
+                                            ValueTextOverride="{Binding MaxHoverDistanceText}"
+                                            Monospace="True" ValueWidth="40"
+                                            ToolTip.Tip="Lower = the cursor stops sooner as you lift the pen. Higher = allow more hover (255 = no limit)." />
+                        <TextBlock Text="Hover distance is 0 to 255, where the tablet provides it. Diagnostics shows the live value."
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextMutedBrush}" Margin="0,10,0,0" />
+
+                        <!-- Near-proximity gate (#311): track only in the tablet's close band (Wacom default). -->
+                        <Border Height="1" Background="{DynamicResource GlassBorderBrush}" Margin="0,14,0,12" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Near proximity only"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <TextBlock Text="Track only while the pen is near the surface. Needs proximity data from the tablet."
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextMutedBrush}" Margin="0,2,0,0" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" MinWidth="0"
+                                          OnContent="" OffContent=""
+                                          IsChecked="{Binding NearProximityOnly}" />
+                        </Grid>
+                    </StackPanel>
+                </ctrl:Section>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Filters tab content: one card per filter on the profile. -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
+                      IsVisible="{Binding #FiltersTab.IsChecked}">
+            <StackPanel>
+                <!-- No heading: "FILTERS" restated the tab's own name, the last of three that did
+                     (#aux-clear-all). It was also the last user of the TabTitle style, which goes too. -->
+                <ItemsControl ItemsSource="{Binding Filters}" IsVisible="{Binding HasFilters}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ctrl:Section Padding="16,12" Margin="0,0,0,10">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       TextWrapping="Wrap" VerticalAlignment="Center" />
+                                            <!-- Stale leftover from an older app/plugin name: inert, should be cleaned. -->
+                                            <ctrl:Chip Text="Legacy" Kind="Warning" IsVisible="{Binding IsLegacy}"
+                                                       ToolTip.Tip="Left over from an older version. The OTD daemon has no plugin for it, so it has no effect and is removed automatically." />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding FullPath}"
+                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </ctrl:Section>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Empty state when the profile has no filters. -->
+                <ctrl:Section IsVisible="{Binding !HasFilters}">
+                    <TextBlock Text="No filters configured"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+                </ctrl:Section>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- JSON tab content -->
+        <ctrl:Section Grid.Row="2"
+                IsVisible="{Binding #JsonTab.IsChecked}">
+            <TextBox Text="{Binding RawJson, Mode=OneWay}" IsReadOnly="True"
+                     FontFamily="{DynamicResource MonoFontFamily}"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     Background="Transparent" BorderThickness="0"
+                     TextWrapping="NoWrap"
+                     AcceptsReturn="True" />
+        </ctrl:Section>
+        <!-- ===== Build O: PEN tab, laid out like Wacom's (Tip Feel Soft–Firm on the left, pen buttons beside a
+             drawn pen on the right, Default bottom right). Tip Feel is OTA's pressure curve (Softness, mirrored);
+             Customise… opens the full curve editor. OTD has no tilt-sensitivity or double-click-distance setting,
+             so those Wacom controls are replaced by what OTD can do (tilt on/off) or left out. ===== -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
+                      IsVisible="{Binding #PenTab.IsChecked}">
+            <Border Classes="wacomPane" HorizontalAlignment="Left" Width="720">
+            <StackPanel Spacing="10">
+                <Grid ColumnDefinitions="250,24,*">
+                    <StackPanel Spacing="12">
+                        <HeaderedContentControl Classes="wacomGroup" Header="Tilt">
+                            <CheckBox Content="Turn tilt off" IsChecked="{Binding DisableTilt}"
+                                      ToolTip.Tip="OTD has no tilt-sensitivity curve; tilt can only be on or off." />
+                        </HeaderedContentControl>
+                        <HeaderedContentControl Classes="wacomGroup" Header="Tip Feel">
+                            <StackPanel Spacing="4">
+                                <Slider x:Name="TipFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
+                                        TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
+                                        AutomationProperties.Name="Tip Feel" />
+                                <Grid ColumnDefinitions="*,*"><TextBlock Text="Soft" FontSize="12" />
+                                    <TextBlock Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <Button Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeFeel"
+                                        ToolTip.Tip="Open the full pressure curve (shared by tip and eraser)." />
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock Text="Current pressure" FontSize="12" />
+                                    <TextBlock Grid.Column="1" x:Name="LivePressurePercent" Text="{Binding LiveTipPercentText}" FontSize="12" FontWeight="SemiBold"
+                                               ToolTip.Tip="{Binding LiveTipInputText}" /></Grid>
+                                <ProgressBar Minimum="0" Maximum="1" Value="{Binding LiveTipPressure, FallbackValue=0, TargetNullValue=0}" Height="10" MinWidth="0" />
+                                <Grid ColumnDefinitions="*,*"><TextBlock Text="Click" FontSize="12" />
+                                    <TextBlock Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                            </StackPanel>
+                        </HeaderedContentControl>
+                        <!-- Version 1: the pressure used while pressure sensitivity is off. -->
+                        <HeaderedContentControl x:Name="ManualTipPressureFrame" Classes="wacomGroup" Header="Manual Pen Tip Pressure">
+                            <StackPanel Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                                    <Slider x:Name="ManualTipPressureSlider" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1"
+                                            TickFrequency="0.25" TickPlacement="BottomRight" VerticalAlignment="Center"
+                                            Value="{Binding ManualTipPressure}" AutomationProperties.Name="Manual Pen Tip Pressure" />
+                                    <TextBox x:Name="ManualTipPressureBox" Grid.Column="1" Width="48" MinWidth="0" VerticalAlignment="Center"
+                                             HorizontalContentAlignment="Right" Text="{Binding ManualTipPercent, UpdateSourceTrigger=LostFocus}"
+                                             AutomationProperties.Name="Manual Pen Tip Pressure (%)" />
+                                    <TextBlock Grid.Column="2" Text="%" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*"><TextBlock Text="0%" FontSize="12" />
+                                    <TextBlock Grid.Column="1" Text="100%" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <TextBlock Text="Used for every stroke while pressure sensitivity is off." FontSize="11" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                            </StackPanel>
+                        </HeaderedContentControl>
+                    </StackPanel>
+                    <Grid Grid.Column="2" ColumnDefinitions="64,24,*">
+                        <views:PenDiagram VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="2" Spacing="24" VerticalAlignment="Center">
+                            <TextBlock x:Name="PenButtonTestLine" Text="{Binding PenButtonTestText}" FontSize="12"
+                                       Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HasPenButtons}" />
+                            <views:PenSwitchCard DataContext="{Binding PenButton3Row}"
+                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton3Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                            <views:PenSwitchCard DataContext="{Binding PenButton2Row}"
+                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton2Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                            <views:PenSwitchCard DataContext="{Binding PenButton1Row}"
+                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                            <views:PenSwitchCard DataContext="{Binding PenTipRow}" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+                <Border x:Name="FeelDetails" IsVisible="False" Classes="wacomPane">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Feel Details (shared by tip and eraser)" FontWeight="SemiBold" />
+                        <views:DynamicsView />
+                    </StackPanel>
+                </Border>
+                <!-- R14 (the user's mock-up): movement and pen input, formerly the top-level Pen page, in one panel. -->
+                <!-- R16 (the user's mock-up): a darker inset frame (#262626, sampled) with a subtle #4A4A4A border. -->
+                <Border x:Name="PenBasicsBox" Classes="penBasicsInset" Padding="16">
+                    <views:PenBasicsPanel />
+                </Border>
+            </StackPanel>
+            </Border>
+        </ScrollViewer>
+
+        <!-- ===== Build O: ERASER tab (Eraser Feel + the eraser's function beside the drawn pen). ===== -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
+                      IsVisible="{Binding #EraserTab.IsChecked}">
+            <Border Classes="wacomPane" HorizontalAlignment="Left" Width="720">
+            <StackPanel Spacing="10">
+                <Grid ColumnDefinitions="250,24,*">
+                    <!-- R18: every Pen-frame control has its Eraser counterpart. OTD has one tilt flag and one
+                         pressure curve for both ends, so those are the same settings, marked "Shared with Pen". -->
+                    <StackPanel x:Name="EraserLeftColumn" Spacing="12">
+                        <HeaderedContentControl Classes="wacomGroup" Header="Tilt">
+                            <StackPanel Spacing="4">
+                                <CheckBox x:Name="EraserTiltBox" Content="Turn tilt off" IsChecked="{Binding DisableTilt}" />
+                                <TextBlock Text="Shared with Pen." FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                            </StackPanel>
+                        </HeaderedContentControl>
+                        <HeaderedContentControl Classes="wacomGroup" Header="Eraser Feel">
+                            <StackPanel Spacing="4">
+                                <Slider x:Name="EraserFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
+                                        TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
+                                        AutomationProperties.Name="Eraser Feel" />
+                                <Grid ColumnDefinitions="*,*"><TextBlock Text="Soft" FontSize="12" />
+                                    <TextBlock Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <Button x:Name="EraserCustomizeButton" Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeEraserFeel"
+                                        ToolTip.Tip="Open the full pressure curve." />
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock Text="Current pressure" FontSize="12" />
+                                    <TextBlock Grid.Column="1" x:Name="EraserPressurePercent" Text="{Binding LiveEraserPercentText}" FontSize="12" FontWeight="SemiBold"
+                                               ToolTip.Tip="{Binding LiveEraserInputText}" /></Grid>
+                                <ProgressBar Minimum="0" Maximum="1" Value="{Binding LiveEraserPressure, FallbackValue=0, TargetNullValue=0}" Height="10" MinWidth="0" />
+                                <Grid ColumnDefinitions="*,*"><TextBlock Text="Click" FontSize="12" />
+                                    <TextBlock Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <TextBlock Text="Shared with Pen (one curve for tip and eraser)." FontSize="11" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                            </StackPanel>
+                        </HeaderedContentControl>
+                        <!-- Version 1: the pressure used while pressure sensitivity is off. -->
+                        <HeaderedContentControl x:Name="ManualEraserPressureFrame" Classes="wacomGroup" Header="Manual Eraser Pressure">
+                            <StackPanel Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                                    <Slider x:Name="ManualEraserPressureSlider" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1"
+                                            TickFrequency="0.25" TickPlacement="BottomRight" VerticalAlignment="Center"
+                                            Value="{Binding ManualEraserPressure}" AutomationProperties.Name="Manual Eraser Pressure" />
+                                    <TextBox x:Name="ManualEraserPressureBox" Grid.Column="1" Width="48" MinWidth="0" VerticalAlignment="Center"
+                                             HorizontalContentAlignment="Right" Text="{Binding ManualEraserPercent, UpdateSourceTrigger=LostFocus}"
+                                             AutomationProperties.Name="Manual Eraser Pressure (%)" />
+                                    <TextBlock Grid.Column="2" Text="%" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*"><TextBlock Text="0%" FontSize="12" />
+                                    <TextBlock Grid.Column="1" Text="100%" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <TextBlock Text="Used for every eraser stroke while pressure sensitivity is off." FontSize="11" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                            </StackPanel>
+                        </HeaderedContentControl>
+                    </StackPanel>
+                    <Grid Grid.Column="2" ColumnDefinitions="64,24,*">
+                        <!-- R16: the drawing turned 180° (badges stay upright on their buttons), so the cards run in the
+                             flipped pen's order: button 1 (now nearest the top) first, the eraser card by the eraser end.
+                             They are the same pen-button rows as the Pen tab: OTD has one set of barrel buttons. -->
+                        <views:PenDiagram x:Name="EraserPenDiagram" Flipped="True" VerticalAlignment="Center" />
+                        <StackPanel x:Name="EraserCards" Grid.Column="2" Spacing="24" VerticalAlignment="Center">
+                            <views:PenSwitchCard DataContext="{Binding PenButton1Row}"
+                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                            <views:PenSwitchCard DataContext="{Binding PenButton2Row}"
+                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton2Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                            <views:PenSwitchCard DataContext="{Binding PenButton3Row}"
+                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton3Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                            <views:PenSwitchCard DataContext="{Binding PenEraserRow}" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+                <Border x:Name="EraserFeelDetails" IsVisible="False" Classes="wacomPane">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Feel details (shared with Pen)" FontWeight="SemiBold" />
+                        <views:DynamicsView />
+                    </StackPanel>
+                </Border>
+                <Border x:Name="EraserBasicsBox" Classes="penBasicsInset" Padding="16">
+                    <views:PenBasicsPanel ForEraser="True" />
+                </Border>
+            </StackPanel>
+            </Border>
+        </ScrollViewer>
+
+        <!-- ===== Build O: bottom bar like Wacom's (About · Options… · Help). Default lives on each tab. ===== -->
+        <Border Grid.Row="3" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Padding="0,8,0,0" Margin="0,8,0,0">
+            <StackPanel x:Name="WacomBottomBar" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
+                <!-- Version 5: the bottom About button duplicated the About page and did nothing there; removed. -->
+                <Button Classes="bottomBar" Content="Options…" Click="OnBottomOptions" ToolTip.Tip="More tablet options (calibration, filters, JSON)." />
+                <Button Classes="bottomBar" Content="?" MinWidth="34" Click="OnBottomHelp" ToolTip.Tip="Open the user manual." />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

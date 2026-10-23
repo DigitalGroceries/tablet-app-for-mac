@@ -1,0 +1,99 @@
+<UserControl x:Class="OpenTabletArtist.Views.PenSwitchCard"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls"
+             xmlns:v="using:OpenTabletArtist.Views">
+
+    <!-- One pen switch (tip / eraser / button N). DataContext is a PenSwitchRowViewModel.
+         Build R5 (the user's mock-ups): larger, letter-spaced headings, larger Change… / Default buttons of one
+         fixed size (104 × 34) so every row lines up on the same grid, and a larger status line ("Default setting" / "Modified to X" since R7: it reports the binding, not a hardware check).
+         Add Classes="hero" for the big ERASER / PEN TIP headings on the Pen page. -->
+    <UserControl.Styles>
+        <Style Selector="TextBlock.penHeading">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.penValue">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style Selector="Border.penValueBox">
+            <Setter Property="Background" Value="#1A1A1A" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Width" Value="126" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="10,0" />
+        </Style>
+        <Style Selector="Border.penValueBox TextBlock.penValue">
+            <Setter Property="Foreground" Value="#E4E4E4" />
+        </Style>
+        <Style Selector="Button.penAction">
+            <Setter Property="MinWidth" Value="104" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.working">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="PathIcon.working">
+            <Setter Property="Width" Value="18" /><Setter Property="Height" Value="18" />
+        </Style>
+        <Style Selector="v|PenSwitchCard.hero TextBlock.penHeading">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="LetterSpacing" Value="3" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="v|PenSwitchCard.hero TextBlock.working">
+            <Setter Property="FontSize" Value="21" />
+        </Style>
+        <Style Selector="v|PenSwitchCard.hero PathIcon.working">
+            <Setter Property="Width" Value="24" /><Setter Property="Height" Value="24" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Spacing="12" Width="300" HorizontalAlignment="Left">
+        <!-- Heading, with the current action on the same line for side buttons ("BUTTON 2:  Right click"). -->
+        <!-- R14 (the user's mock-up): the button's current action in a dark value box. The heading column has a fixed
+             width so every card's box starts at the same x; the boxes are one width (the two buttons below). -->
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Classes="penHeading" Text="{Binding SectionLabel}" MinWidth="84" />
+            <Border x:Name="ValueBox" Classes="penValueBox" IsVisible="{Binding ShowChooseAction}">
+                <TextBlock Classes="penValue" Text="{Binding CurrentPlainLabel}" HorizontalAlignment="Center" />
+            </Border>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding ShowChooseAction}">
+            <Button Classes="penAction" Content="Change…" Command="{Binding ChooseActionCommand}"
+                    ToolTip.Tip="Choose what this pen button does" />
+            <Button Classes="penAction" Content="Default" Command="{Binding SetAutoCommand}"
+                    IsVisible="{Binding ShowUseAdaptive}"
+                    ToolTip.Tip="Put this button back to its normal behaviour" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsRecommended}"
+                    AutomationProperties.Name="Default setting"
+                    ToolTip.Tip="This input uses its default action. This is not a hardware test.">
+            <PathIcon Classes="working" Data="{StaticResource IconCheckCircle}"
+                      Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+            <TextBlock Classes="working" Text="Default setting" />
+        </StackPanel>
+
+        <StackPanel Spacing="8" IsVisible="{Binding IsNotRecommended}">
+            <TextBlock Classes="working" Text="{Binding CurrentPlainLabel, StringFormat='Modified to {0}'}"
+                       TextWrapping="Wrap" AutomationProperties.Name="{Binding CurrentPlainLabel, StringFormat='Modified to {0}'}" />
+            <Button Classes="penAction" Content="Fix" Command="{Binding SetAutoCommand}"
+                    IsVisible="{Binding ShowUseAdaptive}" HorizontalAlignment="Left"
+                    ToolTip.Tip="Reset this input to its default action" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

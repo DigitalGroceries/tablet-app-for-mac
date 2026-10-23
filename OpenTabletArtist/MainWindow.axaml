@@ -1,0 +1,169 @@
+<Window x:Class="OpenTabletArtist.MainWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenTabletArtist.ViewModels"
+        xmlns:views="using:OpenTabletArtist.Views"
+        xmlns:controls="using:OpenTabletArtist.Controls"
+        xmlns:conv="using:OpenTabletArtist.Converters"
+        Title="Tablet App for Mac"
+        Icon="/Assets/appicon.png"
+        Width="1100" Height="720"
+        MinWidth="800" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BgBaseBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="-1">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <!-- Client area extended under the title bar (#titlebar): the Sakura backdrop now reaches the top
+         edge instead of a gray system caption bar. The native min/max/close buttons stay (top-right);
+         a drag strip below provides window move/maximize. OffScreenMargin keeps content on-screen when
+         maximized (Windows over-sizes an extended-chrome window by the frame width). -->
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveSettingsCommand}" />
+        <KeyBinding Gesture="Meta+S" Command="{Binding SaveSettingsCommand}" />
+        <KeyBinding Gesture="Meta+S" Command="{Binding SaveSettingsCommand}" />
+    </Window.KeyBindings>
+    <Panel Margin="{Binding OffScreenMargin, RelativeSource={RelativeSource AncestorType=Window}}">
+        <!-- Full-window backdrop layer. Transparent in Light/Dark; the sakura image in the Anime
+             skin (#anime), or the user's chosen image in the Custom skin. Sits behind everything so
+             the translucent page-menu bar + glass cards show it through. -->
+        <Border Background="{DynamicResource AppBackdropBrush}" />
+
+        <!-- Fixed-thickness glow bands for the code-generated Sakura backdrop (#556), one per edge: a glow
+             lives in the strip along the edge it is anchored to, so its reach is a constant number of px
+             regardless of window size. Every Height/Width here MUST equal GradientBackground.BandHeight
+             (reaches are measured against it). Transparent unless codegen mode fills the brush; hit-test
+             invisible so they never block input.
+
+             The side bands were added with linear glows (#glow-linear) — a wash running in from the left or
+             right edge. Radial glows are still offered on the bottom and top only. -->
+        <Border VerticalAlignment="Bottom" Height="600" IsHitTestVisible="False"
+                Background="{DynamicResource AppBackdropGlowBrush}" />
+        <Border VerticalAlignment="Top" Height="600" IsHitTestVisible="False"
+                Background="{DynamicResource AppBackdropGlowTopBrush}" />
+        <Border HorizontalAlignment="Left" Width="600" IsHitTestVisible="False"
+                Background="{DynamicResource AppBackdropGlowLeftBrush}" />
+        <Border HorizontalAlignment="Right" Width="600" IsHitTestVisible="False"
+                Background="{DynamicResource AppBackdropGlowRightBrush}" />
+
+        <!-- Custom skin's background image, layered over the base-color backdrop at the user's chosen
+             opacity so a less-opaque image lets the base color below show through. Transparent otherwise. -->
+        <Border Background="{DynamicResource AppBackdropImageBrush}" />
+
+        <!-- Dimming scrim over the backdrop image (Custom skin only; transparent otherwise) so text on
+             the translucent panels stays legible regardless of the chosen photo. -->
+        <Border Background="{DynamicResource BackdropScrimBrush}" />
+
+        <!-- Falling sakura petals — only animates in the Sakura skin and when enabled in Settings
+             (#207). Hit-test invisible; sits above the backdrop, behind the chrome and content. -->
+        <controls:SakuraPetals />
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- TOP WORDMARK BAR (Zune Phase 1). Replaces the left sidebar: the whole top-level nav as one
+             horizontal row of lowercase wordmarks (data-driven NavSections), the active one marked by
+             accent color + weight. The row sits below the caption/drag band (top ~40px, kept by the
+             transparent drag strip near the bottom of this file), so the words are clickable while the
+             native min/max/close buttons and window-drag still own the top edge.
+             (PRESETS + PER-APP PRESETS live in SETTINGS tabs, #571; DEVELOPER too, #572.) -->
+        <Border Grid.Row="0" Background="Transparent">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="24,34,20,0"
+                  MinHeight="{DynamicResource NavRowHeight}">
+                <!-- The wordmarks, left-aligned. (No brand mark here — the OS window caption + taskbar
+                     already carry the app name; a second one read as a duplicate.) Wraps to a second row
+                     on a narrow window instead of clipping. -->
+                <ItemsControl x:Name="NavTabs" Grid.Column="0" ItemsSource="{Binding NavSections}" VerticalAlignment="Top">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <RadioButton Theme="{StaticResource WordmarkNav}" GroupName="Wordmarks"
+                                         Content="{Binding Label, Converter={x:Static conv:LowerCaseConverter.Instance}}"
+                                         IsVisible="{Binding IsVisible}"
+                                         IsChecked="{Binding IsSelected, Mode=OneWay}"
+                                         Command="{Binding $parent[ItemsControl].DataContext.NavigateCommand}"
+                                         CommandParameter="{Binding Page}"
+                                         Margin="0,3,8,3" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Right cluster: the tablet switcher (TABLET + PEN only), the dev screenshot aid (only
+                     when enabled) + the version stamp, pinned to the top so the version sits just under the
+                     native close button (not down on the wordmark baseline). -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16" VerticalAlignment="Top">
+                    <!-- The switcher lives in the SHELL, not on the page (#switcher-in-shell). It selects
+                         the app-wide active tablet — TABLET, PEN and SCRIBBLE are all linked to it — so it
+                         belongs to the chrome rather than to one page, and hosting it here buys back a
+                         whole band of vertical space on both pages. Bound to TabletPage even while PEN is
+                         showing: both pages write through AppSession.SetActiveTablet and share one detail
+                         VM per tablet, so either one drives both. It clears the native caption buttons by
+                         sitting inside the row that already starts below them. -->
+                    <!-- Build R6: Home's six links live here, in the same right cluster (same right margin)
+                         as the tablet switcher on other pages. Top edge = the tabs' top edge (both carry the
+                         3 px top margin) and each link is one tab high (NavTabHeight); the version line is
+                         right-aligned under the grid. -->
+                    <ContentControl x:Name="HomeLinksHost" Content="{Binding Dashboard.About}"
+                                    IsVisible="{Binding ShowHomeLinks}" VerticalAlignment="Top" Margin="0,3,0,0" />
+                    <views:TabletSwitcherBar VerticalAlignment="Center"
+                        IsVisible="{Binding ShowTabletSwitcher}"
+                        Tablets="{Binding TabletPage.Tablets}"
+                        SelectedTablet="{Binding TabletPage.SelectedTablet, Mode=TwoWay}"
+                        RefreshCommand="{Binding TabletPage.Content.RefreshCommand}" />
+                    <!-- On-page screenshot control (#437): a developer aid, shown only when enabled on the
+                         Developer tab. Captures whatever page you're currently viewing. -->
+                    <Button x:Name="CapturePageButton" Click="OnCapturePage"
+                            IsVisible="{Binding Developer.Settings.OnPageScreenshot}"
+                            Theme="{StaticResource GhostButton}" Padding="10,5"
+                            Content="Capture page" VerticalAlignment="Center"
+                            ToolTip.Tip="Save a PNG of the current page to Pictures\Tablet App for Mac" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- CONTENT AREA (full width, below the wordmark bar). Most pages are plain content and use this
+             outer scroll (Auto). The tablet detail page manages its own scrolling (fixed header + tab
+             rail, per-tab scroll), so it sets this to Disabled (#507). Caption clearance is now the
+             wordmark bar itself, so no top inset is needed here. -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="{Binding ContentScrollBarVisibility}"
+                      HorizontalScrollBarVisibility="Disabled">
+            <!-- L/R/bottom padding stays above the Sakura cards' glow extent (16px blur, see CardShadow)
+                 so the soft glow isn't clipped by the scroll viewport on those edges. -->
+            <Border Padding="24,0,24,18">
+                <!-- Build L: a DockPanel, not a StackPanel. A StackPanel measures its children with infinite
+                     height, so the tablet page (outer scroll Disabled, own per-tab ScrollViewers) got no height
+                     limit: its tab ScrollViewers grew to their content, never scrolled, and long tabs (Wheels
+                     with four ring modes) ran off the bottom under the footer. The DockPanel passes the viewport
+                     height down; pages that use the outer scroll (Auto) are unaffected. -->
+                <DockPanel LastChildFill="True">
+                    <!-- A pause stops editing everywhere, so it is announced above the page it stopped
+                         rather than in the footer alone (#920). Hidden the rest of the time. -->
+                    <views:SettingsPausedView DockPanel.Dock="Top" />
+
+                    <!-- Top-level page switches snap (no transition). A crossfade here superimposed the two
+                         pages for ~180ms, which read as a glitch when their content differed a lot (worst
+                         Settings → Scribble, whose big flat canvas ghosted over Settings' cards). Sub-page
+                         pivots keep their own PageFade. -->
+                    <TransitioningContentControl Content="{Binding CurrentPage}" IsEnabled="{Binding PageInputEnabled}"
+                                                 PageTransition="{x:Null}" />
+                </DockPanel>
+            </Border>
+        </ScrollViewer>
+
+        <views:SettingsFooterView Grid.Row="2" />
+    </Grid>
+
+    <!-- Title-bar drag strip (#titlebar): the top edge is app-colored now, so this transparent strip
+         gives the window its move/double-click-maximize behaviour. It stops short of the top-right so
+         the native caption buttons still receive their clicks. -->
+    <Border VerticalAlignment="Top" HorizontalAlignment="Stretch" Height="32" Margin="0,0,150,0"
+            Background="Transparent" PointerPressed="OnTitleBarPressed" DoubleTapped="OnTitleBarDoubleTapped" />
+    </Panel>
+</Window>

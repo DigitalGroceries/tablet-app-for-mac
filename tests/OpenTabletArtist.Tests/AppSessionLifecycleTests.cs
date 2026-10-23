@@ -1,0 +1,229 @@
+using OpenTabletDriver.Desktop;
+using OpenTabletArtist.Services;
+using Xunit;
+using OtdInterop;
+using OtdInterop.Tests;
+
+namespace OpenTabletArtist.Tests;
+
+/// <summary>
+/// Guards the daemon Stop/Start auto-reconnect gate. A user-initiated Stop must suppress the
+/// client's automatic reconnect (otherwise it spins trying to reach the daemon it just killed
+/// and races the subsequent Start); Start/Restart must re-enable it.
+/// </summary>
+public class AppSessionLifecycleTests
+{
+    // The daemon exe is "present" (so the session treats it as reachable and goes through the normal
+    // launch/connect path), but Launch is a counted no-op and nothing ever connects — so the
+    // auto-reconnect gate + timeout behavior is what's exercised, not the missing-exe short-circuit.
+    private sealed class FakeLifecycle : IDaemonLifecycleService
+    {
+        public int StopAllCount { get; private set; }
+        public int LaunchCount { get; private set; }
+        public string? ExpectedExePath() => "fake-daemon.exe"; // present → reachable
+        public bool IsAppManaged(string? path) => path != null && ExpectedExePath() != null;
+        public bool HasBundledDaemon() => false;
+        public string? FindExe() => "fake-daemon.exe";
+        public bool IsRunning() => false;
+        public string? Launch(string? executablePath = null) { LaunchCount++; return null; }                 // no real process — never connects
+        public int StopPidCount { get; private set; }
+        public bool Stop(int processId) { StopPidCount++; return true; }
+        public void StopAll() => StopAllCount++;
+        public string? PathOf(int processId) => null;
+        public string? SingleRunningDaemonPath() => null;
+    }
+
+    // No exe present and nothing running → the missing-exe short-circuit should fire.
+    private sealed class MissingLifecycle : IDaemonLifecycleService
+    {
+        public int StopAllCount { get; private set; }
+        public int LaunchCount { get; private set; }
+        public string? ExpectedExePath() => null;
+        public bool IsAppManaged(string? path) => path != null && ExpectedExePath() != null;
+        public bool HasBundledDaemon() => false;
+        public string? FindExe() => null;
+        public bool IsRunning() => false;
+        public string? Launch(string? executablePath = null) { LaunchCount++; return null; }
+        public int StopPidCount { get; private set; }
+        public bool Stop(int processId) { StopPidCount++; return true; }
+        public void StopAll() => StopAllCount++;
+        public string? PathOf(int processId) => null;
+        public string? SingleRunningDaemonPath() => null;
+    }
+
+    // Daemon present, but it dies the moment it is started.
+    private sealed class FailingLaunchLifecycle : IDaemonLifecycleService
+    {
+        public const string Problem = "The daemon at /somewhere/OpenTabletDriver.Daemon started and exited immediately (exit code 150).";
+        public string? ExpectedExePath() => "fake-daemon.exe";
+        public bool IsAppManaged(string? path) => false;
+        public bool HasBundledDaemon() => false;
+        public string? FindExe() => "fake-daemon.exe";
+        public bool IsRunning() => false;
+        public string? Launch(string? executablePath = null) => Problem;
+        public bool Stop(int processId) => true;
+        public void StopAll() { }
+        public string? PathOf(int processId) => null;
+        public string? SingleRunningDaemonPath() => null;
+    }
+
+    private sealed class FakeSettingsStore : IPresetStore
+    {
+        public void Save(Settings settings, string path) { }
+        public bool TrySave(Settings settings, string path) => true;
+        public bool TryLoad(string path, out Settings? settings) { settings = null; return false; }
+    }
+
+    private static AppSession NewSession(out FakeLifecycle lifecycle) =>
+        NewSession(out lifecycle, out _);
+
+    /// <summary>
+    /// Also hands back the transport, for the tests that watch the reconnect gate.
+    ///
+    /// That flag belongs to the connection, and the connection is no longer something the app can reach:
+    /// it drives connect and reconnect through the session now, and gets a forwarding capability object
+    /// for everything else. So a test that wants to see the flag watches the thing that holds it.
+    /// </summary>
+    private static AppSession NewSession(out FakeLifecycle lifecycle, out FakeDaemonTransport daemon)
+    {
+        lifecycle = new FakeLifecycle();
+        daemon = new FakeDaemonTransport();
+        return new AppSession(FakeSession.Over(daemon), lifecycle)
+        {
+            // No real daemon in tests, so Start/Restart never connect — keep the timeout tiny
+            // so the "didn't come online" path is exercised in milliseconds, not 30s.
+            DaemonOperationTimeout = TimeSpan.FromMilliseconds(150),
+        };
+    }
+
+    [Fact]
+    public async Task StopDaemon_SuppressesAutoReconnect_AndStopsTheProcess()
+    {
+        using var session = NewSession(out var lifecycle, out var daemon);
+        Assert.True(daemon.AutoReconnect); // default
+
+        // Already disconnected, so the "wait for drop" completes immediately (success, no error).
+        await session.StopDaemonCommand.ExecuteAsync(null);
+
+        Assert.False(daemon.AutoReconnect);
+        Assert.Equal(1, lifecycle.StopAllCount);
+        Assert.False(session.IsDaemonBusy);
+        Assert.False(session.HasDaemonOperationError);
+    }
+
+    [Fact]
+    public async Task StartDaemon_ReenablesAutoReconnect_AndReportsTimeout()
+    {
+        using var session = NewSession(out _, out var daemon);
+        daemon.AutoReconnect = false; // as if a prior Stop left it off
+
+        // FindExe() returns null so Launch is a no-op and IsConnected stays false; the command
+        // flips the gate back on, then times out waiting for a connection that never comes.
+        await session.StartDaemonCommand.ExecuteAsync(null);
+
+        Assert.True(daemon.AutoReconnect);
+        Assert.False(session.IsDaemonBusy);            // cleared in finally
+        Assert.True(session.HasDaemonOperationError);  // timed out (no daemon)
+    }
+
+    [Fact]
+    public async Task RestartDaemon_ReenablesAutoReconnect_AndReportsTimeout()
+    {
+        using var session = NewSession(out var lifecycle, out var daemon);
+        daemon.AutoReconnect = false;
+
+        await session.RestartDaemonCommand.ExecuteAsync(null);
+
+        Assert.True(daemon.AutoReconnect);
+        Assert.Equal(1, lifecycle.StopAllCount);
+        Assert.False(session.IsDaemonBusy);
+        Assert.True(session.HasDaemonOperationError);
+    }
+
+    [Fact]
+    public async Task LifecycleCommand_ClearsPreviousError_OnRerun()
+    {
+        using var session = NewSession(out _);
+
+        await session.StartDaemonCommand.ExecuteAsync(null);
+        Assert.True(session.HasDaemonOperationError); // first run times out
+
+        // A Stop succeeds (already disconnected) and must clear the stale error.
+        await session.StopDaemonCommand.ExecuteAsync(null);
+        Assert.False(session.HasDaemonOperationError);
+    }
+
+    // --- Daemon-exe-missing short-circuit (checked before any connect attempt) ---
+
+    private static AppSession NewSession(IDaemonLifecycleService lifecycle) =>
+        new AppSession(FakeSession.Over(new FakeDaemonTransport()), lifecycle)
+        {
+            DaemonOperationTimeout = TimeSpan.FromMilliseconds(150),
+        };
+
+    private static AppSession NewMissingSession(out MissingLifecycle lifecycle)
+    {
+        lifecycle = new MissingLifecycle();
+        return new AppSession(FakeSession.Over(new FakeDaemonTransport()), lifecycle)
+        {
+            DaemonOperationTimeout = TimeSpan.FromMilliseconds(150),
+        };
+    }
+
+    [Fact]
+    public async Task StartAndConnect_WhenExeMissing_FlagsMissing_AndDoesNotLaunchOrConnect()
+    {
+        using var session = NewMissingSession(out var lifecycle);
+
+        await session.StartAndConnectAsync();
+
+        Assert.True(session.IsDaemonExeMissing);
+        Assert.True(session.HasDaemonOperationError);
+        Assert.Equal(AppSession.DaemonExeMissingMessage, session.DaemonOperationError);
+        Assert.Equal(0, lifecycle.LaunchCount); // no point launching a nonexistent exe
+        Assert.False(session.IsConnected);
+    }
+
+    // A daemon that is present but dies on the spot (a framework-dependent build with no runtime, a
+    // broken install) used to surface only as "didn't come online within 30 seconds". Report what the
+    // launch actually said, and don't spend the timeout finding out.
+    [Fact]
+    public async Task StartDaemon_WhenTheDaemonExitsImmediately_ReportsThatInsteadOfTimingOut()
+    {
+        var lifecycle = new FailingLaunchLifecycle();
+        using var session = NewSession(lifecycle);
+
+        await session.StartDaemonCommand.ExecuteAsync(null);
+
+        Assert.Equal(FailingLaunchLifecycle.Problem, session.DaemonOperationError);
+        Assert.True(session.HasDaemonOperationError);
+        Assert.False(session.IsDaemonBusy);
+        Assert.Equal("Disconnected", session.ConnectionStatus);
+    }
+
+    [Fact]
+    public async Task StartDaemon_WhenExeMissing_FlagsMissing_AndDoesNotLaunch()
+    {
+        using var session = NewMissingSession(out var lifecycle);
+
+        await session.StartDaemonCommand.ExecuteAsync(null);
+
+        Assert.True(session.IsDaemonExeMissing);
+        Assert.True(session.HasDaemonOperationError);
+        Assert.Equal(0, lifecycle.LaunchCount);
+        Assert.False(session.IsDaemonBusy); // cleared in finally
+    }
+
+    [Fact]
+    public async Task RestartDaemon_WhenExeMissing_DoesNotStopTheRunningDaemon()
+    {
+        using var session = NewMissingSession(out var lifecycle);
+
+        await session.RestartDaemonCommand.ExecuteAsync(null);
+
+        Assert.True(session.IsDaemonExeMissing);
+        // Must not kill a daemon it can't relaunch.
+        Assert.Equal(0, lifecycle.StopAllCount);
+        Assert.False(session.IsDaemonBusy);
+    }
+}

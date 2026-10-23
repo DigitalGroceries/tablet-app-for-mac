@@ -1,0 +1,129 @@
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
+
+namespace OpenTabletArtist.Services;
+
+/// <summary>
+/// Copies a raster image to the Windows clipboard as a device-independent bitmap (CF_DIB), which
+/// pastes into Paint, Office, browsers, chat apps, etc. Windows-only (a no-op returning false
+/// elsewhere). Input is top-down 32-bit BGRA (row stride = width*4); the drawing is opaque, so the
+/// alpha byte is ignored by consumers.
+/// </summary>
+public static class ClipboardImage
+{
+    private const uint CF_DIB = 8;
+    private const uint GMEM_MOVEABLE = 0x0002;
+    private const int BI_RGB = 0;
+    private const int HeaderSize = 40; // BITMAPINFOHEADER
+
+    /// <summary>A short, platform-appropriate message to show when <see cref="CopyBgra"/> fails — on Linux
+    /// the usual cause is no wl-copy/xclip/xsel, so it names what to install (#609).</summary>
+    public static string FailureHint => OperatingSystem.IsLinux()
+        ? "Couldn't copy. Install wl-clipboard (Wayland) or xclip / xsel (X11)."
+        : "Couldn't copy the image to the clipboard.";
+
+    /// <summary>Places the image on the clipboard. Returns false on non-Windows, bad input, or a Win32
+    /// failure (the caller can surface that however it likes).</summary>
+    public static bool CopyBgra(byte[] bgraTopDown, int width, int height)
+    {
+        if (width <= 0 || height <= 0) return false;
+        if (OperatingSystem.IsLinux()) return CopyBgraLinux(bgraTopDown, width, height);
+        if (!OperatingSystem.IsWindows()) return false;
+        int stride = width * 4;
+        if (bgraTopDown.Length < (long)stride * height) return false;
+
+        int dataSize = stride * height;
+        IntPtr hMem = GlobalAlloc(GMEM_MOVEABLE, (UIntPtr)(HeaderSize + dataSize));
+        if (hMem == IntPtr.Zero) return false;
+
+        IntPtr ptr = GlobalLock(hMem);
+        if (ptr == IntPtr.Zero) { GlobalFree(hMem); return false; }
+        try
+        {
+            var header = new byte[HeaderSize]; // zero-filled: XPelsPerMeter/ClrUsed/… stay 0
+            BitConverter.GetBytes(HeaderSize).CopyTo(header, 0);  // biSize
+            BitConverter.GetBytes(width).CopyTo(header, 4);       // biWidth
+            BitConverter.GetBytes(height).CopyTo(header, 8);      // biHeight (positive → bottom-up)
+            BitConverter.GetBytes((short)1).CopyTo(header, 12);   // biPlanes
+            BitConverter.GetBytes((short)32).CopyTo(header, 14);  // biBitCount
+            BitConverter.GetBytes(BI_RGB).CopyTo(header, 16);     // biCompression
+            BitConverter.GetBytes(dataSize).CopyTo(header, 20);   // biSizeImage
+            Marshal.Copy(header, 0, ptr, HeaderSize);
+
+            // DIB rows are bottom-up; flip the top-down source.
+            IntPtr pixels = ptr + HeaderSize;
+            for (int y = 0; y < height; y++)
+                Marshal.Copy(bgraTopDown, (height - 1 - y) * stride, pixels + y * stride, stride);
+        }
+        finally
+        {
+            GlobalUnlock(hMem);
+        }
+
+        if (!OpenClipboard(IntPtr.Zero)) { GlobalFree(hMem); return false; }
+        try
+        {
+            EmptyClipboard();
+            if (SetClipboardData(CF_DIB, hMem) == IntPtr.Zero)
+            {
+                GlobalFree(hMem); // SetClipboardData failed → we still own the handle
+                return false;
+            }
+            return true; // on success the system owns hMem — must NOT free it
+        }
+        finally
+        {
+            CloseClipboard();
+        }
+    }
+
+    private static bool CopyBgraLinux(byte[] bgraTopDown, int width, int height)
+    {
+        // Encode as PNG via SkiaSharp and pipe to a clipboard tool.
+        byte[] png;
+        using (var bmp = new SkiaSharp.SKBitmap(width, height, SkiaSharp.SKColorType.Bgra8888, SkiaSharp.SKAlphaType.Premul))
+        {
+            var span = bmp.GetPixelSpan();
+            bgraTopDown.AsSpan(0, width * 4 * height).CopyTo(span);
+            using var data = bmp.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+            png = data.ToArray();
+        }
+
+        string[][] commands =
+        [
+            ["wl-copy", "--type", "image/png"],
+            ["xclip", "-selection", "clipboard", "-target", "image/png"],
+        ];
+        foreach (var cmd in commands)
+        {
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo(cmd[0])
+                {
+                    RedirectStandardInput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                };
+                for (int i = 1; i < cmd.Length; i++) psi.ArgumentList.Add(cmd[i]);
+                using var proc = System.Diagnostics.Process.Start(psi);
+                if (proc == null) continue;
+                proc.StandardInput.BaseStream.Write(png, 0, png.Length);
+                proc.StandardInput.Close();
+                proc.WaitForExit(3000);
+                if (proc.ExitCode == 0) return true;
+            }
+            catch { /* tool not installed — try next */ }
+        }
+        return false;
+    }
+
+    [DllImport("kernel32.dll")] private static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
+    [DllImport("kernel32.dll")] private static extern IntPtr GlobalLock(IntPtr hMem);
+    [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool GlobalUnlock(IntPtr hMem);
+    [DllImport("kernel32.dll")] private static extern IntPtr GlobalFree(IntPtr hMem);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool OpenClipboard(IntPtr hWndNewOwner);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool CloseClipboard();
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool EmptyClipboard();
+    [DllImport("user32.dll")] private static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
+}

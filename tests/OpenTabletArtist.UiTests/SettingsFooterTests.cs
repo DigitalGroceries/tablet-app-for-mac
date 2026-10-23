@@ -1,0 +1,395 @@
+using System;
+using System.Linq;
+using System.Windows.Input;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+using OpenTabletArtist.Views;
+using Xunit;
+
+namespace OpenTabletArtist.UiTests;
+
+/// <summary>
+/// The settings footer: three ranked actions, and which of them a paused session still offers.
+/// </summary>
+///
+/// <remarks>
+/// <para>
+/// Save, Reload driver settings and Revert to saved were three buttons of equal weight, with the rarest
+/// reading first. They are still three buttons — ranking and weight were the whole complaint, and
+/// ranking them is all it needed.
+/// </para>
+/// <para>
+/// <b>A SplitButton was tried and withdrawn, which is why these tests exist.</b> Save and Revert need
+/// an editable session; Reload does not, and a paused session is exactly when it is needed, because it
+/// is the way out. Binding a SplitButton's <c>IsEnabled</c> takes the chevron with it, and so does
+/// letting its command report that it cannot execute. Disabling only the primary template part looked
+/// like the answer and was not: Codex found that the keyboard and automation paths still reach the
+/// primary action, and a probe here confirmed it — Space and Enter each fired Save while the primary
+/// half was visibly disabled. Independent buttons cannot have that problem, and these check it through
+/// the real control rather than through the markup.
+/// </para>
+/// </remarks>
+public class SettingsFooterTests
+{
+    private sealed class Recording : ICommand
+    {
+        public int Ran;
+#pragma warning disable CS0067   // required by ICommand; these fakes never change availability
+        public event EventHandler? CanExecuteChanged;
+#pragma warning restore CS0067
+        public bool CanExecute(object? p) => true;
+        public void Execute(object? p) => Ran++;
+    }
+
+    /// <summary>What the footer binds, and nothing else. Inert: no session, no daemon, no timers.</summary>
+    private sealed class FooterState
+    {
+        public SessionState SettingsSession { get; init; } = new();
+        public ConnectionState Connection { get; init; } = new();
+        public Recording Save { get; } = new();
+        public Recording Reload { get; } = new();
+        public Recording Revert { get; } = new();
+        public ICommand SaveSettingsCommand => Save;
+        public ICommand ReloadSettingsCommand => Reload;
+        public ICommand RevertSettingsCommand => Revert;
+    }
+
+    private sealed class SessionState : System.ComponentModel.INotifyPropertyChanged
+    {
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        public bool CanEditSettings { get; init; }
+        public bool SettingsBusy { get; init; }
+        public bool SettingsPaused { get; init; }
+        public string SaveStatusText { get; init; } = "";
+
+        // Observable, unlike the rest: the footer must follow this live, and a test says so by flipping it.
+        private bool _hasUnsavedChanges;
+        public bool HasUnsavedChanges
+        {
+            get => _hasUnsavedChanges;
+            set
+            {
+                _hasUnsavedChanges = value;
+                PropertyChanged?.Invoke(this, new(nameof(HasUnsavedChanges)));
+            }
+        }
+    }
+
+    private sealed class ConnectionState
+    {
+        public string DiscardedChangeNotice { get; init; } = "";
+        public bool HasDiscardedChangeNotice => DiscardedChangeNotice.Length > 0;
+        public string SettingsRefreshedNotice { get; init; } = "";
+        public bool HasSettingsRefreshedNotice => SettingsRefreshedNotice.Length > 0;
+        public bool HasSettingsNotice => HasDiscardedChangeNotice || HasSettingsRefreshedNotice;
+        public Recording Dismiss { get; } = new();
+        public ICommand DismissSettingsNoticesCommand => Dismiss;
+    }
+
+    private static (Window Window, FooterState State, Button[] Buttons) Footer(
+        bool canEdit, bool busy = false, bool paused = false, string status = "", double width = 1100,
+        bool unsaved = false, string notice = "", string refreshed = "")
+    {
+        var state = new FooterState
+        {
+            SettingsSession = new SessionState
+            {
+                CanEditSettings = canEdit,
+                SettingsBusy = busy,
+                SettingsPaused = paused,
+                SaveStatusText = status,
+                HasUnsavedChanges = unsaved,
+            },
+            Connection = new ConnectionState { DiscardedChangeNotice = notice, SettingsRefreshedNotice = refreshed },
+        };
+        var footer = new SettingsFooterView();
+        var window = new Window { Content = footer, DataContext = state, Width = width };
+        window.Show();
+        window.Measure(new Size(width, 600));
+        window.Arrange(new Rect(0, 0, width, 600));
+        Dispatcher.UIThread.RunJobs();
+
+        // The two actions. The notices' Dismiss link is a Button too, and has its own tests below.
+        var buttons = footer.GetVisualDescendants().OfType<Button>().Where(b => b.Name != "DismissNotices").ToArray();
+        return (window, state, buttons);
+    }
+
+    private static Button DismissOf(Window window) =>
+        window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "DismissNotices");
+
+    private static Button Named(Button[] buttons, string content) =>
+        buttons.Single(b => (b.Content as string) == content);
+
+    // ── the unsaved-changes signal on Save ───────────────────────────────────────────────────────
+
+    private static PathIcon? IconOf(Button b) => b.GetVisualDescendants().OfType<PathIcon>().SingleOrDefault();
+    private static TextBlock TextOf(Button b) => b.GetVisualDescendants().OfType<TextBlock>().Single();
+
+    private static void Settle() => Dispatcher.UIThread.RunJobs();
+
+    /// <summary>
+    /// With something to save, Save carries an alert icon after its text.
+    /// </summary>
+    /// <remarks>
+    /// The text is still "Save" (the theme upper-cases it): the content stays a string so tests and
+    /// automation keep finding the button by it, and the icon is a style, not new content.
+    /// </remarks>
+    [AvaloniaFact]
+    public void WithUnsavedChanges_SaveShowsAnAlertIconAfterItsText()
+    {
+        var (window, _, buttons) = Footer(canEdit: true, unsaved: true);
+        var save = Named(buttons, "Save");
+
+        var icon = Assert.IsType<PathIcon>(IconOf(save));
+        Assert.True(icon.IsVisible);
+        Assert.Same(Application.Current!.FindResource("IconAlertCircle"), icon.Data);
+        Assert.Equal("Save", TextOf(save).Text);                     // "SAVE (!)": the text, then the icon
+        Assert.True(icon.Bounds.X > TextOf(save).Bounds.X);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void WithNothingToSave_SaveHasNoIcon_AndTakesNoRoomForOne()
+    {
+        var (w1, _, saved) = Footer(canEdit: true, unsaved: false);
+        var (w2, _, unsaved) = Footer(canEdit: true, unsaved: true);
+        var plain = Named(saved, "Save");
+
+        Assert.False(IconOf(plain)!.IsVisible);
+        Assert.Equal("Save", TextOf(plain).Text);
+        Assert.True(Named(unsaved, "Save").Bounds.Width > plain.Bounds.Width);   // the icon takes room only when shown
+        w1.Close(); w2.Close();
+    }
+
+    /// <summary>
+    /// The icon follows the state while the footer is on screen, not only when it is built.
+    /// </summary>
+    [AvaloniaFact]
+    public void TheIconAppearsAndGoesAsChangesAreMadeAndSaved()
+    {
+        var (window, state, buttons) = Footer(canEdit: true, unsaved: false);
+        var save = Named(buttons, "Save");
+
+        Assert.False(IconOf(save)!.IsVisible);
+        state.SettingsSession.HasUnsavedChanges = true;
+        Settle();
+        Assert.True(IconOf(save)!.IsVisible);
+        state.SettingsSession.HasUnsavedChanges = false;
+        Settle();
+        Assert.False(IconOf(save)!.IsVisible);
+        window.Close();
+    }
+
+    /// <summary>
+    /// The signal is in words as well as a picture: the tooltip and the accessible name say it.
+    /// </summary>
+    [AvaloniaFact]
+    public void TheSignalIsAlsoInTheTooltipAndTheAccessibleName()
+    {
+        var (w1, state, buttons) = Footer(canEdit: true, unsaved: false);
+        var save = Named(buttons, "Save");
+
+        Assert.Equal("Save settings so they survive an OTD daemon restart (Cmd+S).", ToolTip.GetTip(save));
+        Assert.True(string.IsNullOrEmpty(Avalonia.Automation.AutomationProperties.GetName(save)));
+
+        state.SettingsSession.HasUnsavedChanges = true;
+        Settle();
+        Assert.Contains("unsaved changes", (string)ToolTip.GetTip(save)!);
+        Assert.Contains("Cmd+S", (string)ToolTip.GetTip(save)!);
+        Assert.Equal("Save, unsaved changes", Avalonia.Automation.AutomationProperties.GetName(save));
+
+        state.SettingsSession.HasUnsavedChanges = false;      // and it goes back
+        Settle();
+        Assert.Equal("Save settings so they survive an OTD daemon restart (Cmd+S).", ToolTip.GetTip(save));
+        w1.Close();
+    }
+
+    [AvaloniaFact]
+    public void OnlySaveCarriesTheSignal()
+    {
+        var (window, _, buttons) = Footer(canEdit: true, unsaved: true);
+        Assert.Empty(Named(buttons, "Revert to saved").GetVisualDescendants().OfType<PathIcon>());
+        window.Close();
+    }
+
+    /// <summary>Ranked, and in the order the app uses everywhere else: affirmative first (#502).</summary>
+    /// <remarks>
+    /// Two, not three. Reload moved to <c>SettingsPausedView</c>, where the pause it answers is
+    /// explained — it is the way out of a pause and nothing else, and it was taking a third of the
+    /// footer to say so in the state where it does nothing.
+    /// </remarks>
+    [AvaloniaFact]
+    public void TheTwoActionsReadInOrderOfHowOftenTheyAreWanted()
+    {
+        var (_, _, buttons) = Footer(canEdit: true);
+
+        Assert.Equal(["Save", "Revert to saved"], buttons.Select(b => b.Content as string));
+    }
+
+    /// <summary>
+    /// A paused footer offers nothing at all.
+    /// </summary>
+    /// <remarks>
+    /// Neither of these can run while paused — Save is refused by the coordinator, Revert needs an
+    /// editable session — so leaving them greyed would be two dead controls competing for attention
+    /// with the one live one above. The way out of a pause is in <c>SettingsPausedView</c>, beside the
+    /// explanation of what it costs.
+    /// </remarks>
+    [AvaloniaFact]
+    public void WhilePaused_TheFooterOffersNothing()
+    {
+        var (_, _, buttons) = Footer(canEdit: false, paused: true);
+
+        Assert.All(buttons, b => Assert.False(b.IsEffectivelyVisible));
+    }
+
+    /// <summary>
+    /// Unavailable is not the same as paused: a disconnected session still shows what it cannot do.
+    /// </summary>
+    /// <remarks>
+    /// Hiding a control teaches nothing, so it is reserved for the state where there is a better place
+    /// to look. Disconnected has no such place, and a greyed Save is the honest answer there.
+    /// </remarks>
+    [AvaloniaFact]
+    public void WhenSettingsCannotBeEditedButAreNotPaused_TheActionsStayVisibleAndDark()
+    {
+        var (_, _, buttons) = Footer(canEdit: false);
+
+        Assert.All(buttons, b => Assert.True(b.IsEffectivelyVisible));
+        Assert.All(buttons, b => Assert.False(b.IsEffectivelyEnabled));
+    }
+
+    /// <summary>
+    /// And an unavailable Save cannot be reached by keyboard either.
+    /// </summary>
+    /// <remarks>
+    /// This is the defect that ended the SplitButton: it disabled the primary half's appearance and its
+    /// pointer path, while Space and Enter went on firing Save through the parent control. A plain
+    /// disabled Button has no second path to close, and this says so rather than assuming it.
+    /// </remarks>
+    [AvaloniaFact]
+    public void AnUnavailableSaveCannotBeActivatedByKeyboard()
+    {
+        var (_, state, buttons) = Footer(canEdit: false);
+        var save = Named(buttons, "Save");
+
+        foreach (var key in new[] { Key.Space, Key.Enter })
+        {
+            save.RaiseEvent(new KeyEventArgs
+            {
+                RoutedEvent = InputElement.KeyDownEvent,
+                Key = key,
+                Source = save,
+            });
+            save.RaiseEvent(new KeyEventArgs
+            {
+                RoutedEvent = InputElement.KeyUpEvent,
+                Key = key,
+                Source = save,
+            });
+        }
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(0, state.Save.Ran);
+    }
+
+    /// <summary>Everything stops while an operation is in flight, Reload included.</summary>
+    /// <remarks>
+    /// The busy gate is a different thing from a pause: it means an operation of ours is running, and
+    /// starting a second one would race it. Reload is no exception to that, and is to this.
+    /// </remarks>
+    [AvaloniaFact]
+    public void WhileBusy_NothingIsOffered()
+    {
+        var (_, _, buttons) = Footer(canEdit: true, busy: true);
+
+        Assert.All(buttons, b => Assert.False(b.IsEffectivelyEnabled));
+    }
+
+    /// <summary>The status line shows what the session says, and nothing when it says nothing.</summary>
+    [AvaloniaTheory]
+    [InlineData("")]
+    [InlineData("Unsaved changes")]
+    public void TheStatusLineShowsWhatTheSessionSays(string status)
+    {
+        var (window, _, _) = Footer(canEdit: true, status: status);
+
+        var line = window.GetVisualDescendants().OfType<TextBlock>().First();
+        Assert.Equal(status, line.Text);
+    }
+
+    /// <summary>
+    /// The actions survive the narrowest window the app allows, next to its longest message.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The status column takes what it needs and the actions take the rest, so a long message is the
+    /// thing that can squeeze them. The longest is the one that appears when the driver's settings
+    /// change underneath the artist; the footer's own actions are hidden by then, but the message is
+    /// still the widest thing this row is ever asked to hold beside them.
+    /// </para>
+    /// <para>
+    /// 800 is <c>MainWindow.MinWidth</c>. Below that the window cannot go, so this is the worst case
+    /// rather than an arbitrary narrow one.
+    /// </para>
+    /// </remarks>
+    [AvaloniaFact]
+    public void AtTheNarrowestWindow_TheLongestMessageDoesNotSqueezeOutTheActions()
+    {
+        const string longest = "Driver settings changed. Reload to continue. Attaching a new tablet "
+            + "can cause this, as can another settings app.";
+
+        var (window, _, buttons) = Footer(canEdit: false, status: longest, width: 800);
+
+        foreach (var button in buttons)
+        {
+            Assert.True(button.Bounds.Width > 0, $"'{button.Content}' was squeezed to nothing");
+            var right = button.TranslatePoint(new Point(button.Bounds.Width, 0), window);
+            Assert.True(right is { } p && p.X <= window.Width,
+                $"'{button.Content}' runs past the window edge at 800px");
+        }
+    }
+
+    // ── the notices, and the way to make them go ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// A notice describes something that already happened and asks for nothing, so it comes with a way
+    /// to put it away. Without a notice there is nothing to dismiss, and no control pretending otherwise.
+    /// </summary>
+    [AvaloniaFact]
+    public void ANoticeComesWithDismiss_AndNoNoticeDoesNot()
+    {
+        var (quiet, _, _) = Footer(canEdit: true);
+        Assert.False(DismissOf(quiet).IsEffectivelyVisible);
+
+        var (reconnected, _, _) = Footer(canEdit: true, notice: "Reconnected to the OTD daemon.");
+        Assert.True(DismissOf(reconnected).IsEffectivelyVisible);
+
+        var (refreshed, _, _) = Footer(canEdit: true, refreshed: "OTD daemon settings refreshed.");
+        Assert.True(DismissOf(refreshed).IsEffectivelyVisible);
+        quiet.Close(); reconnected.Close(); refreshed.Close();
+    }
+
+    [AvaloniaFact]
+    public void DismissRunsTheConnectionsCommand_AndNothingElse()
+    {
+        var (window, state, _) = Footer(canEdit: true, notice: "Reconnected to the OTD daemon.");
+
+        // Through the control, as the keyboard test above does: raising ClickEvent alone bypasses the
+        // button's own OnClick, which is where the command is invoked.
+        var dismiss = DismissOf(window);
+        dismiss.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter, Source = dismiss });
+        dismiss.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyUpEvent, Key = Key.Enter, Source = dismiss });
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(1, state.Connection.Dismiss.Ran);
+        Assert.Equal(0, state.Save.Ran);
+        Assert.Equal(0, state.Revert.Ran);
+        window.Close();
+    }
+}

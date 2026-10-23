@@ -1,0 +1,162 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="using:System"
+             xmlns:conv="using:OpenTabletArtist.Converters"
+             xmlns:vm="using:OpenTabletArtist.ViewModels"
+             xmlns:views="using:OpenTabletArtist.Views"
+             x:Class="OpenTabletArtist.App">
+
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://OpenTabletArtist/Themes/Styles.axaml" />
+    </Application.Styles>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://OpenTabletArtist/Themes/Colors.axaml" />
+                <!-- Dependency-free icon geometries (Path/PathIcon). See Themes/Icons.axaml. -->
+                <ResourceInclude Source="avares://OpenTabletArtist/Themes/Icons.axaml" />
+                <!-- The on-screen keyboard shared by the hotkey-capture and binding-editor dialogs
+                     (#617). Here rather than in Styles.axaml because these are keyed resources the two
+                     dialogs look up, not implicit styles. -->
+                <ResourceInclude Source="avares://OpenTabletArtist/Themes/Keycaps.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- ===== Content font size (#fontstd) =========================================
+                 THE one knob for content text size. `ContentFontSize` is the app-wide body/
+                 label/control size; overriding Fluent's `ControlContentThemeFontSize` with the
+                 same value makes native controls (ComboBox, TextBox, CheckBox, …) match. Nav
+                 bars and page headers set their own sizes and are unaffected. Change both to
+                 retune the whole content scale. -->
+            <sys:Double x:Key="ContentFontSize">13</sys:Double>
+            <sys:Double x:Key="ControlContentThemeFontSize">13</sys:Double>
+
+            <!-- ===== Zune type ramp ========================================================
+                 The heading scale, widened (#text-hierarchy). Phase 0.4 named these but kept the
+                 old values ("a rename, not a resize"); this is the resize. Zune's signature is a
+                 big INTERVAL — one display size against a small caption, with little in between —
+                 so the ramp deliberately skips from 44 to 17 rather than stepping evenly.
+
+                 One display-size layer is visible per page: the pivot row on a pivoted page, or
+                 the section headings on a page without pivots. Never both.
+
+                 App text uses Inter across all platforms (#mono-font-followup): it's embedded via
+                 .WithInterFont() (Program.cs), so it renders identically on Windows/macOS/Linux
+                 rather than falling back to each OS's default UI font.
+                 See docs/design/zune-redesign.md.
+
+                 The collection reference, not the bare family name (#718). A bare "Inter" goes to the
+                 SYSTEM font manager, which never sees the embedded collection .WithInterFont() registers
+                 as fonts:Inter -> avares://Avalonia.Fonts.Inter/Assets. On a machine without Inter
+                 installed system-wide (which is most of them) it silently resolved to the OS default
+                 and the app had never once rendered in Inter. It failed invisibly because a fallback
+                 font looks fine; only comparing it against a family that cannot exist showed it.
+
+                 Every other FontFamily in the app points at THIS key rather than repeating the URI, so
+                 there is one place to be wrong. -->
+            <FontFamily x:Key="DisplayFontFamily">fonts:Inter#Inter</FontFamily>
+            <sys:Double x:Key="TypeDisplaySize">44</sys:Double>   <!-- section headings (TextBlock.Display) -->
+            <!-- The pivot row — the "tab menu" in the user manual — sits a step under the display size.
+                 It shared TypeDisplaySize until the two were asked to differ: the pivots run across the
+                 top of most pages and read heavier there than a section heading does on a page that has
+                 only one or two. They are still the same layer and never appear together (a page has
+                 pivots OR display headings, never both), so the small difference is never seen side by
+                 side. Keep them within a step of each other. -->
+            <sys:Double x:Key="TypePivotSize">40</sys:Double>     <!-- pivots (PivotTab) -->
+            <sys:Double x:Key="TypeNavSize">22</sys:Double>       <!-- top-level wordmarks (WordmarkNav) -->
+            <!-- Section headings INSIDE a tab (TextBlock.Display.section). Home's headings run at the full
+                 TypeDisplaySize because its page menu is only TypeNavSize — a 2x jump. Inside a tablet tab
+                 the tab menu is already TypePivotSize, so a 44 heading out-types the tab containing it;
+                 this steps it back under the tab menu. It happens to equal TypeNavSize today, but it is a
+                 separate role: retuning the page menu should not move section headings. -->
+            <sys:Double x:Key="TypeSectionSize">22</sys:Double>   <!-- section headings within a tab -->
+            <sys:Double x:Key="TypeTitleSize">17</sys:Double>     <!-- subpage / body title -->
+            <sys:Double x:Key="TypeDetailSize">11.5</sys:Double>  <!-- incidental detail under a title -->
+            <sys:Double x:Key="TypeCaptionSize">10</sys:Double>   <!-- captions, badges, chips, status text -->
+
+            <!-- The height the top nav row always occupies, switcher or no switcher.
+
+                 The row is Auto-height with the wordmarks aligned to its BOTTOM, so anything taller in it
+                 pushes them down. The tablet switcher is one pixel taller than the wordmarks and appears
+                 on some pages and not others — so the whole nav stepped down by a pixel on TABLET and PEN
+                 and back up again on the others, which is small enough to read as the window twitching
+                 rather than as a layout change.
+
+                 Reserving the taller of the two on every page costs one pixel of chrome and holds the
+                 wordmarks still. It is the switcher's height, and NavRowStaysPutTests fails if that
+                 changes, so the number cannot drift out of date quietly. -->
+            <sys:Double x:Key="NavRowHeight">32</sys:Double>
+
+            <!-- Shared page transition: a quick crossfade for subpage/content swaps (the Zune motion
+                 layer). Applied to the tabbed-page content host now; the top-level shell adopts it in a
+                 later phase. -->
+            <CrossFade x:Key="PageFade" Duration="0:0:0.18" />
+
+            <!-- Width of the vertical SUBTAB rail — the third level of navigation, below the page menu
+                 and the tab menu, for a tab whose contents divide again. Sized to comfortably fit the
+                 longest subtab name.
+                 Settings / Developer is the only page with one: it was shared with the tablet page's
+                 rail until that page moved to the horizontal tab menu, so there is nothing left to line
+                 up with. Kept as a token rather than inlined because the rail is a pattern, not a
+                 one-off — a second one should match this width. -->
+            <sys:Double x:Key="SubtabRailWidth">160</sys:Double>
+            <!-- Build M: nav buttons (top row, sub-page rows, side rails) share one size. -->
+            <sys:Double x:Key="NavButtonMinWidth">96</sys:Double>
+            <sys:Double x:Key="NavButtonHeight">36</sys:Double>
+            <sys:Double x:Key="NavButtonFontSize">15</sys:Double>
+
+            <!-- Default (no) glow bands, one per edge; the code-generated Sakura backdrop overrides them
+                 (#556, sides added with linear glows in #glow-linear). -->
+            <SolidColorBrush x:Key="AppBackdropGlowBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="AppBackdropGlowTopBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="AppBackdropGlowLeftBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="AppBackdropGlowRightBrush" Color="Transparent" />
+
+            <!-- Square everything (Metro/Zune). Overriding Fluent's control + overlay corner radii squares
+                 the built-in controls (ComboBox, TextBox, CheckBox, Slider, flyouts/menus/popups); the
+                 app's own cards, buttons, chips, and badges are squared at their source. -->
+            <CornerRadius x:Key="ControlCornerRadius">6</CornerRadius>
+            <CornerRadius x:Key="OverlayCornerRadius">0</CornerRadius>
+
+            <conv:InverseBoolConverter x:Key="InvBool" />
+            <conv:EnumEqualsConverter x:Key="EnumEquals" />
+            <conv:NotNullConverter x:Key="NotNull" />
+            <conv:NonEmptyToBoolConverter x:Key="NonEmptyToBool" />
+            <conv:AllFalseBoolConverter x:Key="AllFalseBool" />
+            <conv:NotFirstAndSecondBoolConverter x:Key="NotFirstAndSecondBool" />
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <!-- Typed navigation (#15): the content host maps each page VM to its view by type.
+         This replaces the page-name string + PageToViewConverter, and lets each view inherit
+         its VM as DataContext directly (no per-view DataContext re-point). -->
+    <Application.DataTemplates>
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}"><views:DashboardView /></DataTemplate>
+        <!-- PenPageViewModel derives from TabletPageViewModel, and DataTemplate matching is polymorphic +
+             first-match-wins, so the derived pen template MUST precede the tablet one. -->
+        <DataTemplate DataType="{x:Type vm:TabletPageViewModel}"><views:TabletPageView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TabletDetailViewModel}"><views:TabletDetailView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PresetsViewModel}"><views:PresetsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HotkeysViewModel}"><views:HotkeysView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CustomTabletConfigsViewModel}"><views:CustomTabletConfigsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DriverCleanupViewModel}"><views:DriverCleanupView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DiagnosticsViewModel}"><views:DiagnosticsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TestViewModel}"><views:TestView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LogViewModel}"><views:LogView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DaemonViewModel}"><views:DaemonView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:WindowsInkViewModel}"><views:WindowsInkView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:VMultiViewModel}"><views:VMultiView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PluginsViewModel}"><views:PluginsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AdvancedViewModel}"><views:AdvancedView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CompositeSectionViewModel}"><views:CompositeSectionView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TwoColumnSectionViewModel}"><views:TwoColumnSectionView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:StartupViewModel}"><views:StartupView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DeveloperViewModel}"><views:DeveloperView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ShortcutViewModel}"><views:ShortcutView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DesktopEntryViewModel}"><views:DesktopEntryView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ThemeViewModel}"><views:ThemeView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AboutViewModel}"><views:AboutView /></DataTemplate>
+    </Application.DataTemplates>
+</Application>

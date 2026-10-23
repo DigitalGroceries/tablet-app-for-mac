@@ -1,0 +1,596 @@
+<UserControl x:Class="OpenTabletArtist.Views.DaemonView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls"
+             xmlns:conv="using:OpenTabletArtist.Converters">
+
+    <!-- DataContext is the DaemonViewModel, supplied by the typed-nav DataTemplate (#15).
+
+         The page leads with a TOPOLOGY (#daemon-topology): this app on the left, the daemon process on
+         the right, and the pipe between them. Everything on this page is a fact about one relationship —
+         OTA attaching to a separate OpenTabletDriver process — and it used to be presented as four
+         independent property lists, which hid that. Three things fell out of the old shape:
+
+           * Two "Status" rows that looked redundant but answered different questions (is there a pipe,
+             is there a process). They are the WIRE and the FAR BOX now, so the difference is structural.
+           * Three facts about version across two cards, one of which (Build match) was only a comparison
+             of the other two. Both versions now sit in the diagram where you can see them at once, so
+             the row is kept for a MISMATCH only — a match no longer needs saying.
+           * "Source" — which daemon am I actually talking to — was the page's most important fact and
+             the third row of the second list. It sits under the daemon box now.
+
+         The two "…" menus (which both carried "Refresh status") are one menu on the topology block. -->
+
+    <!-- Every daemon fact reads as one consistent property/value pair (#daemon-proplist): a muted label
+         in the Auto column and its value in the * column, so values align down each block. State is
+         carried by the value text alone — no status dots, and no color (so it reads the same under every
+         skin, incl. Sakura). Live numbers and versions use the app's monospace font.
+
+         A daemon PATH is the exception: an absolute path wrapped over three lines and dwarfed every fact
+         around it, so the value is a folder button now and the path itself moved to its tooltip
+         (#daemon-path-button). -->
+    <UserControl.Styles>
+        <Style Selector="TextBlock.propLabel">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="Margin" Value="0,6,0,0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+        <Style Selector="TextBlock.propValue">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="Margin" Value="0,6,0,0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <!-- A mono value needs a nudge DOWN to share its label's baseline (#daemon-proplist-baseline).
+             Both TextBlocks are arranged at the top of the same grid row, and each draws its text one
+             font-ascent below that top — so the face with the shorter ascent sits higher. Consolas
+             asks for roughly 0.80 em against the UI face's ~1.08, which at 13 px is the 4 px below.
+             LineHeight does not help: it sizes the line box without moving the baseline inside it.
+
+             4 is measured, not guessed: screen-grab the page, find the last inked row of the label and
+             of the value, and difference them. At 6 (no compensation) the value ran 6-7 device px high
+             on a 150%-scaled display; at 10 the pairs land within half a pixel.
+
+             The number is a metric of these two faces, so it has to be re-checked if either changes —
+             in particular by #718, where the UI font is meant to become Inter and currently is not. -->
+        <Style Selector="TextBlock.propValue.mono">
+            <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+            <Setter Property="Margin" Value="0,10,0,0" />
+        </Style>
+
+        <!-- The two ends of the topology. Square corners and a hairline accent border: this is the only
+             drawn box in the app (every card went boxless, #debox-entity), so it is deliberately the
+             quietest one that still reads as a box — a tint fill rather than a panel, no shadow, no
+             radius. Avalonia's Border has no dash array, so a not-running end is marked by dropping the
+             accent to muted ink and the fill to nothing rather than by a dashed outline. -->
+        <Style Selector="Border.node">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Background" Value="{DynamicResource AccentMutedBrush}" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
+        <Style Selector="Border.node.ghost">
+            <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <!-- "THIS APP" / "DAEMON PROCESS" — says what each end IS, so the names below them don't have to. -->
+        <Style Selector="TextBlock.nodeRole">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="FontSize" Value="{DynamicResource TypeCaptionSize}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="LetterSpacing" Value="1.1" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+        <Style Selector="TextBlock.nodeName">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <!-- Provenance chip: one word beside the daemon's name, where "Source: Your OpenTabletDriver
+             install" used to be a whole row. -->
+        <Style Selector="Border.chip">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="6,1" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.chip > TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="FontSize" Value="{DynamicResource TypeCaptionSize}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="LetterSpacing" Value="0.6" />
+        </Style>
+        <!-- The path reads as text, not as a control; the whole line is the hit target. -->
+        <Style Selector="Button.pathLink">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.pathLink:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.pathLink:pointerover TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.nodeSub">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+            <Setter Property="FontSize" Value="{DynamicResource TypeDetailSize}" />
+            <Setter Property="Margin" Value="0,2,0,0" />
+        </Style>
+        <!-- The wire's own label: the connection state, in the one place the connection lives. Left
+             aligned so it starts on the same margin as the Since / Up for rows beneath it — the whole
+             group reads as one block hanging off the wire. -->
+        <Style Selector="TextBlock.wireLabel">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="TextBlock.wireLabel.down">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel>
+
+        <!-- ── THE TOPOLOGY, top to bottom ─────────────────────────────────────────
+             One definite-width column: this app, the wire running down beside its own facts, then the
+             daemon process. Vertical rather than side by side because the page reads top-to-bottom like
+             every other page in the app, because 380 px leaves the whole rest of the width for the
+             secondary cards, and because a horizontal strip has to reserve room for the widest possible
+             value at both ends at once — stacked, each end simply takes the height it needs.
+
+             Definite width, not star: a star column measures to infinity inside a left-aligned parent
+             and then arranges to its content (#691). Inside this 380 px block stars resolve normally,
+             which is why the wire row can use one. -->
+        <!-- Two explicit columns, not a wrap: which column a card lands in is a decision, not a
+             by-product of how many cards happen to be visible. Left is the connection itself; right is
+             everything about acquiring and identifying a driver.
+
+             The right column is star-width with the cards capped at their old 440: the shell disables
+             horizontal scrolling and the window goes down to 800px, so fixed widths here would clip
+             rather than compress. The left column stays definite for the reason below. -->
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="28">
+            <StackPanel Grid.Column="0" VerticalAlignment="Top">
+            <c:Section Width="380" VerticalAlignment="Top">
+                <StackPanel>
+
+                            <!-- THIS APP. Its facts are what OTA itself brings: its own build, and the
+                                 OTD release it was built from — on one line, because they are read together
+                                 and never separately. "Bundles" only where a daemon really ships with the
+                                 app; on macOS nothing does, so the number is what OTA was compiled against,
+                                 which is a different claim. Read against the daemon's version below, that
+                                 pairing is what retires the old "Build match" row. -->
+                            <Border Classes="node">
+                                <StackPanel>
+                                    <TextBlock Classes="nodeRole" Text="This app" />
+                                    <TextBlock Classes="nodeName" Text="Tablet App for Mac" />
+                                    <TextBlock Classes="nodeSub" TextWrapping="Wrap" Text="{Binding BuildLine}" />
+                                </StackPanel>
+                            </Border>
+
+                        <!-- THE WIRE, running down the left with the connection's own facts beside it.
+                                 Three states: solid accent when connected, a broken pair of segments when
+                                 not, and a vertical indeterminate bar over the top while a lifecycle action
+                                 or the initial connect is in flight. The bar stretches to whatever height
+                                 the text beside it needs, so the two never disagree. -->
+                            <Grid ColumnDefinitions="Auto,*" Margin="26,0,0,0">
+                                <Panel Grid.Column="0" Width="3">
+                                    <Border Width="3" Background="{DynamicResource AccentBrush}"
+                                            VerticalAlignment="Stretch"
+                                            IsVisible="{Binding Status.IsConnected}" />
+                                    <!-- Broken wire: two segments with a gap, since Avalonia's Border has
+                                         no dash array. -->
+                                    <Grid RowDefinitions="*,10,*" IsVisible="{Binding !Status.IsConnected}">
+                                        <Border Grid.Row="0" Width="3" Opacity="0.45"
+                                                Background="{DynamicResource TextMutedBrush}" />
+                                        <Border Grid.Row="2" Width="3" Opacity="0.45"
+                                                Background="{DynamicResource TextMutedBrush}" />
+                                    </Grid>
+                                    <!-- Drawn over whichever of the two is showing while busy. -->
+                                    <ProgressBar Orientation="Vertical" IsIndeterminate="True" Width="3"
+                                                 VerticalAlignment="Stretch" MinHeight="0"
+                                                 Foreground="{DynamicResource AccentBrush}"
+                                                 IsVisible="{Binding Status.ShowDaemonActivity}" />
+                                </Panel>
+
+                                <StackPanel Grid.Column="1" Margin="16,10,0,10">
+                                    <TextBlock Classes="wireLabel" Text="connected"
+                                               IsVisible="{Binding Status.IsConnected}" />
+                                    <TextBlock Classes="wireLabel down" Text="not connected"
+                                               IsVisible="{Binding Status.ShowDisconnectedLabel}" />
+                                    <TextBlock Classes="wireLabel down" Text="{Binding Status.DaemonActivityText}"
+                                               IsVisible="{Binding Status.ShowDaemonActivity}" />
+
+                                    <!-- Two labels for two short values read as a form; the connection has
+                                         one fact with two halves, so it gets one line. -->
+                                    <TextBlock Classes="nodeSub" TextWrapping="Wrap"
+                                               IsVisible="{Binding Connection.ShowConnectionTiming}"
+                                               Text="{Binding Connection.ConnectionLine}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- THE DAEMON PROCESS. Named when it is running, greyed out and unnamed when it
+                                 is not — the empty box IS the "Not running" status, so there is no row for it. -->
+                            <Border Classes="node" Classes.ghost="{Binding !Process.IsRunning}">
+                                <StackPanel>
+                                    <!-- The actions live ON the daemon, because that is what they act on:
+                                         Start / Restart / Stop all operate on this process, and hanging them
+                                         off the block as a whole left them pointing at nothing in particular.
+                                         Refresh comes along because it re-reads this box's own facts.
+                                         Start and Restart are mutually exclusive (each shows on its own
+                                         condition), so the menu stays short. Stop keeps the error color, but as
+                                         a NAMED item rather than a filled red block. Opening OTD's own UX joins
+                                         them for the same reason: it acts on this daemon, and a whole card for
+                                         one button said otherwise. -->
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Classes="nodeRole" Text="Daemon process"
+                                                   VerticalAlignment="Center" />
+                                        <c:IconButton Grid.Column="1" VerticalAlignment="Top"
+                                                      Margin="0,-4,-6,0"
+                                                      Icon="{StaticResource IconDotsHorizontal}"
+                                                      ToolTip.Tip="Daemon process actions"
+                                                      AutomationProperties.Name="Daemon process actions">
+                                            <c:IconButton.Flyout>
+                                                <MenuFlyout>
+                                                    <!-- The header follows what pressing it will do:
+                                                         "Refresh status" connected, where it reloads
+                                                         settings without reopening the connection, and
+                                                         "Reconnect" disconnected, where it opens one.
+                                                         A single name described only one of the two
+                                                         (#912, #949). -->
+                                                    <MenuItem Header="{Binding Status.RefreshActionLabel}"
+                                                              Command="{Binding Status.RefreshCommand}"
+                                                              IsEnabled="{Binding !Status.IsDaemonBusy}" />
+                                                    <Separator />
+                                                    <MenuItem Header="Start"
+                                                              Command="{Binding Status.StartDaemonCommand}"
+                                                              IsVisible="{Binding Status.ShowStartButton}"
+                                                              IsEnabled="{Binding !Status.IsDaemonBusy}" />
+                                                    <MenuItem Header="Restart"
+                                                              Command="{Binding Status.RestartDaemonCommand}"
+                                                              IsVisible="{Binding Status.IsConnected}"
+                                                              IsEnabled="{Binding !Status.IsDaemonBusy}" />
+                                                    <MenuItem Header="Stop"
+                                                              Command="{Binding Status.StopDaemonCommand}"
+                                                              IsVisible="{Binding Status.IsConnected}"
+                                                              IsEnabled="{Binding !Status.IsDaemonBusy}"
+                                                              Foreground="{DynamicResource ErrorBrush}" />
+                                                    <!-- OTD's own interface: an action ON this daemon, so it
+                                                         belongs with the other actions on it rather than in a
+                                                         card of its own. Hidden unless the UX is launchable. -->
+                                                    <Separator IsVisible="{Binding Status.CanLaunchOtdUx}" />
+                                                    <MenuItem Header="Open OpenTabletDriver&apos;s interface"
+                                                              Command="{Binding Status.LaunchOtdUxCommand}"
+                                                              IsVisible="{Binding Status.CanLaunchOtdUx}"
+                                                              ToolTip.Tip="For comparison, or for settings Tablet App for Mac doesn&apos;t show" />
+                                                </MenuFlyout>
+                                            </c:IconButton.Flyout>
+                                        </c:IconButton>
+                                    </Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                                IsVisible="{Binding Process.IsRunning}">
+                                        <TextBlock Classes="nodeName" Text="OpenTabletDriver" />
+                                        <Border Classes="chip" IsVisible="{Binding Status.ShowForeignDaemonWarning}">
+                                            <TextBlock Text="Yours" />
+                                        </Border>
+                                        <Border Classes="chip" IsVisible="{Binding Status.ShowAppOwnedDaemon}">
+                                            <TextBlock Text="Bundled" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Classes="nodeName" Text="not running"
+                                               Foreground="{DynamicResource TextMutedBrush}"
+                                               IsVisible="{Binding !Process.IsRunning}" />
+                                    <!-- Version and uptime are one line for the same reason as the wire's.
+                                         Provenance is a chip beside the name rather than a "Source" row: it
+                                         qualifies WHICH OpenTabletDriver this is, so it belongs with the
+                                         name, and one word carries it. The old "Build match" row is gone —
+                                         both versions are now on screen at once, one at each end of the
+                                         wire, and the health card pairs them when they differ. -->
+                                    <TextBlock Classes="nodeSub" TextWrapping="Wrap"
+                                               Text="{Binding Process.ProcessLine}"
+                                               IsVisible="{Binding Process.HasProcessLine}" />
+
+                                    <!-- Which OpenTabletDriver this is, named the way a person would: the
+                                         .app bundle, not the binary four levels inside it. Full path on the
+                                         tooltip; the button opens the containing folder. -->
+                                    <Button Classes="pathLink" Margin="0,8,0,0" Padding="0"
+                                            HorizontalAlignment="Left"
+                                            Command="{Binding OpenContainingFolderCommand}"
+                                            CommandParameter="{Binding Status.DaemonSourcePath}"
+                                            ToolTip.Tip="{Binding Status.DaemonSourcePath}"
+                                            IsVisible="{Binding Status.HasDaemonSourcePath}"
+                                            AutomationProperties.Name="Open the folder holding this daemon">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <PathIcon Data="{StaticResource IconFolderOutline}" Width="13" Height="13"
+                                                      VerticalAlignment="Top" Margin="0,3,0,0"
+                                                      Foreground="{DynamicResource TextMutedBrush}" />
+                                            <TextBlock Classes="nodeSub" Margin="0" TextWrapping="Wrap"
+                                                       Text="{Binding Status.DaemonSourceDisplayPath}" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                    <!-- Auto-connect ran past the timeout: it's still retrying in the background, so say so
+                         (with an immediate Retry) rather than a silent "not connected". (#296) -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,14,0,0"
+                          IsVisible="{Binding Status.ConnectStalled}">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Text="Couldn't reach the daemon. Still retrying in the background." />
+                        <Button Grid.Column="1" Content="Retry" Command="{Binding Status.RefreshCommand}"
+                                Theme="{StaticResource AccentButton}" Padding="12,6"
+                                VerticalAlignment="Center" />
+                    </Grid>
+
+                    <!-- Error: shown when a lifecycle op times out or fails. -->
+                    <!-- R12: a Grid, not a horizontal StackPanel, so the message gets a width and wraps. -->
+                    <Grid ColumnDefinitions="Auto,*" Margin="0,14,0,0"
+                          IsVisible="{Binding Status.HasDaemonOperationError}">
+                        <TextBlock Grid.Column="0" Classes="warning" VerticalAlignment="Top" />
+                        <TextBlock Grid.Column="1" Text="{Binding Status.DaemonOperationError}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                    </Grid>
+
+                    <!-- An edit was discarded because the daemon changed underneath it (#787). Discarding
+                         is the right call - the alternative was writing one daemon's settings into
+                         another's file - but it is still something the artist did, and the save chip
+                         going quiet explains nothing. Shown here rather than as a health issue because it
+                         is an event, not a state: it describes something that already happened. -->
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0"
+                                IsVisible="{Binding Status.HasDiscardedChangeNotice}">
+                        <TextBlock Classes="warning" />
+                        <TextBlock Text="{Binding Status.DiscardedChangeNotice}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                    </StackPanel>
+
+                    <!-- Missing .NET runtime (#786, D2). OpenTabletDriver's official Windows build is
+                         framework-dependent where OTA is self-contained, so a machine with no .NET 8 gets a
+                         daemon that exits before printing anything. Offered here, beside the error that
+                         explains it, rather than as a health card: this is a prerequisite for connecting,
+                         which is what this page is about.
+
+                         The button opens Microsoft's page rather than installing anything. OTA used to do
+                         the download and the elevated install itself; watching that on a clean machine
+                         (#878) showed a progress display the user could not trust, no way to cancel, and,
+                         when OTA was already elevated, a quiet install with no visible sign at all,
+                         which reads as a hang. The browser does all of that properly already. -->
+                    <StackPanel Margin="0,14,0,0" Spacing="8" IsVisible="{Binding ShowInstallRuntime}">
+                        <TextBlock Text="OpenTabletDriver needs the .NET 8 runtime" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding InstallRuntimeDescription}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="Get .NET 8 from Microsoft"
+                                    Command="{Binding OpenRuntimeDownloadCommand}"
+                                    Theme="{StaticResource AccentButton}" Padding="12,6" />
+                            <Button Content="Check again"
+                                    Command="{Binding RecheckRuntimeCommand}"
+                                    Padding="12,6" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Outside the offer above, deliberately: finding the runtime removes the offer, and
+                         with it anything drawn inside, at the moment there is finally something to read.
+                         This also carries the "still not found" answer, so Check again can never look like
+                         a button that did nothing. -->
+                    <TextBlock Margin="0,14,0,0" TextWrapping="Wrap"
+                               Text="{Binding RuntimeInstallOutcome}"
+                               IsVisible="{Binding HasRuntimeInstallOutcome}"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                </StackPanel>
+            </c:Section>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Top" Spacing="16">
+
+                <!-- The same issues Home shows for this page, repeated at the top of the column that owns
+                     them (#317). No Review button here: on Home it navigates to this page, and from this
+                     page it would lead back to where the reader already is. The rows stay clickable. -->
+                <ItemsControl ItemsSource="{Binding DaemonIssues}" IsVisible="{Binding HasDaemonIssues}"
+                              MaxWidth="440" HorizontalAlignment="Left">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <c:Alert Margin="0,0,0,8" Padding="14,11"
+                                     Severity="{Binding Severity, Converter={x:Static conv:HealthSeverityToAlertSeverityConverter.Instance}}">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                                    <Panel Grid.Column="0" VerticalAlignment="Top" Margin="0,1,0,0">
+                                        <PathIcon Data="{StaticResource IconAlertCircle}" Width="22" Height="22" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                  IsVisible="{Binding Severity, Converter={StaticResource EnumEquals}, ConverterParameter=Broken}" />
+                                        <PathIcon Data="{StaticResource IconAlert}" Width="22" Height="22" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                  IsVisible="{Binding Severity, Converter={StaticResource EnumEquals}, ConverterParameter=Misconfigured}" />
+                                        <PathIcon Data="{StaticResource IconLightbulbOn}" Width="22" Height="22" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                  IsVisible="{Binding Severity, Converter={StaticResource EnumEquals}, ConverterParameter=Recommendation}" />
+                                        <PathIcon Data="{StaticResource IconInformationOutline}" Width="22" Height="22" Foreground="{DynamicResource TextPrimaryBrush}"
+                                                  IsVisible="{Binding Severity, Converter={StaticResource EnumEquals}, ConverterParameter=Information}" />
+                                    </Panel>
+                                    <StackPanel Grid.Column="1" MinWidth="0" VerticalAlignment="Top">
+                                        <TextBlock Text="{Binding Title}" Classes="CardTitle" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Detail}" Margin="0,2,0,0" TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <ItemsControl ItemsSource="{Binding Links}" Margin="0,6,0,0"
+                                                      IsVisible="{Binding Links, Converter={StaticResource NotNull}}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2,0,0">
+                                                        <TextBlock Text="&#8226;" VerticalAlignment="Top"
+                                                                   Foreground="{DynamicResource TextMutedBrush}" />
+                                                        <TextBlock Text="{Binding Label}" TextWrapping="Wrap"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Grid>
+                            </c:Alert>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+
+            <!-- The rest of this column, under the issues above it. Each card is conditional (external
+                 daemon, Linux-only package state, dev-only OTD UX), so on a released Windows build with
+                 the bundled daemon this area is empty and the page is just the diagram.
+
+                 Left-aligned, like the issues list. They are capped at 440 and the column is wider than
+                 that, so without it a card centred itself in the leftover space — which put the driver
+                 block adrift somewhere right of the card explaining which driver is in use, with a gap
+                 between them and nothing in it. The comment that used to sit here described a WrapPanel
+                 that had already stopped existing. -->
+
+                    <!-- EXTERNAL DAEMON (#591): OTA connects to whatever daemon is already running — including
+                         an officially-installed / separately-started OpenTabletDriver — and launches whichever
+                         one the search ladder resolves to when nothing is running (docs/design/official-otd-release.md:
+                         an installed OTD outranks the dev tree on macOS, so "we started it" no longer implies
+                         "it is our build"). When the connected daemon isn't OTA's build, present that here as
+                         a supported setup (path + version). The topology already says "External" under the
+                         daemon end; this card is where the explanation lives.
+
+                         The way back to the bundled copy lives here, in two states (#725). 660b49a removed
+                         the original button as duplication, and it was also capable of lying: it asked only
+                         whether a bundled copy existed, so with a chosen location it offered a switch that
+                         restarted the daemon the user was trying to leave. The offer is now made only when
+                         the restart would reach the bundled copy, and when a chosen location is in front of
+                         it the card says so and points at Clear rather than hiding the option. -->
+                    <!-- One block for both answers to "which driver?", because they are the same
+                         question: install the official release, or open the settings window of the
+                         driver that is already answering.
+                         They were two sections with two headings and two paragraphs saying so. -->
+                    <c:Section MaxWidth="440" HorizontalAlignment="Left" VerticalAlignment="Top"
+                               IsVisible="{Binding ShowDriverCard}">
+                        <StackPanel>
+                            <TextBlock Classes="Display section" Text="OTD daemon" TextWrapping="Wrap" Margin="0,0,0,0" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,10,0,0">
+                                <Button Content="{Binding InstallVersion, StringFormat='Install v{0}'}"
+                                        IsVisible="{Binding ShowInstallCard}"
+                                        Command="{Binding InstallOtdCommand}"
+                                        IsEnabled="{Binding !IsInstalling}"
+                                        Theme="{StaticResource AccentButton}" Padding="12,6" />
+                            </StackPanel>
+
+                            <!-- OpenTabletDriver's own settings window, when the connected driver ships
+                                 one. Here rather than beside the daemon card because it belongs with the
+                                 other "which driver, and what can I do with it" actions.
+
+                                 The tooltip says what opening it costs: OTD's UX is a second editor on
+                                 the same daemon, and editing there makes OTA pause until reloaded. That
+                                 is the design working, and an artist who has not been told will read it
+                                 as a fault. -->
+                            <Button Content="Open OpenTabletDriver's own window" Margin="0,10,0,0"
+                                    HorizontalAlignment="Left"
+                                    IsVisible="{Binding CanOpenOtdUx}"
+                                    Command="{Binding OpenOtdUxCommand}"
+                                    Theme="{StaticResource GhostButton}" Padding="12,6"
+                                    ToolTip.Tip="Opens the settings window that ships with this OpenTabletDriver. It edits the same driver, so changes made there will pause Tablet App for Mac until you reload." />
+
+                            <!-- Says what pressing Install actually does — where the download comes from and
+                                 where it lands. Only shown when Install is on offer. -->
+                            <TextBlock Margin="0,8,0,0" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       IsVisible="{Binding ShowInstallCard}"
+                                       Text="{Binding InstallDescription}" />
+
+                            <StackPanel Margin="0,8,0,0" IsVisible="{Binding IsInstalling}">
+                                <TextBlock Classes="propValue" Text="{Binding InstallStatus}" TextWrapping="Wrap" />
+                                <ProgressBar Margin="0,4,0,0" Height="4" Minimum="0" Maximum="100"
+                                             Value="{Binding InstallProgress}" />
+                            </StackPanel>
+
+                            <TextBlock Margin="0,8,0,0" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource ErrorBrush}"
+                                       IsVisible="{Binding HasInstallProblem}"
+                                       Text="{Binding InstallProblem}" />
+
+                            <!-- Unsigned artifact: the user approves it themselves. OTA does not remove the
+                                 quarantine attribute for them. -->
+                            <TextBlock Margin="0,8,0,0" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       IsVisible="{Binding HasInstallGuidance}"
+                                       Text="{Binding InstallGuidance}" />
+
+                        </StackPanel>
+                    </c:Section>
+
+                    <!-- Linux only: is OTD installed as a system RPM package (the normal Fedora/RHEL install), or is
+                         it running from source / a tarball? Checked on-demand (tab entry + the Refresh button). -->
+                    <c:Section MaxWidth="440" HorizontalAlignment="Left" VerticalAlignment="Top"
+                               IsVisible="{Binding IsLinux}">
+                        <StackPanel>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <StackPanel Grid.Column="0" MinWidth="0">
+                                    <TextBlock Classes="Display section" Text="System-installed daemon" TextWrapping="Wrap" Margin="0,0,0,0" />
+
+                                    <!-- property: value list -->
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14"
+                                          RowDefinitions="Auto,Auto,Auto" Margin="0,6,0,0">
+                                        <!-- Package: installed via RPM (+ version) or running from source/tarball -->
+                                        <Panel Grid.Row="0" Grid.Column="0">
+                                            <TextBlock Classes="propLabel" Text="Package"
+                                                       IsVisible="{Binding OtdPackageInstalled}" />
+                                            <TextBlock Classes="propLabel" Text="Package"
+                                                       IsVisible="{Binding ShowOtdPackageMissing}" />
+                                        </Panel>
+                                        <Panel Grid.Row="0" Grid.Column="1">
+                                            <TextBlock Classes="propValue"
+                                                       Text="{Binding OtdPackageVersion, StringFormat='Installed (RPM), v{0}'}"
+                                                       IsVisible="{Binding OtdPackageInstalled}"
+                                                       ToolTip.Tip="OpenTabletDriver is installed via your package manager (rpm -q opentabletdriver)" />
+                                            <TextBlock Classes="propValue"
+                                                       Text="Not installed (running from source / tarball)"
+                                                       IsVisible="{Binding ShowOtdPackageMissing}"
+                                                       ToolTip.Tip="No 'opentabletdriver' RPM package is installed (rpm -q opentabletdriver)" />
+                                        </Panel>
+
+                                        <!-- Packaged daemon binary path -->
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Classes="propLabel" Text="Path"
+                                                   IsVisible="{Binding HasOtdDaemonPath}" />
+                                        <c:IconButton Grid.Row="1" Grid.Column="1" Icon="{StaticResource IconFolderOutline}"
+                                                      Width="26" Height="22" IconSize="13"
+                                                      HorizontalAlignment="Left" Margin="0,2,0,0"
+                                                      Command="{Binding OpenContainingFolderCommand}"
+                                                      CommandParameter="{Binding OtdDaemonPath}"
+                                                      ToolTip.Tip="{Binding OtdDaemonPath}"
+                                                      AutomationProperties.Name="Open the folder holding this daemon"
+                                                      IsVisible="{Binding HasOtdDaemonPath}" />
+
+                                        <!-- Service running -->
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Classes="propLabel" Text="Service"
+                                                   IsVisible="{Binding OtdServiceActive}" />
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Classes="propValue"
+                                                   Text="Running (opentabletdriver.service)"
+                                                   IsVisible="{Binding OtdServiceActive}" />
+                                    </Grid>
+
+                                    <!-- Start the packaged systemd user service (shown when installed but not running) -->
+                                    <Button Content="Start OpenTabletDriver service" Margin="0,10,0,0"
+                                            Command="{Binding StartOtdServiceCommand}"
+                                            IsVisible="{Binding ShowStartOtdService}"
+                                            Theme="{StaticResource AccentButton}" Padding="12,6"
+                                            HorizontalAlignment="Left" />
+
+                                    <!-- Result of the last Start action -->
+                                    <TextBlock Text="{Binding OtdServiceStatus}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                               Foreground="{DynamicResource TextMutedBrush}"
+                                               IsVisible="{Binding HasOtdServiceStatus}" />
+                                </StackPanel>
+
+                                <!-- Refresh: re-run the package check on demand. -->
+                                <c:IconButton Grid.Column="1" Icon="{StaticResource IconRefresh}"
+                                              Command="{Binding CheckOtdPackageCommand}"
+                                              ToolTip.Tip="Re-check whether OTD is installed as a system package"
+                                              AutomationProperties.Name="Re-check system package"
+                                              VerticalAlignment="Top" />
+                            </Grid>
+                        </StackPanel>
+                    </c:Section>
+
+            </StackPanel>
+        </Grid>
+    </StackPanel>
+</UserControl>

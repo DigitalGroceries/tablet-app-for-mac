@@ -1,0 +1,67 @@
+<UserControl x:Class="OpenTabletArtist.Views.PenDiagram"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="using:Avalonia.Data.Converters">
+    <!-- Build R5: one upright pen drawing (eraser up, tip down) shared by the Pen page and the Tablet page's
+         Pen tab. Original shapes, no Wacom artwork. DataContext is a TabletDetailViewModel; each side button
+         carries its number on a light badge with black text ("the pen button numbers should be black").
+         Button 1 is the one nearest the tip. Drawn on a 64 × 360 canvas, centred in its column. -->
+    <UserControl.Styles>
+        <Style Selector="Border.penBadge">
+            <Setter Property="Width" Value="24" /><Setter Property="Height" Value="26" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.penBadge > TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource SelectionTextBrush}" />
+            <Setter Property="FontSize" Value="15" /><Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <!-- Version 3: a held barrel button lights up (live from the tablet). Nothing brighter than #E4E4E4. -->
+        <Style Selector="Border.penBadge.pressed">
+            <Setter Property="Background" Value="#E4E4E4" />
+            <Setter Property="BorderBrush" Value="#E4E4E4" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BoxShadow" Value="0 0 12 4 #9A9A9A" />
+            <Setter Property="RenderTransform" Value="scale(1.3)" />
+        </Style>
+        <Style Selector="Border.penBadge.pressed > TextBlock">
+            <Setter Property="Foreground" Value="#000000" />
+        </Style>
+    </UserControl.Styles>
+    <Panel Width="64" Height="360" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <!-- R16: the shapes rotate 180° on the Eraser tab (Flipped); the badges are a separate layer that stays
+         upright and moves to the same physical buttons. -->
+    <Canvas x:Name="Shapes" Width="64" Height="360" RenderTransformOrigin="50%,50%">
+        <!-- eraser cap -->
+        <Rectangle Canvas.Left="23" Canvas.Top="0" Width="18" Height="22" RadiusX="6" RadiusY="6"
+                   Fill="{DynamicResource PenDiagramFillBrush}" Stroke="{DynamicResource PenDiagramStrokeBrush}" StrokeThickness="1.5" />
+        <!-- barrel -->
+        <Rectangle Canvas.Left="18" Canvas.Top="18" Width="28" Height="272" RadiusX="10" RadiusY="10"
+                   Fill="{DynamicResource PenDiagramFillBrush}" Stroke="{DynamicResource PenDiagramStrokeBrush}" StrokeThickness="1.5" />
+        <!-- R16 (the user's close-up): a separate tapered cone under the rounded barrel end, top a touch wider than
+             the barrel with sharp corners, ~2× the barrel width tall, narrowing to a flat end ~0.3 × the barrel
+             width; under it a small solid light-grey triangular nib. -->
+        <Path x:Name="Cone" Data="M17,286 L47,286 L36,343 L28,343 Z" Fill="{DynamicResource PenDiagramFillBrush}"
+              Stroke="{DynamicResource PenDiagramStrokeBrush}" StrokeThickness="1.5" StrokeJoin="Miter" />
+        <Path x:Name="Nib" Data="M29,344 L35,344 L32,351 Z" Fill="{DynamicResource PenDiagramStrokeBrush}" />
+    </Canvas>
+    <Canvas x:Name="Badges" Width="64" Height="360">
+        <!-- side buttons with their numbers (3 only on pens that have one) -->
+        <Border x:Name="Badge3" Classes="penBadge" Classes.pressed="{Binding PenButton3Pressed}" Canvas.Left="20" Canvas.Top="140"
+                IsVisible="{Binding PenButton3Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+            <TextBlock Text="3" />
+        </Border>
+        <Border x:Name="Badge2" Classes="penBadge" Classes.pressed="{Binding PenButton2Pressed}" Canvas.Left="20" Canvas.Top="172"
+                IsVisible="{Binding PenButton2Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+            <TextBlock Text="2" />
+        </Border>
+        <Border x:Name="Badge1" Classes="penBadge" Classes.pressed="{Binding PenButton1Pressed}" Canvas.Left="20" Canvas.Top="204"
+                IsVisible="{Binding PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+            <TextBlock Text="1" />
+        </Border>
+    </Canvas>
+    </Panel>
+</UserControl>

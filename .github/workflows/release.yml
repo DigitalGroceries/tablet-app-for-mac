@@ -1,0 +1,573 @@
+name: release
+
+# Publishes a self-contained Windows binary (app + bundled OTD daemon) as a GitHub Release.
+# Trigger by pushing a version tag (e.g. `git tag v0.1.0 && git push origin v0.1.0`),
+# or run manually from the Actions tab with a tag input.
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to create/publish (e.g. v0.1.0)'
+        required: true
+
+permissions:
+  contents: write   # create the release + upload assets
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout (with OpenTabletDriver submodule)
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0      # full history + tags, so the changelog step can diff against the previous tag
+          fetch-tags: true
+
+      # .NET 8 is still needed, for two reasons that are no longer "we build the daemon" (#786): the
+      # pen-dynamics plugin targets net8.0, and the packaged-daemon smoke test runs OpenTabletDriver's
+      # official binary, which is framework-dependent and needs an 8.x runtime present on the runner.
+      # That last point cuts both ways -- a runner with the SDK installed can never demonstrate the
+      # missing-runtime experience, which is why D2's install path wants a clean machine.
+      - name: Set up .NET (app targets net10.0; plugin and OTD daemon need net8.0)
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Resolve tag / version
+        id: ver
+        shell: pwsh
+        run: |
+          $tag = if ('${{ github.event_name }}' -eq 'workflow_dispatch') { '${{ github.event.inputs.tag }}' } else { '${{ github.ref_name }}' }
+          if ([string]::IsNullOrWhiteSpace($tag)) { throw "No tag resolved" }
+          "tag=$tag"  >> $env:GITHUB_OUTPUT
+          "zip=OpenTabletArtist-$tag-win-x64.zip" >> $env:GITHUB_OUTPUT
+          # Numeric version (strip a leading 'v') stamped into the assembly for the in-app label.
+          "version=$($tag -replace '^v','')" >> $env:GITHUB_OUTPUT
+          Write-Host "Releasing $tag"
+
+      # Make the source we build match the label we ship (#739). The checkout above takes the workflow's
+      # own ref, while the tag input drives the release name, the assembly version, and the asset name —
+      # so a manual run could publish "v1.2.3" built from whatever the default branch happened to be.
+      # An existing tag is now checked out explicitly; a new one stays on the checked-out commit and is
+      # created from it later by the release step, which is the intended "tag this commit" flow.
+      - name: Check out the requested tag
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = '${{ steps.ver.outputs.tag }}'
+          # `git tag --list` always exits 0, printing nothing when the tag is absent. `rev-parse --verify`
+          # would exit non-zero, and PowerShell 7.4 turns a failing native command into a terminating
+          # error under ErrorActionPreference='Stop' — which would break the "tag doesn't exist yet" path
+          # this branch is here to support.
+          if (git tag --list $tag) {
+            Write-Host "Tag $tag exists - building from it."
+            git checkout --force --recurse-submodules "refs/tags/$tag"
+            if ($LASTEXITCODE -ne 0) { throw "Failed to check out refs/tags/$tag" }
+          } else {
+            Write-Host "Tag $tag does not exist yet - building from HEAD and tagging it at release."
+          }
+          Write-Host "Source commit: $(git rev-parse HEAD)"
+
+      # Gate the release on the test suite (build.yml tests every push/PR, but a tag could point
+      # at any commit, so verify here too).
+      - name: Test
+        run: dotnet test tests/OpenTabletArtist.Tests/OpenTabletArtist.Tests.csproj -c Debug
+
+      - name: Library tests
+        run: dotnet test tests/OtdInterop.Tests/OtdInterop.Tests.csproj -c Debug
+
+      - name: Health library tests
+        run: dotnet test tests/OtdHealth.Tests/OtdHealth.Tests.csproj -c Debug
+
+      - name: Health collector and analyzer tests
+        run: dotnet test tests/OtdHealth.Collector.Tests/OtdHealth.Collector.Tests.csproj -c Debug
+
+      # Self-contained so end users need no .NET runtime installed. (Debug symbols are stripped from the
+      # whole bundle just before zipping — see the "Strip debug symbols" step below.)
+      #
+      # Single-file (#586), because the zip root used to hold 252 files and users could not find the
+      # executable among 251 runtime DLLs. With the natives bundled in, the root becomes exactly one exe
+      # plus the Daemon/, BundledPlugins/ and Bundled/ folders.
+      #
+      # IncludeNativeLibrariesForSelfExtract pulls in Skia/HarfBuzz/ANGLE, which would otherwise stay
+      # loose; EnableCompressionInSingleFile takes the app from ~116 MB to ~51 MB on disk. Measured
+      # together with the daemon: 259 root files and 193 MB unpacked become 2 and 87 MB, and the download
+      # goes 86 MB → 77 MB. The download moves far less than the unpacked size because the loose-DLL
+      # layout already compressed well into the zip — the real wins here are the root clutter and the
+      # installed footprint, not the download.
+      #
+      # The cost is that the natives unpack to a temp folder on first launch. The "Smoke-test the
+      # packaged app" step below runs the packaged exe and is what proves this layout still resolves its
+      # bundled components: single-file keeps AppContext.BaseDirectory pointing at the exe's own folder
+      # rather than the extraction directory, and every bundled path depends on that.
+      - name: Publish app (self-contained win-x64, single file)
+        run: dotnet publish OpenTabletArtist/OpenTabletArtist.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:Version=${{ steps.ver.outputs.version }} -o publish/OpenTabletArtist
+
+      # The daemon OTA ships is OpenTabletDriver's own released binary, downloaded here rather than
+      # built from the submodule (#786). The OTD maintainers cannot support a binary they did not
+      # produce, even when the source is their tag rebuilt -- so what lands in Daemon/ is the artifact
+      # they published, and a bug report against it is one they recognise.
+      #
+      # OTD_SHA256 is the digest of that asset. It is pinned for the same reason VMULTI_SHA256 is: a
+      # release asset can be replaced in place, and this one is extracted and executed. It is tied to the
+      # tag below, so bumping the submodule means re-pinning this -- the verification fails loudly rather
+      # than quietly shipping something else.
+      #
+      # Only the daemon is taken. The archive also carries OTD's Console and WPF UX (another ~18 MB);
+      # OTA drives the daemon over RPC and hides the "launch OTD UX" affordance in published builds, so
+      # shipping those would be redistributing binaries nothing here uses. The daemon is single-file and
+      # runs on its own -- verified by extracting it alone and calling --version.
+      - name: Download the official OpenTabletDriver daemon into Daemon/
+        shell: pwsh
+        env:
+          OTD_SHA256: "4EE9AE149404F0B39132624E488507639C8CE56D1EC77755C66EE7E58562110A"
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          # The version comes from the submodule's release tag, the same source the Windows Ink step uses,
+          # so the daemon we ship and the libraries OTA compiles against can never name different releases.
+          $otdTag = $null
+          try { $otdTag = (git -C external/OpenTabletDriver describe --tags --exact-match 2>$null) } catch { }
+          if ($otdTag) { $otdTag = $otdTag.Trim() }
+          if ($otdTag -notmatch '^v?\d+\.\d+\.\d+$') {
+            throw "The OpenTabletDriver submodule is not on an exact release tag (got '$otdTag')."
+          }
+          $version = $otdTag -replace '^v',''
+          $asset   = "OpenTabletDriver-${version}_win-x64.zip"
+          $url     = "https://github.com/OpenTabletDriver/OpenTabletDriver/releases/download/$otdTag/$asset"
+
+          $tmp = Join-Path $env:RUNNER_TEMP 'otd'
+          New-Item -ItemType Directory -Force $tmp | Out-Null
+          $zip = Join-Path $tmp $asset
+
+          Write-Host "Downloading $url"
+          Invoke-WebRequest $url -OutFile $zip
+
+          $actual = (Get-FileHash $zip -Algorithm SHA256).Hash
+          if ($actual -ne $env:OTD_SHA256.ToUpperInvariant()) {
+            throw "OpenTabletDriver archive digest mismatch: expected $($env:OTD_SHA256), got $actual. If the submodule tag moved, re-pin OTD_SHA256."
+          }
+          Write-Host "Archive digest verified: $actual"
+
+          # Entries are nested under a version-named folder, so pick the daemon out by name rather than
+          # expanding the archive and hoping the layout is flat.
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $dest = 'publish/OpenTabletArtist/Daemon'
+          New-Item -ItemType Directory -Force $dest | Out-Null
+
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($zip)
+          try {
+            $entry = $archive.Entries | Where-Object { $_.Name -eq 'OpenTabletDriver.Daemon.exe' } | Select-Object -First 1
+            if (-not $entry) { throw "OpenTabletDriver.Daemon.exe was not in $asset." }
+            [System.IO.Compression.ZipFileExtensions]::ExtractToFile(
+              $entry, (Join-Path $dest 'OpenTabletDriver.Daemon.exe'), $true)
+          }
+          finally { $archive.Dispose() }
+
+          # Deliberately no "userdata" folder beside the daemon. OTD reads
+          # GetExistingPathOrLast(ProgramDirectory/userdata, $LOCALAPPDATA\OpenTabletDriver), so creating
+          # one here would give the bundled daemon a private settings directory. Sharing the normal
+          # location is the decision (docs/design/official-otd-release.md): it is what already happens, and
+          # isolating it would be a migration that makes existing users' settings appear to vanish.
+          #
+          # If you are here to add one: that is the change, and it needs the migration story that section
+          # describes, not just the mkdir.
+          Write-Host "Bundled the official OpenTabletDriver $otdTag daemon."
+
+      # Bundle our pressure-curve OTD plugin so the app can install it into the daemon's plugin dir
+      # at runtime (PressurePluginInstaller looks for BundledPlugins/<folder>/ next to the app first).
+      - name: Bundle the pen-dynamics plugin
+        shell: pwsh
+        run: |
+          dotnet build plugins/OpenTabletArtist.Dynamics/OpenTabletArtist.Dynamics.csproj -c Release
+          $dest = "publish/OpenTabletArtist/BundledPlugins/OpenTabletArtistDynamics"
+          New-Item -ItemType Directory -Force $dest | Out-Null
+          Copy-Item "plugins/OpenTabletArtist.Dynamics/bin/Release/net8.0/OpenTabletArtist.Dynamics.dll" $dest
+
+      # Bundle the Windows Ink plugin for offline install (#364). The bundle is the plugin DLLs + the
+      # manifest saved as metadata.json (what an online install writes), so the app copies it straight
+      # into the daemon's plugin dir.
+      #
+      # Reproducibility and integrity (#739): this used to fetch the plugin repository's moving `master`,
+      # pick the manifest with the highest directory version, and extract whatever it downloaded — so the
+      # same tag could produce different bundles on different days, the selected plugin need not support
+      # the OTD version actually shipping beside it, and the manifest's own SHA256 went unchecked. Now the
+      # repository revision is pinned, selection applies the same compatibility rule the app uses at
+      # runtime, and the archive is verified against the manifest before it is unpacked.
+      - name: Bundle the Windows Ink plugin for offline install
+        shell: pwsh
+        env:
+          # Pinned Plugin-Repository revision, so the same tag always bundles the same plugin. Was
+          # `master`, which meant the bundle depended on the day the release happened to be built.
+          # Bump deliberately when adopting a newer plugin release; the compatibility and digest checks
+          # below still gate whatever it points at. (OpenTabletDriver/Plugin-Repository, 2026-08-31.)
+          PLUGIN_REPO_REF: 8c626d2f5064d39c6d2a656ba096ea13654818e0
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tmp = Join-Path $env:RUNNER_TEMP 'winink'
+          New-Item -ItemType Directory -Force $tmp | Out-Null
+
+          $ref = $env:PLUGIN_REPO_REF
+          Write-Host "Plugin-Repository ref: $ref"
+          Invoke-WebRequest "https://github.com/OpenTabletDriver/Plugin-Repository/archive/$ref.zip" -OutFile "$tmp/pr.zip"
+          Expand-Archive "$tmp/pr.zip" "$tmp/pr" -Force
+
+          # The OTD version actually shipping in this build — what the bundled plugin has to support.
+          #
+          # Read from the submodule's release tag, not from a published DLL. This used to scan
+          # publish/.../Daemon for OpenTabletDriver.dll, which stopped existing when the daemon became a
+          # single-file publish (#785) — the assemblies are inside the bundle. The tag is the more honest
+          # source anyway: it is what the daemon is built from today and what it will be downloaded from
+          # once the official binary replaces our build (#786), so this survives that change.
+          #
+          # try/catch rather than $LASTEXITCODE because PowerShell 7.4 turns a failing native command into
+          # a terminating error under ErrorActionPreference='Stop' — the same trap noted on the tag
+          # checkout step above.
+          $otdTag = $null
+          try { $otdTag = (git -C external/OpenTabletDriver describe --tags --exact-match 2>$null) } catch { }
+          if ($otdTag) { $otdTag = $otdTag.Trim() }
+          if ($otdTag -notmatch '^v?\d+\.\d+\.\d+$') {
+            throw "The OpenTabletDriver submodule is not on an exact release tag (got '$otdTag'), so the OTD version can't be determined."
+          }
+          # Four-part, matching the FileVersion this used to read (the tag says 0.6.7, the assembly says
+          # 0.6.7.0). The comparisons below are version-typed, so the shape matters.
+          $otd = [version]("$($otdTag -replace '^v','').0")
+          Write-Host "Bundled OpenTabletDriver version: $otd (submodule tag $otdTag)"
+
+          # Mirrors PluginMetadata.IsSupportedBy exactly -- the same rule the app applies to the online
+          # lookup and now to the offline bundle. Note it compares major and minor for EQUALITY, not
+          # "at least": a plugin built for another driver line is unsupported in either direction. A
+          # manifest with no declared minimum can't be judged and is skipped (upstream throws on it).
+          # Newest compatible wins by PLUGIN version, rather than by the directory name the old sort used.
+          $candidates = Get-ChildItem "$tmp/pr" -Recurse -Filter WindowsInk.json | ForEach-Object {
+            $j = Get-Content $_.FullName -Raw | ConvertFrom-Json
+            if (-not $j.SupportedDriverVersion) { return }
+            $min = [version]$j.SupportedDriverVersion
+            $max = if ($j.MaxSupportedDriverVersion) { [version]$j.MaxSupportedDriverVersion } else { $null }
+            $supported = $min.Major -eq $otd.Major -and
+                         $min.Minor -eq $otd.Minor -and
+                         $min.Build -le $otd.Build -and
+                         ($null -eq $max -or $max -ge $otd)
+            if ($supported) {
+              [pscustomobject]@{ File = $_; Json = $j; Version = [version]$j.PluginVersion }
+            }
+          }
+          $pick = $candidates | Sort-Object Version -Descending | Select-Object -First 1
+          if (-not $pick) { throw "No Windows Ink plugin release in $ref supports OpenTabletDriver $otd" }
+          $json = $pick.Json
+
+          Invoke-WebRequest $json.DownloadUrl -OutFile "$tmp/winink.zip"
+
+          # Verify the archive against the digest the manifest declares, before unpacking it into the
+          # release. The app copies these files straight into the daemon's plugin directory.
+          if ($json.SHA256) {
+            $actual = (Get-FileHash "$tmp/winink.zip" -Algorithm SHA256).Hash
+            if ($actual -ne $json.SHA256.ToUpperInvariant()) {
+              throw "Windows Ink archive digest mismatch: manifest says $($json.SHA256), got $actual"
+            }
+            Write-Host "Archive digest verified: $actual"
+          } else {
+            throw "The selected Windows Ink manifest declares no SHA256; refusing to bundle it unverified"
+          }
+
+          $dest = 'publish/OpenTabletArtist/BundledPlugins/WindowsInk'
+          New-Item -ItemType Directory -Force $dest | Out-Null
+          Expand-Archive "$tmp/winink.zip" $dest -Force
+          Copy-Item $pick.File.FullName (Join-Path $dest 'metadata.json')
+          Write-Host "Bundled Windows Ink plugin v$($json.PluginVersion) (supports OTD $($json.SupportedDriverVersion) to $(if ($json.MaxSupportedDriverVersion) { $json.MaxSupportedDriverVersion } else { 'any' }))"
+
+      # Bundle the VMulti driver so users can install it offline — the installer prefers this copy
+      # (Bundled/VMulti.Driver.zip next to the app) and only downloads as a fallback (#364).
+      #
+      # The archive's contents are extracted and run ELEVATED on the user's machine, so its identity is
+      # pinned rather than trusted from the URL (#739): a release asset can be replaced in place. The
+      # digest is recorded beside the bundle and VMultiInstaller.VerifyArchive re-checks it before
+      # extracting, so tampering anywhere between here and the user's disk is caught before elevation.
+      #
+      # Kept in step with VMultiInstaller.PinnedSha256, which the app verifies against at install
+      # time; a test fails if the two drift apart.
+      # VMULTI_SHA256 is the expected digest of that archive, recorded from the pinned v1.0 asset
+      # (1,989,586 bytes, containing devcon.exe / DIFxCmd.exe / vmulti.inf). With it set, an upstream
+      # asset that changes under us fails the release instead of being bundled and shipped.
+      #
+      # If a release starts failing here, that is this check doing its job, not a glitch: the file at
+      # VMULTI_URL is no longer the one this was pinned to. Verify what changed and why before updating
+      # the digest — the contents of this archive are extracted and run elevated on users' machines.
+      - name: Bundle the VMulti driver for offline install
+        shell: pwsh
+        env:
+          VMULTI_URL: "https://github.com/X9VoiD/vmulti-bin/releases/download/v1.0/VMulti.Driver.zip"
+          VMULTI_SHA256: "CC34F74A6BEE7F3D1FDC3C10AAE27118A359F56A51DE2F5965B7D0D3E353D3A1"
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dest = "publish/OpenTabletArtist/Bundled"
+          New-Item -ItemType Directory -Force $dest | Out-Null
+          $zip = "$dest/VMulti.Driver.zip"
+          Invoke-WebRequest -Uri $env:VMULTI_URL -OutFile $zip
+
+          $actual = (Get-FileHash $zip -Algorithm SHA256).Hash
+          if ($env:VMULTI_SHA256) {
+            if ($actual -ne $env:VMULTI_SHA256.ToUpperInvariant()) {
+              throw "VMulti archive digest mismatch: expected $($env:VMULTI_SHA256), got $actual"
+            }
+            Write-Host "VMulti archive digest verified: $actual"
+          } else {
+            Write-Host "::warning::VMULTI_SHA256 is not set - bundling unverified. Pin this digest: $actual"
+          }
+
+          # Read back by VMultiInstaller before it extracts and elevates anything.
+          Set-Content -Path "$dest/VMulti.Driver.zip.sha256" -Value $actual -NoNewline
+          Write-Host "Recorded VMulti digest: $actual"
+
+      # Strip all debug symbols (.pdb) from the bundle — end users don't need them, and they're huge:
+      # the native libSkiaSharp.pdb / libHarfBuzzSharp.pdb alone are ~100 MB (they ship in the
+      # SkiaSharp/HarfBuzz NuGet packages, so -p:DebugType=none doesn't touch them). Managed and native
+      # symbols across the app + daemon come to well over half the uncompressed payload.
+      - name: Strip debug symbols (.pdb)
+        shell: pwsh
+        run: |
+          $pdbs = Get-ChildItem publish/OpenTabletArtist -Recurse -Filter *.pdb
+          $mb = [math]::Round(($pdbs | Measure-Object Length -Sum).Sum / 1MB, 1)
+          $pdbs | Remove-Item -Force
+          Write-Host "Removed $($pdbs.Count) .pdb file(s), $mb MB"
+
+      # Check what is actually about to ship, rather than trusting that every bundling step above did its
+      # job (#739). Each of those steps can be skipped, renamed, or silently reshaped by an upstream
+      # layout change; the failure would otherwise reach users as a release that installs nothing and
+      # says nothing about why. Names every missing component instead of failing on the first.
+      #
+      # This is the integrity half of the packaged smoke test. Actually launching the bundle and letting
+      # it locate its own daemon belongs with the release-bundle smoke test in #741.
+      - name: Verify the release bundle
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = 'publish/OpenTabletArtist'
+          $missing = @()
+
+          $required = @(
+            'OpenTabletArtist.exe',
+            'Daemon/OpenTabletDriver.Daemon.exe',
+            'BundledPlugins/OpenTabletArtistDynamics/OpenTabletArtist.Dynamics.dll',
+            'BundledPlugins/WindowsInk/metadata.json',
+            'Bundled/VMulti.Driver.zip',
+            "Bundled/VMulti.Driver.zip.sha256"
+          )
+
+          # The single-file layout (#586), asserted rather than assumed: if a future change drops
+          # PublishSingleFile the root quietly fills with runtime DLLs again and the complaint that
+          # prompted it — "252 files, which one do I run?" — comes back with nothing to catch it.
+          # Runs after the .pdb strip, so debug symbols are already gone.
+          #
+          # scripts/verify-publish-layout.ps1 makes the same assertion in build.yml, so a stray file is
+          # caught on a pull request rather than here (#962). This copy stays the authoritative gate:
+          # it checks the bundle that is actually about to be uploaded. If the two are ever unified,
+          # validate it with a throwaway tag — nothing else exercises this file.
+          $loose = Get-ChildItem $root -File | Where-Object { $_.Name -ne 'OpenTabletArtist.exe' }
+          if ($loose) {
+            Write-Host "::error::The release root should hold only OpenTabletArtist.exe, but also has: $($loose.Name -join ', ')"
+            throw "Single-file publish did not produce a single-file root."
+          }
+
+          # Same for the daemon folder (#585).
+          $looseDaemon = Get-ChildItem "$root/Daemon" -File |
+            Where-Object { $_.Name -ne 'OpenTabletDriver.Daemon.exe' }
+          if ($looseDaemon) {
+            Write-Host "::error::Daemon/ should hold only OpenTabletDriver.Daemon.exe, but also has: $($looseDaemon.Name -join ', ')"
+            throw "Single-file publish did not produce a single-file Daemon folder."
+          }
+          foreach ($rel in $required) {
+            if (-not (Test-Path (Join-Path $root $rel))) { $missing += $rel }
+          }
+
+          # The recorded digest has to describe the archive sitting next to it, or the runtime check
+          # would refuse every offline install.
+          $zip = Join-Path $root 'Bundled/VMulti.Driver.zip'
+          $digestFile = Join-Path $root 'Bundled/VMulti.Driver.zip.sha256'
+          if ((Test-Path $zip) -and (Test-Path $digestFile)) {
+            $recorded = (Get-Content $digestFile -Raw).Trim()
+            $actual = (Get-FileHash $zip -Algorithm SHA256).Hash
+            if ($recorded -ne $actual) { $missing += "VMulti digest mismatch (recorded $recorded, actual $actual)" }
+          }
+
+          # The bundled Windows Ink plugin must support the OTD version shipping beside it -- the app
+          # refuses it at runtime otherwise, so shipping a mismatch means shipping a dead offline path.
+          $meta = Join-Path $root 'BundledPlugins/WindowsInk/metadata.json'
+          $otdDll = Get-ChildItem (Join-Path $root 'Daemon') -Filter 'OpenTabletDriver.dll' -Recurse | Select-Object -First 1
+          if ((Test-Path $meta) -and $otdDll) {
+            $j = Get-Content $meta -Raw | ConvertFrom-Json
+            $otd = [version][System.Diagnostics.FileVersionInfo]::GetVersionInfo($otdDll.FullName).FileVersion
+            if (-not $j.SupportedDriverVersion) {
+              $missing += 'bundled Windows Ink manifest declares no SupportedDriverVersion'
+            } else {
+              $min = [version]$j.SupportedDriverVersion
+              $max = if ($j.MaxSupportedDriverVersion) { [version]$j.MaxSupportedDriverVersion } else { $null }
+              $supported = $min.Major -eq $otd.Major -and $min.Minor -eq $otd.Minor -and
+                           $min.Build -le $otd.Build -and ($null -eq $max -or $max -ge $otd)
+              if (-not $supported) {
+                $missing += "bundled Windows Ink plugin v$($j.PluginVersion) does not support the bundled OpenTabletDriver $otd"
+              }
+            }
+          }
+
+          if ($missing.Count -gt 0) {
+            $missing | ForEach-Object { Write-Host "::error::Release bundle problem: $_" }
+            throw "The release bundle is missing or misconfigured components ($($missing.Count)). See the errors above."
+          }
+          Write-Host "Release bundle verified: app, daemon, both bundled plugins, and a matching VMulti digest."
+
+      # Launch the packaged app and make it find its own assets (#741). The step above checks the layout
+      # from outside; this one proves the exe actually starts and that the app's OWN lookup paths reach
+      # the daemon and plugins. A release can contain every file and still greet users with a missing
+      # daemon if the app looks somewhere else — and a check that re-implements the lookup would agree
+      # with itself while the product failed.
+      #
+      # Run under an isolated user-data root so it can't read or write a real OTD install on the runner.
+      # The app is a WinExe with no console attached, so the report goes to a file.
+      #
+      # TWO variables, because they isolate different processes and LOCALAPPDATA alone does not do what
+      # it looks like it does (#879). The daemon reads LOCALAPPDATA; OTA resolved its own settings and
+      # logs through Environment.GetFolderPath, which on Windows reads the OS known-folder and ignores
+      # that variable entirely -- so the app's own files went to the real profile while the daemon's
+      # went to the sandbox, and the isolation looked like it worked. OTA_APPDATA is the override it
+      # actually honours (Services/AppPaths).
+      #
+      # This step only runs --verify-bundle, which is read-only, so nothing was corrupted here. The
+      # reason to fix it is the fuller packaged-app test #741 anticipates: without this, such a test
+      # reflects the runner's configuration rather than the artifact's behaviour.
+      - name: Smoke-test the packaged app
+        shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\smoke-userdata
+          OTA_APPDATA: ${{ runner.temp }}\smoke-userdata
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force $env:LOCALAPPDATA | Out-Null
+          $exe = Resolve-Path 'publish/OpenTabletArtist/OpenTabletArtist.exe'
+          $report = Join-Path $env:RUNNER_TEMP 'bundle-verification.txt'
+
+          $p = Start-Process -FilePath $exe -ArgumentList '--verify-bundle', $report `
+                 -Wait -PassThru -WindowStyle Hidden
+          if (-not (Test-Path $report)) {
+            throw "The packaged app produced no report (exit $($p.ExitCode)) - it may not have started at all."
+          }
+          Get-Content $report | Write-Host
+          if ($p.ExitCode -ne 0) {
+            Write-Host "::error::The packaged app could not find all of its bundled components (exit $($p.ExitCode))."
+            throw "Packaged-bundle smoke test failed."
+          }
+          Write-Host "The packaged app started and located every bundled component."
+
+      # The daemon is single-file too (#585), so the assemblies it needs live inside the bundle rather
+      # than beside it. --version starts the host, loads the bundle and exits without opening the pipe or
+      # touching a tablet, which is the most that can be checked on a runner with no hardware.
+      #
+      # This does NOT cover plugin loading: OTA installs the Pen Dynamics plugin into the daemon's plugin
+      # directory and the daemon loads it by reflection through a custom AssemblyLoadContext. Whether a
+      # plugin resolves its OpenTabletDriver.Plugin reference out of the bundle needs a real tablet and a
+      # real plugin, so it is verified by hand, not here.
+      - name: Smoke-test the packaged daemon
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $daemon = Resolve-Path 'publish/OpenTabletArtist/Daemon/OpenTabletDriver.Daemon.exe'
+          $out = & $daemon --version 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::The packaged daemon did not start (exit $LASTEXITCODE): $out"
+            throw "Packaged-daemon smoke test failed."
+          }
+          Write-Host "The packaged daemon started and reported version: $out"
+
+      - name: Package zip
+        shell: pwsh
+        run: Compress-Archive -Path publish/OpenTabletArtist/* -DestinationPath ${{ steps.ver.outputs.zip }} -Force
+
+      # Release notes are for the people downloading the build, not for the people who wrote it.
+      #
+      # This used to paste every commit subject AND its full body into the release page. This project
+      # writes long commit messages deliberately, so v0.76.0's notes came to 87,000 characters of
+      # internal detail -- correct, unreadable, and mostly about things no artist can see (test fixes,
+      # dependency pins, release plumbing).
+      #
+      # Now: a hand-written summary leads, and the commit list follows inside a collapsed <details>.
+      # The summary is docs/release-notes/<tag>.md, written before tagging. Without one the release
+      # still publishes -- just the commit list, subjects only -- because a missing summary must never
+      # be what fails a release after the zip has been built.
+      - name: Generate release notes
+        id: notes
+        shell: pwsh
+        run: |
+          $tag = '${{ steps.ver.outputs.tag }}'
+          $notesFile = Join-Path $env:RUNNER_TEMP 'RELEASE_NOTES.md'
+          $prev = (git describe --tags --abbrev=0 "$tag^" 2>$null)
+          $prevFound = ($LASTEXITCODE -eq 0 -and $prev)
+          # A tag that doesn't exist yet is the normal workflow_dispatch case - the checkout step above
+          # builds from HEAD and tags at release - and a failing `git describe` is how we find that out.
+          # Clear the exit code once it has been read: an Actions pwsh step exits with whatever
+          # $LASTEXITCODE holds at the end, so a handled failure here would fail the whole step and, with
+          # it, every dispatched release of a new tag.
+          $global:LASTEXITCODE = 0
+          $useGenerated = $true
+          $limit = 120000   # GitHub's hard limit is 125,000 - leave room for the footer
+
+          $summaryPath = Join-Path $env:GITHUB_WORKSPACE "docs/release-notes/$tag.md"
+          $summary = if (Test-Path $summaryPath) { (Get-Content $summaryPath -Raw).Trim() } else { $null }
+          if ($summary) { Write-Host "Using hand-written summary: docs/release-notes/$tag.md" }
+          else { Write-Host "No docs/release-notes/$tag.md - publishing the commit list alone" }
+
+          if ($prevFound) {
+            $skip = '^chore: (bump version|release v)'
+            $subjects = foreach ($h in (git log --no-merges --format='%H' "$prev..$tag")) {
+              $subject = (git show -s --format='%s' $h).Trim()
+              if ($subject -match $skip) { continue }
+              "- $subject"
+            }
+            if ($subjects) {
+              $repo = '${{ github.repository }}'
+              $footer = "`n`n**Full Changelog**: https://github.com/$repo/compare/$prev...$tag"
+              # Subjects only, and folded away. Anyone who wants the reasoning has the commit log, which
+              # is where it belongs and where it stays readable.
+              $detail = "<details>`n<summary>All changes ($($subjects.Count) commits)</summary>`n`n" +
+                        ($subjects -join "`n") + "`n`n</details>"
+              $body = if ($summary) { "$summary`n`n$detail$footer" }
+                      else { "## What's changed`n`n$detail$footer" }
+              # Subjects are ~80 characters each, so this needs about 1,500 commits to trip. Kept
+              # because the thing it guards against - a 422 after the zip is built - already happened.
+              if ($body.Length -gt $limit) {
+                $head = if ($summary) { "$summary`n`n" } else { "" }
+                $body = $head + "_$($subjects.Count) commits - too many to list here._" + $footer
+                Write-Host "Commit list over the limit - replaced with a count"
+              }
+              Set-Content -Path $notesFile -Value $body -Encoding utf8
+              $useGenerated = $false
+              Write-Host "Generated notes from $prev..$tag ($($subjects.Count) commits, $($body.Length) chars)"
+            }
+          } elseif ($summary) {
+            # No previous tag, but a summary was written: publish it rather than falling back to
+            # GitHub's generated notes, which would discard it.
+            Set-Content -Path $notesFile -Value $summary -Encoding utf8
+            $useGenerated = $false
+          }
+          "file=$notesFile" >> $env:GITHUB_OUTPUT
+          "useGenerated=$useGenerated" >> $env:GITHUB_OUTPUT
+
+      - name: Create release & upload asset
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ steps.ver.outputs.tag }}'
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            if ('${{ steps.notes.outputs.useGenerated }}' -eq 'False') {
+              gh release create $tag --title "OpenTabletArtist $tag" --notes-file '${{ steps.notes.outputs.file }}'
+            } else {
+              gh release create $tag --title "OpenTabletArtist $tag" --generate-notes
+            }
+          }
+          gh release upload $tag '${{ steps.ver.outputs.zip }}' --clobber

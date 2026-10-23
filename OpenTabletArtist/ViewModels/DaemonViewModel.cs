@@ -1,0 +1,406 @@
+using System;
+using System.IO;
+using OpenTabletArtist.Domain.Health;
+using System.Linq;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Reflection;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
+using OpenTabletDriver.Desktop;
+
+namespace OpenTabletArtist.ViewModels;
+
+/// <summary>
+/// View model for the Daemon page (Advanced → OpenTabletDriver → Daemon): the full daemon status +
+/// controls (via the shared <see cref="DaemonStatusViewModel"/>), the embedded OpenTabletDriver version,
+/// and a launcher for OTD's own UX. The status card moved here off the Home dashboard, which now shows
+/// the daemon only when there's a problem.
+///
+/// On Linux it also surfaces whether OTD is installed as a system RPM package (the normal Fedora/RHEL
+/// install) versus run from source — checked on-demand so it never touches the status-poll path.
+/// </summary>
+public sealed partial class DaemonViewModel : ObservableObject, IDisposable
+{
+    private readonly HealthService? _health;
+
+    public DaemonViewModel(DaemonStatusViewModel status, HealthService? health = null)
+    {
+        Status = status;
+        _health = health;
+        if (_health is not null)
+        {
+            _health.Issues.CollectionChanged += (_, _) => RefreshDaemonIssues();
+            RefreshDaemonIssues();
+        }
+        Connection = new DaemonConnectionViewModel(status);
+        Process = new DaemonProcessViewModel(status);
+        Status.PropertyChanged += (_, e) =>
+        {
+            // ShowInstallRuntime also reads IsConnected, so connecting or dropping has to re-ask it —
+            // otherwise the offer to install a runtime lingers after the daemon comes up, or fails to
+            // appear when it goes away.
+            if (e.PropertyName is nameof(DaemonStatusViewModel.IsConnected))
+                OnPropertyChanged(nameof(ShowInstallRuntime));
+
+            if (e.PropertyName is nameof(DaemonStatusViewModel.IsDaemonExeMissing))
+            {
+                OnPropertyChanged(nameof(ShowInstallCard));
+                OnPropertyChanged(nameof(ShowDriverCard));
+                OnPropertyChanged(nameof(ShowInstallRuntime));
+            }
+
+            // Which daemon is answering decides whether there is a settings window to offer, and so
+            // whether the card holding that button has anything in it at all. Without this the card is
+            // decided once and then keeps its answer: connect to a daemon that ships its own window and
+            // the button never appears; disconnect from one and an empty card stays on screen (#936).
+            if (e.PropertyName is nameof(DaemonStatusViewModel.DaemonSourcePath))
+            {
+                OnPropertyChanged(nameof(OtdUxPath));
+                OnPropertyChanged(nameof(CanOpenOtdUx));
+                OnPropertyChanged(nameof(ShowDriverCard));
+            }
+        };
+    }
+
+    /// <summary>Shared daemon status + controls (the same instance the Home problem card uses).</summary>
+    public DaemonStatusViewModel Status { get; }
+
+    /// <summary>The health issues whose fix lives on this page, repeated here from Home — the same issue
+    /// showing in both places is the point of the remediation model (#317), so someone who came here
+    /// directly sees what Home would have told them. Rendered without the Review button that Home shows:
+    /// on this page it would only navigate back to where the reader already is.</summary>
+    public ObservableCollection<HealthIssue> DaemonIssues { get; } = new();
+
+    public bool HasDaemonIssues => DaemonIssues.Count > 0;
+
+    private void RefreshDaemonIssues()
+    {
+        var next = _health?.IssuesFor(RemediationArea.Daemon).ToList() ?? [];
+        if (next.SequenceEqual(DaemonIssues)) return;   // records compare by value — skip a no-op rebuild
+
+        DaemonIssues.Clear();
+        foreach (var issue in next) DaemonIssues.Add(issue);
+        OnPropertyChanged(nameof(HasDaemonIssues));
+    }
+
+    /// <summary>The DAEMON CONNECTION card: whether OTA is connected and for how long.</summary>
+    public DaemonConnectionViewModel Connection { get; }
+
+    /// <summary>The DAEMON PROCESS card: running state, which daemon + path, version-match, process uptime.</summary>
+    public DaemonProcessViewModel Process { get; }
+
+    /// <summary>
+    /// The block answering "which OpenTabletDriver?", which is now a much smaller question (#daemon-bundled-only).
+    /// </summary>
+    /// <remarks>
+    /// OTA launches only the copy it ships. A driver the artist installed is reached by starting it —
+    /// OTA connects to whatever holds the pipe — so pointing OTA at a location, and clearing that
+    /// location again, no longer exist. What is left is the macOS install offer and the button that
+    /// opens the connected driver's own window.
+    /// </remarks>
+    public bool ShowDriverCard => ShowInstallCard || CanOpenOtdUx;
+
+    // --- "Install it for me": fetch the pinned official release -----------------------------------
+
+    private readonly OtdInstaller _installer = new();
+
+    /// <summary>Offer the install only where there is something to install and nothing to install it over:
+    /// macOS, with no OpenTabletDriver found. Anywhere else the answer is Locate, not Install.</summary>
+    public bool ShowInstallCard => OperatingSystem.IsMacOS() && Status.IsDaemonExeMissing;
+
+    /// <summary>
+    /// Offer the .NET runtime when the daemon isn't connected and this machine has no runtime that could
+    /// run OpenTabletDriver's official build (#786, D2).
+    ///
+    /// Asked of the disk rather than waited for from a launch: the point is to say something *before* the
+    /// user sits through a daemon that exits instantly. The launch failure remains the authoritative
+    /// signal and produces its own message; this is the offer that goes with it.
+    ///
+    /// Windows only -- macOS gets a self-contained OTD and Linux gets a packaged one, so neither has the
+    /// prerequisite.
+    /// </summary>
+    public bool ShowInstallRuntime =>
+        OperatingSystem.IsWindows()
+        && !Status.IsConnected
+        && !DotnetRuntime.Satisfies(DotnetRuntime.Installed(), DotnetRuntime.DaemonMajor);
+
+    /// <summary>What pressing it does, said before it is pressed.</summary>
+    public string InstallRuntimeDescription => DotnetRuntimeDownload.Description;
+
+    /// <summary>
+    /// Hand the download to the browser (#878).
+    ///
+    /// OTA used to fetch the installer and run it elevated itself. What that cost is recorded on
+    /// <see cref="DotnetRuntimeDownload"/>; what matters here is that this command cannot hang, cannot
+    /// need cancelling, and cannot leave the app in a state only a diagnostic script can explain. It
+    /// opens a page and returns.
+    /// </summary>
+    [RelayCommand]
+    private void OpenRuntimeDownload()
+    {
+        RuntimeInstallOutcome = "";
+        PlatformShell.OpenUrl(DotnetRuntimeDownload.Url);
+    }
+
+    /// <summary>
+    /// "Check again", after the user has installed the runtime themselves.
+    ///
+    /// The offer is derived from what is on disk and nothing tells OTA when that changes, so this is the
+    /// re-ask. It reports both outcomes deliberately: still not finding the runtime has to say so rather
+    /// than look like a button that did nothing, which is exactly how the Fix button failed on this path
+    /// (#878) -- the user could not tell "not installed yet" from "OTA didn't notice".
+    /// </summary>
+    [RelayCommand]
+    private async Task RecheckRuntime()
+    {
+        OnPropertyChanged(nameof(ShowInstallRuntime));
+
+        if (!DotnetRuntime.Satisfies(DotnetRuntime.Installed(), DotnetRuntime.DaemonMajor))
+        {
+            RuntimeInstallOutcome =
+                $"Still no .NET {DotnetRuntime.DaemonMajor} runtime on this machine. If you have just run "
+                + "the installer, let it finish -- and if it asked for a restart, the runtime only becomes "
+                + "available after that.";
+            return;
+        }
+
+        RuntimeInstallOutcome = $"The .NET {DotnetRuntime.DaemonMajor} runtime is installed.";
+
+        // Refresh alone only retries the pipe -- it never launches anything. On this path the daemon
+        // exited the moment it was started, because there was no runtime, so there is nothing to
+        // reconnect to and refreshing would sit at "not connected" having apparently done nothing.
+        //
+        // Starting it explicitly is right *here* and nowhere else: the user asked for this recovery.
+        // Ordinary reconnects must still never auto-launch a daemon, which is what keeps OTA from
+        // fighting someone who stopped one deliberately (#787).
+        if (!Status.IsConnected && Status.StartDaemonCommand.CanExecute(null))
+            await Status.StartDaemonCommand.ExecuteAsync(null);
+        else
+            await Status.RefreshCommand.ExecuteAsync(null);
+    }
+
+    /// <summary>
+    /// What the recheck found, shown <b>outside</b> the offer: finding the runtime removes the offer, and
+    /// anything drawn inside it would vanish at the moment there is finally something to read.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasRuntimeInstallOutcome))]
+    private string _runtimeInstallOutcome = "";
+
+    public bool HasRuntimeInstallOutcome => !string.IsNullOrEmpty(RuntimeInstallOutcome);
+
+    /// <summary>Progress text while installing ("Downloading…", "Extracting…"), or "".</summary>
+    [ObservableProperty] private string _installStatus = "";
+
+    [ObservableProperty] private int _installProgress;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasInstallProblem))]
+    private string _installProblem = "";
+
+    public bool HasInstallProblem => !string.IsNullOrEmpty(InstallProblem);
+
+    /// <summary>Shown after a successful install: macOS may need the user to approve the unsigned app
+    /// once, by hand. OTA does not strip the quarantine attribute on their behalf.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasInstallGuidance))]
+    private string _installGuidance = "";
+
+    public bool HasInstallGuidance => !string.IsNullOrEmpty(InstallGuidance);
+
+    [ObservableProperty] private bool _isInstalling;
+
+    /// <summary>The version this would install, for the card's copy — pinned, so it matches what OTA was
+    /// built against and the install raises no version-mismatch warning.</summary>
+    public string InstallVersion => OtdRelease.AssetVersion;
+
+    /// <summary>The card's copy. Names the version and says plainly where the download comes from —
+    /// this installs an unsigned third-party binary, so the user should know that before pressing it,
+    /// not after.</summary>
+    public string InstallDescription =>
+        $"Downloads the official release from OpenTabletDriver's GitHub into {OtdRelease.InstallDirectory}.";
+
+    [RelayCommand]
+    private async Task InstallOtd()
+    {
+        if (IsInstalling) return;
+        IsInstalling = true;
+        InstallProblem = "";
+        InstallGuidance = "";
+        InstallProgress = 0;
+        try
+        {
+            _installer.StatusChanged += OnInstallStatus;
+            _installer.ProgressChanged += OnInstallProgress;
+
+            var result = await _installer.InstallAsync();
+
+            if (!result.Installed)
+            {
+                InstallProblem = result.Problem ?? "The install didn't complete.";
+                return;
+            }
+
+            // Installed into /Applications, which OTA does NOT launch from: since #daemon-bundled-only
+            // the launch ladder is OTA's own copy only, and nothing is bundled on macOS yet (Phase C of
+            // docs/design/official-otd-release.md). So restarting OTA does nothing for this install; the
+            // artist has to start it, after which OTA connects to it like any other running daemon.
+            InstallGuidance = OtdInstaller.GatekeeperGuidance;
+            InstallGuidance += " Then open OpenTabletDriver to start it. Tablet App for Mac connects "
+                             + "to it once it is running, and does not launch it for you.";
+        }
+        finally
+        {
+            _installer.StatusChanged -= OnInstallStatus;
+            _installer.ProgressChanged -= OnInstallProgress;
+            InstallStatus = "";
+            IsInstalling = false;
+        }
+    }
+
+    private void OnInstallStatus(string status) =>
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => InstallStatus = status);
+
+    private void OnInstallProgress(int percent) =>
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => InstallProgress = percent);
+
+    /// <summary>
+    /// OpenTabletDriver's own settings window, if the connected driver ships one (#otd-ux-button).
+    /// </summary>
+    /// <remarks>
+    /// Read through the daemon OTA is connected to, so the window that opens belongs to the driver on
+    /// this page rather than to some other copy on the machine. Absent for a daemon running from a build
+    /// tree or a packaged install without a UX, which is why this is a property rather than a button
+    /// that is always shown and sometimes does nothing.
+    /// </remarks>
+    public string? OtdUxPath => DaemonExePaths.UxBeside(Status.DaemonSourcePath);
+
+    public bool CanOpenOtdUx => OtdUxPath is not null;
+
+    /// <summary>
+    /// Opens OpenTabletDriver's own settings window.
+    /// </summary>
+    /// <remarks>
+    /// Worth knowing what this invites: OTD's UX is a second settings editor on the same daemon, and
+    /// this app's whole model is that there is one. Editing there will make OTA notice an outside change
+    /// and pause until the artist reloads — which is correct behaviour rather than a malfunction, and
+    /// the tooltip says so rather than letting it look like one.
+    /// </remarks>
+    [RelayCommand]
+    private void OpenOtdUx() => PlatformShell.RunApp(OtdUxPath);
+
+    /// <summary>Reveal a daemon executable's folder in the OS file manager.
+    ///
+    /// Takes the FILE path the page shows and opens its DIRECTORY. Handing explorer.exe an .exe would run
+    /// it — which here would start a second daemon — so the directory is what gets passed, never the file.
+    /// Guarded like the other OpenFolder commands: nothing happens when the folder is gone, which is the
+    /// normal case for a daemon path recorded on a machine the build no longer exists on.</summary>
+    [RelayCommand]
+    private void OpenContainingFolder(string? filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath)) return;
+
+        // The derivation stays here -- the page shows a file, and its folder is what to open. Whether
+        // that folder is still there, or was derivable at all, is the helper's business (#887).
+        PlatformShell.RevealInFileManager(Path.GetDirectoryName(filePath));
+    }
+
+    /// <summary>OTA's own version, for the "this app" end of the topology (#daemon-topology). Read the
+    /// same way About reads it — from the assembly, which the release workflow stamps with the tag — so
+    /// the two can never disagree.</summary>
+    public string AppVersion { get; } = AppVersionInfo.Format(
+        Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
+
+    /// <summary>The bundled OpenTabletDriver release as its project names it (e.g. "0.6.8-rc1"), from the pin —
+    /// never from a linked assembly, which a release build stamps with OTA's own version.</summary>
+    public string CurrentOtdVersion { get; } = OtdRelease.AssetVersion;
+
+    /// <summary>OTA's own build and the OTD release behind it, on one line — they are read together and
+    /// never separately. "Bundles" only where a daemon really ships with the app; elsewhere the number is
+    /// the release OTA was compiled against, which is a different claim.</summary>
+    public string BuildLine => Status.HasBundledDaemon
+        ? $"{AppVersion} · bundles OTD {CurrentOtdVersion}"
+        : $"{AppVersion} · built against OTD {CurrentOtdVersion}";
+
+    /// <summary>The RPM-package check only applies on Linux; the card is hidden on every other OS.</summary>
+    public bool IsLinux { get; } = OperatingSystem.IsLinux();
+
+    // OTD system-package state (Linux/RPM). Re-checked on-demand when the Daemon tab is shown and via the
+    // card's Refresh button, so it reflects a package install/removal without an app restart.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowOtdPackageMissing))]
+    private bool _otdPackageChecked;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowOtdPackageMissing))]
+    [NotifyPropertyChangedFor(nameof(ShowStartOtdService))]
+    private bool _otdPackageInstalled;
+
+    [ObservableProperty] private string _otdPackageVersion = "";
+
+    // Path to the packaged daemon binary (from rpm -ql); shown on the SYSTEM-INSTALLED DAEMON card.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasOtdDaemonPath))]
+    private string _otdDaemonPath = "";
+
+    public bool HasOtdDaemonPath => !string.IsNullOrEmpty(OtdDaemonPath);
+
+    // Whether the packaged systemd user service is running. Checked alongside the package query so the
+    // card can offer "Start" only when installed-but-not-running, and show a "running" note otherwise.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowStartOtdService))]
+    private bool _otdServiceActive;
+
+    // Result of the last Start action (empty until the button is used).
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasOtdServiceStatus))]
+    private string _otdServiceStatus = "";
+
+    /// <summary>Show the "not a system package" line only once the check has actually run (so the card
+    /// doesn't flash "not installed" before the first query completes).</summary>
+    public bool ShowOtdPackageMissing => OtdPackageChecked && !OtdPackageInstalled;
+
+    /// <summary>Offer the Start button when the package is installed but its service isn't running yet.</summary>
+    public bool ShowStartOtdService => OtdPackageInstalled && !OtdServiceActive;
+
+    public bool HasOtdServiceStatus => !string.IsNullOrEmpty(OtdServiceStatus);
+
+    /// <summary>Run the RPM package query off the UI thread (it spawns rpm, ~10ms) and publish the result.
+    /// No-op off Linux. Bound to the card's Refresh button and invoked when the Daemon tab is shown.</summary>
+    [RelayCommand]
+    private async Task CheckOtdPackageAsync()
+    {
+        if (!IsLinux) return;
+        var result = await Task.Run(OtdPackageInstall.Query);
+        OtdPackageInstalled = result.Installed;
+        OtdPackageVersion = result.Version ?? "";
+        OtdDaemonPath = result.DaemonPath ?? "";
+        // Only probe the service state when the package is present (the unit only exists then).
+        OtdServiceActive = result.Installed && await Task.Run(OtdSystemdService.IsActive);
+        OtdPackageChecked = true;
+    }
+
+    /// <summary>Start the packaged OTD systemd user service (no root needed), then refresh its state so the
+    /// button gives way to the "running" note on success.</summary>
+    [RelayCommand]
+    private async Task StartOtdServiceAsync()
+    {
+        OtdServiceStatus = "Starting the OpenTabletDriver service…";
+        var (ok, error) = await OtdSystemdService.StartAsync();
+        OtdServiceActive = await Task.Run(OtdSystemdService.IsActive);
+        OtdServiceStatus = ok
+            ? "OpenTabletDriver service started."
+            : $"Couldn't start the service: {error}";
+    }
+
+    public void Dispose()
+    {
+        Connection.Dispose();
+        Process.Dispose();
+    }
+}

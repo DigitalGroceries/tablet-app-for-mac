@@ -1,0 +1,36 @@
+<UserControl x:Class="OpenTabletArtist.Views.RingStepEditor"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- One ring mode's Function and Speed. DataContext: a RingModeRow.
+         Build O: laid out as one Wacom-style table row — Function dropdown (with the mode's name under it)
+         on the left, Speed "Slow ─ slider ─ Fast" plus the typed 1–100 box on the right, hints below.
+         Speed: higher is always faster; the box commits on Enter / focus loss, the slider on release. -->
+    <Grid ColumnDefinitions="*,14,*" RowDefinitions="Auto,Auto,Auto" Margin="0,2,0,2">
+        <StackPanel Spacing="2">
+            <ComboBox x:Name="ActionBox" HorizontalAlignment="Left" Width="{Binding ActionWidth}"
+                      ItemsSource="{Binding ActionChoices}" SelectedIndex="{Binding ActionIndex}"
+                      IsEnabled="{Binding CanEdit}" AutomationProperties.Name="Function"
+                      ToolTip.Tip="Smooth actions work only over the Photoshop window. They let go 0.3 s after the ring stops (3 s at most)." />
+            <TextBlock Text="{Binding Name}" FontSize="12" Margin="4,0,0,0" TextTrimming="CharacterEllipsis"
+                       Foreground="{DynamicResource TextSecondaryBrush}" />
+        </StackPanel>
+        <Grid Grid.Column="2" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="6">
+            <Slider x:Name="SpeedSlider" Grid.ColumnSpan="2" Minimum="{Binding MinSpeed}" Maximum="{Binding MaxSpeed}"
+                    SmallChange="1" LargeChange="10" VerticalAlignment="Center" MinWidth="110"
+                    TickFrequency="10" TickPlacement="BottomRight"
+                    Value="{Binding SpeedSlider}" IsEnabled="{Binding CanEdit}" AutomationProperties.Name="Speed slider"
+                    ToolTip.Tip="Speed 1–100. Higher is always faster, for keys and smooth actions alike. 50 is the middle." />
+            <TextBox x:Name="SpeedBox" Grid.Column="2" Width="52" HorizontalContentAlignment="Right" VerticalAlignment="Center"
+                     Text="{Binding SpeedText, UpdateSourceTrigger=LostFocus}" IsEnabled="{Binding CanEdit}"
+                     AutomationProperties.Name="Speed" />
+            <TextBlock Grid.Row="1" Text="Slow" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="Fast" FontSize="12" HorizontalAlignment="Right"
+                       Foreground="{DynamicResource TextSecondaryBrush}" />
+        </Grid>
+        <TextBlock Grid.Row="1" Grid.ColumnSpan="3" TextWrapping="Wrap" FontSize="12" Margin="0,4,0,0"
+                   Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding !UsesKeys}"
+                   Text="Photoshop only (experimental). Held keys are released automatically if input stops." />
+        <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding SpeedHint}" FontSize="12" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextMutedBrush}" />
+    </Grid>
+</UserControl>

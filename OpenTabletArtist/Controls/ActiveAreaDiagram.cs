@@ -1,0 +1,322 @@
+using System;
+using System.Globalization;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Media;
+using OpenTabletArtist.Helpers;
+using OpenTabletArtist.Domain;
+
+namespace OpenTabletArtist.Controls;
+
+/// <summary>A committed active-area edit from the diagram (#199): the new size + centre in tablet mm.</summary>
+public readonly record struct ActiveAreaEdit(double Width, double Height, double CenterX, double CenterY);
+
+/// <summary>
+/// A focused picture of the tablet's active area: the full digitizer area with the effective (used) area
+/// drawn inside it, to scale and in position. Interactive (#199): drag the area to move it, drag a corner
+/// to resize proportionally (aspect stays locked to the display). When rotated, the tablet is drawn turned
+/// as physically held with the active area upright, so the same upright rectangle is edited at any rotation.
+/// </summary>
+public sealed class ActiveAreaDiagram : Control
+{
+    private const double Pad = 10;
+    private const double HandleHit = 11;   // px radius for grabbing a corner
+    private const double HandleSize = 8;    // px drawn handle square
+
+    public static readonly StyledProperty<TabletAreaInfo?> AreaProperty =
+        AvaloniaProperty.Register<ActiveAreaDiagram, TabletAreaInfo?>(nameof(Area));
+    // The theme's text color: the tablet outline's neutrals are mixed from it (DiagramDrawing.Tablet)
+    // so the diagram tints itself to the skin instead of carrying a fixed grey.
+    public static readonly StyledProperty<IBrush?> InkBrushProperty =
+        AvaloniaProperty.Register<ActiveAreaDiagram, IBrush?>(nameof(InkBrush));
+    public static readonly StyledProperty<IBrush?> AccentBrushProperty =
+        AvaloniaProperty.Register<ActiveAreaDiagram, IBrush?>(nameof(AccentBrush));
+    public static readonly StyledProperty<bool> EditableProperty =
+        AvaloniaProperty.Register<ActiveAreaDiagram, bool>(nameof(Editable));
+
+    public TabletAreaInfo? Area { get => GetValue(AreaProperty); set => SetValue(AreaProperty, value); }
+    public IBrush? AccentBrush { get => GetValue(AccentBrushProperty); set => SetValue(AccentBrushProperty, value); }
+    public IBrush? InkBrush { get => GetValue(InkBrushProperty); set => SetValue(InkBrushProperty, value); }
+    /// <summary>Allow dragging to move / corner-dragging to resize the effective area (#199).</summary>
+    public bool Editable { get => GetValue(EditableProperty); set => SetValue(EditableProperty, value); }
+
+    /// <summary>Raised on drag release with the new area (tablet mm), for the view model to persist.</summary>
+    public event EventHandler<ActiveAreaEdit>? AreaCommitted;
+
+    static ActiveAreaDiagram()
+    {
+        AffectsRender<ActiveAreaDiagram>(AreaProperty, AccentBrushProperty, EditableProperty,
+            InkBrushProperty);
+        AffectsMeasure<ActiveAreaDiagram>(AreaProperty);
+    }
+
+    private const double MaxDiagramHeight = 320;
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        double w = double.IsInfinity(availableSize.Width) ? 400 : availableSize.Width;
+
+        // Height follows the tablet's aspect ratio so the drawn area fills the box instead of floating
+        // in a fixed 320px band with empty space above and below (#activearea-padding). Capped so a wide
+        // window can't make the diagram grow unboundedly tall; the tablet then centres horizontally.
+        var area = Area;
+        double fullW = area is { FullWidth: > 0 } ? area.FullWidth : 16;
+        double fullH = area is { FullHeight: > 0 } ? area.FullHeight : 10;
+        double rot = area != null ? (((area.Rotation % 360) + 360) % 360) : 0;
+        bool perp = Math.Abs(rot % 180) > 0.5;
+        double bboxW = perp ? fullH : fullW, bboxH = perp ? fullW : fullH;
+
+        double innerW = Math.Max(1, w - 2 * Pad);
+        double h = innerW / (bboxW / bboxH) + 2 * Pad;
+        return new Size(w, Math.Clamp(h, 150, MaxDiagramHeight));
+    }
+
+    // ── Layout: maps between tablet mm and screen px for the current Area + Bounds ──────────────────
+    private readonly record struct Layout(
+        bool Valid, double Scale, Point Center, double FullW, double FullH, double RotRad, bool Perp);
+
+    private Layout Compute()
+    {
+        var area = Area;
+        var box = new Rect(Bounds.Size).Deflate(Pad);
+        if (area is not { FullWidth: > 0, FullHeight: > 0 } || box.Width <= 0 || box.Height <= 0)
+            return default;
+
+        double fullW = area.FullWidth, fullH = area.FullHeight;
+        double rot = ((area.Rotation % 360) + 360) % 360;
+        bool perp = Math.Abs(rot % 180) > 0.5;
+        double bboxW = perp ? fullH : fullW, bboxH = perp ? fullW : fullH;
+        var fit = DiagramDrawing.FitAspect(bboxW, bboxH, box);
+        double scale = fit.Height / bboxH;
+        return new Layout(true, scale, fit.Center, fullW, fullH, rot * Math.PI / 180.0, perp);
+    }
+
+    // Tablet mm point → screen (the tablet is drawn rotated by -rot about the diagram centre).
+    private static Point TabletToScreen(Layout l, double tx, double ty)
+    {
+        double dx = (tx - l.FullW / 2) * l.Scale, dy = (ty - l.FullH / 2) * l.Scale;
+        double c = Math.Cos(-l.RotRad), s = Math.Sin(-l.RotRad);
+        return new Point(l.Center.X + dx * c - dy * s, l.Center.Y + dx * s + dy * c);
+    }
+
+    // Screen point → tablet mm (inverse of TabletToScreen).
+    private static (double X, double Y) ScreenToTablet(Layout l, Point p)
+    {
+        double dx = p.X - l.Center.X, dy = p.Y - l.Center.Y;
+        double c = Math.Cos(l.RotRad), s = Math.Sin(l.RotRad);   // rotate back by +rot
+        double tx = dx * c - dy * s, ty = dx * s + dy * c;
+        return (l.FullW / 2 + tx / l.Scale, l.FullH / 2 + ty / l.Scale);
+    }
+
+    // The effective area's upright screen rectangle (position follows the tablet rotation; orientation upright).
+    private static Rect AreaRect(Layout l, double w, double h, double cx, double cy)
+    {
+        var c = TabletToScreen(l, cx, cy);
+        double sw = w * l.Scale, sh = h * l.Scale;
+        return new Rect(c.X - sw / 2, c.Y - sh / 2, sw, sh);
+    }
+
+    // ── Interaction ─────────────────────────────────────────────────────────────────────────────────
+    private enum Mode { None, Move, Resize }
+    private Mode _mode;
+    private Point _anchorScreen;      // resize: the fixed (opposite) corner, in screen px
+    private int _dirX, _dirY;         // resize: which way the grabbed corner extends from the anchor
+    private (double X, double Y) _grabTablet;  // move: tablet-mm point under the cursor at press
+    private double _grabW, _grabH, _grabX, _grabY; // area at press
+    private ActiveAreaEdit? _preview; // live edit shown while dragging
+
+    private double DisplayAspect(TabletAreaInfo a) =>
+        a.DisplayWidth > 0 && a.DisplayHeight > 0 ? a.DisplayWidth / a.DisplayHeight
+        : a.EffHeight > 0 ? a.EffWidth / a.EffHeight : 1;
+
+    private float MinAreaWidth(TabletAreaInfo a, int rot)
+    {
+        var max = AreaMappingCalculator.FitForRotation((float)a.FullWidth, (float)a.FullHeight,
+            (float)Math.Max(1, a.DisplayWidth), (float)Math.Max(1, a.DisplayHeight), rot);
+        return (float)Math.Max(2, max.Width * 0.1);   // 10% of the maximum
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        if (!Editable || Area is not { } a) return;
+        var l = Compute();
+        if (!l.Valid) return;
+
+        var p = e.GetPosition(this);
+        var rect = AreaRect(l, a.EffWidth, a.EffHeight, a.EffCenterX, a.EffCenterY);
+        var corners = Corners(rect);
+
+        // Grab a corner? → resize with the opposite corner anchored.
+        for (int i = 0; i < 4; i++)
+        {
+            if (Distance(p, corners[i]) <= HandleHit)
+            {
+                _mode = Mode.Resize;
+                var anchor = corners[(i + 2) % 4];
+                _anchorScreen = anchor;
+                _dirX = Math.Sign(corners[i].X - anchor.X);
+                _dirY = Math.Sign(corners[i].Y - anchor.Y);
+                if (_dirX == 0) _dirX = 1;
+                if (_dirY == 0) _dirY = 1;
+                e.Pointer.Capture(this);
+                e.Handled = true;
+                return;
+            }
+        }
+        // Inside the body? → move.
+        if (rect.Contains(p))
+        {
+            _mode = Mode.Move;
+            _grabTablet = ScreenToTablet(l, p);
+            _grabW = a.EffWidth; _grabH = a.EffHeight; _grabX = a.EffCenterX; _grabY = a.EffCenterY;
+            e.Pointer.Capture(this);
+            e.Handled = true;
+        }
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        if (_mode == Mode.None || Area is not { } a) return;
+        var l = Compute();
+        if (!l.Valid) return;
+
+        int rot = (int)Math.Round(((a.Rotation % 360) + 360) % 360);
+        float fullW = (float)a.FullWidth, fullH = (float)a.FullHeight;
+        var p = e.GetPosition(this);
+
+        AreaMappingCalculator.TabletArea result;
+        if (_mode == Mode.Move)
+        {
+            var now = ScreenToTablet(l, p);
+            float cx = (float)(_grabX + (now.X - _grabTablet.X));
+            float cy = (float)(_grabY + (now.Y - _grabTablet.Y));
+            result = AreaMappingCalculator.ClampArea((float)_grabW, (float)_grabH, cx, cy, rot, fullW, fullH, MinAreaWidth(a, rot));
+        }
+        else
+        {
+            double aspect = DisplayAspect(a);
+            double rawW = Math.Abs(p.X - _anchorScreen.X), rawH = Math.Abs(p.Y - _anchorScreen.Y);
+            double w = Math.Max(rawW, rawH * aspect);      // grow to reach the cursor, aspect-locked
+            double h = w / aspect;
+            var moving = new Point(_anchorScreen.X + _dirX * w, _anchorScreen.Y + _dirY * h);
+            var centerScreen = new Point((_anchorScreen.X + moving.X) / 2, (_anchorScreen.Y + moving.Y) / 2);
+            var tc = ScreenToTablet(l, centerScreen);
+            result = AreaMappingCalculator.ClampArea((float)(w / l.Scale), (float)(h / l.Scale),
+                (float)tc.X, (float)tc.Y, rot, fullW, fullH, MinAreaWidth(a, rot));
+        }
+
+        _preview = new ActiveAreaEdit(result.Width, result.Height, result.X, result.Y);
+        InvalidateVisual();
+        e.Handled = true;
+    }
+
+    /// <summary>
+    /// The bound area changing is what retires a preview: the model has spoken, so what it says wins.
+    /// </summary>
+    /// <remarks>
+    /// Any change retires it, not only one that matches what was dragged. Policy and clamping can
+    /// legitimately alter a request, and the stored value is the truth in every case — continuing to show
+    /// the request after the answer arrived would be showing the user something that is not so.
+    ///
+    /// A commit that changes nothing raises no change here, so the preview stays; it is equal to the
+    /// stored value in that case, so there is nothing to see.
+    /// </remarks>
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == AreaProperty) _preview = null;
+    }
+
+    /// <summary>
+    /// What the diagram is drawing right now: the live preview if there is one, else the bound area.
+    /// </summary>
+    /// <remarks>
+    /// Its own method so the rule can be tested. The flicker it exists for was invisible to every
+    /// view-model test — the values the editor published were correct and arrived in one step — because
+    /// what was wrong was which of them this control chose to draw, and for how long.
+    /// </remarks>
+    internal (double Width, double Height, double CenterX, double CenterY)? Effective =>
+        Area is not { } a ? null
+            : (_preview?.Width ?? a.EffWidth, _preview?.Height ?? a.EffHeight,
+               _preview?.CenterX ?? a.EffCenterX, _preview?.CenterY ?? a.EffCenterY);
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+        if (_mode == Mode.None) return;
+        _mode = Mode.None;
+        e.Pointer.Capture(null);
+        // The preview is NOT cleared here, and that is the fix for #815. Clearing it on release drew the
+        // next frame from the bound Area, which still holds the value from before the drag: committing is
+        // asynchronous -- it mutates the profile, sends to the daemon, and the session reloads before the
+        // call returns -- so Area does not catch up for a round trip. Dropping the preview first meant the
+        // area visibly jumped back to where it started and sat there until it did, which is the "old
+        // position" the flicker begins with. It was guaranteed, not a race.
+        //
+        // What the user dragged stays on screen until the model says what it actually got. OnPropertyChanged
+        // clears it when Area changes, including when policy or clamping changed the request.
+        if (_preview is { } edit) AreaCommitted?.Invoke(this, edit);
+        InvalidateVisual();
+        e.Handled = true;
+    }
+
+    private static Point[] Corners(Rect r) => new[]
+    {
+        r.TopLeft, r.TopRight, r.BottomRight, r.BottomLeft,
+    };
+
+    private static double Distance(Point a, Point b) => Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+
+    // ── Rendering ───────────────────────────────────────────────────────────────────────────────────
+    public override void Render(DrawingContext ctx)
+    {
+        var area = Area;
+        var accent = (AccentBrush as ISolidColorBrush)?.Color ?? DiagramDrawing.FallbackAccent;
+
+        var box = new Rect(Bounds.Size).Deflate(Pad);
+        if (box.Width <= 0 || box.Height <= 0) return;
+
+        double fullW = area?.FullWidth ?? 16, fullH = area?.FullHeight ?? 10;
+
+        var ink = (InkBrush as ISolidColorBrush)?.Color ?? DiagramDrawing.FallbackInk;
+        var (tabFill, tabBorder) = DiagramDrawing.Tablet(ink);
+
+        if (area is not { FullWidth: > 0, FullHeight: > 0 })
+        {
+            var fr = DiagramDrawing.FitAspect(fullW, fullH, box);
+            ctx.DrawRectangle(tabFill, tabBorder, fr);
+            // Ink, not white: the tablet fill is now a light tint of the ground rather than a mid grey,
+            // so white would vanish into it on every light theme.
+            DiagramDrawing.DrawCentered(ctx, fr, "No active-area data", 12, DiagramDrawing.Neutral(ink, 0xA6));
+            return;
+        }
+
+        var l = Compute();
+        // Through the same property the test asserts, so the rule has one statement rather than two that
+        // could drift.
+        var (ew, eh, ecx, ecy) = Effective!.Value;
+
+        // Tablet outline, turned as physically held when rotated (portrait for 90/270).
+        var tabletRect = new Rect(l.Center.X - fullW * l.Scale / 2, l.Center.Y - fullH * l.Scale / 2,
+                                  fullW * l.Scale, fullH * l.Scale);
+        DiagramDrawing.DrawRotatedOutline(ctx, tabletRect, l.Center, l.RotRad, tabFill, tabBorder);
+
+        // Effective area (upright) and — when editable — corner handles. (The size read-out lives in the
+        // TABLET / ACTIVE AREA table below the diagram now, not on the area itself.)
+        var effRect = AreaRect(l, ew, eh, ecx, ecy);
+        ctx.DrawRectangle(new SolidColorBrush(accent, 0.22), new Pen(new SolidColorBrush(accent), 2), effRect);
+
+        if (Editable)
+        {
+            var handleFill = OpenTabletArtist.Services.UiColors.SoftWhiteBrush;
+            var handlePen = new Pen(new SolidColorBrush(accent), 2);
+            foreach (var c in Corners(effRect))
+                ctx.DrawRectangle(handleFill, handlePen,
+                    new Rect(c.X - HandleSize / 2, c.Y - HandleSize / 2, HandleSize, HandleSize));
+        }
+    }
+
+}

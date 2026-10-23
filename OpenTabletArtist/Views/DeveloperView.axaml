@@ -1,0 +1,267 @@
+<UserControl x:Class="OpenTabletArtist.Views.DeveloperView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:h="using:OpenTabletArtist.Helpers"
+             xmlns:c="using:OpenTabletArtist.Controls"
+             xmlns:conv="using:OpenTabletArtist.Converters">
+
+    <!-- DataContext is the DeveloperViewModel; controls bind to the shared DeveloperSettings singleton
+         (Settings.*). Tabbed layout — a tab per topic — so the page stays short as options grow. Hosted as
+         a gated SETTINGS tab (#572), so the page title is the Settings tab title — no PageTitle here. -->
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="Auto,*">
+
+        <!-- Subtab rail — one subtab per topic. Dev and Theme are the two tabs that divide a third time
+             (page menu -> tab menu -> subtabs), so this is the app's only vertical rail; the tablet page
+             had one until it moved to the horizontal tab menu. Each subtab is a RadioButton in one
+             implicit group, with the pane below bound to its IsChecked. -->
+        <Border Grid.Row="1" Grid.Column="0" Margin="0,0,16,0" BorderThickness="0,0,1,0"
+                BorderBrush="{DynamicResource DividerBrush}">
+            <StackPanel x:Name="SubtabRail" Width="{StaticResource SubtabRailWidth}" Spacing="6">
+                <RadioButton Content="Warnings" IsChecked="True" x:Name="WarningsSubtab"
+                             Theme="{StaticResource SubtabRadioButton}" />
+                <RadioButton Content="Config errors" x:Name="ConfigErrorsSubtab"
+                             Theme="{StaticResource SubtabRadioButton}" />
+                <RadioButton Content="Tablets" x:Name="TabletsSubtab"
+                             Theme="{StaticResource SubtabRadioButton}" />
+                <RadioButton Content="Interface" x:Name="InterfaceSubtab"
+                             Theme="{StaticResource SubtabRadioButton}" />
+                <RadioButton Content="Screenshots" x:Name="ScreenshotsSubtab"
+                             Theme="{StaticResource SubtabRadioButton}" />
+            </StackPanel>
+        </Border>
+
+        <!-- WARNINGS: force each real catalog warning with its true copy. Synthetic and non-persisted —
+             nothing on disk changes, the warning is simply asserted into Home's Needs attention list. -->
+        <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding #WarningsSubtab.IsChecked}">
+            <c:Section MaxWidth="1040" HorizontalAlignment="Left" Title="Trigger health warnings"
+                       Description="Each toggle makes the real catalog warning appear in Home's Needs attention list with its true text and Fix button. Turn it off to remove the card.">
+                <!-- Two columns, split where the catalog already splits: app- and system-level warnings on
+                     the left, the per-tablet ones (every label prefixed "Tablet:") on the right. Twelve in
+                     one column ran past the fold; neither half does. -->
+                <Grid ColumnDefinitions="*,32,*">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                    <c:ToggleSetting Label="Windows Ink plugin not installed" IsVisible="{x:Static h:PlatformText.IsWindows}"
+                                     IsChecked="{Binding Settings.ForceWinInkNotInstalled}" />
+                    <c:ToggleSetting Label="Windows Ink plugin may be incompatible" IsVisible="{x:Static h:PlatformText.IsWindows}"
+                                     IsChecked="{Binding Settings.ForceWinInkVersionMismatch}" />
+                    <c:ToggleSetting Label="VMulti driver not installed" IsVisible="{x:Static h:PlatformText.IsWindows}"
+                                     IsChecked="{Binding Settings.ForceVMultiNotInstalled}" />
+                    <c:ToggleSetting Label="Conflicting tablet driver detected"
+                                     IsChecked="{Binding Settings.ForceDriverConflict}" />
+                    <c:ToggleSetting Label="Running as administrator"
+                                     IsChecked="{Binding Settings.ForceRunningElevated}" />
+                    <c:ToggleSetting Label="Tray icon can't be shown"
+                                     Description="GNOME with no StatusNotifierItem host; Linux-only in reality."
+                                     IsChecked="{Binding Settings.ForceTrayHostUnavailable}" />
+                    <c:ToggleSetting Label="Using an external daemon"
+                                     IsChecked="{Binding Settings.ForceForeignDaemon}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Spacing="4">
+                    <c:ToggleSetting Label="Tablet: not using Windows Ink" IsVisible="{x:Static h:PlatformText.IsWindows}"
+                                     Description="Emitted for a sample tablet; its Fix deep-links to that (absent) tablet."
+                                     IsChecked="{Binding Settings.ForceTabletNotWinInk}" />
+                    <c:ToggleSetting Label="Tablet: mapped area partly off-screen"
+                                     IsChecked="{Binding Settings.ForceTabletMappingOffScreen}" />
+                    <c:ToggleSetting Label="Tablet: custom display mapping"
+                                     IsChecked="{Binding Settings.ForceTabletMappingCustom}" />
+                    <c:ToggleSetting Label="Tablet: using a custom config override"
+                                     Description="Emitted for a sample tablet; its Review deep-links to the CONFIGS tab."
+                                     IsChecked="{Binding Settings.ForceTabletConfigOverride}" />
+                    <c:ToggleSetting Label="Tablet: pen isn't set up for drawing"
+                                     Description="The artist-pen-behavior bundle for a sample tablet — all four offenders, with per-setting review links."
+                                     IsChecked="{Binding Settings.ForceArtistPenBehavior}" />
+                    </StackPanel>
+                </Grid>
+            </c:Section>
+        </ScrollViewer>
+
+        <!-- CONFIG ERRORS: the opposite of WARNINGS — these write a REAL, persisted change to the active
+             tablet, so the matching warning appears for genuine bad state rather than being asserted.
+             Undo each from the tablet's own tabs. -->
+        <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding #ConfigErrorsSubtab.IsChecked}">
+            <c:Section MaxWidth="640" HorizontalAlignment="Left" Title="Introduce config errors"
+                       Description="These make a real, persisted settings change on the active tablet, so the matching warning appears for genuine bad state. Undo each from the tablet's own tabs.">
+                <StackPanel Spacing="14">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Map active area partly off-screen" FontWeight="SemiBold" />
+                        <Button Content="Push active area off-screen"
+                                Command="{Binding PushMappingOffScreenCommand}"
+                                Theme="{StaticResource GhostButton}" Padding="12,6"
+                                HorizontalAlignment="Left" Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Rotate active area to a non-standard angle" FontWeight="SemiBold" />
+                        <Button Content="Set rotation to 20°"
+                                Command="{Binding PushMappingRotationCommand}"
+                                Theme="{StaticResource GhostButton}" Padding="12,6"
+                                HorizontalAlignment="Left" Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Create a slightly-wrong calibration" FontWeight="SemiBold" />
+                        <Button Content="Create off calibration"
+                                Command="{Binding CreateBadCalibrationCommand}"
+                                Theme="{StaticResource GhostButton}" Padding="12,6"
+                                HorizontalAlignment="Left" Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Break the pen for drawing (artist health check)" FontWeight="SemiBold" />
+                        <Button Content="{x:Static h:PlatformText.BreakPenLabel}"
+                                Command="{Binding BreakPenForDrawingCommand}"
+                                Theme="{StaticResource GhostButton}" Padding="12,6"
+                                HorizontalAlignment="Left" Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <!-- Asserted, not caused, unlike everything above it: a pause needs the driver's
+                         settings to differ from what the app is showing, and the interop boundary is
+                         there to stop OTA writing settings behind its own workspace. What it reaches is
+                         the real paused state, so the panel, the emptied footer and the inert pages are
+                         all genuine. Reload clears it. -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Pause settings editing (asserted)" FontWeight="SemiBold" />
+                        <ToggleButton Content="Pause settings editing"
+                                      IsChecked="{Binding Settings.ForcePaused}"
+                                      Padding="12,6"
+                                      HorizontalAlignment="Left" Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding ConfigErrorStatus}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               IsVisible="{Binding HasConfigErrorStatus}" Margin="0,2,0,0" />
+                </StackPanel>
+            </c:Section>
+        </ScrollViewer>
+
+        <!-- TABLETS: force a supported tablet into Home's list (#force-tablet) — a real, saved but
+             not-detected profile, so its row can be exercised without the hardware. -->
+        <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding #TabletsSubtab.IsChecked}">
+            <c:Section MaxWidth="640" HorizontalAlignment="Left" Title="Force a tablet in the list"
+                       Description="Add a saved (remembered, not-detected) profile for any tablet OpenTabletDriver supports, so it shows in Home's tablet list without the hardware — handy for exercising the row, its mapped-display line, and navigation. It's a real profile: remove it with the row's trash icon, or Clear here. Adding a tablet replaces the one previously forced this session.">
+                <StackPanel Spacing="10">
+                    <AutoCompleteBox ItemsSource="{Binding SupportedTabletNames}"
+                                     SelectedItem="{Binding SelectedForcedTablet, Mode=TwoWay}"
+                                     FilterMode="ContainsOrdinal"
+                                     MinWidth="300" MaxWidth="380" HorizontalAlignment="Left"
+                                     PlaceholderText="Type to find a tablet…" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Add to tablet list" Command="{Binding AddForcedTabletCommand}"
+                                Theme="{StaticResource AccentButton}" Padding="12,6" />
+                        <Button Content="Clear" Command="{Binding ClearForcedTabletCommand}"
+                                Theme="{StaticResource GhostButton}" Padding="12,6" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding ForceTabletStatus}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               IsVisible="{Binding HasForceTabletStatus}" Margin="0,2,0,0" />
+                </StackPanel>
+            </c:Section>
+        </ScrollViewer>
+
+        <!-- INTERFACE: two columns — tablet-page extras (hidden tabs / controls) on the left, the
+             force-window-size presets on the right. Both tweak how the app's own UI is shown. -->
+        <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding #InterfaceSubtab.IsChecked}">
+            <Grid ColumnDefinitions="*,32,*" MaxWidth="1040" HorizontalAlignment="Left">
+
+                <!-- LEFT: reveal the normally-hidden tabs / controls — the tablet page's, then the Advanced page's. -->
+                <StackPanel Grid.Column="0" Spacing="24">
+                <c:Section Title="Tablet page extras"
+                           Description="Show extra diagnostic tabs and rarely-needed controls on a tablet's page. Hidden by default.">
+                    <StackPanel Spacing="4">
+                        <c:ToggleSetting Label="Show the Filters tab"
+                                         IsChecked="{Binding Settings.ShowFiltersTab}" />
+                        <c:ToggleSetting Label="Show the JSON tab"
+                                         IsChecked="{Binding Settings.ShowJsonTab}" />
+                        <c:ToggleSetting Label="Show the ‘Cut below input minimum’ pressure option"
+                                         Description="Re-enable the dead-zone checkbox in Pressure Dynamics (#569)."
+                                         IsChecked="{Binding Settings.ShowCutBelowMinimum}" />
+                        <c:ToggleSetting Label="Show card-role tags"
+                                         Description="Overlay a Section / Alert / Select tag on the bottom-right of every card (#574) — a dev aid for the cardless redesign."
+                                         IsChecked="{Binding Settings.ShowCardRoleTags}" />
+                    </StackPanel>
+                </c:Section>
+
+                <c:Section Title="Advanced page extras"
+                           Description="Show extra tabs on the Advanced page. Hidden by default.">
+                    <StackPanel Spacing="4">
+                        <c:ToggleSetting Label="Show the Diagnostics tab"
+                                         Description="The live pen-report stream, under Advanced."
+                                         IsChecked="{Binding Settings.ShowDiagnosticsTab}" />
+                    </StackPanel>
+                </c:Section>
+                </StackPanel>
+
+                <!-- RIGHT: window-size presets. -->
+                <!-- Force the window to an exact ACTUAL-PIXEL size (#546) — preview small-display layouts or
+                     get a consistent window for screenshots. Presets are real pixels (scaling-independent)
+                     and relax the normal minimum. Reset by restarting the app. -->
+                <c:Section Grid.Column="2" Title="Window size"
+                           Description="Force the app window to an exact pixel size — for previewing small-display layouts or consistent screenshots. Reset by restarting.">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Current size:" FontWeight="SemiBold" />
+                            <TextBlock x:Name="WindowSizeText" Text="—"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <!-- Wraps so every preset stays reachable when the window itself is forced narrow. -->
+                        <WrapPanel>
+                            <Button Content="2560 × 1440" Tag="2560,1440" Click="OnSetWindowSize"
+                                    Theme="{StaticResource GhostButton}" Padding="12,6" Margin="0,0,8,8" />
+                            <Button Content="1920 × 1080" Tag="1920,1080" Click="OnSetWindowSize"
+                                    Theme="{StaticResource GhostButton}" Padding="12,6" Margin="0,0,8,8" />
+                            <Button Content="1600 × 900" Tag="1600,900" Click="OnSetWindowSize"
+                                    Theme="{StaticResource GhostButton}" Padding="12,6" Margin="0,0,8,8" />
+                            <Button Content="1366 × 768" Tag="1366,768" Click="OnSetWindowSize"
+                                    Theme="{StaticResource GhostButton}" Padding="12,6" Margin="0,0,8,8" />
+                            <Button Content="1280 × 720" Tag="1280,720" Click="OnSetWindowSize"
+                                    Theme="{StaticResource GhostButton}" Padding="12,6" Margin="0,0,8,8" />
+                        </WrapPanel>
+                    </StackPanel>
+                </c:Section>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- SCREENSHOTS: its own tab rather than a column of INTERFACE. It was folded in there when an
+             older Screenshot tab was retired, but it is a capture tool, not a way of showing the UI, and
+             it had outgrown sharing a column with the window-size presets. -->
+        <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding #ScreenshotsSubtab.IsChecked}">
+            <!-- Capture the live app UI to a PNG via RenderTargetBitmap (#437). Renders the actual
+                 controls, so it's pixel-perfect and free of the window-focus / occlusion / DPI issues that
+                 plague manual capture. The render happens in code-behind (it needs the visual). -->
+            <c:Section Title="Screenshots" MaxWidth="640" HorizontalAlignment="Left">
+                <StackPanel Spacing="14">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Screenshot all pages" FontWeight="SemiBold" />
+                        <TextBlock Text="Visit every page, tab, subtab and connected tablet in turn, save an image of each to a new timestamped folder, then return to where you started."
+                                   Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
+                            <TextBlock Text="Format" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextMutedBrush}" />
+                            <ComboBox MinWidth="120" VerticalAlignment="Center"
+                                      ItemsSource="{Binding Settings.ScreenshotFormatOptions}"
+                                      SelectedItem="{Binding Settings.ScreenshotFormat, Mode=TwoWay}"
+                                      ToolTip.Tip="Image format for screenshots: PNG (lossless), JPG (smaller) or both. Also applies to the on-page capture." />
+                        </StackPanel>
+                        <Button Content="Screenshot all pages" Click="OnScreenshotAllPages"
+                                Theme="{StaticResource GhostButton}" Padding="12,6"
+                                HorizontalAlignment="Left" Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <c:ToggleSetting Label="On-page screenshot control"
+                                     Description="Show a small Capture page button at the bottom of the nav bar, so you can screenshot whichever page you're currently viewing."
+                                     IsChecked="{Binding Settings.OnPageScreenshot}" />
+
+                    <TextBlock x:Name="ScreenshotStatus" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextMutedBrush}" IsVisible="False" />
+                </StackPanel>
+            </c:Section>
+        </ScrollViewer>
+
+    </Grid>
+</UserControl>

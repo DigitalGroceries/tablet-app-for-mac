@@ -1,0 +1,87 @@
+<UserControl x:Class="OpenTabletArtist.Views.SettingsFooterView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls">
+
+    <UserControl.Styles>
+        <!-- Save says so when there is something to save: an alert icon after the text, and the tooltip and
+             accessible name say it in words, so the signal is not only a picture. The class is toggled from
+             HasUnsavedChanges on the button below. The tooltip lives here, not on the button, because a
+             value set directly on the button would beat these style setters. -->
+        <Style Selector="Button.save">
+            <Setter Property="ToolTip.Tip"
+                    Value="Save settings so they survive an OTD daemon restart (Cmd+S)." />
+        </Style>
+        <Style Selector="Button.save.unsaved">
+            <Setter Property="c:ButtonIcon.Data" Value="{StaticResource IconAlertCircle}" />
+            <Setter Property="ToolTip.Tip"
+                    Value="You have unsaved changes. Save settings so they survive an OTD daemon restart (Cmd+S)." />
+            <Setter Property="AutomationProperties.Name" Value="Save, unsaved changes" />
+        </Style>
+    </UserControl.Styles>
+
+    <!-- The settings footer: what the session has to say on the left, what can be done about it on the
+         right. Its own view rather than markup inside MainWindow so it can be built with an inert
+         DataContext and asserted on as a real control; MainWindow constructs a live MainViewModel,
+         daemon connection loop and all, which no headless test can hold still (#footer-split).
+
+         The padding here and on the two buttons is tighter than the app's usual: this strip is pinned
+         across the bottom of every page, so its height comes off the page above it on every screen, and
+         it holds one line of text next to two buttons. The buttons keep their generous *horizontal*
+         padding — it is the vertical that was buying nothing. -->
+    <Border Padding="24,6" Background="{DynamicResource GlassBgBrush}"
+            BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="0,1,0,0">
+        <Grid ColumnDefinitions="*,Auto">
+            <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                <TextBlock Text="{Binding SettingsSession.SaveStatusText}" TextWrapping="Wrap" />
+                <!-- The two notices describe something that already happened and ask for nothing, which
+                     is the opposite of what text beside Save usually means. They leave when the artist
+                     says so, or when they become history (an edit, a save, a reload, a reconnect). -->
+                <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding Connection.HasSettingsNotice}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding Connection.DiscardedChangeNotice}" TextWrapping="Wrap"
+                                   IsVisible="{Binding Connection.HasDiscardedChangeNotice}" />
+                        <!-- The driver changed its own settings while nothing was half-edited, so the page
+                             followed along. Quiet: nothing was lost and nothing is being asked (#920). -->
+                        <TextBlock Text="{Binding Connection.SettingsRefreshedNotice}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   IsVisible="{Binding Connection.HasSettingsRefreshedNotice}" />
+                    </StackPanel>
+                    <Button Grid.Column="1" x:Name="DismissNotices" Content="Dismiss"
+                            Theme="{StaticResource LinkButton}" Margin="12,0,0,0"
+                            VerticalAlignment="Center" Foreground="{DynamicResource AccentBrush}"
+                            Command="{Binding Connection.DismissSettingsNoticesCommand}"
+                            ToolTip.Tip="Hide these notices. Nothing else changes." />
+                </Grid>
+            </StackPanel>
+
+            <!-- Two buttons, ranked rather than equal. Save is wanted almost every time and reads
+                 first (affirmative first/left, #502); Revert is occasional and recedes.
+
+                 Reload is not here. It is the way out of a pause and nothing else, so it belongs with
+                 the explanation of the pause, in SettingsPausedView, where there is room to say what
+                 reloading costs. A footer with one unexplained button is the state this replaces.
+
+                 And these two go away entirely while paused: neither can run then — Save is refused
+                 by the coordinator, Revert needs an editable session — so leaving them greyed would
+                 be two dead controls competing with the one live one above.
+
+                 A SplitButton was tried and withdrawn. Binding a SplitButton's IsEnabled takes the
+                 chevron with it, and so does letting its command report it cannot execute; disabling
+                 only the primary template part leaves the keyboard and automation paths still firing
+                 Save, which Codex reproduced and I confirmed. Independent buttons have none of that. -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                        IsVisible="{Binding !SettingsSession.SettingsPaused}"
+                        IsEnabled="{Binding !SettingsSession.SettingsBusy}">
+                <Button Content="Save" Command="{Binding SaveSettingsCommand}"
+                        Classes="save" Classes.unsaved="{Binding SettingsSession.HasUnsavedChanges}"
+                        Theme="{StaticResource AccentButton}" Padding="22,5"
+                        IsEnabled="{Binding SettingsSession.CanEditSettings}" />
+                <Button Content="Revert to saved" Command="{Binding RevertSettingsCommand}"
+                        Theme="{StaticResource GhostButton}" Padding="16,5"
+                        IsEnabled="{Binding SettingsSession.CanEditSettings}"
+                        ToolTip.Tip="Replace live settings with the OTD daemon’s saved file, discarding unsaved changes." />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

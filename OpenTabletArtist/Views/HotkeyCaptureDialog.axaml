@@ -1,0 +1,137 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:h="using:OpenTabletArtist.Helpers"
+        x:Class="OpenTabletArtist.Views.HotkeyCaptureDialog"
+        Title="Assign hotkey"
+        Width="600" Height="520"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BgBaseBrush}">
+
+    <Window.Resources>
+        <!-- Keycap button: a light "physical key" fill; a picked key gets an accent outline.
+             (Mirrors the express-key binding editor so the two pickers feel like one control.) -->
+        <!-- The keycap theme is shared with the binding editor: Themes/Keycaps.axaml (#617). -->
+
+        <!-- Modifier toggle: same keycap look, accent-tinted fill while held. -->
+        <ControlTheme x:Key="ModifierToggle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="#40E4E4E4" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="MinWidth" Value="58" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter Content="{TemplateBinding Content}" Padding="{TemplateBinding Padding}"
+                                          HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="Background" Value="#70E4E4E4" />
+            </Style>
+            <Style Selector="^:checked /template/ Border#Bd">
+                <Setter Property="Background" Value="{DynamicResource AccentMutedBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            </Style>
+            <Style Selector="^:checked">
+                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- One keycap: fixed footprint with the visible key inset a hair, so rows stay aligned. -->
+        <DataTemplate x:Key="KeyCapTemplate">
+            <Border Width="{Binding Width}" Height="32">
+                <Button Theme="{StaticResource KeyCapButton}" Classes.selected="{Binding IsSelected}"
+                        Command="{Binding PickCommand}" CommandParameter="{Binding}"
+                        Content="{Binding Display}"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2" />
+            </Border>
+        </DataTemplate>
+        <DataTemplate x:Key="KeyRowTemplate">
+            <ItemsControl ItemsSource="{Binding}" ItemTemplate="{StaticResource KeyCapTemplate}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </DataTemplate>
+    </Window.Resources>
+
+    <DockPanel Margin="24">
+        <!-- Heading -->
+        <StackPanel DockPanel.Dock="Top" Spacing="3" Margin="0,0,0,14">
+            <TextBlock Text="Assign a global hotkey" FontSize="{DynamicResource TypeTitleSize}" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+            <TextBlock Text="Hold one or more modifiers and pick a key, or press the shortcut on your keyboard."
+                       Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <!-- Footer -->
+        <StackPanel DockPanel.Dock="Bottom">
+            <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,16,0,0" />
+            <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,14,0,0">
+                <!-- Combo preview: CTRL + ALT + E. -->
+                <Grid Grid.Column="0" HorizontalAlignment="Left">
+                    <TextBlock Text="No shortcut yet" IsVisible="{Binding ComboEmpty}"
+                               VerticalAlignment="Center"
+                               FontStyle="Italic" Foreground="{DynamicResource TextMutedBrush}" />
+                    <ItemsControl ItemsSource="{Binding ComboParts}" IsVisible="{Binding !ComboEmpty}"
+                                  VerticalAlignment="Center"
+                                  ItemsPanel="{StaticResource ComboPartsPanel}"
+                                  ItemTemplate="{StaticResource ComboPartTemplate}" />
+                </Grid>
+
+                <!-- Affirmative first/left, Windows convention (#502). -->
+                <Button Grid.Column="1" Content="Save" Command="{Binding SaveCommand}"
+                        Theme="{StaticResource AccentButton}" Padding="22,8" Margin="0,0,8,0" />
+                <Button Grid.Column="2" Content="Cancel" Command="{Binding CancelDialogCommand}"
+                        Theme="{StaticResource GhostButton}" Padding="16,8" />
+            </Grid>
+        </StackPanel>
+
+        <!-- Board -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="14" Margin="0,4,0,0">
+                <!-- Modifiers -->
+                <StackPanel Spacing="7">
+                    <TextBlock Text="Modifiers" FontWeight="SemiBold" LetterSpacing="0.5"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ToggleButton Content="Ctrl" Theme="{StaticResource ModifierToggle}"
+                                      IsChecked="{Binding Ctrl, Mode=TwoWay}" />
+                        <ToggleButton Content="Alt" Theme="{StaticResource ModifierToggle}"
+                                      IsChecked="{Binding Alt, Mode=TwoWay}" />
+                        <ToggleButton Content="Shift" Theme="{StaticResource ModifierToggle}"
+                                      IsChecked="{Binding Shift, Mode=TwoWay}" />
+                        <ToggleButton Content="{x:Static h:PlatformText.SuperKey}" Theme="{StaticResource ModifierToggle}"
+                                      IsChecked="{Binding Win, Mode=TwoWay}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Key block + numpad, aligned side by side. -->
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <StackPanel Spacing="7">
+                        <TextBlock Text="Key" FontWeight="SemiBold" LetterSpacing="0.5"
+                                   Foreground="{DynamicResource TextMutedBrush}" />
+                        <ItemsControl ItemsSource="{Binding MainRows}" ItemTemplate="{StaticResource KeyRowTemplate}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="7" VerticalAlignment="Top">
+                        <TextBlock Text="Numpad" FontWeight="SemiBold" LetterSpacing="0.5"
+                                   Foreground="{DynamicResource TextMutedBrush}" />
+                        <ItemsControl ItemsSource="{Binding NumpadRows}" ItemTemplate="{StaticResource KeyRowTemplate}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

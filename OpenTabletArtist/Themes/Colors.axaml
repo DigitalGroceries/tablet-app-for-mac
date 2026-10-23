@@ -1,0 +1,563 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:svc="using:OpenTabletArtist.Services">
+
+    <!-- ============================================================================
+         Theming (#139): light + dark, switched by the app's ThemeVariant.
+         - Variant-INDEPENDENT colors/brushes (accent + status) live at the top level.
+         - Variant-SPECIFIC colors/brushes (backgrounds, text, glass, dividers) live in
+           the Light/Dark theme dictionaries below; consumers bind with DynamicResource so
+           they re-resolve when Application.RequestedThemeVariant changes.
+         ============================================================================ -->
+
+    <!-- Shared status colors (variant-independent). NOTE: the ACCENT (and its derived button/card
+         resources) is intentionally NOT here — it lives in each theme dictionary instead, because a
+         top-level resource shadows a same-key entry in the ThemeDictionaries, which would stop the
+         Sakura skin from re-coloring the accent (#207). -->
+    <Color x:Key="Success">#10B981</Color>
+    <Color x:Key="SuccessMuted">#1A10B981</Color>
+    <Color x:Key="Warning">#F59E0B</Color>
+    <Color x:Key="WarningMuted">#1AF59E0B</Color>
+    <Color x:Key="Error">#EF4444</Color>
+    <Color x:Key="ErrorMuted">#1AEF4444</Color>
+    <Color x:Key="Info">#3B82F6</Color>
+    <Color x:Key="InfoMuted">#1A3B82F6</Color>
+    <!-- Neutral grey for "inactive / not applicable" states (e.g. the tablet page's not-detected status
+         chip). Mid-grey so white chip text keeps AA contrast on every theme. -->
+    <Color x:Key="Neutral">#6B7280</Color>
+    <Color x:Key="TextInverse">#E4E4E4</Color>
+
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}" />
+    <SolidColorBrush x:Key="SuccessMutedBrush" Color="{StaticResource SuccessMuted}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}" />
+    <SolidColorBrush x:Key="WarningMutedBrush" Color="{StaticResource WarningMuted}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}" />
+    <SolidColorBrush x:Key="ErrorMutedBrush" Color="{StaticResource ErrorMuted}" />
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource Info}" />
+    <SolidColorBrush x:Key="InfoMutedBrush" Color="{StaticResource InfoMuted}" />
+    <SolidColorBrush x:Key="NeutralBrush" Color="{StaticResource Neutral}" />
+    <SolidColorBrush x:Key="TextInverseBrush" Color="{StaticResource TextInverse}" />
+    <!-- Build R5: selected/highlighted buttons are a LIGHT grey fill with DARK text, never white.
+         LightnessService overrides these per step; these are the defaults (#D8D8D8 fill, #141414 text, 12.9:1). -->
+    <SolidColorBrush x:Key="SelectionFillBrush" Color="#D8D8D8" />
+    <SolidColorBrush x:Key="SelectionTextBrush" Color="#141414" />
+    <SolidColorBrush x:Key="SelectionBorderBrush" Color="#D8D8D8" />
+    <!-- Build R6: the tick in a checked box and the knob of an "on" switch are near-black on the light
+         selection fill in every theme (Fluent's own default is white). -->
+    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#141414" />
+    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#141414" />
+    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="#141414" />
+    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundIndeterminate" Color="#141414" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#141414" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#141414" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#141414" />
+    <!-- Build R5: every button, tab, pill and dropdown has the same round corners. -->
+    <CornerRadius x:Key="ButtonCornerRadius">6</CornerRadius>
+    <Thickness x:Key="NavButtonPadding">16,0</Thickness>
+    <!-- Build R6: one fixed tab height, shared by the Home links so their first row matches the tabs. -->
+    <x:Double x:Key="NavTabHeight">36</x:Double>
+    <!-- Build R2: Scribble canvas cover / paper, soft grey (LightnessService overrides it per step). -->
+    <SolidColorBrush x:Key="ScribbleCanvasBrush" Color="#E6CFCFCB" />
+
+    <!-- Custom-skin background image, layered over the base color at a user-chosen opacity so a less-opaque
+         image lets the base color show through. Transparent by default (a no-op for every theme); the
+         Custom skin sets it at runtime when an image is chosen. -->
+    <SolidColorBrush x:Key="AppBackdropImageBrush" Color="Transparent" />
+
+    <!-- Dimming scrim drawn over the backdrop image so text stays legible on a busy photo. Transparent
+         by default (a no-op for every theme); the Custom skin sets it at runtime when an image is chosen. -->
+    <SolidColorBrush x:Key="BackdropScrimBrush" Color="Transparent" />
+
+    <!-- Canonical monospace family for code / numeric readouts (Log, Diagnostics, JSON, dynamics values).
+         One definition so these don't drift into several different Consolas/Cascadia spellings. Consolas
+         first — it ships on every Windows and is what most of these readouts already used, so the look
+         stays familiar; Cascadia Mono / the generic monospace are fallbacks. -->
+    <FontFamily x:Key="MonoFontFamily">Consolas, Cascadia Mono, monospace</FontFamily>
+
+    <ResourceDictionary.ThemeDictionaries>
+
+        <!-- ===== Light ===== -->
+        <ResourceDictionary x:Key="Light">
+            <Color x:Key="BgBase">#E4E4E4</Color>
+            <Color x:Key="BgElevated">#E3E3E3</Color>
+            <Color x:Key="BgSurface">#E4E4E4</Color>
+            <Color x:Key="GlassBg">#A6E4E4E4</Color>
+            <Color x:Key="GlassBgHover">#BFE4E4E4</Color>
+            <Color x:Key="GlassBorder">#33000000</Color>
+            <Color x:Key="TextPrimary">#F0000000</Color>
+            <Color x:Key="TextSecondary">#CC000000</Color>
+            <Color x:Key="TextMuted">#99000000</Color>
+            <Color x:Key="Divider">#1A000000</Color>
+
+            <SolidColorBrush x:Key="BgBaseBrush" Color="{StaticResource BgBase}" />
+            <SolidColorBrush x:Key="BgElevatedBrush" Color="{StaticResource BgElevated}" />
+            <SolidColorBrush x:Key="BgSurfaceBrush" Color="{StaticResource BgSurface}" />
+            <SolidColorBrush x:Key="GlassBgBrush" Color="{StaticResource GlassBg}" />
+            <SolidColorBrush x:Key="GlassBgHoverBrush" Color="{StaticResource GlassBgHover}" />
+            <SolidColorBrush x:Key="GlassBorderBrush" Color="{StaticResource GlassBorder}" />
+            <!-- Three tiers, three values (#text-hierarchy). These were previously all pointed at
+                 TextSecondary so every piece of body text shared one color. The cost was that nothing
+                 could read quieter or louder than anything else, which left borders as the only way to
+                 group things — the reason the UI leans on boxes. Each brush now resolves to its own
+                 Color above: Primary = the name/value you read first, Secondary = supporting body text,
+                 Muted = incidental detail (timestamps, model numbers, hints). -->
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}" />
+            <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource Divider}" />
+
+            <!-- Accent + derived button/card resources. Per-theme (not top-level) so the Sakura skin
+                 can override them — see the note at the top. Light + Dark share the indigo accent. -->
+            <Color x:Key="Accent">#4A4A4A</Color>
+            <Color x:Key="AccentMuted">#1F4A4A4A</Color>
+            <Color x:Key="NavActive">#1F000000</Color>
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="AccentMutedBrush" Color="{StaticResource AccentMuted}" />
+            <SolidColorBrush x:Key="NavActiveBrush" Color="{StaticResource NavActive}" />
+            <SolidColorBrush x:Key="AccentButtonFillBrush" Color="{StaticResource AccentMuted}" />
+            <SolidColorBrush x:Key="AccentButtonForegroundBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="AccentButtonFillHoverBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="AccentButtonForegroundHoverBrush" Color="{StaticResource TextInverse}" />
+            <CornerRadius x:Key="CardCornerRadius">0</CornerRadius>
+            <BoxShadows x:Key="CardShadow">0 2 12 0 #14000000</BoxShadows>
+
+            <!-- Full-window backdrop layer behind content; flat themes have none (see Anime). -->
+            <SolidColorBrush x:Key="AppBackdropBrush" Color="Transparent" />
+
+            <Color x:Key="PenDiagramFill">#D6D6D6</Color>
+            <Color x:Key="PenDiagramButtonFill">#C4C4C4</Color>
+            <Color x:Key="PenDiagramStroke">#5A5A5A</Color>
+            <SolidColorBrush x:Key="PenDiagramFillBrush" Color="{StaticResource PenDiagramFill}" />
+            <SolidColorBrush x:Key="PenDiagramButtonFillBrush" Color="{StaticResource PenDiagramButtonFill}" />
+            <SolidColorBrush x:Key="PenDiagramStrokeBrush" Color="{StaticResource PenDiagramStroke}" />
+        <!-- Greyscale everywhere, like Wacom's Tablet preferences: Fluent's own accent
+                 (check boxes, toggles, sliders) follows SystemAccentColor, so set it grey here too. -->
+            <Color x:Key="SystemAccentColor">#5A5A5A</Color>
+            <Color x:Key="SystemAccentColorLight1">#6A6A6A</Color>
+            <Color x:Key="SystemAccentColorLight2">#7A7A7A</Color>
+            <Color x:Key="SystemAccentColorLight3">#8A8A8A</Color>
+            <Color x:Key="SystemAccentColorDark1">#4A4A4A</Color>
+            <Color x:Key="SystemAccentColorDark2">#3A3A3A</Color>
+            <Color x:Key="SystemAccentColorDark3">#2A2A2A</Color>
+            <SolidColorBrush x:Key="WacomPaneBrush" Color="#E4E4E4" />
+            <SolidColorBrush x:Key="WacomTileWellBrush" Color="#E4E4E4" />
+        </ResourceDictionary>
+
+        <!-- Build O pane brushes (Light) — placed in the Light dictionary above via this marker. -->
+        <!-- ===== Dark ===== -->
+        <ResourceDictionary x:Key="Dark">
+            <Color x:Key="BgBase">#2B2B2B</Color>
+            <Color x:Key="BgElevated">#333333</Color>
+            <Color x:Key="BgSurface">#3A3A3A</Color>
+            <Color x:Key="GlassBg">#1FE4E4E4</Color>
+            <Color x:Key="GlassBgHover">#2EE4E4E4</Color>
+            <Color x:Key="GlassBorder">#26E4E4E4</Color>
+            <Color x:Key="TextPrimary">#F2E4E4E4</Color>
+            <Color x:Key="TextSecondary">#CCE4E4E4</Color>
+            <Color x:Key="TextMuted">#80E4E4E4</Color>
+            <Color x:Key="Divider">#1AE4E4E4</Color>
+
+            <SolidColorBrush x:Key="BgBaseBrush" Color="{StaticResource BgBase}" />
+            <SolidColorBrush x:Key="BgElevatedBrush" Color="{StaticResource BgElevated}" />
+            <SolidColorBrush x:Key="BgSurfaceBrush" Color="{StaticResource BgSurface}" />
+            <SolidColorBrush x:Key="GlassBgBrush" Color="{StaticResource GlassBg}" />
+            <SolidColorBrush x:Key="GlassBgHoverBrush" Color="{StaticResource GlassBgHover}" />
+            <SolidColorBrush x:Key="GlassBorderBrush" Color="{StaticResource GlassBorder}" />
+            <!-- Three tiers, three values (#text-hierarchy). These were previously all pointed at
+                 TextSecondary so every piece of body text shared one color. The cost was that nothing
+                 could read quieter or louder than anything else, which left borders as the only way to
+                 group things — the reason the UI leans on boxes. Each brush now resolves to its own
+                 Color above: Primary = the name/value you read first, Secondary = supporting body text,
+                 Muted = incidental detail (timestamps, model numbers, hints). -->
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}" />
+            <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource Divider}" />
+
+            <!-- Accent + derived button/card resources (indigo; matches Light). Per-theme so Sakura
+                 can override — see the note at the top. -->
+            <Color x:Key="Accent">#CFCFCF</Color>
+            <Color x:Key="AccentMuted">#33CFCFCF</Color>
+            <Color x:Key="NavActive">#26E4E4E4</Color>
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="AccentMutedBrush" Color="{StaticResource AccentMuted}" />
+            <SolidColorBrush x:Key="NavActiveBrush" Color="{StaticResource NavActive}" />
+            <SolidColorBrush x:Key="AccentButtonFillBrush" Color="{StaticResource AccentMuted}" />
+            <SolidColorBrush x:Key="AccentButtonForegroundBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="AccentButtonFillHoverBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="AccentButtonForegroundHoverBrush" Color="{StaticResource TextInverse}" />
+            <CornerRadius x:Key="CardCornerRadius">0</CornerRadius>
+            <BoxShadows x:Key="CardShadow">0 2 12 0 #14000000</BoxShadows>
+
+            <SolidColorBrush x:Key="AppBackdropBrush" Color="Transparent" />
+
+            <Color x:Key="PenDiagramFill">#4A4A4A</Color>
+            <Color x:Key="PenDiagramButtonFill">#5A5A5A</Color>
+            <Color x:Key="PenDiagramStroke">#BDBDBD</Color>
+            <SolidColorBrush x:Key="PenDiagramFillBrush" Color="{StaticResource PenDiagramFill}" />
+            <SolidColorBrush x:Key="PenDiagramButtonFillBrush" Color="{StaticResource PenDiagramButtonFill}" />
+            <SolidColorBrush x:Key="PenDiagramStrokeBrush" Color="{StaticResource PenDiagramStroke}" />
+        <!-- Greyscale everywhere, like Wacom's Tablet preferences: Fluent's own accent
+                 (check boxes, toggles, sliders) follows SystemAccentColor, so set it grey here too. -->
+            <Color x:Key="SystemAccentColor">#9A9A9A</Color>
+            <Color x:Key="SystemAccentColorLight1">#AAAAAA</Color>
+            <Color x:Key="SystemAccentColorLight2">#BABABA</Color>
+            <Color x:Key="SystemAccentColorLight3">#CACACA</Color>
+            <Color x:Key="SystemAccentColorDark1">#8A8A8A</Color>
+            <Color x:Key="SystemAccentColorDark2">#7A7A7A</Color>
+            <Color x:Key="SystemAccentColorDark3">#6A6A6A</Color>
+            <SolidColorBrush x:Key="WacomPaneBrush" Color="#333333" />
+            <SolidColorBrush x:Key="WacomTileWellBrush" Color="#262626" />
+        </ResourceDictionary>
+
+        <!-- ===== Anime (experimental skin, #anime) =====
+             A pink light-mode skin: re-skins app surfaces over a sakura backdrop image, leaning on
+             the existing translucent "glass" panels so the image shows through. Keyed by the custom
+             AnimeVariant, which inherits Light — so anything not overridden here (incl. all Fluent
+             control resources) resolves from the Light theme. Cards stay translucent so the sakura
+             backdrop shows through; the page-menu bar gets its own pink translucent gradient. -->
+        <ResourceDictionary x:Key="{x:Static svc:ThemeService.AnimeVariant}">
+            <!-- Pink accent (ties to the app's magenta mark) overriding the shared indigo. -->
+            <Color x:Key="Accent">#E0218A</Color>
+            <Color x:Key="AccentMuted">#1FE0218A</Color>
+            <Color x:Key="NavActive">#24E0218A</Color>
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="AccentMutedBrush" Color="{StaticResource AccentMuted}" />
+            <SolidColorBrush x:Key="NavActiveBrush" Color="{StaticResource NavActive}" />
+
+            <!-- Fluent's native-control accent ramp (#216): toggles, checkboxes, combo/list selection,
+                 sliders, focus rings. Without these, native controls keep Fluent's default blue accent
+                 even in Sakura. Light1-3 = progressively lighter, Dark1-3 = darker, around the #E0218A
+                 base; Fluent picks the right shade per state/variant. -->
+            <Color x:Key="SystemAccentColor">#E0218A</Color>
+            <Color x:Key="SystemAccentColorLight1">#E73E9C</Color>
+            <Color x:Key="SystemAccentColorLight2">#EE5EAE</Color>
+            <Color x:Key="SystemAccentColorLight3">#F488C4</Color>
+            <Color x:Key="SystemAccentColorDark1">#C41C79</Color>
+            <Color x:Key="SystemAccentColorDark2">#A41667</Color>
+            <Color x:Key="SystemAccentColorDark3">#81104F</Color>
+
+            <!-- Fluent's RadioButton checked fill uses its own keys (not SystemAccentColor), so without
+                 these the selected radio stays Fluent-blue even in Sakura. Point them at the pink accent. -->
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFill" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFillPointerOver" Color="{StaticResource SystemAccentColorLight1}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFillPressed" Color="{StaticResource SystemAccentColorDark1}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStrokePointerOver" Color="{StaticResource SystemAccentColorLight1}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStrokePressed" Color="{StaticResource SystemAccentColorDark1}" />
+
+            <Color x:Key="BgBase">#FCE3EE</Color>
+            <Color x:Key="BgElevated">#F2E4EA</Color>
+            <Color x:Key="BgSurface">#E4E4E4</Color>
+            <!-- Translucent pink-white so the sakura backdrop shows through the cards (still opaque
+                 enough to keep text legible). -->
+            <Color x:Key="GlassBg">#CCF0E4EA</Color>
+            <Color x:Key="GlassBgHover">#E6EBE4E8</Color>
+            <Color x:Key="GlassBorder">#33E0218A</Color>
+            <!-- Sakura's text ink. Deepened from #3A0E26 (#muted-contrast). Two things were wrong with the
+                 lighter plum, and both trace to the same cause — it simply is not dark enough for a page
+                 background this light:
+
+                 1. It CAPPED the hierarchy. Even at 100% alpha #3A0E26 only reaches 13.7:1 on #FCE3EE, so
+                    Sakura's whole ladder sat at 11.9 / 7.2 / 4.9 where every other skin runs ~17 / 11.6 /
+                    5.5. The tiers were being squeezed into a narrower band than anywhere else in the app,
+                    which is exactly why the hierarchy read weakly here and nowhere else.
+                 2. Muted was UNDER AA where it mattered. 4.9:1 on the flat background, but the backdrop is
+                    not flat: the bottom glow tints it toward saturated pink, and over that ground the same
+                    text measured 4.25:1. Contrast was being checked against a background the user does not
+                    actually see everywhere.
+
+                 #280A1A fixes both at the same alphas — 13.3 / 8.0 / 5.4 flat, and 10.1 / 6.6 / 4.7 over
+                 the glow, so every tier now clears AA against the worst ground rather than the average one.
+
+                 Do NOT chase the mockups' 40% muted: on this background 4.5:1 needs 62% with this ink and
+                 55% even with pure black, so a quieter tier is not reachable by ink choice. Below the
+                 middle tier, separation has to come from SIZE (TypeDetailSize) rather than tone. -->
+            <Color x:Key="TextPrimary">#F0280A1A</Color>
+            <Color x:Key="TextSecondary">#C4280A1A</Color>
+            <Color x:Key="TextMuted">#A6280A1A</Color>
+            <Color x:Key="Divider">#22E0218A</Color>
+
+            <SolidColorBrush x:Key="BgBaseBrush" Color="{StaticResource BgBase}" />
+            <SolidColorBrush x:Key="BgElevatedBrush" Color="{StaticResource BgElevated}" />
+            <SolidColorBrush x:Key="BgSurfaceBrush" Color="{StaticResource BgSurface}" />
+            <SolidColorBrush x:Key="GlassBgBrush" Color="{StaticResource GlassBg}" />
+            <SolidColorBrush x:Key="GlassBgHoverBrush" Color="{StaticResource GlassBgHover}" />
+            <SolidColorBrush x:Key="GlassBorderBrush" Color="{StaticResource GlassBorder}" />
+            <!-- Three tiers, three values (#text-hierarchy). These were previously all pointed at
+                 TextSecondary so every piece of body text shared one color. The cost was that nothing
+                 could read quieter or louder than anything else, which left borders as the only way to
+                 group things — the reason the UI leans on boxes. Each brush now resolves to its own
+                 Color above: Primary = the name/value you read first, Secondary = supporting body text,
+                 Muted = incidental detail (timestamps, model numbers, hints). -->
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}" />
+            <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource Divider}" />
+
+            <!-- Accent buttons: a filled pink→rose gradient with white text (vs. the tinted/outline
+                 look of the flat themes). The hover gradient lifts a touch brighter. -->
+            <LinearGradientBrush x:Key="AccentButtonFillBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#FF7EC4" />
+                <GradientStop Offset="1" Color="#E0218A" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="AccentButtonForegroundBrush" Color="#E4E4E4" />
+            <LinearGradientBrush x:Key="AccentButtonFillHoverBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#FF93CF" />
+                <GradientStop Offset="1" Color="#EC3A9B" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="AccentButtonForegroundHoverBrush" Color="#E4E4E4" />
+
+            <!-- Softer, glowier cards: rounder corners and a diffuse pink glow instead of a grey drop.
+                 Blur kept ≤16 so the glow's rendered extent fits inside the content padding and isn't
+                 clipped by the scroll viewport on the left/right; alpha bumped to keep it prominent. -->
+            <CornerRadius x:Key="CardCornerRadius">0</CornerRadius>
+            <BoxShadows x:Key="CardShadow">0 4 16 0 #40E0218A</BoxShadows>
+
+            <!-- No backdrop key here either (#glow-darksakura). This skin painted sakura-bg-2.png until
+                 #556 gave it the generated backdrop; the declaration outlived the artwork by several
+                 releases because ThemeViewModel.RefreshSkin overrides it on every apply, so nothing ever
+                 rendered it. Both pictures are deleted; the fallback is Light's transparent backdrop. -->
+
+            <Color x:Key="PenDiagramFill">#F7CFD8</Color>
+            <Color x:Key="PenDiagramButtonFill">#EEB6C6</Color>
+            <Color x:Key="PenDiagramStroke">#CF5E86</Color>
+            <SolidColorBrush x:Key="PenDiagramFillBrush" Color="{StaticResource PenDiagramFill}" />
+            <SolidColorBrush x:Key="PenDiagramButtonFillBrush" Color="{StaticResource PenDiagramButtonFill}" />
+            <SolidColorBrush x:Key="PenDiagramStrokeBrush" Color="{StaticResource PenDiagramStroke}" />
+        </ResourceDictionary>
+
+        <!-- ===== Dark Sakura (#241) =====
+             The pink Sakura accent + falling petals over a DARK scheme. Keyed by DarkSakuraVariant, which
+             inherits Dark so surfaces + Fluent control resources resolve dark and text stays light. The
+             same cherry-blossom backdrop as Sakura, dimmed by a dark scrim so it reads moody instead of
+             bright behind the dark glass panels. -->
+        <ResourceDictionary x:Key="{x:Static svc:ThemeService.DarkSakuraVariant}">
+            <!-- Pink accent (same as Sakura). -->
+            <Color x:Key="Accent">#E0218A</Color>
+            <Color x:Key="AccentMuted">#2EE0218A</Color>
+            <Color x:Key="NavActive">#3AE0218A</Color>
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="AccentMutedBrush" Color="{StaticResource AccentMuted}" />
+            <SolidColorBrush x:Key="NavActiveBrush" Color="{StaticResource NavActive}" />
+
+            <!-- Fluent's native-control accent ramp (toggles, checkboxes, selection, sliders, focus). -->
+            <Color x:Key="SystemAccentColor">#E0218A</Color>
+            <Color x:Key="SystemAccentColorLight1">#E73E9C</Color>
+            <Color x:Key="SystemAccentColorLight2">#EE5EAE</Color>
+            <Color x:Key="SystemAccentColorLight3">#F488C4</Color>
+            <Color x:Key="SystemAccentColorDark1">#C41C79</Color>
+            <Color x:Key="SystemAccentColorDark2">#A41667</Color>
+            <Color x:Key="SystemAccentColorDark3">#81104F</Color>
+
+            <!-- Fluent's RadioButton checked fill uses its own keys, not SystemAccentColor. -->
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFill" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFillPointerOver" Color="{StaticResource SystemAccentColorLight1}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFillPressed" Color="{StaticResource SystemAccentColorDark1}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStrokePointerOver" Color="{StaticResource SystemAccentColorLight1}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStrokePressed" Color="{StaticResource SystemAccentColorDark1}" />
+
+            <!-- Dark plum-tinted surfaces. -->
+            <Color x:Key="BgBase">#17111C</Color>
+            <Color x:Key="BgElevated">#201826</Color>
+            <Color x:Key="BgSurface">#291F31</Color>
+            <!-- Dark translucent plum glass so the dimmed backdrop glows through the panels. -->
+            <Color x:Key="GlassBg">#59261C30</Color>
+            <Color x:Key="GlassBgHover">#73302438</Color>
+            <Color x:Key="GlassBorder">#33E0218A</Color>
+            <Color x:Key="TextPrimary">#F2E4E4E4</Color>
+            <Color x:Key="TextSecondary">#C8E4E4E4</Color>
+            <Color x:Key="TextMuted">#8CE4E4E4</Color>
+            <Color x:Key="Divider">#26E0218A</Color>
+
+            <SolidColorBrush x:Key="BgBaseBrush" Color="{StaticResource BgBase}" />
+            <SolidColorBrush x:Key="BgElevatedBrush" Color="{StaticResource BgElevated}" />
+            <SolidColorBrush x:Key="BgSurfaceBrush" Color="{StaticResource BgSurface}" />
+            <SolidColorBrush x:Key="GlassBgBrush" Color="{StaticResource GlassBg}" />
+            <SolidColorBrush x:Key="GlassBgHoverBrush" Color="{StaticResource GlassBgHover}" />
+            <SolidColorBrush x:Key="GlassBorderBrush" Color="{StaticResource GlassBorder}" />
+            <!-- Three tiers, three values (#text-hierarchy). These were previously all pointed at
+                 TextSecondary so every piece of body text shared one color. The cost was that nothing
+                 could read quieter or louder than anything else, which left borders as the only way to
+                 group things — the reason the UI leans on boxes. Each brush now resolves to its own
+                 Color above: Primary = the name/value you read first, Secondary = supporting body text,
+                 Muted = incidental detail (timestamps, model numbers, hints). -->
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}" />
+            <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource Divider}" />
+
+            <!-- Accent buttons: the same pink→rose gradient as Sakura. -->
+            <LinearGradientBrush x:Key="AccentButtonFillBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#FF7EC4" />
+                <GradientStop Offset="1" Color="#E0218A" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="AccentButtonForegroundBrush" Color="#E4E4E4" />
+            <LinearGradientBrush x:Key="AccentButtonFillHoverBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#FF93CF" />
+                <GradientStop Offset="1" Color="#EC3A9B" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="AccentButtonForegroundHoverBrush" Color="#E4E4E4" />
+
+            <CornerRadius x:Key="CardCornerRadius">0</CornerRadius>
+            <BoxShadows x:Key="CardShadow">0 4 16 0 #40E0218A</BoxShadows>
+
+            <!-- No backdrop keys here any more (#glow-darksakura). This skin used to paint its own artwork,
+                 sakuradark-bg-2.png (since deleted), under a #C4160910 scrim — and that picture had a warm glow painted into
+                 its bottom edge, so the skin glowed there whatever the gradient editor said, and no setting
+                 could reach it. It now uses the same generated backdrop as Sakura, applied by
+                 ThemeViewModel.RefreshSkin, whose defaults reproduce that glow as two washes you can turn
+                 off. Unset here so the fallback is Dark's transparent backdrop rather than the picture. -->
+
+            <Color x:Key="PenDiagramFill">#3A2A34</Color>
+            <Color x:Key="PenDiagramButtonFill">#4A3644</Color>
+            <Color x:Key="PenDiagramStroke">#E0218A</Color>
+            <SolidColorBrush x:Key="PenDiagramFillBrush" Color="{StaticResource PenDiagramFill}" />
+            <SolidColorBrush x:Key="PenDiagramButtonFillBrush" Color="{StaticResource PenDiagramButtonFill}" />
+            <SolidColorBrush x:Key="PenDiagramStrokeBrush" Color="{StaticResource PenDiagramStroke}" />
+        </ResourceDictionary>
+
+        <!-- ===== Custom (user-tunable skin) =====
+             A dark translucent skin the user drives from the Theme page: one accent color derives the
+             whole scheme, and an optional background image fills the window behind the glass panels (with
+             a dimming scrim for legibility). The values here are DEFAULTS — ThemeViewModel.ApplyCustom
+             overrides the accent-derived brushes + backdrop live via app.Resources. Keyed by the custom
+             CustomVariant, which inherits Dark so anything not overridden (incl. Fluent control resources)
+             resolves dark and text stays light over a photo. Panels stay translucent so the backdrop
+             shows through. -->
+        <ResourceDictionary x:Key="{x:Static svc:ThemeService.CustomVariant}">
+            <!-- Default accent (the app's shared indigo); replaced live when the user picks a color. -->
+            <Color x:Key="Accent">#6366F1</Color>
+            <Color x:Key="AccentMuted">#1F6366F1</Color>
+            <Color x:Key="NavActive">#306366F1</Color>
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="AccentMutedBrush" Color="{StaticResource AccentMuted}" />
+            <SolidColorBrush x:Key="NavActiveBrush" Color="{StaticResource NavActive}" />
+
+            <!-- Fluent's native-control accent ramp (toggles, checkboxes, selection, sliders, focus). -->
+            <Color x:Key="SystemAccentColor">#6366F1</Color>
+            <Color x:Key="SystemAccentColorLight1">#7C7EF4</Color>
+            <Color x:Key="SystemAccentColorLight2">#9698F7</Color>
+            <Color x:Key="SystemAccentColorLight3">#B6B7FA</Color>
+            <Color x:Key="SystemAccentColorDark1">#4F52D4</Color>
+            <Color x:Key="SystemAccentColorDark2">#4043A8</Color>
+            <Color x:Key="SystemAccentColorDark3">#303281</Color>
+
+            <!-- Fluent's RadioButton checked fill uses its own keys, not SystemAccentColor. -->
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFill" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFillPointerOver" Color="{StaticResource SystemAccentColorLight1}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFillPressed" Color="{StaticResource SystemAccentColorDark1}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="{StaticResource Accent}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStrokePointerOver" Color="{StaticResource SystemAccentColorLight1}" />
+            <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStrokePressed" Color="{StaticResource SystemAccentColorDark1}" />
+
+            <Color x:Key="BgBase">#13131C</Color>
+            <Color x:Key="BgElevated">#1B1B28</Color>
+            <Color x:Key="BgSurface">#232336</Color>
+            <!-- Dark translucent glass so a background image shows through the panels. -->
+            <Color x:Key="GlassBg">#59202430</Color>
+            <Color x:Key="GlassBgHover">#73262A38</Color>
+            <Color x:Key="GlassBorder">#26E4E4E4</Color>
+            <Color x:Key="TextPrimary">#F2E4E4E4</Color>
+            <Color x:Key="TextSecondary">#C8E4E4E4</Color>
+            <Color x:Key="TextMuted">#8CE4E4E4</Color>
+            <Color x:Key="Divider">#22E4E4E4</Color>
+
+            <SolidColorBrush x:Key="BgBaseBrush" Color="{StaticResource BgBase}" />
+            <SolidColorBrush x:Key="BgElevatedBrush" Color="{StaticResource BgElevated}" />
+            <SolidColorBrush x:Key="BgSurfaceBrush" Color="{StaticResource BgSurface}" />
+            <SolidColorBrush x:Key="GlassBgBrush" Color="{StaticResource GlassBg}" />
+            <SolidColorBrush x:Key="GlassBgHoverBrush" Color="{StaticResource GlassBgHover}" />
+            <SolidColorBrush x:Key="GlassBorderBrush" Color="{StaticResource GlassBorder}" />
+            <!-- Three tiers, three values (#text-hierarchy). These were previously all pointed at
+                 TextSecondary so every piece of body text shared one color. The cost was that nothing
+                 could read quieter or louder than anything else, which left borders as the only way to
+                 group things — the reason the UI leans on boxes. Each brush now resolves to its own
+                 Color above: Primary = the name/value you read first, Secondary = supporting body text,
+                 Muted = incidental detail (timestamps, model numbers, hints). -->
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}" />
+            <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource Divider}" />
+
+            <!-- Accent buttons: filled indigo gradient with white text (overridden live to the accent). -->
+            <LinearGradientBrush x:Key="AccentButtonFillBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#7C7EF4" />
+                <GradientStop Offset="1" Color="#6366F1" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="AccentButtonForegroundBrush" Color="#E4E4E4" />
+            <LinearGradientBrush x:Key="AccentButtonFillHoverBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#9092F7" />
+                <GradientStop Offset="1" Color="#787BF4" />
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="AccentButtonForegroundHoverBrush" Color="#E4E4E4" />
+
+            <CornerRadius x:Key="CardCornerRadius">0</CornerRadius>
+            <BoxShadows x:Key="CardShadow">0 4 16 0 #40000000</BoxShadows>
+
+            <!-- No image by default → a transparent backdrop (the window's BgBase shows). ApplyCustom
+                 swaps in the user's image + a scrim when one is chosen. -->
+            <SolidColorBrush x:Key="AppBackdropBrush" Color="Transparent" />
+
+            <Color x:Key="PenDiagramFill">#3A3A50</Color>
+            <Color x:Key="PenDiagramButtonFill">#4A4A64</Color>
+            <Color x:Key="PenDiagramStroke">#6366F1</Color>
+            <SolidColorBrush x:Key="PenDiagramFillBrush" Color="{StaticResource PenDiagramFill}" />
+            <SolidColorBrush x:Key="PenDiagramButtonFillBrush" Color="{StaticResource PenDiagramButtonFill}" />
+            <SolidColorBrush x:Key="PenDiagramStrokeBrush" Color="{StaticResource PenDiagramStroke}" />
+        </ResourceDictionary>
+
+        <!-- ===== Build O: Wacom style (inherits Light) — light grey pane, white group boxes, blue selection.
+             Original colour choices that echo a macOS preference pane; no Wacom artwork. ===== -->
+        <ResourceDictionary x:Key="{x:Static svc:ThemeService.WacomVariant}">
+            <Color x:Key="BgBase">#E4E4E4</Color>
+            <Color x:Key="BgElevated">#DDDDDD</Color>
+            <Color x:Key="BgSurface">#E4E4E4</Color>
+            <Color x:Key="GlassBg">#FFE4E4E4</Color>
+            <Color x:Key="GlassBgHover">#FFE4E4E4</Color>
+            <Color x:Key="GlassBorder">#FFB9B9B9</Color>
+            <Color x:Key="TextPrimary">#FF1A1A1A</Color>
+            <Color x:Key="TextSecondary">#FF3C3C3C</Color>
+            <Color x:Key="TextMuted">#FF7A7A7A</Color>
+            <Color x:Key="Divider">#FFC4C4C4</Color>
+            <SolidColorBrush x:Key="BgBaseBrush" Color="#E4E4E4" />
+            <SolidColorBrush x:Key="BgElevatedBrush" Color="#DDDDDD" />
+            <SolidColorBrush x:Key="BgSurfaceBrush" Color="#E4E4E4" />
+            <SolidColorBrush x:Key="GlassBgBrush" Color="#E4E4E4" />
+            <SolidColorBrush x:Key="GlassBgHoverBrush" Color="#E4E4E4" />
+            <SolidColorBrush x:Key="GlassBorderBrush" Color="#B9B9B9" />
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1A1A1A" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#3C3C3C" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="#7A7A7A" />
+            <SolidColorBrush x:Key="DividerBrush" Color="#C4C4C4" />
+            <Color x:Key="Accent">#646464</Color>
+            <Color x:Key="AccentMuted">#26646464</Color>
+            <Color x:Key="NavActive">#26646464</Color>
+            <SolidColorBrush x:Key="AccentBrush" Color="#646464" />
+            <SolidColorBrush x:Key="AccentMutedBrush" Color="#26646464" />
+            <SolidColorBrush x:Key="NavActiveBrush" Color="#26646464" />
+            <SolidColorBrush x:Key="AccentButtonFillBrush" Color="#26646464" />
+            <SolidColorBrush x:Key="AccentButtonForegroundBrush" Color="#646464" />
+            <SolidColorBrush x:Key="AccentButtonFillHoverBrush" Color="#646464" />
+            <SolidColorBrush x:Key="AccentButtonForegroundHoverBrush" Color="#E4E4E4" />
+            <CornerRadius x:Key="CardCornerRadius">4</CornerRadius>
+            <BoxShadows x:Key="CardShadow">0 1 2 0 #22000000</BoxShadows>
+            <SolidColorBrush x:Key="AppBackdropBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="PenDiagramFillBrush" Color="#3A3A3A" />
+            <SolidColorBrush x:Key="PenDiagramButtonFillBrush" Color="#5A5A5A" />
+            <SolidColorBrush x:Key="PenDiagramStrokeBrush" Color="#202020" />
+            <SolidColorBrush x:Key="WacomPaneBrush" Color="#E4E4E4" />
+            <SolidColorBrush x:Key="WacomTileWellBrush" Color="#E4E4E4" />
+            <Color x:Key="SystemAccentColor">#646464</Color>
+            <Color x:Key="SystemAccentColorLight1">#4A84DA</Color>
+            <Color x:Key="SystemAccentColorLight2">#6A9AE2</Color>
+            <Color x:Key="SystemAccentColorLight3">#8FB3EA</Color>
+            <Color x:Key="SystemAccentColorDark1">#285FB2</Color>
+            <Color x:Key="SystemAccentColorDark2">#214F95</Color>
+            <Color x:Key="SystemAccentColorDark3">#1A3F77</Color>
+        </ResourceDictionary>
+
+    </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>

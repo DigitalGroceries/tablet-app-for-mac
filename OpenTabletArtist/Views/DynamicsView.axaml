@@ -1,0 +1,166 @@
+<UserControl x:Class="OpenTabletArtist.Views.DynamicsView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="using:OpenTabletArtist.Controls">
+
+    <!-- The pressure-dynamics content — two columns: the curve editor + smoothing with the live readouts
+         and gauge under it, and the paint preview (two canvases, raw and processed pressure). Hosted by the PEN page's "pressure" pivot
+         (#pen-dynamics-move). DataContext is a TabletDetailViewModel, inherited from the host. (Disable
+         tilt and position smoothing → Pen › basics.) -->
+    <StackPanel IsEnabled="{Binding CanEditPressure}">
+        <!-- Three definite-width blocks in a WrapPanel (#691). The widths are definite so the smoothing
+             slider's star-sized track has something to divide; wrapping is what keeps 360+16+260+16+170
+             = 822 from overflowing the window's 800px minimum, where the readouts column was clipped off
+             the right edge. The blocks re-flow one at a time, so a slightly narrow window drops only the
+             readouts under the other two rather than restacking everything. Root stays STRETCHED —
+             HorizontalAlignment="Left" measures with infinite width and would never wrap. -->
+        <WrapPanel ItemSpacing="16" LineSpacing="8">
+
+            <!-- LEFT — everything but the live bar: the inert-pressure note, the pressure curve + presets,
+                 and pressure smoothing. No card heading — the "pressure" pivot already names the tab. -->
+            <ctrl:Section Width="360" VerticalAlignment="Top" Margin="0,2,0,10">
+                <StackPanel>
+                    <!-- #469: when pressure sensitivity is disabled the output stage drops pressure, so this
+                         curve has no effect. Flag it here so the tab isn't silently inert. (The toggle lives
+                         on the Pen page's Inputs tab, #494.) -->
+                    <Border Background="{DynamicResource WarningMutedBrush}" BorderBrush="{DynamicResource WarningBrush}"
+                            BorderThickness="1" CornerRadius="0" Padding="10,7" Margin="0,0,0,8"
+                            IsVisible="{Binding PressureDisabledNote}">
+                        <TextBlock Text="Pressure sensitivity is disabled, so this curve has no effect right now."
+                                   Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                    </Border>
+
+                    <!-- Two columns: compact chart on the left, controls on the right. -->
+                    <Grid ColumnDefinitions="Auto,*">
+                        <!-- Compact 1:1 chart; the green dot tracks live pen pressure (#102). -->
+                        <ctrl:PressureCurveChart Grid.Column="0" Curve="{Binding Curve, Mode=TwoWay}"
+                                                 LivePressure="{Binding LivePressure}"
+                                                 Width="180" Height="180"
+                                                 VerticalAlignment="Top" Margin="0,0,16,0" />
+
+                        <StackPanel Grid.Column="1">
+                            <!-- Curve presets as a Soft→Hard ramp of curve-shape thumbnails (each
+                                 applies its softness); replaces the old Linear/Soft/Firm text buttons. -->
+                            <StackPanel HorizontalAlignment="Left" Spacing="3" Margin="0,0,0,8">
+                                <TextBlock Text="Soft" HorizontalAlignment="Center"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <Button Command="{Binding ApplyPresetCommand}" CommandParameter="0.6"
+                                        Theme="{StaticResource GhostButton}" Padding="3" HorizontalAlignment="Center"
+                                        ToolTip.Tip="Soft: lighter touch (concave)">
+                                    <ctrl:PressureCurveThumbnail Softness="0.6" Width="30" Height="30" />
+                                </Button>
+                                <Button Command="{Binding ApplyPresetCommand}" CommandParameter="0"
+                                        Theme="{StaticResource GhostButton}" Padding="3" HorizontalAlignment="Center"
+                                        ToolTip.Tip="Linear (no curve)">
+                                    <ctrl:PressureCurveThumbnail Softness="0" Width="30" Height="30" />
+                                </Button>
+                                <Button Command="{Binding ApplyPresetCommand}" CommandParameter="-0.6"
+                                        Theme="{StaticResource GhostButton}" Padding="3" HorizontalAlignment="Center"
+                                        ToolTip.Tip="Hard: firmer touch (convex)">
+                                    <ctrl:PressureCurveThumbnail Softness="-0.6" Width="30" Height="30" />
+                                </Button>
+                                <TextBlock Text="Hard" HorizontalAlignment="Center"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                            </StackPanel>
+
+                            <!-- Hidden by default (#569); re-enabled from the Developer tab. -->
+                            <CheckBox Content="Cut below input minimum (dead zone)"
+                                      IsChecked="{Binding CutBelowMinimum}" Margin="0,0,0,8"
+                                      IsVisible="{Binding ShowCutBelowMinimum}"
+                                      Foreground="{DynamicResource TextSecondaryBrush}"
+                                      ToolTip.Tip="Below the input minimum, produce zero output (a dead zone) instead of holding at the output minimum." />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Build R8: literal bounds. Bound bounds fell back to the control default (0..1) when the page was
+                         left, which clamped Value and wrote it back: a firm Softness came back as 0.00. -->
+                    <!-- Softness slider (#603): mirrors the amber bend node on the curve so Softness has a
+                         keyboard-operable path too (both write PressureCurveSettings.Softness, staying in
+                         sync). −0.9 hard … 0 linear … 0.9 soft. -->
+                    <ctrl:LabeledSlider Label="Softness" LabelWidth="130" Margin="0,10,0,0"
+                                        Minimum="-0.9" Maximum="0.9"
+                                        Value="{Binding Softness}" ValueFormat="0.00"
+                                        SmallChange="0.02" LargeChange="0.1"
+                                        Ticks="-0.9,-0.45,0,0.45,0.9" TickPlacement="BottomRight"
+                                        IsEnabled="{Binding CanEditPressure}"
+                                        ToolTip.Tip="Curve softness: negative is firmer (convex), positive is lighter (concave). Same as dragging the amber node on the curve." />
+
+                    <!-- Pressure smoothing (EMA); capped at 0.5 (#496) — heavier lags more than it helps.
+                         Position smoothing was moved out to the Pen page's movement tab. -->
+                    <ctrl:LabeledSlider Label="Pressure smoothing" LabelWidth="130" Margin="0,10,0,0"
+                                        Minimum="0" Maximum="0.5"
+                                        Ticks="0,0.1,0.2,0.3,0.4,0.5" TickPlacement="BottomRight"
+                                        Value="{Binding PressureSmoothing}"
+                                        ValueTextOverride="{Binding PressureSmoothingText}"
+                                        Monospace="True" ValueWidth="44" />
+
+                    <!-- Live pressure (#559): the raw value coming in, the processed value after the curve
+                         when dynamics shape it, and the gauge showing both. Parked under the smoothing slider
+                         for now; it used to be its own column to the right of the canvas. -->
+                    <StackPanel Spacing="8" Margin="0,16,0,0">
+                        <!-- The readouts show all the time so they don't pop in/out as you press: "—" when no
+                             pressure is being reported (pen up / out of range), a value — including 0.0000 — when
+                             it is. Fixed-height slot so the processed line toggling with dynamics doesn't shift
+                             the gauge below.
+
+                             Ordinary ink, not the accent and the success green they used to carry: the words
+                             "raw" and "processed" already say which is which, and color that means something
+                             is what the app reserves for the gauge's two bars, which have no words to use. -->
+                        <Panel Height="60">
+                            <StackPanel Spacing="2" VerticalAlignment="Top">
+                                <TextBlock Text="{Binding DeadzoneText, StringFormat='deadzone {0}'}"
+                                           FontFamily="{DynamicResource MonoFontFamily}"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding LiveInputText, StringFormat='raw {0}'}"
+                                           FontFamily="{DynamicResource MonoFontFamily}"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding LiveProcessedText, StringFormat='processed {0}'}"
+                                           FontFamily="{DynamicResource MonoFontFamily}"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           IsVisible="{Binding ShowLiveProcessed}" />
+                            </StackPanel>
+                        </Panel>
+                        <ctrl:PressureLevelBar Height="18"
+                                               Raw="{Binding LivePressure}" Processed="{Binding LiveProcessed}"
+                                               ShowProcessed="{Binding ShowLiveProcessed}"
+                                               RawBrush="{DynamicResource AccentBrush}"
+                                               ProcessedBrush="{DynamicResource SuccessBrush}" />
+                    </StackPanel>
+                </StackPanel>
+            </ctrl:Section>
+
+            <!-- MIDDLE — the paint preview. Same paint surface the Scribble page uses; PressureToSize shows
+                 the pressure→size response. Painted from the daemon's pen stream (see DynamicsView.axaml.cs)
+                 with the pressure shaped by the curve + smoothing, so it previews the response you're
+                 editing and works even when Windows Ink is off. -->
+            <ctrl:Section Width="536" VerticalAlignment="Top" Margin="0,2,0,10">
+                <StackPanel Spacing="8">
+                    <!-- Two same-sized canvases side by side; whatever lands on one is mirrored onto the other
+                         (see DynamicsView.axaml.cs). They differ only in pressure: the first always draws the
+                         raw pressure, the second the pressure after the curve + smoothing. -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <TextBlock Text="Draw with raw pressure" TextWrapping="Wrap" />
+                            <ctrl:Canvas CornerRadius="0" Padding="0" ClipToBounds="True" Height="300">
+                                <ctrl:PenTestCanvas x:Name="PreviewCanvas" BrushMode="PressureToSize" />
+                            </ctrl:Canvas>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <TextBlock Text="Draw with processed pressure" TextWrapping="Wrap" />
+                            <ctrl:Canvas CornerRadius="0" Padding="0" ClipToBounds="True" Height="300">
+                                <ctrl:PenTestCanvas x:Name="PreviewCanvas2" BrushMode="PressureToSize" />
+                            </ctrl:Canvas>
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Clear" Click="OnClearPreview"
+                                Theme="{StaticResource GhostButton}" Padding="12,6" />
+                        <Button Content="Copy" Click="OnCopyPreview"
+                                Theme="{StaticResource GhostButton}" Padding="12,6"
+                                ToolTip.Tip="Copy the drawing to the clipboard as an image" />
+                    </StackPanel>
+                </StackPanel>
+            </ctrl:Section>
+        </WrapPanel>
+    </StackPanel>
+</UserControl>

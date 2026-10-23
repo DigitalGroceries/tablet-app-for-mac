@@ -1,0 +1,125 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>OpenTabletArtist</AssemblyName>
+    <RootNamespace>OpenTabletArtist</RootNamespace>
+    <LangVersion>14</LangVersion>
+    <!-- Base version for dev builds; the release workflow overrides it with the tag (-p:Version=…).
+         Surfaced in the sidebar footer via AssemblyInformationalVersion. -->
+    <!-- Version 1: versions are plain numbers 1 to 99, shown as "Version N". -->
+    <Version>6</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <!-- The Test tab's paint canvas copies an SKBitmap into an Avalonia WriteableBitmap
+         with a fast unsafe Buffer.MemoryCopy (see Controls/PenTestCanvas). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Avalonia 12 made compiled bindings the default. For this migration we
+         keep the 11.x behaviour (reflection-based bindings with no x:DataType
+         required). Revisit later to opt back in per-view for compile-time
+         type checking. -->
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <!-- A referenced project's XML documentation is not part of what ships. OtdInterop turns
+         GenerateDocumentationFile on because its contracts live in doc comments, and the publish then
+         copied OtdInterop.xml next to the exe — which the release workflow's bundle check refuses,
+         correctly: the single-file root is meant to hold one file so people can tell what to run.
+         It broke the release the first time a tag was cut after the library landed, because nothing
+         outside that workflow publishes this way. The doc file is still generated for development;
+         this only keeps referenced projects' copies out of the published output. -->
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
+    <!-- Exe + window/tray icon (#72). -->
+    <ApplicationIcon>Assets\appicon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- R10: a single-file publish must carry its native libraries (Skia, HarfBuzz, Avalonia.Native) inside
+       the executable. R8/R9 were published without this, so libSkiaSharp.dylib etc. stayed loose beside the
+       exe, the install copied only the exe into the bundle, and the app crashed at startup
+       (TypeInitializationException in SkiaSharp.SKImageInfo: DllNotFoundException libSkiaSharp). -->
+  <PropertyGroup Condition="'$(PublishSingleFile)' == 'true'">
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" Exclude="Assets/macos/**" />
+    <!-- R17: icon-v2 Mac icon, copied next to the binary so the installer can drop it into Contents/Resources. -->
+    <None Include="Assets/macos/**" Link="%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.3" />
+    <!-- Avalonia.Diagnostics not yet published for 12.x — re-add when available.
+         As of 2026-04: latest Diagnostics is 11.3.14, while Avalonia core is 12.0.1. -->
+    <!-- <PackageReference Include="Avalonia.Diagnostics" Version="12.0.1" Condition="'$(Configuration)' == 'Debug'" /> -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <!-- HidSharp removed — OTD brings HidSharpCore via its project references -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
+    <!-- Pin MessagePack to a patched version. StreamJsonRpc pulls in 2.5.192
+         transitively, which trips NU1903 (GHSA-hv8m-jj95-wg3x, fixed in 2.5.301).
+         This direct reference stays on the 2.5.x line for compatibility. -->
+    <PackageReference Include="MessagePack" Version="2.5.305" />
+    <!-- Raster paint surface for the Test tab. Pinned to the same SkiaSharp Avalonia 12 already
+         pulls in (via Avalonia.Skia) to avoid a package downgrade. We own the SKBitmap and hand
+         Avalonia a pixel buffer (no render-lease interop), so usage stays self-contained. -->
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+  </ItemGroup>
+
+  <!-- The headless OTD interaction boundary (#807). The dependency runs one way only:
+       OtdInterop never references this project. -->
+  <ItemGroup>
+    <ProjectReference Include="..\OtdInterop\OtdInterop.csproj" />
+    <ProjectReference Include="..\OtdHealth\OtdHealth.csproj" />
+    <ProjectReference Include="..\OtdHealth.Collector\OtdHealth.Collector.csproj" />
+  </ItemGroup>
+
+  <!-- OTD library references (via git submodule at external/OpenTabletDriver) -->
+  <ItemGroup>
+    <ProjectReference Include="..\external\OpenTabletDriver\OpenTabletDriver.Desktop\OpenTabletDriver.Desktop.csproj" />
+    <ProjectReference Include="..\external\OpenTabletDriver\OpenTabletDriver\OpenTabletDriver.csproj" />
+    <ProjectReference Include="..\external\OpenTabletDriver\OpenTabletDriver.Plugin\OpenTabletDriver.Plugin.csproj" />
+    <!-- The built-in tablet catalog (#155): DeviceConfigurationProvider reads the ~339 embedded configs. -->
+    <ProjectReference Include="..\external\OpenTabletDriver\OpenTabletDriver.Configurations\OpenTabletDriver.Configurations.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- OTD's hand-maintained tablet support table (#155): bundled so the Supported Tablets dialog can
+         show the same Status + Notes as opentabletdriver.net. Version-matched to the daemon submodule. -->
+    <EmbeddedResource Include="..\external\OpenTabletDriver\TABLETS.md" LogicalName="OpenTabletArtist.TABLETS.md" />
+  </ItemGroup>
+
+  <!-- After a self-contained macOS publish, wrap the output in a double-clickable dist/OpenTabletArtist.app
+       (icon + Info.plist). Local-dev convenience — the bundle is unsigned; the signed/notarized shipping
+       pipeline is the deferred V2 milestone (#140). Runs only when publishing an osx-* RID on a Mac (the
+       bundler uses sips/iconutil), so Windows/Linux builds are unaffected. -->
+  <Target Name="BundleMacApp" AfterTargets="Publish" Condition="$(RuntimeIdentifier.StartsWith('osx')) and $([MSBuild]::IsOSPlatform('OSX'))">
+    <Exec Command="&quot;$(MSBuildProjectDirectory)/../scripts/bundle-macos-app.sh&quot; &quot;$(MSBuildProjectDirectory)/$(PublishDir)&quot; &quot;$(MSBuildProjectDirectory)/../dist/OpenTabletArtist.app&quot; &quot;$(Version)&quot;" />
+    <Message Importance="high" Text="macOS .app bundled → dist/OpenTabletArtist.app" />
+  </Target>
+
+  <!--
+    Test-only visibility, for observing what a control has decided to draw.
+
+    ActiveAreaDiagram.Effective reports which values it is rendering: the live drag preview, or the bound
+    area. That distinction is the whole of #815 and it was invisible to every view-model test, because the
+    values the editor published were right and arrived in one step. What was wrong was which of them the
+    control chose, and for how long.
+
+    Marked internal rather than public because it is an observation for a test, not something a consumer
+    should build on.
+  -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenTabletArtist.UiTests" />
+    <!-- And AppLog.RedirectTo, so neither suite writes into the user's diagnostics file (#834). -->
+    <InternalsVisibleTo Include="OpenTabletArtist.Tests" />
+  </ItemGroup>
+
+</Project>

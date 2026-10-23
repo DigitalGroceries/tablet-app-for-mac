@@ -1,0 +1,441 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using OpenTabletDriver.Desktop;
+using OpenTabletDriver.Desktop.Profiles;
+using OpenTabletDriver.Desktop.Reflection;
+using OpenTabletArtist.Domain;
+using OpenTabletArtist.ViewModels;
+using Xunit;
+using OtdInterop;
+
+namespace OpenTabletArtist.Tests;
+
+// Constructs TabletDetailViewModel, whose constructor calls DisplayEnumerator.Enumerate() — so it
+// shares the global seam with DisplayEnumeratorSeamTests and must not run alongside it (#729).
+[Collection(DisplayEnumeratorCollection.Name)]
+public class TabletDetailViewModelTests
+{
+    private const string WinInkAbsolute = "VoiDPlugins.OutputMode.WinInkAbsoluteMode";
+
+    private static Settings SettingsWith(string tablet) =>
+        new() { Profiles = new ProfileCollection { new Profile { OutputMode = null!, Tablet = tablet } /* no output mode yet: 'required' since OTD 0.6.8 */ } };
+
+    private static Settings AbsoluteSettingsWith(string tablet)
+    {
+        var settings = SettingsWith(tablet);
+        // Mirror how the VM builds an output-mode store: the (object,…) ctor sets Path to the type
+        // name, so the actual mode path is assigned afterward (FromPath needs the plugin loaded).
+        settings.Profiles.First().OutputMode = new PluginSettingStore(WinInkAbsolute) { Path = WinInkAbsolute };
+        return settings;
+    }
+
+    // Settings for tablet "T" carrying an absolute mapping of the given width, so two loads can be made
+    // to differ (a stand-in for an external editor changing the mapping).
+    private static Settings MappedSettings(string tablet, float width)
+    {
+        var settings = SettingsWith(tablet);
+        settings.Profiles.First().AbsoluteModeSettings = new AbsoluteModeSettings
+        { Display = new OpenTabletDriver.Desktop.Profiles.AreaSettings(),
+            Tablet = new AreaSettings { Width = width, Height = 30, X = 25, Y = 15 },
+        };
+        return settings;
+    }
+
+    // Regression for #124: the dialog persists edits by mutating _profile then pushing _settings.
+    // After an in-dialog Refresh, _settings must move to the reloaded settings the new _profile
+    // lives in — otherwise edits push the stale pre-refresh settings object.
+    [Fact]
+    public async Task Refresh_ThenPersist_PushesReloadedSettings_NotStaleOne()
+    {
+        var original = SettingsWith("T");
+        var reloaded = SettingsWith("T");
+        Settings? pushed = null;
+
+        var vm = new TabletDetailViewModel(
+            original.Profiles.First(),
+            original,
+            applyAction: s => { pushed = s; return Task.FromResult(SettingsApplyOutcome.Live); },
+            refreshAction: () => Task.FromResult<(Settings?, Profile?)>((reloaded, reloaded.Profiles.First())));
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        await vm.FixOutputModeCommand.ExecuteAsync(null); // any persist path goes through _settings
+
+        Assert.Same(reloaded, pushed);
+        Assert.Null(vm.RefreshWarning);
+    }
+
+    // Cursor review nit on #125: if the tablet is gone when Refresh runs (profile == null), the
+    // dialog keeps the last-known settings, warns, and keeps persisting through them (no NRE/no-op
+    // that silently writes elsewhere).
+    [Fact]
+    public async Task Refresh_ProfileGone_Warns_AndKeepsPersistingThroughOriginalSettings()
+    {
+        var original = SettingsWith("T");
+        Settings? pushed = null;
+
+        var vm = new TabletDetailViewModel(
+            original.Profiles.First(),
+            original,
+            applyAction: s => { pushed = s; return Task.FromResult(SettingsApplyOutcome.Live); },
+            refreshAction: () => Task.FromResult<(Settings?, Profile?)>((null, null)));
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+        Assert.False(string.IsNullOrEmpty(vm.RefreshWarning));
+
+        await vm.FixOutputModeCommand.ExecuteAsync(null);
+        Assert.Same(original, pushed);
+    }
+
+    // Picking a display now applies immediately (no Apply button) — selecting a monitor that isn't the
+    // current mapping pushes the new mapping straight through, but opening the page doesn't (the initial,
+    // programmatic selection is suppressed).
+    [Fact]
+    public void SelectingDisplay_AutoApplies()
+    {
+        var settings = SettingsWith("T");
+        settings.Profiles.First().AbsoluteModeSettings = new AbsoluteModeSettings
+        {
+            Display = new AreaSettings { Width = 1000, Height = 1000, X = 500, Y = 500 }, // matches no display below
+            Tablet = new AreaSettings { Width = 100, Height = 60, X = 50, Y = 30 },
+        };
+        Settings? pushed = null;
+        var vm = new TabletDetailViewModel(
+            settings.Profiles.First(), settings,
+            applyAction: s => { pushed = s; return Task.FromResult(SettingsApplyOutcome.Live); });
+
+        // A known monitor to pick (7 avoids any real display number the ctor may have pre-selected).
+        vm.Displays = new List<DisplayInfo> { new(7, "Main", 1920, 1080, 0, 0, true) };
+        Assert.Null(pushed); // opening the page / setting displays didn't apply anything
+
+        vm.SelectedDisplayNumber = 7; // picking a display that isn't the current mapping
+        Assert.Same(settings, pushed); // applied immediately, no separate Apply step
+    }
+
+    [Fact]
+    public void SelectingDisplay_NoApplyAction_DoesNotThrow()
+    {
+        var settings = SettingsWith("T");
+        var vm = new TabletDetailViewModel(settings.Profiles.First(), settings); // read-only (no apply)
+
+        vm.SelectedDisplayNumber = 999; // nothing to apply through — must be a no-op, not a crash
+    }
+
+    // #607: display-pick applies are serialized + coalesced (latest wins). If picks race while one apply is
+    // in flight, only the in-flight one and the most-recently-picked display are applied — intermediate
+    // picks are dropped, and the final mapping matches the last selection (not whichever RPC finished last).
+    [Fact]
+    public async Task RapidDisplayRepicks_CoalesceToLastSelection()
+    {
+        var settings = SettingsWith("T");
+        var profile = settings.Profiles.First();
+        profile.AbsoluteModeSettings = new AbsoluteModeSettings
+        {
+            Display = new AreaSettings { Width = 1000, Height = 1000, X = 500, Y = 500 }, // matches no display below
+            Tablet = new AreaSettings { Width = 100, Height = 60, X = 50, Y = 30 },
+        };
+        // Numbers 5/6/7 avoid whatever real monitor the ctor's DisplayEnumerator pre-selected.
+        var displays = new List<DisplayInfo>
+        {
+            new(5, "A", 1920, 1080, 0, 0, false),
+            new(6, "B", 1920, 1080, 1920, 0, true),
+            new(7, "C", 1920, 1080, 3840, 0, false),
+        };
+
+        var appliedTo = new List<int?>();
+        var hold = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int calls = 0;
+        var vm = new TabletDetailViewModel(profile, settings, applyAction: async _ =>
+        {
+            appliedTo.Add(DisplayMappingApplier.CurrentlyMapped(profile, displays)?.Number);
+            if (Interlocked.Increment(ref calls) == 1) await hold.Task; // keep the first apply in flight
+            return SettingsApplyOutcome.Live;
+        });
+        vm.Displays = displays;
+
+        vm.SelectedDisplayNumber = 5; // in flight — blocks on `hold`
+        vm.SelectedDisplayNumber = 6; // queued behind the gate
+        vm.SelectedDisplayNumber = 7; // queued — supersedes 6
+
+        hold.SetResult(); // release the in-flight apply; the gate drains
+        for (int i = 0; i < 200 && Volatile.Read(ref calls) < 2; i++) await Task.Delay(10, TestContext.Current.CancellationToken);
+
+        // Exactly the in-flight (5) and the last pick (7) applied; the middle pick (6) was coalesced away.
+        Assert.Equal(new int?[] { 5, 7 }, appliedTo);
+    }
+
+    // #177: calibration needs an Absolute mode AND a live tablet. With absolute mode but the tablet
+    // not (yet) connected, the calibration UI shows but the action is disabled, with a connect hint.
+    [Fact]
+    public void CanRunCalibration_RequiresAbsoluteMode_AndDetectedTablet()
+    {
+        var settings = AbsoluteSettingsWith("T");
+        var vm = new TabletDetailViewModel(
+            settings.Profiles.First(), settings,
+            applyAction: _ => Task.FromResult(SettingsApplyOutcome.Live),
+            isDetected: () => false,
+            onCalibrate: _ => Task.CompletedTask); // a host that can run calibration
+
+        Assert.True(vm.CanCalibrate);                // absolute mode → section visible
+        Assert.False(vm.CanRunCalibration);          // ...but not connected → button disabled
+        Assert.True(vm.ShowConnectToCalibrateHint);
+    }
+
+    // #177: a tablet plugged in after the dialog opened must update the banner and enable calibration
+    // live, without reopening — the View calls RefreshDetectionStatus() on the session's DataLoaded.
+    [Fact]
+    public void RefreshDetectionStatus_ReflectsLateConnect_LiveAndNotifies()
+    {
+        bool detected = false;
+        var settings = AbsoluteSettingsWith("T");
+        var vm = new TabletDetailViewModel(
+            settings.Profiles.First(), settings,
+            applyAction: _ => Task.FromResult(SettingsApplyOutcome.Live),
+            isDetected: () => detected,
+            onCalibrate: _ => Task.CompletedTask); // a host that can run calibration
+
+        Assert.False(vm.IsTabletDetected);
+        Assert.False(vm.CanRunCalibration);
+
+        var changed = new List<string?>();
+        vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        // Tablet connects; the live re-check picks it up.
+        detected = true;
+        vm.RefreshDetectionStatus();
+
+        Assert.True(vm.IsTabletDetected);
+        Assert.Equal("Detected", vm.DetectionText);
+        Assert.True(vm.CanRunCalibration);
+        Assert.False(vm.ShowConnectToCalibrateHint);
+        // The dependent gates re-notify so the button/hint update without reopening the dialog.
+        Assert.Contains(nameof(vm.CanRunCalibration), changed);
+        Assert.Contains(nameof(vm.ShowConnectToCalibrateHint), changed);
+    }
+
+    // Regression: the digitizer specs can arrive after the (cached) VM was created — e.g. when a tablet
+    // reconnects. The active area must recover on the next DataLoaded, not stay stuck on "Active-area
+    // details aren't available" (which happened when only the construction-time snapshot was used).
+    [Fact]
+    public void ActiveArea_RecoversWhenDigitizerArrivesLater()
+    {
+        var settings = AbsoluteSettingsWith("T");
+        var prof = settings.Profiles.First();
+        prof.AbsoluteModeSettings = new AbsoluteModeSettings
+        { Display = new OpenTabletDriver.Desktop.Profiles.AreaSettings(),
+            Tablet = new AreaSettings { Width = 50, Height = 30, X = 25, Y = 15 },
+        };
+
+        var device = new FakeDeviceData();
+        var vm = new TabletDetailViewModel(
+            prof, settings, tabletDigitizer: null, deviceData: device, isDetected: () => true);
+
+        Assert.Null(vm.TabletArea); // nothing captured at construction and none available yet
+
+        device.Digitizers["T"] = (100f, 60f); // specs arrive as the tablet finishes connecting
+        device.RaiseDataLoaded();
+
+        Assert.NotNull(vm.TabletArea);
+    }
+
+    // External-change reconciliation: when the daemon's settings change outside OTA and the user has no
+    // unsaved edit here, the reload is adopted silently — no banner, and later persists push the new
+    // settings object (so we don't clobber the external change with the stale one).
+    [Fact]
+    public async Task ReconcileExternalChange_NoUnsavedEdit_AdoptsSilently()
+    {
+        var original = MappedSettings("T", 50);
+        var reloaded = MappedSettings("T", 80); // an external editor widened the mapping
+        Settings? pushed = null;
+
+        var vm = new TabletDetailViewModel(
+            original.Profiles.First(), original,
+            applyAction: s => { pushed = s; return Task.FromResult(SettingsApplyOutcome.Live); });
+
+        vm.ReconcileExternalChange(reloaded, reloaded.Profiles.First());
+
+        await vm.FixOutputModeCommand.ExecuteAsync(null);      // any persist path goes through _settings
+        Assert.Same(reloaded, pushed);                         // now persisting through the adopted settings
+    }
+
+    // (The "unsaved edit shows a banner" case was removed with the mapping Apply button: every edit on the
+    // tab now auto-applies, so HasUnsavedEdit is always false and the reconcile always adopts silently.
+    // The banner infrastructure is retained as an extension point — see HasUnsavedEdit.)
+
+    // An identical reload (no real change) is a no-op: no banner, and it clears any prior one.
+    [Fact]
+    public void ReconcileExternalChange_SameValues_NoBanner()
+    {
+        var original = MappedSettings("T", 50);
+        var sameValues = MappedSettings("T", 50);
+
+        var vm = new TabletDetailViewModel(
+            original.Profiles.First(), original,
+            applyAction: _ => Task.FromResult(SettingsApplyOutcome.Live));
+
+        vm.ReconcileExternalChange(sameValues, sameValues.Profiles.First());
+
+    }
+
+    // #177: detection alone isn't enough — a connected tablet in a non-Absolute mode still can't be
+    // calibrated (calibration only corrects an Absolute mapping).
+    [Fact]
+    public void CanRunCalibration_False_WhenDetected_ButNotAbsoluteMode()
+    {
+        var settings = SettingsWith("T"); // no Absolute output mode set
+        var vm = new TabletDetailViewModel(
+            settings.Profiles.First(), settings,
+            applyAction: _ => Task.FromResult(SettingsApplyOutcome.Live),
+            isDetected: () => true);
+
+        Assert.True(vm.IsTabletDetected);
+        Assert.False(vm.CanCalibrate);
+        Assert.False(vm.CanRunCalibration);
+        Assert.False(vm.ShowConnectToCalibrateHint); // not absolute → the "connect" hint doesn't apply
+    }
+
+    // Hardening (#applyloop): reloads must be side-effect-free. A data reload that reconciles into the VM —
+    // whether it's identical or an adopted external change — must NEVER trigger an apply/save. This guards
+    // the VM-level invariant behind the apply-loop class of bug (a loop needs a reload to re-trigger it).
+    [Fact]
+    public void ReconcileExternalChange_NeverTriggersAnApply()
+    {
+        var original = MappedSettings("T", 50);
+        int applies = 0;
+        var vm = new TabletDetailViewModel(
+            original.Profiles.First(), original,
+            applyAction: _ => { applies++; return Task.FromResult(SettingsApplyOutcome.Live); });
+
+        // An identical reload (no real change) — reconciled, no apply.
+        var same = MappedSettings("T", 50);
+        vm.ReconcileExternalChange(same, same.Profiles.First());
+        Assert.Equal(0, applies);
+
+        // A genuine external change the VM adopts (RefreshFromProfile rebuilds every binding) — still no apply.
+        var changed = MappedSettings("T", 80);
+        vm.ReconcileExternalChange(changed, changed.Profiles.First());
+        Assert.Equal(0, applies);
+    }
+
+    // Regression: the two Movement cards are command-driven (IsChecked is OneWay display-only). Selecting
+    // the mode you're already on must NOT apply — the previous TwoWay-IsChecked design had the grouped
+    // radios write back on every reload and fight into an infinite apply↔reload save loop.
+    [Fact]
+    public void SelectMovement_RedundantSelection_DoesNotApply_ButRealChangeDoes()
+    {
+        var settings = AbsoluteSettingsWith("T");
+        int applies = 0;
+        var vm = new TabletDetailViewModel(
+            settings.Profiles.First(), settings,
+            applyAction: _ => { applies++; return Task.FromResult(SettingsApplyOutcome.Live); });
+
+        Assert.True(vm.IsAbsoluteMode);                    // loaded as Windows Ink Absolute
+
+        vm.SelectMovementCommand.Execute("absolute");      // already Absolute — no-op
+        Assert.Equal(0, applies);                          // no apply → no save loop
+
+        vm.SelectMovementCommand.Execute("relative");      // a genuine change to Relative
+        Assert.Equal(1, applies);                          // applied exactly once
+        Assert.False(vm.IsAbsoluteMode);
+
+        vm.SelectMovementCommand.Execute("relative");      // redundant again, now on Relative
+        Assert.Equal(1, applies);                          // still just the one
+    }
+
+    // The Movement dropdown reads the profile's mode and forwards only a real pick to the command, so the
+    // ComboBox echoing its own selection back (as it does on every reload) cannot re-apply.
+    [Fact]
+    public void SelectedMovement_ReflectsMode_AndOnlyAppliesOnARealPick()
+    {
+        var settings = AbsoluteSettingsWith("T");
+        int applies = 0;
+        var vm = new TabletDetailViewModel(
+            settings.Profiles.First(), settings,
+            applyAction: _ => { applies++; return Task.FromResult(SettingsApplyOutcome.Live); });
+
+        Assert.Equal("absolute", vm.SelectedMovement.Key);
+
+        vm.SelectedMovement = vm.MovementOptions[0];       // echo of the current value — no-op
+        Assert.Equal(0, applies);
+
+        vm.SelectedMovement = vm.MovementOptions[1];       // a real pick: Relative
+        Assert.Equal(1, applies);
+        Assert.Equal("relative", vm.SelectedMovement.Key);
+    }
+
+    // ── #140 output-mode generalisation — Windows regression gate (the #510 review's 0.3 acceptance) ──
+    //
+    // Detection now keys on the "Absolute"/"Relative" token in the mode path so OTD's NATIVE modes are
+    // recognised as well as Windows Ink. These tests run on the Windows CI runner and lock the Windows
+    // behaviour: the common WinInk case is covered above; here we cover native modes and the one
+    // deliberate change (an Absolute click on a native-absolute tablet must not force-swap to WinInk).
+
+    private const string NativeAbsolute = "OpenTabletDriver.Desktop.Output.AbsoluteMode";
+    private const string NativeRelative = "OpenTabletDriver.Desktop.Output.RelativeMode";
+
+    private static Settings SettingsWithMode(string tablet, string modePath)
+    {
+        var settings = SettingsWith(tablet);
+        settings.Profiles.First().OutputMode = new PluginSettingStore(modePath) { Path = modePath };
+        return settings;
+    }
+
+    [Fact]
+    public void NativeAbsoluteMode_IsDetectedAsAbsolute_AndCalibratable()
+    {
+        var settings = SettingsWithMode("T", NativeAbsolute);
+        var vm = new TabletDetailViewModel(settings.Profiles.First(), settings);
+
+        Assert.True(vm.IsAbsoluteMode);   // Absolute Movement card is checked
+        Assert.True(vm.CanCalibrate);     // calibration is available on an absolute mode
+    }
+
+    [Fact]
+    public void NativeRelativeMode_IsDetectedAsRelative_AndNotCalibratable()
+    {
+        var settings = SettingsWithMode("T", NativeRelative);
+        var vm = new TabletDetailViewModel(settings.Profiles.First(), settings);
+
+        Assert.False(vm.IsAbsoluteMode);
+        Assert.False(vm.CanCalibrate);
+    }
+
+    // The one deliberate Windows behaviour change: clicking Absolute while already on a NATIVE absolute
+    // mode is a no-op — it must NOT force-swap the tablet to Windows Ink.
+    [Fact]
+    public void SelectAbsolute_WhileOnNativeAbsolute_DoesNotChurnToWinInk()
+    {
+        var settings = SettingsWithMode("T", NativeAbsolute);
+        int applies = 0;
+        var vm = new TabletDetailViewModel(
+            settings.Profiles.First(), settings,
+            applyAction: _ => { applies++; return Task.FromResult(SettingsApplyOutcome.Live); });
+
+        vm.SelectMovementCommand.Execute("absolute");   // already absolute (native) → no-op
+
+        Assert.Equal(0, applies);                                                 // nothing applied
+        Assert.Equal(NativeAbsolute, settings.Profiles.First().OutputMode!.Path); // still native
+    }
+
+    // "Fix output mode" is the explicit Windows-Ink remediation and must still force WinInk Absolute,
+    // even when the tablet is on a native absolute mode.
+    [Fact]
+    public async Task FixOutputMode_ForcesWinInkAbsolute_EvenFromNativeAbsolute()
+    {
+        // "Fix to Windows Ink" is a Windows-only remediation (CanFixOutputMode is IsWindows()-gated), so
+        // this scenario only applies on Windows — matching the SingleInstanceTests convention.
+        if (!OperatingSystem.IsWindows()) return;
+
+        var settings = SettingsWithMode("T", NativeAbsolute);
+        var vm = new TabletDetailViewModel(
+            settings.Profiles.First(), settings,
+            applyAction: _ => Task.FromResult(SettingsApplyOutcome.Live));
+
+        Assert.True(vm.CanFixOutputMode);   // native (non-WinInk) on Windows → fixable
+
+        await vm.FixOutputModeCommand.ExecuteAsync(null);
+
+        Assert.Equal(WinInkAbsolute, settings.Profiles.First().OutputMode!.Path);
+    }
+}

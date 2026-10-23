@@ -1,0 +1,1045 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:OpenTabletArtist.Controls"
+        xmlns:oc="clr-namespace:OpenTabletArtist.Controls;assembly=OpenTabletArtist"
+        xmlns:conv="using:OpenTabletArtist.Converters"
+        xmlns:ac="using:Avalonia.Data.Converters"
+        xmlns:svc="using:OpenTabletArtist.Services">
+
+    <Styles.Resources>
+        <!-- Local converter instance so the ControlThemes below can hide empty title/description lines. -->
+        <conv:NonEmptyToBoolConverter x:Key="NonEmpty" />
+
+        <!-- ===== Reusable UX components (default ControlThemes) =====================================
+             These back the TemplatedControls in OpenTabletArtist.Controls, consolidating settings-UI
+             patterns that were hand-assembled across the views. -->
+
+        <!-- ===== Card roles (#574, de-boxed by #debox) ==============================================
+             Section (grouping) · Alert (severity) · Entity (object) · ControlPanel (control cluster)
+             replace the old shared Border.GlassPanel. Each shows a color-coded role tag at its
+             bottom-right when the developer "Show card-role tags" toggle is on (roleTag / roleTagText
+             styles below).
+
+             Only ALERT still draws a box. That is the whole design: a border reads as "act on this" only
+             while nothing else is bordered, so every other role carries its meaning with type, spacing and
+             at most a hairline. Section has no chrome, Entity and ControlPanel each draw one hairline, and
+             Canvas keeps a fill because it is a surface you draw on rather than a container. Think hard
+             before adding a fifth boxed thing. -->
+
+        <!-- Section (grouping role): glass box + optional title/description header + content slot. Owns its
+             border via template bindings (defaults here) so #573 can restyle it flush without a shared
+             class. Was SettingCard. -->
+        <ControlTheme x:Key="{x:Type c:Section}" TargetType="c:Section">
+            <!-- Cardless (#573): a Section is now pure grouping — no chrome. It contributes only its optional
+                 title/description and lays out its content; no background, border, or padding of its own. -->
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <Panel>
+                            <StackPanel>
+                                <TextBlock x:Name="PART_Title" Classes="Display section"
+                                           Text="{TemplateBinding Title, Converter={x:Static conv:LowerCaseConverter.Instance}}"
+                                           Margin="0,0,0,6"
+                                           IsVisible="{TemplateBinding Title, Converter={StaticResource NonEmpty}}" />
+                                <TextBlock Text="{TemplateBinding Description}"
+                                           Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                                           Margin="0,0,0,12"
+                                           IsVisible="{TemplateBinding Description, Converter={StaticResource NonEmpty}}" />
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </StackPanel>
+                            <Border Classes="roleTag" Background="#2563EB"
+                                    IsVisible="{Binding ShowCardRoleTags, Source={x:Static svc:DeveloperSettings.Instance}}">
+                                <TextBlock Text="Section" Classes="roleTagText" />
+                            </Border>
+                        </Panel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <!-- When there's a description, tighten the title→description gap (title no longer owns the
+                 full header spacing). -->
+            <Style Selector="^[HasDescription=True] /template/ TextBlock#PART_Title">
+                <Setter Property="Margin" Value="0,0,0,4" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Alert (severity role): a tinted/bordered callout where the box IS the meaning. Per-severity
+             background + border below (mirrors the old attentionCard.* tiers); keeps its chrome permanently. -->
+        <ControlTheme x:Key="{x:Type c:Alert}" TargetType="c:Alert">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource NeutralBrush}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <Panel>
+                            <ContentPresenter Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            <Border Classes="roleTag" Background="#DC2626"
+                                    IsVisible="{Binding ShowCardRoleTags, Source={x:Static svc:DeveloperSettings.Instance}}">
+                                <TextBlock Text="Alert" Classes="roleTagText" />
+                            </Border>
+                        </Panel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^[Severity=Error]">
+                <Setter Property="Background" Value="{DynamicResource ErrorMutedBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}" />
+            </Style>
+            <Style Selector="^[Severity=Warning]">
+                <Setter Property="Background" Value="{DynamicResource WarningMutedBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}" />
+            </Style>
+            <Style Selector="^[Severity=Neutral]">
+                <Setter Property="Background" Value="{DynamicResource InfoMutedBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource InfoBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Entity (object role): same look as Section, but marks a card representing a discrete object the
+             user acts on (a tablet, button, wheel, preset, plugin). Structurally a Section subclass so
+             shared styles like expressCard still apply. -->
+        <!-- Boxless (#debox-entity). An Entity is a THING in a list — a tablet, a preset, a plugin, an
+             express key — and a list of things does not need a glass panel around every row to be read as
+             a list. It now separates its rows with a single hairline and lets the type carry the rest,
+             which is what the widened ramp (d90d7d7) and the split text brushes (f21debb) exist to do.
+             Padding is vertical only, so rows align flush with the section eyebrow above them instead of
+             sitting inset behind a border. Alert keeps its chrome — it is the one role where the box IS
+             the meaning, and it only reads as urgent while nothing else is boxed. -->
+        <ControlTheme x:Key="{x:Type c:Entity}" TargetType="c:Entity">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}" />
+            <Setter Property="Padding" Value="0,14" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <Panel>
+                            <Grid ColumnDefinitions="Auto,*">
+                                <!-- Optional leading glyph; the column collapses to nothing when no Icon is
+                                     set, so entities without an icon sit flush-left. -->
+                                <!-- Smaller and quieter (#row-icons). This glyph says what KIND of thing the
+                                     row is — a tablet, a plugin, a preset — which is supporting information,
+                                     not the thing you came to read. At 32px in full primary ink it was the
+                                     heaviest mark in a boxless row, out-shouting the name beside it.
+                                     It had drifted twice over: it lost the card border that used to balance
+                                     it (#debox-entity), and it got DARKER when the text brushes split
+                                     (f21debb) — TextPrimaryBrush resolved to TextSecondary before that, so
+                                     this went from 77% to 94% ink without anyone choosing it. -->
+                                <!-- Top-aligned, not centred: the glyph labels the NAME, and centring it in
+                                     the row left it level with the second line on rows that carry a detail
+                                     line too. The 32px version hid this because it spanned both lines. -->
+                                <Viewbox Grid.Column="0" Width="20" Height="20" VerticalAlignment="Top"
+                                         Margin="0,1,14,0"
+                                         IsVisible="{TemplateBinding Icon, Converter={x:Static ac:ObjectConverters.IsNotNull}}">
+                                    <Path Data="{TemplateBinding Icon}" Fill="{DynamicResource TextMutedBrush}" />
+                                </Viewbox>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock x:Name="PART_Title" Classes="SectionLabel"
+                                               Text="{TemplateBinding Title, Converter={x:Static conv:TitleCaseConverter.Instance}}"
+                                               Margin="0,0,0,12"
+                                               IsVisible="{TemplateBinding Title, Converter={StaticResource NonEmpty}}" />
+                                    <TextBlock Text="{TemplateBinding Description}"
+                                               Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                                               Margin="0,0,0,12"
+                                               IsVisible="{TemplateBinding Description, Converter={StaticResource NonEmpty}}" />
+                                    <ContentPresenter Content="{TemplateBinding Content}"
+                                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                </StackPanel>
+                            </Grid>
+                            <Border Classes="roleTag" Background="#7C3AED"
+                                    IsVisible="{Binding ShowCardRoleTags, Source={x:Static svc:DeveloperSettings.Instance}}">
+                                <TextBlock Text="Entity" Classes="roleTagText" />
+                            </Border>
+                        </Panel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^[HasDescription=True] /template/ TextBlock#PART_Title">
+                <Setter Property="Margin" Value="0,0,0,4" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Canvas (surface role): a plain glass box whose content is a live drawing surface (Scribble). -->
+        <ControlTheme x:Key="{x:Type c:Canvas}" TargetType="c:Canvas">
+            <Setter Property="Background" Value="{DynamicResource GlassBgBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <Panel>
+                            <ContentPresenter Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            <Border Classes="roleTag" Background="#EA580C"
+                                    IsVisible="{Binding ShowCardRoleTags, Source={x:Static svc:DeveloperSettings.Instance}}">
+                                <TextBlock Text="Canvas" Classes="roleTagText" />
+                            </Border>
+                        </Panel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <!-- ControlPanel (control-cluster role): interactive controls grouped like a ribbon — the console
+             toolbar and the Scribble controls. Boxless (#debox), like Entity before it: both of its uses
+             are a toolbar sitting directly ABOVE the thing it governs, so a single hairline underneath says
+             "these control what follows" without wrapping the controls in a panel. The controls are
+             already visually distinct — they are controls — so the fill was doing nothing the widgets
+             weren't. Horizontal padding is zero so the cluster aligns flush with the content below it. -->
+        <ControlTheme x:Key="{x:Type c:ControlPanel}" TargetType="c:ControlPanel">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="CornerRadius" Value="{DynamicResource CardCornerRadius}" />
+            <Setter Property="Padding" Value="0,0,0,12" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <Panel>
+                            <ContentPresenter Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            <Border Classes="roleTag" Background="#0891B2"
+                                    IsVisible="{Binding ShowCardRoleTags, Source={x:Static svc:DeveloperSettings.Instance}}">
+                                <TextBlock Text="Controlpanel" Classes="roleTagText" />
+                            </Border>
+                        </Panel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <!-- ComplexHeader: a tabbed page's header — a title (plain or custom) on the left + optional
+             trailing actions/status on the right. See docs/design/ux-terminology.md. -->
+        <ControlTheme x:Key="{x:Type c:ComplexHeader}" TargetType="c:ComplexHeader">
+            <Setter Property="Margin" Value="0,0,0,20" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <!-- Title slot: custom TitleContent, else the plain Title in the Display look. -->
+                        <ContentControl Grid.Column="0" VerticalAlignment="Center"
+                                        Content="{TemplateBinding TitleContent}"
+                                        IsVisible="{TemplateBinding HasTitleContent}" />
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Classes="Display" Margin="0"
+                                   Text="{TemplateBinding Title}"
+                                   IsVisible="{TemplateBinding HasTitleText}" />
+                        <!-- Trailing actions / status. -->
+                        <ContentPresenter Grid.Column="1" VerticalAlignment="Center"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+
+
+        <!-- (SelectableCard removed with #debox: a RadioButton rendered as a glass option card, with an
+             accent outline and a "Current mode" badge when checked. Nothing had applied it since the pen
+             page moved to plain radio buttons — a role with no members, so there was nothing to de-box.
+             Selected state across the app is accent + weight now, the same cue as nav and pivots. In git
+             history if a card-style picker is ever wanted back.) -->
+
+        <!-- LabeledField: fixed-width caption column + an arbitrary control. -->
+        <ControlTheme x:Key="{x:Type c:LabeledField}" TargetType="c:LabeledField">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid ColumnDefinitions="Auto,*">
+                        <TextBlock Grid.Column="0" Text="{TemplateBinding Label}"
+                                   Width="{TemplateBinding LabelWidth}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          VerticalAlignment="Center" HorizontalAlignment="Left" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <!-- LabeledSlider: caption + slider + optional live numeric readout. -->
+        <ControlTheme x:Key="{x:Type c:LabeledSlider}" TargetType="c:LabeledSlider">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                        <TextBlock Grid.Column="0" Text="{TemplateBinding Label}"
+                                   Width="{TemplateBinding LabelWidth}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <Slider Grid.Column="1" x:Name="PART_Slider" VerticalAlignment="Center"
+                                Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
+                                TickFrequency="{TemplateBinding TickFrequency}"
+                                IsSnapToTickEnabled="{TemplateBinding IsSnapToTickEnabled}"
+                                TickPlacement="{TemplateBinding TickPlacement}"
+                                SmallChange="{TemplateBinding SmallChange}"
+                                LargeChange="{TemplateBinding LargeChange}"
+                                Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                        <TextBlock Grid.Column="2" x:Name="PART_Value" Text="{TemplateBinding ValueText}"
+                                   Width="{TemplateBinding ValueWidth}" MinWidth="36"
+                                   IsVisible="{TemplateBinding ShowValue}" TextAlignment="Right"
+                                   VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+            <!-- Monospace readout (primary color, fixed-width digits) for VM-formatted values. -->
+            <Style Selector="^[Monospace=True] /template/ TextBlock#PART_Value">
+                <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- ToggleSetting: checkbox + optional muted description. The description sits on a line beneath
+             by default, or inline after the label when InlineDescription is set (short one-line hints). -->
+        <ControlTheme x:Key="{x:Type c:ToggleSetting}" TargetType="c:ToggleSetting">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Content="{TemplateBinding Label}"
+                                      IsChecked="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                            <!-- Inline description: shown right after the label when InlineDescription=True. -->
+                            <TextBlock x:Name="InlineDesc" Text="{TemplateBinding Description}"
+                                       VerticalAlignment="Center" Margin="6,0,0,0" IsVisible="False"
+                                       Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <!-- Below description: the default multi-line placement. -->
+                        <TextBlock x:Name="BelowDesc" Text="{TemplateBinding Description}" Margin="28,2,0,0"
+                                   Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                                   IsVisible="{TemplateBinding Description, Converter={StaticResource NonEmpty}}" />
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter>
+            <!-- Inline mode: swap the below line for the inline one. -->
+            <Style Selector="^[InlineDescription=True] /template/ TextBlock#InlineDesc">
+                <Setter Property="IsVisible" Value="True" />
+            </Style>
+            <Style Selector="^[InlineDescription=True] /template/ TextBlock#BelowDesc">
+                <Setter Property="IsVisible" Value="False" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Chip (#621): a small text-only status pill. One canonical padding + caption typography; the
+             fill/text color comes from Kind. Default theme (keyed by type) so callers write just
+             <c:Chip Text="In use" Kind="AccentSolid" />. -->
+        <ControlTheme x:Key="{x:Type c:Chip}" TargetType="c:Chip">
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="{DynamicResource TypeCaptionSize}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{DynamicResource ButtonCornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <TextBlock Text="{TemplateBinding Text}" Foreground="{TemplateBinding Foreground}"
+                                   FontWeight="{TemplateBinding FontWeight}" FontSize="{TemplateBinding FontSize}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <!-- Muted accent (default): translucent accent fill + accent text. -->
+            <Style Selector="^[Kind=Accent]">
+                <Setter Property="Background" Value="{DynamicResource AccentMutedBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+            </Style>
+            <!-- Solid accent: accent fill + white text. -->
+            <Style Selector="^[Kind=AccentSolid]">
+                <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource SelectionTextBrush}" />
+            </Style>
+            <!-- Muted warning: warning fill + 1px warning outline, but neutral text (#no-orange-text) —
+                 the fill/outline carry the warning tone; the label stays readable in the primary color. -->
+            <Style Selector="^[Kind=Warning]">
+                <Setter Property="Background" Value="{DynamicResource WarningMutedBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Tablet status banner: shared detection/connection indicator (#128/#129/#130/#132).
+             Neutral outline in both states (#593: no green status color); the text conveys detection. -->
+        <ControlTheme x:Key="{x:Type c:TabletStatusBanner}" TargetType="c:TabletStatusBanner">
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <!-- Compact status pill: a status-colored outline + text. No translucent fill (the old
+                         muted-tint band read oddly over the Sakura backdrop, #300). -->
+                    <Border x:Name="PART_Pill" CornerRadius="{DynamicResource ButtonCornerRadius}" Padding="12,7"
+                            Background="Transparent"
+                            BorderThickness="1.5" BorderBrush="{DynamicResource TextMutedBrush}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="{TemplateBinding Text}" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" TextWrapping="Wrap" />
+                            <c:Chip Text="Dynamics on" Kind="Accent" Margin="10,0,0,0"
+                                    IsVisible="{TemplateBinding DynamicsOn}" />
+                        </StackPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <!-- Detected keeps the neutral outline (#593); the text says "Detected". -->
+            <Style Selector="^[IsDetected=True] /template/ Border#PART_Pill">
+                <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- WordmarkNav: the Zune top-bar wordmark (redesign Phase 1). Plain lowercase text — no pill, no
+             underline; the active one is marked by accent COLOR ALONE, matching the pivots (Metro signals
+             state by brightness, not a rule). Content is already lowercased by the item template.
+
+             Colour alone, deliberately (#nav-weight). The checked cue used to bump the weight Light ->
+             Normal as well, and that is a change you can see in the word itself: every stem thickens, the
+             counters close, and the glyphs run about 2% wider. A hidden copy at the checked weight held
+             the slot open so nothing REFLOWED — but it could not stop the word re-shaping inside that
+             slot, and it left every unchecked word sitting in a box cut for a wider weight, which is what
+             made the gaps along the bar uneven. With the weight fixed at Light there is nothing to
+             reserve, so both the reserver and the uneven gaps go. -->
+        <ControlTheme x:Key="WordmarkNav" TargetType="RadioButton">
+            <!-- Build M: every nav option is a real button — a rounded rectangle with a visible border,
+                 title-case label, hover and press highlight, the selected one stays lit, focus ring visible.
+                 Shared look for the top row (WordmarkNav), sub-page rows (PivotTab) and side rails (SubtabRadioButton). -->
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="True" />
+            <Setter Property="MinWidth" Value="{DynamicResource NavButtonMinWidth}" />
+            <Setter Property="MinHeight" Value="{DynamicResource NavButtonHeight}" />
+            <Setter Property="Background" Value="{DynamicResource GlassBgBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            
+            <Setter Property="Height" Value="{DynamicResource NavTabHeight}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                            CornerRadius="{DynamicResource ButtonCornerRadius}" Padding="{DynamicResource NavButtonPadding}">
+                        <TextBlock x:Name="Word"
+                                   Text="{TemplateBinding Content, Converter={x:Static conv:TitleCaseConverter.Instance}}"
+                                   FontSize="{DynamicResource NavButtonFontSize}" FontWeight="SemiBold"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}" />
+            </Style>
+            <Style Selector="^:checked">
+                <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource SelectionTextBrush}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource TextPrimaryBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource BgBaseBrush}" />
+                <Setter Property="RenderTransform" Value="scale(0.97)" />
+            </Style>
+            <Style Selector="^:focus-visible /template/ Border#Bd">
+                <Setter Property="BorderThickness" Value="2" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- PivotTab: the Zune subpage pivot (redesign Phase 2) — big lowercase Inter Light headers
+             that replace the vertical tab rail on tabbed pages. Same active cue as the wordmarks: accent
+             COLOR ALONE, no weight change and no rule — see WordmarkNav above for why (#nav-weight).
+             At 40 px the weight jump was the most visible of anywhere in the app. Content is lowercased
+             by the pivot item template. -->
+        <ControlTheme x:Key="PivotTab" TargetType="RadioButton">
+            <!-- Build M: every nav option is a real button — a rounded rectangle with a visible border,
+                 title-case label, hover and press highlight, the selected one stays lit, focus ring visible.
+                 Shared look for the top row (WordmarkNav), sub-page rows (PivotTab) and side rails (SubtabRadioButton). -->
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="True" />
+            <Setter Property="MinWidth" Value="{DynamicResource NavButtonMinWidth}" />
+            <Setter Property="MinHeight" Value="{DynamicResource NavButtonHeight}" />
+            <Setter Property="Background" Value="{DynamicResource GlassBgBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                            CornerRadius="{DynamicResource ButtonCornerRadius}" Padding="{DynamicResource NavButtonPadding}">
+                        <TextBlock x:Name="Word"
+                                   Text="{TemplateBinding Content, Converter={x:Static conv:TitleCaseConverter.Instance}}"
+                                   FontSize="{DynamicResource NavButtonFontSize}" FontWeight="SemiBold"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}" />
+            </Style>
+            <Style Selector="^:checked">
+                <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource SelectionTextBrush}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource TextPrimaryBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource BgBaseBrush}" />
+                <Setter Property="RenderTransform" Value="scale(0.97)" />
+            </Style>
+            <Style Selector="^:focus-visible /template/ Border#Bd">
+                <Setter Property="BorderThickness" Value="2" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Accent Button -->
+        <ControlTheme x:Key="AccentButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource AccentButtonFillBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="FontFamily" Value="{DynamicResource DisplayFontFamily}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource ButtonCornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <!-- The text, then an optional icon (ButtonIcon.Data). The icon is collapsed while
+                             unset, so a button without one lays out exactly as it did. It takes the
+                             button's Foreground, so it follows the hover and disabled states with the text. -->
+                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <ContentPresenter Content="{Binding Content, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:TitleCaseConverter.Instance}}"
+                                              HorizontalContentAlignment="Center"
+                                              VerticalContentAlignment="Center" />
+                            <PathIcon Width="15" Height="15" VerticalAlignment="Center"
+                                      Data="{Binding (oc:ButtonIcon.Data), RelativeSource={RelativeSource TemplatedParent}}"
+                                      IsVisible="{Binding (oc:ButtonIcon.Data), RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ac:ObjectConverters.IsNotNull}}" />
+                        </StackPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource AccentButtonFillHoverBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundHoverBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Ghost Button (subtle filled chip; legible on cards and the page backdrop, #249) -->
+        <ControlTheme x:Key="GhostButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource GlassBgBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="FontFamily" Value="{DynamicResource DisplayFontFamily}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource ButtonCornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{Binding Content, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:TitleCaseConverter.Instance}}"
+                                          HorizontalContentAlignment="Center"
+                                          VerticalContentAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- IconButton (#616): the GhostButton look at a fixed compact size with a single centred, color-
+             following PathIcon. BasedOn GhostButton so it inherits the ghost colors + hover; it swaps the
+             template for a PathIcon bound to the control's Icon/IconSize. Default theme (keyed by type), so
+             callers just write <c:IconButton Icon="{StaticResource IconX}" Command=… ToolTip.Tip=… />. -->
+        <ControlTheme x:Key="{x:Type c:IconButton}" TargetType="c:IconButton" BasedOn="{StaticResource GhostButton}">
+            <!-- Borderless (#row-actions). A TEXT button's border is a real affordance — it says "this word
+                 is a button, not a label". An ICON button needs no such help: a glyph in a hit target is
+                 already unmistakably a control. Since the rows around it went boxless (95c40fd) its border
+                 was the only box left in an otherwise boxless row, which made a secondary action the most
+                 outlined thing on the page. GhostButton keeps its border; only the icon form drops it.
+                 The affordance moves to hover: the glyph goes to full ink over a tinted block. -->
+            <Setter Property="Width" Value="34" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource ButtonCornerRadius}" Padding="{TemplateBinding Padding}">
+                        <PathIcon Data="{TemplateBinding Icon}"
+                                  Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
+                                  Foreground="{TemplateBinding Foreground}"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <!-- Hover carries the whole affordance now that there is no resting border. Overrides
+                 GhostButton's pointerover, which also set an accent BorderBrush that would not render at
+                 zero thickness. -->
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource AccentMutedBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            </Style>
+            <Style Selector="^:disabled">
+                <Setter Property="Opacity" Value="0.4" />
+            </Style>
+            <!-- .danger — a destructive row action shown as an ICON: delete a tablet config, remove a
+                 per-app mapping. Same borderless shape as its neighbours so a row of actions reads as one
+                 set; the ERROR color is what marks it out, and only on hover does it commit to a solid red
+                 block. A destructive secondary action should never be the loudest thing on its page: the
+                 solid-filled DeleteButton out-shouted even the accent primary once the rows around it went
+                 boxless. DeleteButton keeps the fill for its TEXT uses (Stop / Remove / Uninstall), where
+                 the button IS the page's main action.
+
+                 The preset was the first example here and is no longer one. When that row's secondary
+                 actions moved into a "…" menu (#preset-overflow), delete went with them and became a NAMED
+                 item carrying ErrorBrush rather than a glyph. So: a row whose actions stay visible uses
+                 .danger; a row with an overflow menu puts delete inside it, where a word identifies the
+                 action better than a color can. -->
+            <Style Selector="^.danger">
+                <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+            </Style>
+            <Style Selector="^.danger:pointerover">
+                <Setter Property="Background" Value="{DynamicResource ErrorBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextInverseBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- LinkButton: a borderless, background-free button that reads as plain clickable text. No chrome
+             (no box/border), no uppercasing — the content shows verbatim; use accent foreground on the
+             content to signal it's a link. -->
+        <ControlTheme x:Key="LinkButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          HorizontalContentAlignment="Left"
+                                          VerticalContentAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <!-- A ControlTheme can't contain a descendant selector (e.g. "^:pointerover TextBlock"), so hover
+                 feedback is just a slightly dimmer content via opacity on the whole button. -->
+            <Style Selector="^:pointerover">
+                <Setter Property="Opacity" Value="0.75" />
+            </Style>
+        </ControlTheme>
+
+        <!-- One subtab in a vertical rail (Settings / Developer): a left accent bar + text, with a soft
+             fill on hover and when selected. Stretches to fill the rail width.
+             Three comments used to sit here describing a dialog tab and an underlined horizontal tab —
+             both earlier drafts of this control, neither what it has drawn for some time. -->
+        <ControlTheme x:Key="SubtabRadioButton" TargetType="RadioButton">
+            <!-- Build M: every nav option is a real button — a rounded rectangle with a visible border,
+                 title-case label, hover and press highlight, the selected one stays lit, focus ring visible.
+                 Shared look for the top row (WordmarkNav), sub-page rows (PivotTab) and side rails (SubtabRadioButton). -->
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="True" />
+            <Setter Property="MinWidth" Value="{DynamicResource NavButtonMinWidth}" />
+            <Setter Property="MinHeight" Value="{DynamicResource NavButtonHeight}" />
+            <Setter Property="Background" Value="{DynamicResource GlassBgBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                            CornerRadius="{DynamicResource ButtonCornerRadius}" Padding="{DynamicResource NavButtonPadding}">
+                        <TextBlock x:Name="Word"
+                                   Text="{TemplateBinding Content, Converter={x:Static conv:TitleCaseConverter.Instance}}"
+                                   FontSize="{DynamicResource NavButtonFontSize}" FontWeight="SemiBold"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}" />
+            </Style>
+            <Style Selector="^:checked">
+                <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource SelectionTextBrush}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource TextPrimaryBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource BgBaseBrush}" />
+                <Setter Property="RenderTransform" Value="scale(0.97)" />
+            </Style>
+            <Style Selector="^:focus-visible /template/ Border#Bd">
+                <Setter Property="BorderThickness" Value="2" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Delete Button (solid red — unmistakably destructive, #251) -->
+        <ControlTheme x:Key="DeleteButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextInverseBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="FontFamily" Value="{DynamicResource DisplayFontFamily}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border x:Name="Bd" Background="{DynamicResource ErrorBrush}" CornerRadius="{DynamicResource ButtonCornerRadius}"
+                            Padding="{TemplateBinding Padding}"
+                            BorderBrush="{DynamicResource ErrorBrush}" BorderThickness="1">
+                        <ContentPresenter Content="{Binding Content, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:TitleCaseConverter.Instance}}"
+                                          HorizontalContentAlignment="Center"
+                                          VerticalContentAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="Opacity" Value="0.88" />
+            </Style>
+        </ControlTheme>
+    </Styles.Resources>
+
+    <!-- R13: progress/level bars fill in the theme's secondary text colour. The neutral grey accent (#646464)
+         was almost the same shade as the dark track (~#555), so the live "Current pressure" bar looked stuck. -->
+    <Style Selector="ProgressBar">
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
+    <!-- Settings persistence indicator text (#321): secondary while saving/saved, warning when a save
+         failed. Kept as classes (no local Foreground) so .failed wins by specificity in either theme. -->
+    <Style Selector="TextBlock.saveStatus">
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+    <Style Selector="TextBlock.saveStatus.failed">
+        <!-- Save-failed reads via wording + weight, not orange text (#no-orange-text). -->
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- App-wide default font (#mono-font-followup). Every window/popup gets Inter — embedded via
+         .WithInterFont() (Program.cs), so it renders the same on Windows/macOS/Linux instead of falling
+         back to each OS's default UI family — and text inherits it, so unstyled content (labels,
+         ComboBox/ToggleSwitch text, dropdown items) no longer uses the Fluent theme's default family.
+         Any explicit FontFamily on a style or control still wins. -->
+    <Style Selector=":is(TopLevel)">
+        <Setter Property="FontFamily" Value="{DynamicResource DisplayFontFamily}" />
+    </Style>
+
+    <!-- Card-role tag (#574): a small color-coded label pinned to a card's bottom-right, shown only when
+         the developer "Show card-role tags" toggle is on. The per-role color + text are set at each use
+         (SECTION #2563EB · ALERT #DC2626 · SELECT #16A34A). -->
+    <Style Selector="Border.roleTag">
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="Padding" Value="4,1" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="ZIndex" Value="1000" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+    <Style Selector="TextBlock.roleTagText">
+        <Setter Property="FontSize" Value="9" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource TextInverseBrush}" />
+    </Style>
+
+    <!-- (The old Border.GlassPanel escape-hatch style + CardPadding resource were removed with the
+         card-roles refactor (#574): every card declares a role — Section / Alert / Entity / ControlPanel —
+         and those roles own their own look. A grep guard in CI keeps the escape-hatch class from coming
+         back. Since #debox only Alert still draws a box; the rest are hairlines and whitespace.) -->
+
+    <!-- Base content text size (#fontstd): plain TextBlocks default to the one content size
+         (ContentFontSize). The display layer (Display), card titles (CardTitle), section labels
+         (SectionLabel), status dots and the nav themes set their own size and win (classed selector or
+         template-local value), so this only catches unclassed content text. -->
+    <Style Selector="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource ContentFontSize}" />
+    </Style>
+
+    <!-- Display — the one big type layer, matching the pivots (PivotTab uses the same size, weight and
+         tracking). Exactly ONE display layer is visible per page: the pivot row on a pivoted page, or
+         section headings on a page without pivots (home). Never both, or they compete.
+         Set the text lower-case — the display layer is lower-case throughout, like the nav and pivots.
+         Was "PageTitle", which named the one thing it no longer does: page titles were dropped in the
+         Zune redesign, leaving the class reaching only ComplexHeader's plain-Title fallback. -->
+    <Style Selector="TextBlock.Display">
+        <Setter Property="FontFamily" Value="{DynamicResource DisplayFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource TypeDisplaySize}" />
+        <Setter Property="FontWeight" Value="Light" />
+        <Setter Property="LetterSpacing" Value="-1.4" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="Margin" Value="0,0,0,20" />
+    </Style>
+
+    <!-- Display .section — the same voice one rung down, for headings that live INSIDE a tab rather than
+         at the top of a page. Home's page menu is TypeNavSize, so a full Display heading under it reads as
+         the level below; a tablet tab's menu is TypePivotSize, so the same heading would out-type the tab
+         it sits in. LetterSpacing scales with the size: -1.4 was drawn for TypeDisplaySize, and carrying it
+         unchanged onto a heading half that size sets the letters twice as tight. -->
+    <Style Selector="TextBlock.Display.section">
+        <Setter Property="FontSize" Value="{DynamicResource TypeSectionSize}" />
+        <Setter Property="LetterSpacing" Value="-0.7" />
+        <!-- Display's own 20 is the gap under a 44px page heading; 6 is what this rung wants. Sites that
+             let the following element own the gap pass Margin="0,0,0,0" and are unaffected. -->
+        <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+
+    <!-- Card Title — a card's prominent content/identity title (tablet & profile names, warning
+         titles, daemon status, option choices). Body size, in SemiBold.
+
+         The weight has been round the houses and is back where it started. It was SemiBold at body
+         size; #text-hierarchy took it to a size step above body in Normal weight, on the argument that
+         with the three text brushes split apart the primary ink carries the prominence and the weight
+         could stop shouting.
+
+         That argument holds on a plain card and does not on a health alert, where the tinted ground
+         closes some of the gap between the ink tiers — Colors.axaml retuned those tiers for that
+         ground and still notes that below the middle tier, separation has to come from size rather than
+         tone. Worse when a title wraps: its second line lands directly above the description, and 17
+         over 13 with no weight difference is not a step the eye catches.
+
+         So the separation is weight again, and the title sits level with the text under it. The ink
+         tiers still do their share; this is the part they could not do on a tint.
+
+         SemiBold is real here, not synthesised: asked for it, Avalonia resolves an actual
+         'Inter SemiBold' face (checked, because a bad font name still "succeeds" — see #718). -->
+    <Style Selector="TextBlock.CardTitle">
+        <Setter Property="FontFamily" Value="{DynamicResource DisplayFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource ContentFontSize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+
+    <!-- Section Label — the one descriptive card/section heading treatment: all-caps (text is written
+         upper-case), SemiBold, muted. Now an EYEBROW: caption-size and letterspaced, so it labels the
+         block below without competing with it. It used to sit at the content size, which made every
+         heading the same size as the text it headed. Card content/identity titles (names, warnings,
+         option choices) use the prominent CardTitle instead. -->
+    <Style Selector="TextBlock.SectionLabel">
+        <Setter Property="FontSize" Value="{DynamicResource TypeCaptionSize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LetterSpacing" Value="1.5" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+
+    <!-- Detail — the incidental line under a title: model numbers, timestamps, "last seen" hints. The
+         quiet end of the ramp; never put anything load-bearing here. -->
+    <Style Selector="TextBlock.Detail">
+        <Setter Property="FontSize" Value="{DynamicResource TypeDetailSize}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+
+    <!-- Slider (#sakura-slider): the filled half of every enabled slider stayed Windows-blue on all five
+         skins — the last place Fluent's default accent showed through. Same trap as the RadioButton keys
+         (#207): the accent brushes the skin re-points do not reach it.
+
+         Fluent paints the filled portion of a Slider from the control's own FOREGROUND, which nothing had
+         ever set, so it fell through to the theme default. One setter fixes every slider in the app; no
+         per-skin resource is needed, because AccentBrush is already per-skin. (The thumb was always
+         correct — that one does follow the accent, which is why the mismatch looked so odd.) -->
+    <Style Selector="Slider">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
+    <!-- ListBox selection: the same trap as the Slider above and the RadioButton keys (#207). Fluent paints
+         a selected row from its own resources, which no skin re-points, so the one selectable list in the
+         app (Developer → Gradients) drew a Windows-blue bar on a pink page. Matched to the subtab rail's
+         selected treatment — the tinted NavActive ground — so "the current item" reads the same wherever it
+         appears. ColorPicker's swatch list replaces the item template outright, so this passes it by. -->
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource NavActiveBrush}" />
+    </Style>
+    <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
+    </Style>
+
+    <!-- An open ComboBox's list, same story: the current value sat on a Windows-blue bar in every dropdown
+         in the app. Matched to the ListBox above so a highlighted row reads the same in both. The Foreground
+         is restated because Fluent flips it to white for legibility on ITS blue, which would leave white
+         text on a pale pink tint here. -->
+    <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource NavActiveBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+
+    <!-- ===== Status marks ===========================================================
+         A colored dot (U+25CF) in the normal UI font — no icon font. State is conveyed by color:
+           success → muted (#593: no green)   warning → amber   neutral → muted   error → red
+
+         Two bool-driven base classes for the common "success vs not" indicator.
+         Apply Classes.success="{Binding ...}" to toggle the success state:
+           statusMark      → not-success shows the NEUTRAL (muted) dot  (off/idle is normal)
+           statusMarkWarn  → not-success shows the WARNING (amber) dot   (off is a problem)
+
+         For multi-state rows, use a literal class (success/warning/neutral/error). -->
+    <Style Selector="TextBlock.statusMark, TextBlock.statusMarkWarn,
+                     TextBlock.success, TextBlock.warning, TextBlock.neutral, TextBlock.error">
+        <Setter Property="Text" Value="&#x25CF;" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,0,6,0" />
+    </Style>
+
+    <!-- Base appearance: neutral off-state -->
+    <Style Selector="TextBlock.statusMark">
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+    <!-- Base appearance: warning off-state -->
+    <Style Selector="TextBlock.statusMarkWarn">
+        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+    </Style>
+    <!-- Success override for either base — muted, not green (#593). The check-mark/label carries "good". -->
+    <Style Selector="TextBlock.statusMark.success, TextBlock.statusMarkWarn.success">
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+
+    <!-- Literal single-state marks (for multi-state rows) -->
+    <Style Selector="TextBlock.success">
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.warning">
+        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+    </Style>
+    <Style Selector="TextBlock.neutral">
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.error">
+        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+    </Style>
+
+    <!-- Prominent severity indicator for the "Needs attention" cards: a rounded color bar down the
+         card's left edge (reads at a glance, unlike the old tiny dot). Color by severity via
+         Classes.error/.warning/.neutral. -->
+    <Style Selector="Border.severityBar">
+        <Setter Property="Width" Value="40" />
+        <Setter Property="MinHeight" Value="52" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Background" Value="{DynamicResource InfoBrush}" />
+    </Style>
+    <Style Selector="Border.severityBar.error">
+        <Setter Property="Background" Value="{DynamicResource ErrorBrush}" />
+    </Style>
+    <Style Selector="Border.severityBar.warning">
+        <Setter Property="Background" Value="{DynamicResource WarningBrush}" />
+    </Style>
+    <Style Selector="Border.severityBar.neutral">
+        <Setter Property="Background" Value="{DynamicResource InfoBrush}" />
+    </Style>
+    <!-- Information (#549): a calm grey — nothing's wrong, it's just an FYI, distinct from the blue
+         Recommendation nudge. -->
+    <Style Selector="Border.severityBar.information">
+        <Setter Property="Background" Value="{DynamicResource NeutralBrush}" />
+    </Style>
+
+    <!-- (The Border.attentionCard.* health-card tints moved onto the Alert control's Severity tiers with
+         the card-roles refactor (#574).) -->
+
+    <!-- Always-visible, full-size scrollbars. The default Fluent scrollbars (a) auto-hide and
+         (b) sit as a thin line until hovered (the thumb is scaled down by a RenderTransform in the
+         collapsed state). Disable auto-hide AND clear the thumb's shrink transform so the bar is
+         always the full, easy-to-grab width. -->
+    <Style Selector="ScrollViewer">
+        <Setter Property="AllowAutoHide" Value="False" />
+    </Style>
+    <Style Selector="ScrollBar">
+        <Setter Property="AllowAutoHide" Value="False" />
+    </Style>
+    <Style Selector="ScrollBar /template/ Thumb">
+        <Setter Property="RenderTransform" Value="none" />
+    </Style>
+
+    <!-- Slimmer slider thumb (#160). The Fluent thumb knob is ~20px; replace its template with a
+         small accent dot so the size is fully under our control. -->
+    <Style Selector="Slider /template/ Thumb">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Ellipse Width="12" Height="12" Fill="{DynamicResource AccentBrush}" />
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- CheckBox: the checked box uses the theme accent (Fluent's default is an off-theme accent that
+         reads green in the Sakura skin). Covers the rest/hover/pressed checked states. -->
+    <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+    </Style>
+    <Style Selector="CheckBox:checked:pointerover /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+    </Style>
+    <Style Selector="CheckBox:checked:pressed /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+    </Style>
+
+    <!-- ToggleSwitch: the "on" track uses the theme accent (Fluent's default reads blue, off-theme in
+         the Sakura skin — e.g. the Output Mode "Absolute" switch, #297). -->
+    <Style Selector="ToggleSwitch:checked /template/ Border#SwitchKnobBounds">
+        <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+    </Style>
+    <Style Selector="ToggleSwitch:checked:pointerover /template/ Border#SwitchKnobBounds">
+        <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+    </Style>
+    <Style Selector="ToggleSwitch:checked:pressed /template/ Border#SwitchKnobBounds">
+        <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+    </Style>
+
+    <!-- Version 1: no text box or drop-down wider than the longest entry it holds (Controls/FitWidth.cs). -->
+    <Style Selector="ComboBox"><Setter Property="c:FitWidth.Enabled" Value="True" /></Style>
+    <Style Selector="TextBox"><Setter Property="c:FitWidth.Enabled" Value="True" /></Style>
+</Styles>

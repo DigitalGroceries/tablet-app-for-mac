@@ -1,0 +1,69 @@
+<UserControl x:Class="OpenTabletArtist.Views.AboutView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls">
+
+    <!-- DataContext is the AboutViewModel (typed-nav DataTemplate, #15). Folded into Home's left column,
+         above YOUR TABLETS, so it stretches to fill whatever column hosts it. -->
+    <!-- Build R5 (the user's mock-up): the six links are SMALL (26 px high, 11 pt, equal 116 px cells) and tucked
+         into the top-right corner; the version line is right-aligned under them. -->
+    <!-- Build R4: no "About" heading. Six button-like links in two rows of three, in theme colours
+         (Fluent button brushes, driven by the lightness setting), then one small line with the version.
+         Sits in Home's right column, top-right. -->
+    <UserControl.Styles>
+        <!-- Build R6: the global TextBlock size (13) beat the button's FontSize, so labels were cut off. -->
+        <Style Selector="Button.homeLink TextBlock"><Setter Property="FontSize" Value="12" /></Style>
+    </UserControl.Styles>
+    <StackPanel x:Name="HomeLinks" Width="396" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <UniformGrid x:Name="LinkGrid" Columns="3" Rows="3" ColumnSpacing="8" RowSpacing="6">
+                <Button x:Name="HelpLink" Command="{Binding OpenHelpCommand}" Classes="homeLink" ToolTip.Tip="{Binding HelpTip}"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Height="{DynamicResource NavTabHeight}" Padding="4,0" FontSize="11" VerticalContentAlignment="Center" Cursor="Hand">
+                    <TextBlock Text="Get help" />
+                </Button>
+                <Button x:Name="SupportedTabletsLink" Command="{Binding OpenSupportedTabletsCommand}" Classes="homeLink" ToolTip.Tip="Show the tablets OpenTabletDriver supports"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Height="{DynamicResource NavTabHeight}" Padding="4,0" FontSize="11" VerticalContentAlignment="Center" Cursor="Hand">
+                    <TextBlock Text="Supported tablets" />
+                </Button>
+                <Button x:Name="SourceLink" Command="{Binding OpenUrlCommand}" CommandParameter="{Binding RepoUrl}" IsEnabled="{Binding HasRepoUrl}" Classes="homeLink" ToolTip.Tip="{Binding RepoUrl}"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Height="{DynamicResource NavTabHeight}" Padding="4,0" FontSize="11" VerticalContentAlignment="Center" Cursor="Hand">
+                    <TextBlock Text="Source code" />
+                </Button>
+                <Button x:Name="ReleasesLink" Command="{Binding OpenUrlCommand}" CommandParameter="{Binding ReleasesUrl}" IsEnabled="{Binding HasReleasesUrl}" Classes="homeLink" ToolTip.Tip="{Binding ReleasesUrl}"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Height="{DynamicResource NavTabHeight}" Padding="4,0" FontSize="11" VerticalContentAlignment="Center" Cursor="Hand">
+                    <TextBlock Text="Releases" />
+                </Button>
+                <Button x:Name="FeedbackLink" Command="{Binding OpenUrlCommand}" CommandParameter="{Binding FeedbackUrl}" IsEnabled="{Binding HasFeedbackUrl}" IsVisible="{Binding HasFeedbackUrl}" Classes="homeLink" ToolTip.Tip="Report a problem or suggest a feature. Feedback is read once a week."
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Height="{DynamicResource NavTabHeight}" Padding="4,0" FontSize="11" VerticalContentAlignment="Center" Cursor="Hand">
+                    <TextBlock Text="Feedback" />
+                </Button>
+                <Button x:Name="ManualLink" Command="{Binding OpenHelpCommand}" Classes="homeLink" ToolTip.Tip="Open the user manual"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Height="{DynamicResource NavTabHeight}" Padding="4,0" FontSize="11" VerticalContentAlignment="Center" Cursor="Hand">
+                    <TextBlock Text="User manual" />
+                </Button>
+                <Button x:Name="CreditsButton"  Classes="homeLink" ToolTip.Tip="Credits, modified-version notice and licences"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Height="{DynamicResource NavTabHeight}" Padding="4,0" FontSize="11" VerticalContentAlignment="Center" Cursor="Hand">
+                    <TextBlock Text="Credits and licences" />
+                    <Button.Flyout>
+                        <Flyout Placement="Bottom">
+                            <TextBlock x:Name="CreditsText" MaxWidth="420" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Text="Tablet App for Mac is a modified version based on OpenTabletArtist and OpenTabletDriver. OpenTabletArtist is licensed under the GNU General Public License v3.0 (GPL-3.0); OpenTabletDriver is licensed under the GNU Lesser General Public License v3.0 (LGPL-3.0). This program comes with ABSOLUTELY NO WARRANTY. The full licence texts are in the LICENSES folder and NOTICE file of the download, and the source code is available from the Source code link." />
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+            </UniformGrid>
+            <TextBlock Text="Feedback is read once a week." FontSize="11" HorizontalAlignment="Right" Margin="0,4,0,0"
+                       Foreground="{DynamicResource TextSecondaryBrush}" IsVisible="{Binding HasFeedbackUrl}" />
+            <TextBlock x:Name="AboutLine" TextWrapping="Wrap" Margin="0,6,0,0" FontSize="10" TextAlignment="Right"
+                       Foreground="{DynamicResource TextMutedBrush}"><Run
+                Text="Tablet App for Mac is a free, artist-friendly tablet app. " /><Run
+                Text="{Binding AppVersionSentence}" /></TextBlock>
+    </StackPanel>
+</UserControl>

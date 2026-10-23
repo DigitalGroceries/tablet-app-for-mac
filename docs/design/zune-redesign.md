@@ -1,0 +1,287 @@
+# Zune-style UX redesign (branch: `zune`)
+
+> **Historical design record — not a current inventory (as of 2026-09-06).**
+>
+> This documents the redesign: why it was done, what was decided, and what each phase set out to build.
+> Its "as shipped" tables were a snapshot taken during the work and the app has moved on — pivots have
+> been renamed, split, merged and moved since, so reading them as current will send you to tabs that no
+> longer exist.
+>
+> For what the app actually has today: **[user guides](../README.md#using-the-app)** for the pages and
+> tabs, **[ux-terminology.md](ux-terminology.md)** for the vocabulary and the page/tab/subtab inventory.
+> Keep those two current; leave the tables below as the record of their moment.
+
+Status: **shipped and merged to `master`**; ongoing polish. A
+big-typography, panorama/pivot navigation model inspired by the Zune UX (the precursor to Metro). Goal: take v1's UX "to the next level" —
+more simplicity, less chrome, better use of horizontal space — **while keeping the Sakura skin
+as the default** (Zune is a *layout* language, not a palette; the pink skin stays).
+
+## Why this is tractable
+
+The current codebase already leans Metro, so this is evolution, not a rewrite:
+
+- **Type is already Zune-ish.** `TextBlock.PageTitle` = *Segoe UI Light, 28px* (Styles.axaml:458).
+  Flat cards, no skeuomorphism, high-contrast text.
+- **Palette is separated from layout.** Skins live in `Themes/Colors.axaml` (per-skin brush
+  dictionaries) + runtime overrides in `ThemeViewModel.RefreshSkin`. Layout lives in
+  `Themes/Styles.axaml` and the views, referencing `DynamicResource` brushes. The redesign
+  touches **layout + type + motion + nav**, not the palette — so Sakura is untouched.
+- **One shared sub-nav pattern.** `SettingsView`, `AdvancedView`, and the per-tablet detail
+  page are all `ComplexHeader` + a vertical, data-driven `RadioButton` rail (`ItemsControl` over
+  a `Tabs` list) + a `ContentControl` bound to `SelectedContent`. Replace that one pattern with a
+  Zune **pivot** host and all three convert at once.
+
+## Navigation inventory (pre-redesign baseline)
+
+*The starting point the redesign began from — not the current nav (see "Top-level nav" below for what shipped).*
+
+**Top-level (left sidebar):** `HOME · TABLET · SCRIBBLE · ABOUT · SETTINGS · ADVANCED`
+
+- **TABLET** (single page + tablet-switcher dropdown), 12 sub-tabs:
+  About · Pen Behavior · Pen Inputs · Pen Buttons · Pressure Dynamics · Position Dynamics ·
+  Tilt Dynamics · Display Mapping · Active Area · Calibration · Tablet Buttons · Wheels
+  (+ dev-only: Filters · JSON)
+- **SETTINGS**, 8 tabs (+ gated): Presets · [Per-App Presets*] · Hotkeys · Startup · Shortcut ·
+  Theme · Driver Cleanup · Developer   (* gated)
+- **ADVANCED**, 7 tabs: Daemon · Windows Ink · Configs · Diagnostics · Console · Plugins ·
+  VMulti Driver
+
+~30 nav destinations total. Too many for a low-chrome design → **merge**.
+
+## Target navigation model
+
+**Desktop-Zune, not phone-panorama.** The Zune *desktop* software used a top horizontal wordmark
+nav (`quickplay · collection · marketplace · social`) with **pivots** for sub-navigation — this
+fits a resizable desktop window better than an infinite pan. Proposal:
+
+- **Remove the left sidebar.** Top-level nav becomes a horizontal row of lowercase **wordmarks**;
+  the active one is marked by **accent color** (no weight change, no underline — see Decision 9).
+  Frees the full window width.
+  *(An early mockup had a huge page title bleeding off the right edge — cut as redundant, since the
+  active wordmark already names the section.)*
+- **Sub-navigation = pivots** — big Segoe UI Light horizontal headers replacing the vertical rail;
+  the active pivot uses the same accent cue as the wordmarks (consistent at both levels).
+- **Wide pages use columns.** Merged pages lay their (formerly separate) tabs out as horizontal
+  panels, so the width earns its keep instead of a narrow column beside a rail.
+- **Crisp square corners, flat fields.** Metro/Zune uses 90° corners everywhere (cards, buttons,
+  toggles, sliders); only genuine status/data dots stay circular. Frosted glass + a soft shadow
+  stay — that's the Sakura richness — but nothing is a rounded rectangle.
+
+### Top-level nav (decided → shipped)
+
+`home · tablet · pen · scribble · settings · advanced` — lowercase wordmarks. Diverged from the
+original proposal in two ways that shipped: **Pen** was split out of the tablet page into its own
+top-level section (`2bc43d0`), and **About** folded into Home as a second column rather than staying a
+top-level wordmark (`1f8328b`). **Presets** stays a Settings pivot (#571); **Advanced** stays its own
+top-level section. **Scribble** (the pen-test surface) is top-level — briefly dropped in an early
+mockup and restored.
+
+### Proposed tablet merges (12 → 5 pivots)
+
+| New pivot   | Absorbs                                          | Rationale |
+|-------------|--------------------------------------------------|-----------|
+| **about**   | About                                            | specs (unchanged) |
+| **pen**     | Pen Behavior + Pen Inputs + Pen Buttons          | one pen diagram already unifies tip/eraser/buttons; output mode belongs with the pen |
+| **dynamics**| Pressure + Position + Tilt Dynamics              | three panels across the width (curve · smoothing · position · tilt) |
+| **mapping** | Display Mapping + Active Area + Calibration      | "where the tablet maps & how accurately" — a sub-pivot (display · area · calibrate) |
+| **controls**| Tablet Buttons + Wheels                          | physical controls on the tablet body |
+
+(Filters · JSON stay dev-gated, behind the pivot when Developer is on.)
+
+> **Shipped differently:** this 12→5 proposal evolved. **pen** became its own top-level page
+> (`movement · inputs · buttons`), not a tablet pivot; and **calibration** split back out of *mapping*
+> into its own pivot once it grew a status card + density cards + backup/restore (`6c8d678`). The tablet
+> page shipped as **`about · dynamics · mapping · calibration · controls`**.
+
+### Proposed settings merges (8 → ~4)
+
+`presets` (+ per-app) · `hotkeys` · `appearance` (theme) · `system` (startup + shortcut + driver
+cleanup) · `developer` (dev tools + developer, gated)
+
+### Proposed advanced merges (7 → ~5)
+
+`daemon` (daemon + console log) · `drivers` (windows ink + vmulti) · `configs` · `diagnostics` ·
+`plugins`
+
+## Phase 0 — prep / cleanup (no visible change; pure enablement)
+
+1. **Extract one pivot host.** Replace the repeated `ComplexHeader` + vertical rail + content-host
+   in SettingsView / AdvancedView / tablet-detail with a single reusable data-driven control
+   (title + pivot items + transitioning content). Implement the Zune pivot once.
+2. **Data-drive the top-level nav.** MainWindow.axaml hard-codes HOME/TABLET/SETTINGS/ADVANCED as
+   RadioButtons + one `ItemsControl` for leaves. Generalize to a single ordered nav-section list
+   (label · page · visibility · selection) so the shell can swap sidebar → top-bar without
+   touching each node. (Extends the existing `NavLeaves` idea to everything.)
+3. **Define the Zune type ramp.** Name a small display scale (all Segoe UI Light for headings) and
+   route PageTitle / TabTitle / SectionLabel through it; add a "bleed-off-edge" oversized-title
+   control.
+4. **Add a motion layer.** Wrap content hosts in `TransitioningContentControl` with a shared
+   slide+fade page transition (Zune easing). Pick the primitives now.
+5. **Make every subpage embeddable.** Subpages must render headerless and host-agnostic (no
+   "I'm a top-level page" assumptions). Precedent already set when Presets/Per-App/Developer were
+   folded into Settings tabs (#571/#572) — audit the rest.
+6. **Composite-page scaffolding.** Merged pages (pen · dynamics · mapping) host several existing
+   sub-VMs at once; verify no lifecycle/singleton assumptions block co-hosting (e.g. the
+   Test page's Activate/Deactivate on navigation).
+7. **Horizontal-panel primitives.** A wide-panels container (wrap/scroll) so merged pages use the
+   width instead of a narrow column.
+
+## Phase 0 status (done)
+
+Committed on `zune`, each invisible/behaviour-preserving, build + 604 tests green:
+
+- **0.1** — shared `Controls/TabbedPageView` backs SETTINGS + ADVANCED (the rail seam). ✔
+- **0.2** — the whole top-level nav is one data-driven `NavSections` list. ✔
+- **0.4** — named Zune type ramp (`TypeDisplaySize`…) + a shared `PageFade` crossfade primitive
+  (applied to the tabbed-page content host). ✔
+- **0.3 — deferred to Phase 2 (deliberately).** The per-tablet page can't fold into `TabbedPageView`:
+  its 15 tabs are **inline XAML sections** switched by `RadioButton.IsChecked` ElementName bindings,
+  not content VMs, and its code-behind ties the active tab to live pen-input sampling, deep-links,
+  and the focused Pen-Dynamics dialog. Data-driving that rail forces ripping out ElementName
+  switching and rerouting the live-input lifecycle — a large, high-regression rewrite with **zero
+  visible payoff** until the pivot exists. So the tablet rail gets data-driven **together with the
+  pivot in Phase 2**, where the risk is justified and tested against the real UI. (Settings/Advanced
+  already share the host, so the pivot swap covers them regardless.)
+
+## Phase 1–2 status (done)
+
+Committed on `zune`, verified live (build + 601 tests green):
+
+- **Phase 1** — the left sidebar is gone; the top-level nav is a horizontal **wordmark bar**
+  (lowercase, accent+weight active), content full-width below. ✔
+- **Phase 2a** — `TabbedPageView`'s rail is now a horizontal **pivot** (big lowercase Segoe UI Light);
+  editing that one control converted SETTINGS + ADVANCED at once. ✔
+- **Phase 2b** — `CompositeSectionViewModel`/`View` stacks existing sub-VMs, cutting pivot counts:
+  SETTINGS 8→6 (System = Startup+Shortcut+Driver Cleanup; Theme→Appearance), ADVANCED 7→5
+  (Daemon+Console; Drivers = Windows Ink+VMulti). Deep-links remapped. ✔
+- **Polish** — top-level page switches crossfade (same `PageFade`); wordmark bar + pivots wrap on
+  narrow widths and fit at the 800px minimum; dropped the duplicate brand eyebrow (the OS caption
+  carries the app name); removed the now-dead `NavNode` style + `TabbedPageView.Title`. ✔
+- **Phase 2c — the tablet page — done.** The **merges** landed first (four commits: mapping,
+  dynamics, controls, pen), each folding its old sections into one scroller with in-place headers. Then
+  the **vertical rail was replaced with the same horizontal Zune pivot** the other pages use (PivotTab
+  theme, accent+weight active cue, wraps on narrow widths); the grid went `[Auto,*]×[Auto,*]` → rows
+  `[Auto,Auto,*]` so content spans full width. Pragmatic call on the deferred 0.3: kept the ElementName
+  model rather than extracting all the inline sections into views — the pivot is still RadioButtons with
+  the same x:Names, content still gates on `#XTab.IsChecked`, and the code-behind (live pen-input stream,
+  deep-links, DynamicsOnly focused editor, screenshot sweep) reads those names unchanged. Verified live.
+  *Post-2c the structure moved on:* **pen** split into its own top-level page and **calibration** into
+  its own pivot, so the tablet pivots shipped as `about · dynamics · mapping · calibration · controls`.
+  The pivot crossfade *was* added in Phase 3 (overlap + `BoolToOpacityConverter`, no single content
+  host needed) — see below.
+
+## Phasing (PR sequence)
+
+- **Phase 0** — refactor/enable. Invisible; keeps `master` behavior. **Done.**
+- **Phase 1** — top-bar/wordmark nav, sidebar removed. **Done.**
+- **Phase 2** — pivots + merges. **Done** — Settings/Advanced (2a/2b) and the tablet page (2c: merged 12→5 + rail→horizontal pivot).
+- **Phase 3** — typography + motion polish. **Done.** Top-level page + pivot/section transitions all
+  crossfade with the shared `PageFade`; the tablet pivot content also crossfades now (overlap +
+  opacity, since it has no data-driven content host — `BoolToOpacityConverter`). Hero empty-states: the
+  TABLET page's "no tablet" placeholder is a boxless big light-weight headline over the backdrop; home's
+  inline empty state lightened to match. The type ramp (display/title/body sizes + `DisplayFontFamily`)
+  is applied consistently across wordmarks, pivots, and section titles.
+- **Phase 4** — Sakura-on-Zune tuning. **Done / inherent.** Petals render behind all content
+  (`SakuraPetals` sits under the nav+content grid), and the boxless hero lets them drift behind the
+  headline — the intended panorama. Contrast holds: the light-weight big text (wordmarks, pivots, hero)
+  is top-anchored over the light-pink region; the strong pink→orange gradient is at the window bottom
+  where content sits on frosted cards. Accent (sakura pink) is used consistently for active nav/pivots,
+  primary buttons, and highlights. The rich Sakura default is unchanged (users love it) — the Zune
+  layout was tuned to work *with* it, not restyle it.
+
+## Decisions (resolved)
+
+1. **Nav model:** desktop-Zune top wordmark bar + pivots. ✔
+2. **Sidebar:** removed entirely; reclaim full width. ✔
+3. **Presets:** stays under Settings (#571). ✔
+4. **Advanced:** stays a top-level section. ✔
+5. **Tablet pivots (as shipped):** about / dynamics / mapping / calibration / controls. ✔
+   (**pen** split into its own top-level page; **calibration** split out of mapping — `6c8d678`.)
+6. **Wordmarks:** lowercase. ✔
+7. **Corners:** square (Metro); frosted glass + soft shadow kept. ✔
+8. **No giant page title:** dropped; active wordmark names the section. ✔
+9. **Active cue is colour only** — no weight change (#nav-weight). ✔
+   Phases 1–2 shipped *accent + weight*, bumping the checked word Light → Normal. A hidden copy at
+   the checked weight reserved the slot so neighbours never reflowed, but that could not stop the word
+   itself re-shaping: stems thicken, counters close, glyphs run ~2% wider. It also parked every
+   unchecked word in a box cut for a wider weight, which is what made the gaps along both bars uneven.
+   Weight is now uniform Light and the accent carries the state alone — the strictest reading of
+   *Metro signals state by brightness, not a rule* — and the reservers are gone with it.
+   Checked against Sakura, Light and Dark; the subtab rail was already colour + indicator, so it is
+   unaffected. Explored on a canvas against four louder alternatives (a square, a hairline, a tint
+   field, and the same idea settled at Normal) before picking the quietest.
+
+## Feature → pivot inventory (completeness guard)
+
+The merges regroup where things live; **nothing is removed**. This table maps every current control
+to its new home, so nothing is lost when 12/8/7 tabs collapse into pivots. Modal flows (calibration
+capture overlay, report dialog, supported-tablets dialog) are overlays — unaffected by nav — and
+carry over as-is.
+
+### tablet  (`about · mapping · calibration · controls`)
+
+*(**dynamics** moved to the PEN page — see below (#pen-dynamics-move). The tablet page's dynamics content
+is now a shared `DynamicsView`, still hosted by the tray's focused Pen Dynamics editor.)*
+
+| Pivot | From (pre-Zune tabs) | Controls carried over |
+|-------|--------------|-----------------------|
+| **about** | About | full spec readout; Resources → View supported tablets |
+| **mapping** | Display Mapping · Active Area | one two-column card: **left** = editable active-area diagram (drag-move, drag-corner resize), **Rotation None/90/180/270**, Size slider, Maximize, mm/inches, usage + diagonal + aspect-ratio stats; **right** = click-to-select display picker (Apply, Display Settings, off-screen/custom flags, connector to the mapped display, per-display hardware list). *(A single merged diagram was tried and reverted — two read more clearly.)* |
+| **calibration** | Calibration | 4/9/25-point cards + Start; active-cal status (Correction On/Off, Clear); **View report** dialog; **Backup & restore** (export/import, #545); full-screen capture overlay (Undo last / Redo all) |
+| **controls** | Tablet Buttons · Wheels | aux-button cards, binding type (None/Keyboard/Mouse button/Mouse scroll), live-press highlight, **Buttons enabled** master; wheel/dial bindings |
+| *(dev)* filters · json | Filters · JSON | shown behind the pivot only when Developer is enabled |
+
+The tablet **switcher** (dropdown) + **Refresh** sit at the *right* of the pivot row (grouped,
+#switcher-right); the pivots start at the left edge like the other pages. **Forget** moved to the Home
+tablet cards (#575). The switcher's separate detection chip was dropped (#580 follow-up) — detection now
+reads off the per-row **link / link-off icon** inside the dropdown itself. The tablet, pen, and scribble
+switchers are **linked** to the app-wide active tablet, so all three always show the same tablet.
+
+### pen  (own top-level page — `movement · inputs · dynamics`)
+
+Split out of the tablet page (`2bc43d0`). Same toolbar structure as the tablet page (pivots left,
+switcher + refresh right). **dynamics** moved here from the tablet page (#pen-dynamics-move).
+
+| Pivot | Controls carried over |
+|-------|-----------------------|
+| **movement** | output mode (Normal/Absolute · Mouse-like/Relative); **Don't use Windows Ink** toggle *(Win)* |
+| **inputs** | tip + eraser Adaptive status cards + Use Adaptive; **Disable pen tip**; upright pen diagram (tip down) beside the cards; barrel-button Adaptive cards (self-hide when the pen has none) |
+| **dynamics** | shared `DynamicsView`: live-pressure bar (raw/processed to 4 decimals); **Disable pressure sensitivity**; pressure curve (draggable min/max nodes, no axis labels; curve-shape **preset thumbnails** Soft/Linear/Hard; **Softness** slider below the chart; live dot); **Cut below input minimum** *(dev-gated, #569)*; pressure smoothing; position smoothing; **Disable tilt** |
+
+### settings  (8 tabs → 5 pivots)
+
+| Pivot | From (today) | Controls carried over |
+|-------|--------------|-----------------------|
+| **presets** | Presets (+ Per-App*) | Current settings (Save as preset, Browse); preset cards (Load/Update/Duplicate/Rename/Delete); *Per-App mappings + snapshot pickers + foreign-daemon guard, shown only when the feature flag is on* |
+| **hotkeys** | Hotkeys | One list of shortcuts — tablet actions + one row per preset — each with a "…" (Assign/Clear); explanation column |
+| **appearance** | Theme | theme selector (System/Light/Dark/Sakura/Custom); Falling petals + opacity; Colors & translucency (highlight/card/left-pane swatch pickers, card + left-pane opacity, Reset); Custom look (base color, background image) |
+| **system** | Startup · Shortcut · Driver Cleanup | Start-with-Windows *(Win)*; Start-menu shortcut *(Win)*; conflicting-driver scan/remove *(Win)* |
+| **developer** | Developer | Always shown; keeps its own inner sub-nav (Warnings · Config errors · Tablet page extras · Screenshot · Window size · Calibration I/O) |
+
+### advanced  (7 tabs → 5 pivots)
+
+| Pivot | From (today) | Controls carried over |
+|-------|--------------|-----------------------|
+| **daemon** | Daemon · Console | daemon info, Refresh, bundled version, OTD UX launcher, Start/Stop/Restart; live console log |
+| **drivers** | Windows Ink · VMulti Driver | plugin + driver install/status |
+| **configs** | Configs | config-folder list (View/Delete), Refresh, Open Folder |
+| **diagnostics** | Diagnostics | collect diagnostics report |
+| **plugins** | Plugins | plugin list, enable/disable |
+
+### top-level (other pages)
+
+`home` — a two-column page: **left** = Needs attention + Your tablets (each card has Settings + Forget)
++ Supported tablets; **right** = the former **About** content (what-is + version + Help/Discord +
+Resources), folded in here rather than kept as its own wordmark (`1f8328b`). · `scribble` (pen-test
+surface + dynamics indicator).
+
+### Risks flagged
+
+- **mapping density** — biggest; mitigated by the wide multi-section page (built), sub-pivot as a
+  fallback.
+- **pen / dynamics** — three tabs each; fit as columns, pen diagram already unifies tip/eraser/buttons.
+- **Developer's own sub-tabs** — kept as an inner rail inside the `developer` pivot (nested nav, one
+  level, as today).
+- **OS-gated & feature-gated pivots** — `system` items are Windows-only; `developer` and Per-App are
+  gated. The pivot host must hide pivots per the same rules the current rails use (already modelled by
+  `SettingsTabItem.IsVisible`).

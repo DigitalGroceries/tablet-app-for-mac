@@ -1,0 +1,123 @@
+<UserControl x:Class="OpenTabletArtist.Views.PresetsView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls">
+
+    <!-- DataContext is the PresetsViewModel, supplied by the typed-nav DataTemplate (#15). Hosted as a
+         SETTINGS tab (#571), so the page title is the Settings tab title — no PageTitle here.
+
+         Two columns: the presets themselves on the left, what a preset IS on the right.
+
+         A WrapPanel of definite-width blocks, NOT a fixed-column Grid (#691). Two constraints pull
+         against each other here. Each column needs a definite width, because star columns inside a
+         content-sized parent have nothing to divide and collapse. But 540+32+320 is 892, and the window
+         advertises an 800px minimum with the content scroller's horizontal bar disabled — so the prose
+         column was clipped off the right edge, unreachable.
+
+         Wrapping satisfies both: the blocks keep their definite widths, and the second drops below the
+         first when the window can't fit them side by side. The root must stay STRETCHED for that —
+         HorizontalAlignment="Left" measures with infinite width, so nothing would ever wrap. -->
+    <WrapPanel ItemSpacing="32" LineSpacing="28">
+    <StackPanel Width="540">
+        <!-- One header for the whole column: what this list is, where it lives, and the two things you
+             can do to the list itself. It used to be two stacked bands — a lone accent button, then a
+             separate "saved presets" label with an unexplained folder glyph pushed to the far right of a
+             540px column — which read as two unrelated strips of chrome for one idea, and hid the label
+             and the folder entirely until you had saved something.
+
+             This is the same shape as the configurations-folder card: heading, the folder path beneath
+             it in muted ink, and the actions right-aligned. The path is what makes the folder button
+             legible without a tooltip. Save stays a labelled accent target rather than going into a
+             menu — it is why the page exists, the way Load is on each row — and the actions land in the
+             same column as the rows' Load/"…", so the whole page shares one rhythm. -->
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="2,0,0,12">
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" MinWidth="0">
+                <TextBlock Classes="Display section" Text="Saved presets" />
+                <!-- R12: the full folder path, wrapped (never cut off), with the path as its tooltip too. -->
+                <TextBlock Text="{Binding PresetDirectory}" ToolTip.Tip="{Binding PresetDirectory}"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           TextWrapping="Wrap" Margin="0,4,0,0" />
+            </StackPanel>
+
+            <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                <Button Content="Save as preset" Theme="{StaticResource AccentButton}"
+                        Padding="12,6" Margin="0,0,6,0" Command="{Binding SavePresetCommand}" />
+                <c:IconButton Icon="{StaticResource IconFolderOutline}"
+                              VerticalAlignment="Center"
+                              ToolTip.Tip="Open the folder where presets are stored"
+                              AutomationProperties.Name="Open the folder where presets are stored"
+                              Command="{Binding OpenFolderCommand}"
+                              CommandParameter="{Binding PresetDirectory}" />
+            </WrapPanel>
+        </Grid>
+
+        <ItemsControl ItemsSource="{Binding Presets}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <c:Entity>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" MinWidth="0">
+                                <TextBlock Classes="CardTitle" Text="{Binding Name}" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding LastModified}"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                                <Button Content="Load" Theme="{StaticResource AccentButton}"
+                                        Command="{Binding $parent[ItemsControl].DataContext.LoadPresetCommand}"
+                                        CommandParameter="{Binding Name}"
+                                        Margin="0,0,6,0" Padding="12,6" />
+                                <!-- Everything but Load, behind one control (#preset-overflow). The row
+                                     carried five: an accent block, an outlined box and three bare glyphs —
+                                     three treatments for one cluster, and by some way the densest row in
+                                     the app. Load is why the list exists and it overwrites your live
+                                     settings, so it stays a labelled target; Update, Duplicate, Rename and
+                                     Delete are all rare and deliberate, and three of the four open a dialog
+                                     anyway. Delete keeps the error color, but as a NAMED item rather than
+                                     a red glyph you have to hover to identify.
+
+                                     Click handlers, not Command bindings: a flyout's contents live in a
+                                     popup outside this row's visual tree, so $parent[ItemsControl] does not
+                                     resolve from in here. LogView's COPY menu is the same pattern. -->
+                                <c:IconButton Icon="{StaticResource IconDotsHorizontal}"
+                                              ToolTip.Tip="More actions for this preset"
+                                              AutomationProperties.Name="More actions">
+                                    <c:IconButton.Flyout>
+                                        <MenuFlyout>
+                                            <MenuItem Header="Update from current settings"
+                                                      Click="OnUpdatePreset" />
+                                            <MenuItem Header="Duplicate" Click="OnDuplicatePreset" />
+                                            <MenuItem Header="Rename…" Click="OnRenamePreset" />
+                                            <Separator />
+                                            <MenuItem Header="Delete" Click="OnDeletePreset"
+                                                      Foreground="{DynamicResource ErrorBrush}" />
+                                        </MenuFlyout>
+                                    </c:IconButton.Flyout>
+                                </c:IconButton>
+                            </WrapPanel>
+                        </Grid>
+                    </c:Entity>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Empty state, the same muted line the configurations folder uses. It was a centred, padded
+             Section — a grouping card standing in for a list of one thing that isn't there — restating
+             what the header above and the column to the right now both say. -->
+        <TextBlock Text="No presets yet. Save as preset takes a copy of your current settings."
+                   FontStyle="Italic" Foreground="{DynamicResource TextMutedBrush}"
+                   TextWrapping="Wrap" IsVisible="{Binding !HasPresets}" />
+    </StackPanel>
+
+        <!-- What a preset is. The page assumed you already knew: it showed a list of names and a Load
+             button, and nothing said that Load replaces the settings for every tablet at once. Prose
+             rather than a tooltip, because the thing worth knowing is what the whole page does. -->
+        <c:Section Width="320" VerticalAlignment="Top" Title="What a preset is">
+            <StackPanel Spacing="10">
+                <TextBlock TextWrapping="Wrap"
+                           Text="A preset is a named copy of the whole OpenTabletDriver configuration: every tablet you have set up, with its area, mapping, pen settings and filters, in one file." />
+            </StackPanel>
+        </c:Section>
+    </WrapPanel>
+</UserControl>

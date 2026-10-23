@@ -1,0 +1,2798 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using OpenTabletDriver.Desktop;
+using OpenTabletDriver.Desktop.Profiles;
+using OpenTabletDriver.Desktop.Reflection;
+using System.Numerics;
+using OpenTabletArtist.Concurrency;
+using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
+using OtdInterop;
+
+namespace OpenTabletArtist.ViewModels;
+
+/// <summary>A tablet-page tab that a health-issue "Fix" can deep-link to (so the fix opens on the tab
+/// that carries it, not the default About tab). See <see cref="TabletDetailViewModel.RequestTab"/>.</summary>
+public enum TabletDetailTab
+{
+    PenBehavior,
+    DisplayMapping,
+    // Pen-page pivots targeted by the artist-pen-behavior health links (#artist-pen-health).
+    PenInputs,
+    PenDynamics,
+    /// <summary>Tablet › Pen (tilt switch and pen button cards), R13.</summary>
+    PenTilt,
+}
+
+/// <summary>One row of the Calibration tab's positional report (#460): the target it was captured for
+/// (desktop px), the pixel-equivalent of where the uncorrected pen landed (<paramref name="Measured"/>),
+/// that tap's on-screen error in px (<paramref name="Delta"/>, #461), the raw tablet coordinate the pen
+/// reported, and the samples averaged for the tap. <paramref name="Measured"/>/<paramref name="Delta"/>
+/// are "—" for legacy reports captured before the pixel-equivalent was recorded.</summary>
+public sealed record CalibrationReportRow(string Index, string Target, string Measured, string Delta, string Raw, string Samples);
+
+/// <summary>One choice in the Display Mapping tab's Rotation dropdown: the angle, and how it reads.
+/// <c>None</c> rather than "0°" because not rotating is the normal state, not a measurement.</summary>
+public sealed record RotationOption(int Degrees, string Label);
+
+/// <summary>
+/// View model for a single tablet's settings — the tabbed editor (Screen Mapping, Pen Switches,
+/// ExpressKeys, Dynamics, Hover, Filters, JSON). Hosted either as an in-app page (the Tablets nav)
+/// or in the focused Pen Dynamics dialog the tray opens. Delegate-based (apply / refresh / detection
+/// probe / live pen input / calibrate) so the host wires it to the session.
+/// </summary>
+public partial class TabletDetailViewModel : ObservableObject, IDisposable
+{
+    private const string WinInkAbsoluteModePath = "VoiDPlugins.OutputMode.WinInkAbsoluteMode";
+    private const string WinInkRelativeModePath = "VoiDPlugins.OutputMode.WinInkRelativeMode";
+    // OTD's built-in output modes — used on macOS/Linux, where Windows Ink doesn't exist. Their type
+    // names carry "Absolute"/"Relative", so the substring detection in RefreshFromProfile recognises
+    // them exactly as it does the WinInk modes (#140).
+    private const string NativeAbsoluteModePath = "OpenTabletDriver.Desktop.Output.AbsoluteMode";
+    private const string NativeRelativeModePath = "OpenTabletDriver.Desktop.Output.RelativeMode";
+
+    // The OTD mode path for a movement direction + Windows-Ink choice. Windows Ink (pressure/tilt via
+    // VMulti) is the default on Windows; the "Don't use Windows Ink" toggle (#549) — and any non-Windows
+    // host, where Windows Ink doesn't exist — selects OTD's native output instead. So all four
+    // combinations are reachable: {Absolute, Relative} × {WinInk, native}.
+    private static string ModePath(bool absolute, bool disableWinInk) =>
+        !OperatingSystem.IsWindows() || disableWinInk
+            ? (absolute ? NativeAbsoluteModePath : NativeRelativeModePath)
+            : (absolute ? WinInkAbsoluteModePath : WinInkRelativeModePath);
+
+    private Profile _profile;
+    private Settings? _settings;
+    private readonly Func<Settings, Task<SettingsApplyOutcome>>? _applyAction;
+
+    /// <summary>Applies over a conflict the artist has chosen to overwrite (#906).</summary>
+    private int _draftGeneration;
+
+    /// <summary>Records that the user changed something, and returns the generation that change created.</summary>
+    private int NoteDraftEdit() => ++_draftGeneration;
+
+    /// <summary>
+    /// Edits the user has made that have not been written into the settings yet, one bit per debounced
+    /// group.
+    ///
+    /// The draft count answers "has anything changed since this apply started". This answers the other
+    /// question, which turns out to matter just as much: "does the revision coming back contain
+    /// everything the user has done". A slider moved a moment before a different, immediate edit is
+    /// waiting in its own debounce and is in no revision at all — so adopting that immediate apply's
+    /// result and refreshing would put the stored value back on screen and the pending edit would
+    /// vanish in front of the user.
+    ///
+    /// UI thread only, like the generation counter.
+    /// </summary>
+    private DraftGroup _unsubmitted;
+
+    [System.Flags]
+    private enum DraftGroup
+    {
+        None = 0,
+        Curve = 1,
+        Hover = 2,
+        WheelThreshold = 4,
+        Size = 8,
+    }
+
+    /// <summary>The user has edited <paramref name="group"/>; its persist has not run yet.</summary>
+    private int NoteDraftEdit(DraftGroup group)
+    {
+        _unsubmitted |= group;
+        return NoteDraftEdit();
+    }
+
+    /// <summary>
+    /// <paramref name="group"/> is no longer waiting to be written.
+    ///
+    /// Called at the top of each persist, BEFORE its own guards. The bit means "an edit is waiting", and
+    /// once the persist has run it is not waiting any more — whether or not the persist then decided
+    /// there was anything to write. Clearing it after an early return leaves it set for the life of the
+    /// editor, and a set bit silently stops all reconciliation: the app goes on working and simply stops
+    /// taking up what it sent. Nothing would fail, which is what makes it worth being careful about.
+    /// </summary>
+    private void DraftSubmitted(DraftGroup group) => _unsubmitted &= ~group;
+    // Opens the modal binding editor for a card's current binding + label; returns the chosen binding
+    // (or Unbound on Clear), or null on Cancel. Provided by the host that has the owner window.
+    private readonly Func<AuxBinding, string, Task<AuxBinding?>>? _editBinding;
+    // Detection source — when provided, the banner + tablet-dependent actions live-update on each
+    // data load (tablet plug/unplug, #177). Unsubscribed in Dispose so a cached page VM doesn't leak.
+    private readonly IDeviceData? _deviceData;
+    // Removes this tablet's saved profile (wired by the page host). Null in the tray dialog.
+    private readonly Func<Task>? _forgetAction;
+    // Opens the calibration overlay for the chosen options; the host supplies the owner window.
+    // Null when calibration isn't available (the focused Pen Dynamics dialog hides Screen Mapping).
+    private readonly Func<CalibrationOptions, Task>? _onCalibrate;
+    // Navigates to the CONFIGS page — the config-override card's Review button on the ABOUT tab (#467).
+    private readonly Action? _openConfigsPage;
+    // Returns the freshly-reloaded settings together with this tablet's profile from within them, so
+    // the VM can keep _settings and _profile coherent (the profile is a reference inside the settings).
+    private readonly Func<Task<(Settings? Settings, Profile? Profile)>>? _refreshAction;
+    // Probes whether this tablet is currently detected/connected (re-checked on open and on Refresh).
+    private readonly Func<bool>? _isDetectedProbe;
+    private readonly (float Width, float Height)? _tabletDigitizer;
+
+    // External-change reconciliation: the same app-owned daemon can be edited by another client
+    // (notably the OTD UX changing a mapping). The daemon pushes no "settings changed" event on a
+    // successful apply, so the shell re-pulls (on window activation, TabletsChanged, and the poll) and
+    // calls ReconcileExternalChange. When a reload diverges from what this editor holds we adopt it
+    // silently — unless the user has an unsaved edit, where we stash it and surface a banner instead
+    // of discarding their in-progress change.
+    [ObservableProperty] private IReadOnlyList<DisplayInfo> _displays = [];
+    [ObservableProperty] private int? _selectedDisplayNumber;
+
+    /// <summary>How the stored display mapping relates to the connected monitors, so the tab can flag an
+    /// off-screen or custom mapping instead of silently rendering it. Recomputed via
+    /// <see cref="RefreshTabletArea"/> on every mapping/display change.</summary>
+    public DisplayMappingValidity MappingValidity => DisplayMappingApplier.ClassifyMapping(_profile, Displays);
+    public bool ShowMappingOffScreen => MappingValidity == DisplayMappingValidity.OffScreen;
+    public bool ShowMappingCustom => MappingValidity == DisplayMappingValidity.Custom;
+
+    /// <summary>True when the tablet maps to the whole extended desktop (every monitor) — the "All displays"
+    /// choice, which is Wacom's default "Full" screen area.</summary>
+    public bool IsAllDisplaysMapped => DisplayMappingApplier.IsAllDisplays(_profile, Displays);
+
+    /// <summary>Show the "All displays" choice only when there is more than one monitor to span.</summary>
+    public bool HasSeveralDisplays => Displays.Count > 1;
+
+    // The "All displays" choice is remembered per tablet (not just inferred from the stored rectangle), so
+    // when a monitor is plugged in, unplugged or rearranged the whole-desktop mapping is re-applied to the new
+    // layout instead of being left pointing at the old one.
+    private string AllDisplaysKey => $"MapAllDisplays:{_profile.Tablet}";
+    private bool AllDisplaysChosen
+    {
+        get => Services.AppSettings.Get(AllDisplaysKey) == "1";
+        set => Services.AppSettings.Set(AllDisplaysKey, value ? "1" : "0");
+    }
+
+    /// <summary>Wacom's "Force Proportions" for the All displays mapping: keep the desktop's shape so circles
+    /// stay round. On by default (it is how the artist's working OpenTabletDriver setup was mapped).</summary>
+    public bool ForceProportions
+    {
+        get => Services.AppSettings.Get("AllDisplaysForceProportions") != "0";
+        set
+        {
+            if (value == ForceProportions) return;
+            Services.AppSettings.Set("AllDisplaysForceProportions", value ? "1" : "0");
+            OnPropertyChanged();
+            if (IsAllDisplaysMapped) _ = MapAllDisplays();   // re-fit the current whole-desktop mapping
+        }
+    }
+
+    /// <summary>Map the tablet to the whole extended desktop (every monitor), like Wacom's "Full".</summary>
+    [RelayCommand]
+    private async Task MapAllDisplays()
+    {
+        if (_applyAction == null || _settings == null || Displays.Count == 0) return;
+        AllDisplaysChosen = true;
+        var force = ForceProportions;
+        await _mappingApplyGate.RunAsync(() =>
+            ApplySettingsChange(p => DisplayMappingApplier.ApplyAllDisplays(p, CurrentDigitizer(), Displays, force)));
+        _suppressMappingApply = true;
+        try { SelectedDisplayNumber = null; }   // no single monitor is "the" mapping any more
+        finally { _suppressMappingApply = false; }
+        OnPropertyChanged(nameof(IsAllDisplaysMapped));
+    }
+
+    /// <summary>The tablet's size, read live: it can arrive after this page was created (tablet detected
+    /// later). The construction-time snapshot is the fallback.</summary>
+    private (float Width, float Height)? CurrentDigitizer() =>
+        _deviceData?.GetTabletDigitizer(_profile.Tablet ?? "") ?? _tabletDigitizer;
+
+    /// <summary>All displays is the remembered choice but the tablet area hasn't been fitted to the tablet's
+    /// real size (chosen before the tablet was detected): fit it now. Build F, review item 1.</summary>
+    private bool AllDisplaysNeedsRefit() =>
+        AllDisplaysChosen && _applyAction != null && _settings != null && Displays.Count > 0
+        && DisplayMappingApplier.NeedsAllDisplaysFit(_profile, CurrentDigitizer(), Displays, ForceProportions);
+
+    /// <summary>The stored display-output rectangle (0-based desktop coords) the screen-mapping diagram
+    /// overlays so an off-screen/custom mapping is shown, not just described. Null when there's no
+    /// Absolute area to map. Recomputed by <see cref="RefreshTabletArea"/>.</summary>
+    [ObservableProperty] private MappedOutputArea? _mappedOutput;
+    public string MappingValidityText => MappingValidity switch
+    {
+        DisplayMappingValidity.OffScreen =>
+            "This tablet's mapped area extends beyond your displays: part of the tablet maps to off-screen " +
+            "space, so the pen reaches dead zones there. Pick a display below to fix it.",
+        DisplayMappingValidity.Custom =>
+            "This tablet isn't mapped to a single whole display (a custom or multi-display area). Pick a " +
+            "display below for a standard, undistorted 1:1 setup.",
+        _ => "",
+    };
+
+    // Set while the selection is moved programmatically (initial load, an adopted external change, a
+    // display hot-plug) so it isn't mistaken for a user pick and auto-applied.
+    private bool _suppressMappingApply;
+
+    // Serialize + coalesce display-pick applies (#607): ApplyDisplayAsync mutates the shared profile before
+    // awaiting the daemon RPC, so unawaited fast re-picks could complete out of order and leave the mapping
+    // diverging from the last click. "Latest wins" — the in-flight apply finishes, then only the most
+    // recently picked display is applied.
+    private readonly LatestOnlyGate _mappingApplyGate = new();
+
+    partial void OnSelectedDisplayNumberChanged(int? value)
+    {
+        // Picking a display applies immediately — consistent with every other edit on this tab, so there's
+        // no separate Apply step. No-op when it's already the mapped display, so re-selecting the current
+        // monitor doesn't needlessly re-fit the active area.
+        if (_suppressMappingApply || _applyAction == null || value == null || value == CurrentlyMappedNumber())
+            return;
+        _ = _mappingApplyGate.RunAsync(ApplyDisplayAsync);
+    }
+
+    partial void OnIsAbsoluteOutputModeChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsAbsoluteMode)); // keep the Absolute/Relative toggle in sync
+        OnPropertyChanged(nameof(SelectedMovement));
+        OnPropertyChanged(nameof(CanCalibrate));   // calibration needs an Absolute mode (#127)
+        OnPropertyChanged(nameof(CanRunCalibration));
+        OnPropertyChanged(nameof(ShowConnectToCalibrateHint));
+        if (!_skipOutputModeChange && value)
+            _ = SetOutputMode(ModePath(true, DisableWindowsInk));
+    }
+
+    // --- Pointer calibration entry point (#127) ---
+
+    /// <summary>Calibration corrects an Absolute mapping, so the calibration UI is only shown in an
+    /// Absolute mode. (Whether it can actually run also needs a live tablet — see
+    /// <see cref="CanRunCalibration"/>.)</summary>
+    public bool CanCalibrate => IsAbsoluteOutputMode;
+
+    /// <summary>Calibration captures live pen taps, so it additionally needs the tablet connected
+    /// (#177) and a host that can open the overlay. Gates the Calibrate button so it can't be clicked
+    /// into the "not detected" dead-end, and flips live as the tablet is (un)plugged.</summary>
+    public bool CanRunCalibration => CanCalibrate && IsTabletDetected && _onCalibrate != null;
+
+    /// <summary>In an Absolute mode but the tablet isn't connected, so calibration is shown but
+    /// disabled — prompt the user to connect it (#177).</summary>
+    public bool ShowConnectToCalibrateHint => CanCalibrate && !IsTabletDetected;
+
+    /// <summary>Which display the calibration overlay opens on — the tablet's currently-mapped display —
+    /// so the user knows which screen to watch. Recomputed whenever the mapping/displays change (via
+    /// <see cref="RefreshTabletArea"/>).</summary>
+    public string CalibrationDisplayText
+    {
+        get
+        {
+            // Reads under the state line, so it says which display this calibration BELONGS to once one
+            // exists, and where the overlay will appear when one doesn't. "Calibration opens on: …" was
+            // right beneath a Start button and wrong beneath "Calibrated · 9 points" (#cal-state-first).
+            var mapped = DisplayMappingApplier.CurrentlyMapped(_profile, Displays);
+            var where = mapped != null ? $"Display {mapped.Number} ({mapped.Name})" : "your tablet's mapped display";
+            return HasCalibration ? $"For {where}" : $"The calibration screen opens on {where}";
+        }
+    }
+
+    /// <summary>Calibration capture presets: the corner method (→ homography, #195) or a finer grid
+    /// (→ bilinear offsets, #196). Each backs a calibration card whose START button begins that mode.</summary>
+    public IReadOnlyList<CalibrationModeChoice> CalibrationModeChoices { get; } = new List<CalibrationModeChoice>
+    {
+        new("4 point", CalibrationMode.Corners, 0, 0),
+        new("9 point", CalibrationMode.Grid, 3, 3),
+        new("25 point", CalibrationMode.Grid, 5, 5),
+    };
+
+    // Point count of the calibration currently applied to this profile (0 = none), so each card can show
+    // whether it's the one in use.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCurrent4Point))]
+    [NotifyPropertyChangedFor(nameof(IsCurrent9Point))]
+    [NotifyPropertyChangedFor(nameof(IsCurrent25Point))]
+    private int _currentCalibrationPoints;
+
+    public bool IsCurrent4Point => CurrentCalibrationPoints == 4;
+    public bool IsCurrent9Point => CurrentCalibrationPoints == 9;
+    public bool IsCurrent25Point => CurrentCalibrationPoints == 25;
+
+    // ── The calibration tab's state line and its named action (#cal-state-first) ──────────────────────
+    //
+    // The tab used to open with a choice — three equal cards, three equal START buttons — and left "am I
+    // calibrated?" to a status line beside them. It now opens with the answer, and the action names what
+    // it will do. These properties are that reading of the same underlying state.
+
+    /// <summary>Point count of the calibration STORED on this profile, whether or not its correction is
+    /// currently applied. Distinct from <see cref="CurrentCalibrationPoints"/>, which reports 0 while the
+    /// correction is off because it drives the "in use" marks — but the state line has to keep saying
+    /// "9 points" while you have them turned off to compare.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CalibrationStateHeadline))]
+    [NotifyPropertyChangedFor(nameof(CalibrationPrimaryText))]
+    [NotifyPropertyChangedFor(nameof(CalibrationPrimaryChoice))]
+    private int _storedCalibrationPoints;
+
+    /// <summary>The first thing on the tab: whether this tablet is calibrated, in plain words. "Not
+    /// calibrated" is a statement of fact, not a problem — most tablets never need it — so it is worded
+    /// and styled like every other state here rather than as a warning.</summary>
+    public string CalibrationStateHeadline =>
+        StoredCalibrationPoints <= 0 ? "Not calibrated"
+        : CalibrationEnabled ? $"Calibrated · {StoredCalibrationPoints} points"
+        : $"Correction off · {StoredCalibrationPoints} points";
+
+    /// <summary>Turn the stored correction off (or back on) without losing it — the comparison you make
+    /// to judge whether a calibration actually helped.</summary>
+    public string CalibrationToggleText => CalibrationEnabled ? "Turn off" : "Turn on";
+
+    /// <summary>What the primary button will do, spelled out. A bare "Recalibrate" leaves you guessing
+    /// which of the three it runs; this always names the density.</summary>
+    public string CalibrationPrimaryText =>
+        StoredCalibrationPoints > 0
+            ? $"REPEAT {StoredCalibrationPoints}-POINT CALIBRATION"
+            : "CALIBRATE · 4 POINTS";
+
+    /// <summary>The mode the primary button runs: the one you already have, or 4-point for a first
+    /// calibration — the density the copy has always recommended starting from.</summary>
+    public CalibrationModeChoice CalibrationPrimaryChoice =>
+        CalibrationModeChoices.FirstOrDefault(c => c.Points == StoredCalibrationPoints)
+        ?? CalibrationModeChoices[0];
+
+    /// <summary>The recorded taps that carry a pixel-equivalent, for the error map. Empty for a legacy
+    /// capture, which has no measured position to draw against its target.</summary>
+    [ObservableProperty] private IReadOnlyList<CalibrationReportPoint> _calibrationErrorPoints = [];
+
+    /// <summary>There are points to draw — gates the whole map block.</summary>
+    [ObservableProperty] private bool _hasCalibrationErrorMap;
+
+    /// <summary>The map's caption: typical and worst, never one figure on its own.</summary>
+    [ObservableProperty] private string _calibrationErrorSummary = "";
+
+    /// <summary>Flip the stored correction on or off. Was a two-way-bound ToggleSwitch; it is a button
+    /// now so the state line can say what pressing it does ("Turn off" / "Turn on") rather than leaving
+    /// you to read a switch position. The setter on <see cref="CalibrationEnabled"/> still does the work
+    /// of rewriting the stored calibration with the new flag.</summary>
+    [RelayCommand]
+    private void ToggleCalibrationEnabled() => CalibrationEnabled = !CalibrationEnabled;
+
+    /// <summary>Start calibrating in the chosen mode — each calibration card's START button passes its
+    /// <see cref="CalibrationModeChoice"/>. Reloads afterward so the status + stale hint stay coherent (#147).</summary>
+    [RelayCommand]
+    private async Task StartCalibration(CalibrationModeChoice? choice)
+    {
+        if (_onCalibrate == null || choice == null) return;
+        await _onCalibrate(choice.ToOptions());
+        await Refresh();
+    }
+
+    /// <summary>True when a calibration exists but was captured against a different area mapping than
+    /// the current one — it may no longer be accurate, so suggest recalibrating (#147).</summary>
+    [ObservableProperty] private bool _calibrationStale;
+
+    /// <summary>A calibration is <em>stored</em> on this profile (enabled or not) — gates the enable
+    /// toggle, the Clear button, and the report card.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CalibrationDisplayText))]
+    private bool _hasCalibration;
+
+    /// <summary>Whether the stored calibration is currently applying its correction. Two-way bound to the
+    /// enable toggle so it can be turned off to compare with/without the calibration, without clearing or
+    /// recapturing it. Setting it from the UI rewrites the stored calibration with the new Enabled state.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CalibrationStateHeadline))]
+    [NotifyPropertyChangedFor(nameof(CalibrationToggleText))]
+    private bool _calibrationEnabled;
+
+    /// <summary>Human-readable calibration state ("Not calibrated" / "Calibrated — …" / "Calibration off — …").</summary>
+    [ObservableProperty] private string _calibrationStatusText = "Not calibrated";
+
+    // Guards RefreshCalibrationStatus's assignment of CalibrationEnabled so reloading state doesn't
+    // re-trigger a write.
+    private bool _refreshingCalibration;
+
+    public bool CanClearCalibration => HasCalibration && _applyAction != null;
+    partial void OnHasCalibrationChanged(bool value) => OnPropertyChanged(nameof(CanClearCalibration));
+
+    partial void OnCalibrationEnabledChanged(bool value)
+    {
+        if (_refreshingCalibration) return;
+        _ = SetCalibrationEnabledAsync(value);
+    }
+
+    // Rewrite the stored calibration with the new enabled state, preserving its model/payload/report.
+    private async Task SetCalibrationEnabledAsync(bool enabled)
+    {
+        var cal = CalibrationProfile.ReadProfile(_profile);
+        if (cal == null) return;
+        await ApplySettingsChange(p => CalibrationProfile.Write(_settings, p.Tablet ?? "", cal with { Enabled = enabled }));
+    }
+
+    // Positional report of the recorded points from the current calibration (#460). Shown as a card on
+    // the Calibration tab whenever a calibration with stored points is active.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanExportCalibration))]
+    private bool _hasCalibrationReport;
+    [ObservableProperty] private string _calibrationReportSummary = "";
+    // Fit quality derived from the recorded taps (#461): the pre-calibration pointing error, and a
+    // warning when one tap looks like a misfire.
+    [ObservableProperty] private bool _hasCalibrationFit;
+    [ObservableProperty] private string _calibrationFitText = "";
+    [ObservableProperty] private bool _hasCalibrationFitWarning;
+    [ObservableProperty] private string _calibrationFitWarning = "";
+    // Average pen tilt across the taps (#481) — surfaced so the natural drawing angle is visible.
+    [ObservableProperty] private bool _hasCalibrationTilt;
+    [ObservableProperty] private string _calibrationTiltText = "";
+    public ObservableCollection<CalibrationReportRow> CalibrationReportRows { get; } = new();
+
+    private void RefreshCalibrationStatus()
+    {
+        _refreshingCalibration = true;
+        try
+        {
+            var cal = CalibrationProfile.ReadProfile(_profile);
+            HasCalibration = cal != null;
+            CalibrationStale = CalibrationProfile.IsStale(cal, CurrentMappingFingerprint());
+            CalibrationEnabled = cal is { Enabled: true };
+
+            static string ModeLabel(CalibrationProfile.CalibrationData c) => c.Model switch
+            {
+                CalibrationProfile.CalibrationModel.Homography => "4 point (perspective)", // older stores
+                CalibrationProfile.CalibrationModel.Grid => $"{(c.Grid?.Cols ?? 0) * (c.Grid?.Rows ?? 0)} point",
+                _ => "4 point", // least-squares affine — the current 4-point model (#483)
+            };
+            CalibrationStatusText = cal == null ? "Not calibrated"
+                : CalibrationEnabled ? $"Calibrated — {ModeLabel(cal)}"
+                : $"Calibration off — {ModeLabel(cal)}";
+
+            // "In use" badges reflect the active correction, so nothing is "in use" while it's off.
+            CurrentCalibrationPoints = !CalibrationEnabled || cal == null ? 0 : PointsOf(cal);
+            // The state line and the named action describe what is STORED, which survives turning the
+            // correction off — that is the whole point of being able to turn it off.
+            StoredCalibrationPoints = cal == null ? 0 : PointsOf(cal);
+
+            static int PointsOf(CalibrationProfile.CalibrationData c) => c.Model switch
+            {
+                CalibrationProfile.CalibrationModel.Homography => 4,
+                CalibrationProfile.CalibrationModel.Grid => (c.Grid?.Cols ?? 0) * (c.Grid?.Rows ?? 0),
+                _ => 4,
+            };
+            // The report describes the stored capture — show it whether the correction is on or off.
+            UpdateCalibrationReport(cal?.Report);
+        }
+        finally { _refreshingCalibration = false; }
+    }
+
+    // Rebuild the report rows from the calibration's stored points (#460), or clear them if none.
+    private void UpdateCalibrationReport(CalibrationReport? report)
+    {
+        CalibrationReportRows.Clear();
+        CalibrationFitText = "";
+        CalibrationFitWarning = "";
+        HasCalibrationFit = false;
+        HasCalibrationFitWarning = false;
+        CalibrationTiltText = "";
+        HasCalibrationTilt = false;
+        CalibrationErrorPoints = System.Array.Empty<CalibrationReportPoint>();
+        HasCalibrationErrorMap = false;
+        CalibrationErrorSummary = "";
+        if (report is null || report.Points.Count == 0)
+        {
+            HasCalibrationReport = false;
+            CalibrationReportSummary = "";
+            return;
+        }
+
+        // The map draws target -> measured per point, so it needs the points that recorded a
+        // pixel-equivalent; legacy captures stored NaN there and simply have no map.
+        var mappable = report.Points.Where(p => !float.IsNaN(p.MeasuredX) && !float.IsNaN(p.MeasuredY)).ToList();
+        CalibrationErrorPoints = mappable;
+        HasCalibrationErrorMap = mappable.Count > 0;
+        for (int i = 0; i < report.Points.Count; i++)
+        {
+            var p = report.Points[i];
+            bool hasPx = !float.IsNaN(p.MeasuredX) && !float.IsNaN(p.MeasuredY);
+            // Δ is the signed per-axis offset (measured − target) so its direction is visible, e.g. "-7, 3".
+            string delta = hasPx
+                ? $"{(int)MathF.Round(p.MeasuredX - p.TargetX)}, {(int)MathF.Round(p.MeasuredY - p.TargetY)}"
+                : "—";
+            CalibrationReportRows.Add(new CalibrationReportRow(
+                (i + 1).ToString(),
+                $"{p.TargetX:0}×{p.TargetY:0}",
+                hasPx ? $"{p.MeasuredX:0}×{p.MeasuredY:0}" : "—",
+                delta,
+                $"{p.RawX:0}, {p.RawY:0}",
+                p.Samples.ToString()));
+        }
+        CalibrationReportSummary = $"{report.DisplayName} · captured {report.CapturedAt}";
+        HasCalibrationReport = true;
+
+        // Fit quality: the pre-calibration pointing error the taps recorded (#461). A single outlier tap
+        // is flagged as a likely misfire — the practical "this capture looks off" signal.
+        if (report.ComputeFit() is { } fit)
+        {
+            CalibrationFitText = $"Pointing error corrected: {fit.RmsErrorPx:0} px RMS · up to {fit.MaxErrorPx:0} px";
+            // The map's caption, deliberately in the plural. A single average is the thing the map exists
+            // to replace — the drift usually grows toward one corner, and "typical" alone hides that.
+            CalibrationErrorSummary = $"Typical {fit.RmsErrorPx:0} px · worst {fit.MaxErrorPx:0} px";
+            HasCalibrationFit = true;
+            if (fit.HasOutlier && fit.OutlierIndex < report.Points.Count)
+            {
+                CalibrationFitWarning =
+                    $"Point {fit.OutlierIndex + 1} stands out ({report.Points[fit.OutlierIndex].ErrorPx:0} px) — " +
+                    "that tap may have missed the target; consider redoing the calibration.";
+                HasCalibrationFitWarning = true;
+            }
+        }
+
+        // Natural pen tilt across the taps (#481). Absent when the tablet doesn't report tilt.
+        if (report.ComputeTilt() is { } tilt)
+        {
+            CalibrationTiltText =
+                $"Pen tilt while calibrating: {tilt.AltitudeDeg:0}° from the surface, leaning {Compass(tilt.AzimuthDeg)}.";
+            HasCalibrationTilt = true;
+        }
+    }
+
+    // Azimuth (0° = +X / right, increasing toward +Y / down) → a rough compass word for the readout.
+    private static string Compass(float azimuthDeg)
+    {
+        string[] dirs = { "right", "down-right", "down", "down-left", "left", "up-left", "up", "up-right" };
+        int idx = (int)MathF.Round(azimuthDeg / 45f) & 7;
+        return dirs[idx];
+    }
+
+    /// <summary>Copy the calibration report as tab-separated text for sharing / debugging (#460).</summary>
+    [RelayCommand]
+    private void CopyCalibrationReport()
+    {
+        if (!HasCalibrationReport) return;
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"Calibration report — {CalibrationReportSummary}");
+        sb.AppendLine("#\tTarget (px)\tMeasured (px)\tΔ (px)\tMeasured raw (tablet)\tSamples");
+        foreach (var r in CalibrationReportRows)
+            sb.Append(r.Index).Append('\t').Append(r.Target).Append('\t').Append(r.Measured).Append('\t')
+              .Append(r.Delta).Append('\t').Append(r.Raw).Append('\t').Append(r.Samples).Append('\n');
+        if (HasCalibrationFit) sb.Append('\n').AppendLine(CalibrationFitText);
+        if (HasCalibrationFitWarning) sb.AppendLine(CalibrationFitWarning);
+        if (HasCalibrationTilt) sb.AppendLine(CalibrationTiltText);
+        ClipboardText.TrySet(sb.ToString());
+    }
+
+    /// <summary>Remove the calibration filter, returning the pointer to its uncorrected default.</summary>
+    [RelayCommand]
+    private async Task ClearCalibration()
+        => await ApplySettingsChange(p => CalibrationProfile.Clear(_settings, p.Tablet ?? ""));
+
+    /// <summary>Fingerprint of the profile's current Absolute mapping (input + output area + mapped
+    /// display), matching how <see cref="CalibrationProfile.Fingerprint"/> was written at calibration.</summary>
+    private string? CurrentMappingFingerprint()
+    {
+        var abs = _profile.AbsoluteModeSettings;
+        if (abs?.Tablet is not { } t || abs.Display is not { } d || CurrentlyMappedNumber() is not { } num)
+            return null;
+        var input = new MappingArea(t.X, t.Y, t.Width, t.Height, t.Rotation);
+        var output = new MappingArea(d.X, d.Y, d.Width, d.Height);
+        return CalibrationProfile.Fingerprint(input, output, num);
+    }
+
+    // ---- Calibration import / export (#545, moved from the Developer page). Save this tablet's
+    // calibration (recorded taps + solved model) to a portable JSON, then restore it later without
+    // re-tapping. Import is matching-only: it applies only when this tablet's current mapping matches the
+    // captured one. The file picker itself lives in the view (it needs the window's StorageProvider). ----
+
+    /// <summary>Status/summary line for the last calibration import/export.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasCaptureStatus))]
+    private string _captureStatus = "";
+
+    public bool HasCaptureStatus => !string.IsNullOrEmpty(CaptureStatus);
+
+    /// <summary>Export is only offered when there's a calibration with recorded taps to save.</summary>
+    public bool CanExportCalibration => HasCalibrationReport;
+
+    /// <summary>A default file name for the export dialog: <c>calibration-{N}point-{tablet}-{stamp}.json</c>.</summary>
+    public string SuggestedCaptureFileName
+    {
+        get
+        {
+            var cal = CalibrationProfile.ReadProfile(_profile);
+            var count = cal?.Report is { Points.Count: > 0 } r ? $"{r.Points.Count}point-" : "";
+            return $"calibration-{count}{Sanitize(TabletName)}-{DateTime.Now:yyyyMMdd-HHmmss}.json";
+        }
+    }
+
+    /// <summary>Build the export JSON for this tablet's saved calibration, or null (with a status set) when
+    /// there's nothing to export. The view writes the returned text to the chosen file.</summary>
+    public string? BuildCaptureJson()
+    {
+        if (!TryCalibrationContext(out var ctx, out var error)) { CaptureStatus = error; return null; }
+        var cal = CalibrationProfile.ReadProfile(_profile);
+        if (cal == null)
+        { CaptureStatus = $"{TabletName} has no calibration to export — calibrate it first."; return null; }
+        if (cal.Report == null || cal.Report.Points.Count == 0)
+        { CaptureStatus = $"{TabletName}'s calibration has no recorded taps to export (it predates point capture)."; return null; }
+        return CalibrationCaptureService.Build(TabletName, ctx.Digi, ctx.Input, ctx.Output, ctx.Display, cal).ToJson();
+    }
+
+    public void NoteCaptureExported(string path) => CaptureStatus = $"Exported calibration to {path}.";
+
+    /// <summary>Import a previously exported calibration and apply it to this tablet. Matching-only — it
+    /// applies only when the tablet's current mapping matches the capture; otherwise it explains why.</summary>
+    public async Task ImportCalibrationAsync(string json, string fileName)
+    {
+        var capture = CalibrationCapture.FromJson(json);
+        if (capture == null)
+        { CaptureStatus = "Couldn't read that file as a calibration (invalid JSON)."; return; }
+        if (capture.SchemaVersion > CalibrationCapture.CurrentSchemaVersion)
+        { CaptureStatus = $"That file is newer (v{capture.SchemaVersion}) than this app supports (v{CalibrationCapture.CurrentSchemaVersion}). Update the app."; return; }
+        if (capture.Points.Count == 0)
+        { CaptureStatus = "That file has no recorded calibration taps."; return; }
+
+        if (!TryCalibrationContext(out var ctx, out var error)) { CaptureStatus = error; return; }
+        if (!CalibrationCaptureService.Matches(capture, ctx.Digi, ctx.Input, ctx.Output, ctx.Display.Number, out var reason))
+        {
+            CaptureStatus = $"This calibration doesn't match {TabletName}'s current setup ({reason}). " +
+                            "Import is matching only. Map the tablet to the captured area, or recalibrate.";
+            return;
+        }
+
+        var fingerprint = CalibrationProfile.Fingerprint(ctx.Input, ctx.Output, ctx.Display.Number);
+        var data = CalibrationCaptureService.ToCalibrationData(capture, fingerprint);
+        if (data == null)
+        { CaptureStatus = "That file has no solved calibration model to apply."; return; }
+
+        await ApplySettingsChange(p => CalibrationProfile.Write(_settings, p.Tablet ?? "", data));
+        CaptureStatus = $"Imported {fileName} and applied it to {TabletName}.";
+    }
+
+    // This tablet's calibration mapping context (digitizer + input/output areas + the mapped display),
+    // resolved from its current Absolute mapping — what Build/Matches need.
+    private bool TryCalibrationContext(
+        out (TabletDigitizerSpec Digi, MappingArea Input, MappingArea Output, DisplayInfo Display) ctx, out string error)
+    {
+        ctx = default;
+        var abs = _profile.AbsoluteModeSettings;
+        if (abs?.Tablet is not { } t || abs.Display is not { } disp
+            || t.Width <= 0 || t.Height <= 0 || disp.Width <= 0 || disp.Height <= 0)
+        { error = $"{TabletName} needs an Absolute mapping with a known area + display first."; return false; }
+
+        if (_deviceData?.GetDigitizerSpec(_profile.Tablet ?? "") is not { } digi)
+        { error = $"Couldn't read {TabletName}'s digitizer spec."; return false; }
+
+        if (DisplayMappingApplier.CurrentlyMapped(_profile, Displays) is not { } display)
+        { error = "Couldn't match the mapped area to a connected display."; return false; }
+
+        var input = new MappingArea(t.X, t.Y, t.Width, t.Height, t.Rotation);
+        var output = new MappingArea(disp.X, disp.Y, disp.Width, disp.Height);
+        ctx = (digi, input, output, display);
+        error = "";
+        return true;
+    }
+
+    private static string Sanitize(string s)
+    {
+        foreach (var c in System.IO.Path.GetInvalidFileNameChars()) s = s.Replace(c, '-');
+        return s.Replace(' ', '-');
+    }
+
+    partial void OnIsRelativeOutputModeChanged(bool value)
+    {
+        if (!_skipOutputModeChange && value)
+            _ = SetOutputMode(ModePath(false, DisableWindowsInk));
+    }
+
+    /// <summary>True when the profile is on an Absolute output mode (Windows Ink absolute on Windows, OTD's
+    /// native absolute elsewhere) — drives the Movement cards' checked state (read-only / one-way). The mode
+    /// is CHANGED via <see cref="SelectMovementCommand"/>, not by writing this: two RadioButtons in a group
+    /// both TwoWay-bound here (one inverted) fought each other into an infinite apply↔reload loop, so
+    /// selection is now command-driven and the checked state is display-only.</summary>
+    public bool IsAbsoluteMode => IsAbsoluteOutputMode;
+
+    /// <summary>One entry in a rich dropdown on the pen page: a short title plus the line that explains it.
+    /// <see cref="Key"/> is the argument the matching Select… command takes.</summary>
+    public sealed record ChoiceOption(string Key, string Title, string Description);
+
+    public ChoiceOption[] MovementOptions { get; } =
+    [
+        new("absolute", "Normal (Absolute)", "The pen maps 1:1 to the screen."),
+        new("relative", "Mouse-like (Relative)", "The pen moves the cursor like a mouse."),
+    ];
+
+    public ChoiceOption[] PressModeOptions { get; } =
+    [
+        new("pen", "Presses normally", "Works like an artist would expect, with pressure sensitivity and tilt"),
+        new("mouse", "Presses like a mouse", "No pressure sensitivity or tilt"),
+    ];
+
+    /// <summary>The Movement dropdown's selection. Derived from the profile, and the setter only forwards a
+    /// real pick to <see cref="SelectMovementCommand"/> — which no-ops when the mode is already there, so
+    /// the ComboBox echoing the getter back on a reload cannot start an apply↔reload loop.</summary>
+    public ChoiceOption SelectedMovement
+    {
+        get => MovementOptions[IsAbsoluteMode ? 0 : 1];
+        set
+        {
+            if (value == null) return;
+            SelectMovementCommand.Execute(value.Key);
+            OnPropertyChanged(); // snap back to the profile's mode if the change did not apply
+        }
+    }
+
+    /// <summary>The Pressing dropdown's selection — same shape as <see cref="SelectedMovement"/>.</summary>
+    public ChoiceOption SelectedPressMode
+    {
+        get => PressModeOptions[DisableWindowsInk ? 1 : 0];
+        set
+        {
+            if (value == null) return;
+            SelectPressModeCommand.Execute(value.Key);
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>User picked a Movement card (Absolute / Relative). Fires only on a real click — unlike a
+    /// TwoWay IsChecked binding, which the RadioButton group re-triggers on every reload.</summary>
+    [RelayCommand]
+    private void SelectMovement(string mode)
+    {
+        bool wantAbsolute = mode == "absolute";
+        // Already in the requested direction? No-op. This keeps a redundant click from re-applying (the
+        // save-loop guard), AND stops a tablet that's already on a *native* Absolute/Relative mode from
+        // being force-swapped to the Windows-Ink equivalent on a click — the one deliberate, documented
+        // Windows behaviour change from the output-mode generalisation (#140 / the #510 review). Only a
+        // genuine direction change applies the platform-preferred mode.
+        if (wantAbsolute ? IsAbsoluteOutputMode : IsRelativeOutputMode) return;
+        // Preserve the current Windows-Ink choice when switching direction (#549).
+        _ = SetOutputMode(ModePath(wantAbsolute, DisableWindowsInk));
+    }
+
+    private async Task SetOutputMode(string path)
+    {
+        // Never re-apply the mode we're already on (also makes a redundant card click a no-op).
+        if (OutputModePath.Equals(path, StringComparison.OrdinalIgnoreCase)) return;
+
+        // Record the Windows-Ink opt-out BEFORE applying, not after. The apply triggers a daemon reload
+        // whose WindowsInkAutoSetup re-enables Windows Ink on every detected tablet that isn't opted out
+        // (Services/WindowsInkAutoSetup). If the flag is set only after the await, that reconcile races in
+        // first, sees this tablet as still-not-opted-out, and flips it back to Windows Ink — so "Don't use
+        // Windows Ink" would switch on for a moment then immediately revert (#winink-revert).
+        if (path.Contains("WinInk", StringComparison.OrdinalIgnoreCase))
+            WinInkAutoOptOut.Clear(_profile.Tablet);
+        else
+            WinInkAutoOptOut.OptOut(_profile.Tablet);
+
+        await ApplySettingsChange(p =>
+        {
+            p.OutputMode ??= new PluginSettingStore(path, true);
+            p.OutputMode.Path = path;
+        });
+    }
+
+    // ── "Don't use Windows Ink" toggle — Windows-only, applies to both movement modes (#549) ─────────
+    /// <summary>Whether the "Don't use Windows Ink" toggle applies: any mode on Windows. Off-Windows there
+    /// is no Windows Ink (OTD's native output is already used), so the toggle is hidden.</summary>
+    public bool CanDisableWindowsInk => OperatingSystem.IsWindows();
+
+    /// <summary>On → swap the current mode's Windows-Ink variant for OTD's plain (native) output, so the pen
+    /// behaves like a mouse at the cost of pressure and tilt. Orthogonal to Absolute/Relative — it applies
+    /// to whichever direction is active (#549). Reads back from the profile in
+    /// <see cref="RefreshFromProfile"/> (guarded); only a real user toggle applies a mode change.</summary>
+    [ObservableProperty] private bool _disableWindowsInk;
+
+    partial void OnDisableWindowsInkChanged(bool value)
+    {
+        OnPropertyChanged(nameof(SelectedPressMode));
+        if (_skipOutputModeChange || !OperatingSystem.IsWindows()) return;
+        _ = SetOutputMode(ModePath(IsAbsoluteOutputMode, value));
+    }
+
+    /// <summary>User picked a Press mode: "pen" = Windows Ink (pressure + tilt) or "mouse" = OTD's plain
+    /// output. Command-driven and display-only for the same reason as <see cref="SelectMovementCommand"/> —
+    /// two grouped RadioButtons TwoWay-bound to <see cref="DisableWindowsInk"/> would fight on reload.</summary>
+    [RelayCommand]
+    private void SelectPressMode(string mode)
+    {
+        bool wantDisable = mode == "mouse";
+        if (DisableWindowsInk == wantDisable) return; // no-op if already there
+        DisableWindowsInk = wantDisable; // OnDisableWindowsInkChanged applies the mode change
+    }
+
+    public TabletDetailViewModel(Profile profile, Settings? settings,
+        Func<Settings, Task<SettingsApplyOutcome>>? applyAction = null,
+        Func<Task<(Settings? Settings, Profile? Profile)>>? refreshAction = null,
+        (float Width, float Height)? tabletDigitizer = null,
+        IDaemonDebugSession? penInput = null,
+        Func<bool>? isDetected = null,
+        IDeviceData? deviceData = null,
+        Func<Task>? forgetAction = null,
+        Func<CalibrationOptions, Task>? onCalibrate = null,
+        Func<AuxBinding, string, Task<AuxBinding?>>? editBinding = null,
+        Action? openConfigsPage = null)
+    {
+        _profile = profile;
+        _settings = settings;
+        // The profile has to be a live reference inside the settings this editor will submit; edits go to
+        // the first and are sent via the second. AdoptProfile has asserted this since #124 — the
+        // constructor did not, which is how a caller pairing a profile with a different copy of the
+        // settings went unnoticed until it was reviewed.
+        Debug.Assert(settings == null || settings.Profiles.Contains(profile),
+            "The profile must be a reference inside the settings the editor will submit.");
+        _applyAction = applyAction;
+        _editBinding = editBinding;
+        _refreshAction = refreshAction;
+        _isDetectedProbe = isDetected;
+        _tabletDigitizer = tabletDigitizer;
+        _deviceData = deviceData;
+        _forgetAction = forgetAction;
+        _onCalibrate = onCalibrate;
+        _openConfigsPage = openConfigsPage;
+
+        if (penInput != null)
+        {
+            _penInput = new DaemonPenInputSource(penInput, AcceptDeviceReportForThisTablet);
+            _penInput.Sample += OnPenSample;
+            _penInput.AuxButtons += OnAuxButtons;
+            _penInput.PenButtons += OnPenButtons;
+            _penInput.WheelButtons += OnWheelButtons;
+            _penInput.WheelPositions += OnWheelPositions;
+            _penInput.WheelDeltas += OnWheelDeltas;
+        }
+
+        // Live-refresh the detection banner + tablet-dependent actions as tablets connect/disconnect
+        // while this view is open (#177, via the session's DataLoaded after a TabletsChanged push #170).
+        if (_deviceData != null)
+        {
+            _deviceData.DataLoaded += RefreshDetectionStatus;
+            _deviceData.DataLoaded += RefreshConfigOverride;   // config dir + files arrive/change on reload (#467)
+        }
+
+        // Show/hide the developer-only Filters/JSON tabs live as their Developer-tab toggles change.
+        DeveloperSettings.Instance.PropertyChanged += OnDeveloperSettingsChanged;
+
+        TabletName = profile.Tablet ?? "Unknown Tablet";
+        HasAreaMapping = profile.AbsoluteModeSettings != null;
+
+        Displays = DisplayEnumerator.Enumerate();
+        LoadAuxEnabledState();
+        LoadWheelEnabledState();
+        RefreshFromProfile();
+        RefreshDetectionStatus();
+        RefreshConfigOverride();
+        // Highlight the display the tablet is currently mapped to (else the primary). Suppress auto-apply
+        // for this initial, programmatic selection so opening the page doesn't re-apply the mapping.
+        _suppressMappingApply = true;
+        SelectedDisplayNumber = DefaultSelectedDisplay();
+        _suppressMappingApply = false;
+    }
+
+    /// <summary>Show the Filters tab — a developer-only view of the profile's raw filters, hidden unless
+    /// enabled on Advanced → Developer (users never need it).</summary>
+    public bool ShowFiltersTab => DeveloperSettings.Instance.ShowFiltersTab;
+    /// <summary>Show the JSON tab — the raw settings JSON, hidden unless enabled on Advanced → Developer.</summary>
+    public bool ShowJsonTab => DeveloperSettings.Instance.ShowJsonTab;
+    /// <summary>Show the "Cut below input minimum" dead-zone checkbox in Pressure Dynamics — hidden unless
+    /// re-enabled on the Developer tab (#569).</summary>
+    public bool ShowCutBelowMinimum => DeveloperSettings.Instance.ShowCutBelowMinimum;
+
+    private void OnDeveloperSettingsChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(DeveloperSettings.ShowFiltersTab)) OnPropertyChanged(nameof(ShowFiltersTab));
+        else if (e.PropertyName == nameof(DeveloperSettings.ShowJsonTab)) OnPropertyChanged(nameof(ShowJsonTab));
+        else if (e.PropertyName == nameof(DeveloperSettings.ShowCutBelowMinimum)) OnPropertyChanged(nameof(ShowCutBelowMinimum));
+    }
+
+    // Parameterless constructor for design-time
+    public TabletDetailViewModel()
+    {
+        _profile = new Profile { Tablet = "Design Tablet", OutputMode = new PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)) };
+        TabletName = "Design Tablet";
+        Displays = [];
+    }
+
+    private static string? GetPluginFriendlyName(string? path) =>
+        path == null ? null : AppInfo.PluginManager.GetFriendlyName(path);
+
+    private static string GetBindingName(PluginSettingStore? store) =>
+        PenSwitchBinding.GetBindingLabel(store, GetPluginFriendlyName);
+
+    /// <summary>Set when an in-page Refresh finds this tablet's profile gone (unplugged/removed since
+    /// it was opened); surfaced as a header warning. Cleared on a successful refresh.
+    /// (#124 / Cursor review on #125)</summary>
+    [ObservableProperty] private string? _refreshWarning;
+
+    // --- Tablet detected/connected banner (#132) ---
+
+    /// <summary>True when this tablet is the currently-connected one (green check vs. amber warning).</summary>
+    [ObservableProperty] private bool _isTabletDetected;
+    /// <summary>Short detection status for the header chip ("Detected" / "Not detected").</summary>
+    [ObservableProperty] private string _detectionText = "";
+    /// <summary>Longer detail shown under the header when the tablet isn't detected (empty when it is).</summary>
+    [ObservableProperty] private string _detectionDetail = "";
+
+    /// <summary>Whether this view draws its own header (name + status chip + Refresh/Forget). The TABLET
+    /// page host (#542) sets this false because it owns the switcher-dropdown header and mirrors the
+    /// status/actions there; standalone uses (e.g. the focused Pen Dynamics dialog) keep it true.</summary>
+    [ObservableProperty] private bool _showHeader = true;
+
+    partial void OnIsTabletDetectedChanged(bool value)
+    {
+        // Tablet-dependent actions follow the live detection state (#177).
+        OnPropertyChanged(nameof(CanRunCalibration));
+        OnPropertyChanged(nameof(ShowConnectToCalibrateHint));
+    }
+
+    /// <summary>Re-evaluate the detection banner + tablet-dependent actions from the current session
+    /// state. Called on open, on manual Refresh, and live whenever the daemon reports a tablet
+    /// add/remove while the page stays open (#177, driven by the #170 TabletsChanged signal).</summary>
+    public void RefreshDetectionStatus()
+    {
+        IsTabletDetected = _isDetectedProbe?.Invoke() ?? false;
+        DetectionText = IsTabletDetected ? "Detected" : "Not detected";
+        DetectionDetail = IsTabletDetected ? "" : "Not detected. Showing this tablet's saved settings.";
+        // Detection changing is exactly when the digitizer specs (dis)appear, so recompute the active
+        // area too. This self-heals "Active-area details aren't available" on reconnect — no restart.
+        RefreshTabletArea();
+        RefreshAbout(); // the ABOUT facts come from the same specs, so recover them on reconnect too
+        // The tablet's size may only now be known: finish an All displays choice made before detection.
+        MaybeRefitAllDisplays();
+    }
+
+    // The last (tablet size, desktop, rotation) a refit was attempted for, so a daemon that stores the area
+    // slightly differently can't make every settings refresh re-apply it again (no apply loop).
+    private string? _allDisplaysRefitTried;
+
+    private void MaybeRefitAllDisplays()
+    {
+        if (!AllDisplaysNeedsRefit()) return;
+        var key = $"{CurrentDigitizer()}|{DisplayMappingApplier.AllDisplaysArea(Displays)}|{_profile.AbsoluteModeSettings?.Tablet?.Rotation}|{ForceProportions}";
+        if (key == _allDisplaysRefitTried) return;
+        _allDisplaysRefitTried = key;
+        _ = MapAllDisplays();
+    }
+
+    /// <summary>Rebuild the ABOUT tab's fact lists from the tablet's live specs (empty when not detected).</summary>
+    private void RefreshAbout()
+    {
+        var info = _deviceData != null ? TabletAboutInfo.From(_deviceData.Tablets, TabletName) : null;
+        TabletFacts = info != null ? TabletAboutFacts.BuildFacts(info) : System.Array.Empty<TabletFact>();
+        ActiveAreaFacts = info != null ? TabletAboutFacts.BuildActiveAreaFacts(info) : System.Array.Empty<TabletFact>();
+        TabletFeatures = info != null ? TabletAboutFacts.BuildFeatures(info) : System.Array.Empty<TabletFact>();
+        SetAboutDiagram(info);
+    }
+
+    // ── ABOUT tab's active-area diagram ─────────────────────────────────────────────────────────────
+    // A to-scale rectangle of the tablet's active area, with its width, height and diagonal called out.
+    // The numbers are already in the fact list above; the point of the drawing is the SHAPE — how square
+    // or how wide a tablet is reads instantly here and not at all from "224 × 148 mm".
+
+    /// <summary>Longest edge of the drawing, in DIPs. The rectangle is scaled to fit this box on its longer
+    /// side, so a wide tablet and a squarer one are drawn at comparable visual weight.</summary>
+    private const double AboutDiagramMax = 232;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAboutDiagram))]
+    private double _aboutDiagramWidth;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AboutDiagramDiagonal))]
+    private double _aboutDiagramHeight;
+
+    /// <summary>The corner-to-corner line, built here rather than in the view: a Geometry bound straight to
+    /// Path.Data is an ordinary property binding, whereas binding a Point into a nested LineGeometry relies
+    /// on a non-visual element inheriting DataContext.</summary>
+    public Avalonia.Media.Geometry? AboutDiagramDiagonal => HasAboutDiagram
+        ? new Avalonia.Media.LineGeometry(new Avalonia.Point(0, AboutDiagramHeight),
+                                          new Avalonia.Point(AboutDiagramWidth, 0))
+        : null;
+
+    [ObservableProperty] private string _aboutDiagramWidthLabel = string.Empty;
+    [ObservableProperty] private string _aboutDiagramHeightLabel = string.Empty;
+    [ObservableProperty] private string _aboutDiagramDiagonalLabel = string.Empty;
+
+    /// <summary>Only drawn when the tablet is detected and reports a sane active area.</summary>
+    public bool HasAboutDiagram => AboutDiagramWidth > 0;
+
+    private void SetAboutDiagram(TabletAboutInfo? a)
+    {
+        if (a is null || a.WidthMm <= 0 || a.HeightMm <= 0)
+        {
+            AboutDiagramWidth = 0;
+            AboutDiagramHeight = 0;
+            return;
+        }
+
+        // Scale on the longer edge so the rectangle always fills the box in one direction.
+        double scale = AboutDiagramMax / System.Math.Max(a.WidthMm, a.HeightMm);
+        AboutDiagramWidth = System.Math.Round(a.WidthMm * scale);
+        AboutDiagramHeight = System.Math.Round(a.HeightMm * scale);
+
+        double diag = System.Math.Sqrt(a.WidthMm * a.WidthMm + a.HeightMm * a.HeightMm);
+        AboutDiagramWidthLabel = $"{a.WidthMm:0.#} mm";
+        AboutDiagramHeightLabel = $"{a.HeightMm:0.#} mm";
+        AboutDiagramDiagonalLabel = $"{diag:0.#} mm";
+    }
+
+    /// <summary>The tablet's core spec read-out for the ABOUT tab's SPECIFICATIONS card (identity + active
+    /// area size / diagonal / aspect ratio). Each row is included only when known.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasTabletFacts))]
+    private IReadOnlyList<TabletFact> _tabletFacts = System.Array.Empty<TabletFact>();
+
+    public bool HasTabletFacts => TabletFacts.Count > 0;
+
+    /// <summary>The active area's measurements — size, diagonal, aspect ratio. Its own list so the ABOUT
+    /// tab can group them under ACTIVE AREA with the drawing, rather than trailing the model's identity.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasActiveAreaFacts))]
+    private IReadOnlyList<TabletFact> _activeAreaFacts = System.Array.Empty<TabletFact>();
+
+    public bool HasActiveAreaFacts => ActiveAreaFacts.Count > 0;
+
+    /// <summary>The tablet's capability read-out for the ABOUT tab's FEATURES card — everything after the
+    /// active-area aspect ratio (resolution, pressure, buttons, wheels/strips, touch, USB id).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasTabletFeatures))]
+    private IReadOnlyList<TabletFact> _tabletFeatures = System.Array.Empty<TabletFact>();
+
+    public bool HasTabletFeatures => TabletFeatures.Count > 0;
+
+
+    // --- Config-override notice (#467): mirror the Home "Needs attention" card on the ABOUT tab, so the
+    // use of a custom config that shadows OTD's built-in is visible right where the tablet is inspected. ---
+
+    /// <summary>This tablet is driven by a user config file that overrides OTD's vetted built-in of the
+    /// same name — shows an attention card on the ABOUT tab (#467).</summary>
+    [ObservableProperty] private bool _isConfigOverride;
+
+    private void RefreshConfigOverride()
+    {
+        IsConfigOverride = _deviceData != null
+            && !string.IsNullOrEmpty(TabletName)
+            && TabletConfigInspector.OverriddenBaseNames(_deviceData.ConfigurationDirectory).Contains(TabletName);
+    }
+
+    /// <summary>Open the CONFIGS page to review/remove the override (the card's Review button).</summary>
+    [RelayCommand]
+    private void ReviewConfig() => _openConfigsPage?.Invoke();
+
+    [RelayCommand]
+    private async Task Refresh()
+    {
+        if (_refreshAction == null) return;
+        var (settings, profile) = await _refreshAction();
+        if (profile == null)
+        {
+            // The tablet/profile is gone (unplugged or removed since it was opened). Keep showing the
+            // last-known data rather than blanking it, but warn it may be stale.
+            RefreshWarning = "No longer detected. Showing the last known settings.";
+            RefreshDetectionStatus();
+            return;
+        }
+
+        if (settings == null) { RefreshDetectionStatus(); return; }
+        if (_unsubmitted == DraftGroup.None) AdoptProfile(settings, profile);
+    }
+
+    private void AdoptProfile(Settings settings, Profile profile)
+    {
+        NoteDraftEdit();
+        _settings = settings;
+        _profile = profile;
+        RefreshWarning = null;
+        RefreshFromProfile();
+        _suppressMappingApply = true;
+        SelectedDisplayNumber = DefaultSelectedDisplay();
+        _suppressMappingApply = false;
+        RefreshDetectionStatus();
+    }
+
+    public void ReconcileExternalChange(Settings? settings, Profile? profile)
+    {
+        if (settings is null || profile is null || _unsubmitted != DraftGroup.None) return;
+        if (ProfileFingerprint.Compute(profile) != ProfileFingerprint.Compute(_profile))
+            AdoptProfile(settings, profile);
+    }
+
+    /// <summary>Drop pending input after explicit reload or a connection boundary.</summary>
+    public void ResetPendingEdits()
+    {
+        NoteDraftEdit();
+        _unsubmitted = DraftGroup.None;
+        _persistDebounce.CancelPending();
+        _hoverPersistDebounce.CancelPending();
+        _sizeDebounce.CancelPending();
+        _wheelThresholdDebounce.CancelPending();
+        _pendingThresholds.Clear();
+        _sizeEditPending = false;
+        RefreshFromProfile();
+    }
+
+    public bool HasPendingEdits => _unsubmitted != DraftGroup.None;
+
+    /// <summary>Save flushes every input group before persisting the shared workspace.</summary>
+    public async Task FlushPendingEditsAsync()
+    {
+        await _persistDebounce.FlushAsync();
+        await _hoverPersistDebounce.FlushAsync();
+        await _sizeDebounce.FlushAsync();
+        await _wheelThresholdDebounce.FlushAsync();
+    }
+
+    private async Task ApplySettingsChange(Action<Profile> modify)
+    {
+        if (_applyAction == null || _settings == null) return;
+        var draft = NoteDraftEdit();
+        modify(_profile);
+        var outcome = await SubmitAsync(_settings);
+        if (draft != _draftGeneration || _unsubmitted != DraftGroup.None) return;
+        if (!TakeOutcome(outcome, draft)) RefreshFromProfile();
+    }
+
+    private Task<SettingsApplyOutcome> SubmitAsync(Settings settings) => _applyAction!(settings);
+
+    private bool TakeOutcome(SettingsApplyOutcome outcome, int draft) => TryAdoptApplied(outcome, draft);
+
+    private bool TryAdoptApplied(SettingsApplyOutcome outcome, int draft)
+    {
+        if (draft != _draftGeneration || _unsubmitted != DraftGroup.None || !outcome.IsLive
+            || outcome.Prepared is not { } prepared) return false;
+        var applied = prepared.Settings.Profiles.FirstOrDefault(p => p.Tablet == _profile.Tablet);
+        if (applied is null) return false;
+        _settings = prepared.Settings;
+        _profile = applied;
+        RefreshFromProfile();
+        return true;
+    }
+
+    /// <summary>Remove this tablet's saved profile. Forget now lives on the Home tablet cards (#575);
+    /// this command + <c>_forgetAction</c> stay wired for a future non-dynamics tray dialog, but no view
+    /// currently binds it.</summary>
+    [RelayCommand]
+    private async Task Forget()
+    {
+        if (_forgetAction != null) await _forgetAction();
+    }
+
+    // ── Pen input toggles (#469): per-profile BindingSettings flags applied on change ────────────────
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PressureDisabledNote))]
+    private bool _disablePressure;
+    [ObservableProperty] private bool _disableTilt;
+    [ObservableProperty] private bool _dragBindingsEnabled;
+    [ObservableProperty] private bool _disablePenTip;
+    /// <summary>R18: the eraser end off — OTD's eraser is a binding (<c>BindingSettings.EraserButton</c>), so
+    /// "off" clears it, stashing the old one like the tip (#493).</summary>
+    [ObservableProperty] private bool _disableEraser;
+
+    /// <summary>R18 wrote "pressure off" as a flat 30% curve. Version 1 replaces it with the manual pressure
+    /// below; a profile still holding that flat curve is read as "pressure off" and rewritten.</summary>
+    public const double LegacyFixedPressure = 0.30;
+
+    // ---- Version 1: Manual Pen Tip / Eraser Pressure, used while pressure sensitivity is off --------
+    [ObservableProperty] private double _manualTipPressure = PressureCurveProfile.ManualPressure.DefaultValue;
+    [ObservableProperty] private double _manualEraserPressure = PressureCurveProfile.ManualPressure.DefaultValue;
+    private bool _skipManualPersist, _legacyFlatPending;
+    public string ManualTipPressureText => $"{Math.Round(ManualTipPressure * 100):0}%";
+    public string ManualEraserPressureText => $"{Math.Round(ManualEraserPressure * 100):0}%";
+    partial void OnManualTipPressureChanged(double value) { OnPropertyChanged(nameof(ManualTipPressureText)); PersistManual(); }
+    partial void OnManualEraserPressureChanged(double value) { OnPropertyChanged(nameof(ManualEraserPressureText)); PersistManual(); }
+
+    /// <summary>Typed percentage (0–100) for the numeric boxes.</summary>
+    public double ManualTipPercent { get => Math.Round(ManualTipPressure * 100); set => ManualTipPressure = Math.Clamp(value, 0, 100) / 100; }
+    public double ManualEraserPercent { get => Math.Round(ManualEraserPressure * 100); set => ManualEraserPressure = Math.Clamp(value, 0, 100) / 100; }
+
+    private PressureCurveProfile.ManualPressure CurrentManual => new(DisablePressure, ManualTipPressure, ManualEraserPressure);
+
+    private void PersistManual()
+    {
+        OnPropertyChanged(nameof(ManualTipPercent)); OnPropertyChanged(nameof(ManualEraserPercent));
+        if (_skipManualPersist || _skipPenInputPersist) return;
+        AppSettings.Set($"ManualTipPressure:{_profile.Tablet}", ManualTipPressure.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        AppSettings.Set($"ManualEraserPressure:{_profile.Tablet}", ManualEraserPressure.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _ = ApplySettingsChange(p =>
+            PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", WrittenDynamics(), enable: true, CurrentManual));
+    }
+    private bool _skipPenInputPersist;
+
+    /// <summary>Backup slot (per tablet, persisted) for the tip binding stashed while the tip is
+    /// disabled, so turning the tip back on restores exactly what was there — mirrors the aux master
+    /// toggle's stash (#493).</summary>
+    private string TipBackupKey => $"TipBackup:{_profile.Tablet}";
+
+    /// <summary>Shown on the Pressure Dynamics tab when pressure is disabled — the curve then has no
+    /// effect, because the output stage drops pressure entirely (#469).</summary>
+    public bool PressureDisabledNote => DisablePressure;
+
+    /// <summary>R18: OTD's own DisablePressure only stops the output stage from setting pressure (apps then
+    /// see no pressure at all, not 30%). So the switch is realised in our Pen Dynamics filter instead: a flat
+    /// curve (Minimum = Maximum = 0.30) gives every pressed sample exactly 30% in the daemon, for every app and
+    /// both pen ends, with OTD's flag kept off. The user's Tip Feel curve is stashed and comes back when the
+    /// switch goes off. Scribble and the live bars read the same filter settings, so they agree.</summary>
+    partial void OnDisablePressureChanged(bool value)
+    {
+        if (_skipPenInputPersist) return;
+        _ = ApplySettingsChange(p =>
+        {
+            p.BindingSettings.DisablePressure = false;
+            PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", WrittenDynamics(), enable: true, CurrentManual);
+        });
+        AppSettings.Set(CurveBackupKey, "");
+    }
+
+    private string CurveBackupKey => $"CurveBackup:{_profile.Tablet}";
+
+    /// <summary>The flat curve that stands for "pressure sensitivity off".</summary>
+    public static readonly PressureCurveSettings FixedPressureCurve =
+        new(Softness: 0, InputMinimum: 0, InputMaximum: 1, Minimum: LegacyFixedPressure, Maximum: LegacyFixedPressure,
+            MinApproach: PressureMinApproach.Clamp);
+
+    public static bool IsFixedPressureCurve(PressureCurveSettings c) =>
+        Math.Abs(c.Minimum - LegacyFixedPressure) < 1e-4 && Math.Abs(c.Maximum - LegacyFixedPressure) < 1e-4;
+
+    /// <summary>What goes into the filter: the fixed curve while pressure is off, else the user's curve.</summary>
+    private PenDynamicsSettings WrittenDynamics() =>
+        new(Curve, PressureSmoothing, PositionSmoothing, SmoothAfterCurve);
+
+    partial void OnDisableEraserChanged(bool value)
+    {
+        if (_skipPenInputPersist) return;
+        _ = SetEraserDisabledAsync(value);
+    }
+
+    private string EraserBackupKey => $"EraserBackup:{_profile.Tablet}";
+
+    private async Task SetEraserDisabledAsync(bool disabled)
+    {
+        if (_applyAction == null) return;
+        if (disabled)
+        {
+            if (!PenSwitchBinding.IsOff(_profile.BindingSettings.EraserButton))
+                AppSettings.Set(EraserBackupKey, JsonConvert.SerializeObject(_profile.BindingSettings.EraserButton));
+            // Version 1: off everywhere except this app's own window (so the switch stays reachable).
+            await ApplySettingsChange(p => p.BindingSettings.EraserButton = PenSwitchBinding.MakeOwnWindowBinding());
+        }
+        else
+        {
+            PluginSettingStore? restored = null;
+            var backup = AppSettings.Get(EraserBackupKey);
+            if (!string.IsNullOrEmpty(backup))
+            {
+                try { restored = JsonConvert.DeserializeObject<PluginSettingStore>(backup); } catch { }
+            }
+            restored ??= PenSwitchBinding.MakeAdaptiveBinding(PenSwitchKind.Eraser);
+            await ApplySettingsChange(p => p.BindingSettings.EraserButton = restored);
+            AppSettings.Set(EraserBackupKey, "");
+        }
+    }
+
+    partial void OnDisableTiltChanged(bool value)
+    {
+        if (_skipPenInputPersist) return;
+        _ = ApplySettingsChange(p => p.BindingSettings.DisableTilt = value);
+    }
+
+    partial void OnDragBindingsEnabledChanged(bool value)
+    {
+        if (_skipPenInputPersist) return;
+        _ = ApplySettingsChange(p => p.BindingSettings.EnableDragBindings = value);
+    }
+
+    partial void OnDisablePenTipChanged(bool value)
+    {
+        if (_skipPenInputPersist) return;
+        _ = SetPenTipDisabledAsync(value);
+    }
+
+    /// <summary>Disable the pen tip by clearing its binding — OTD has no "disable tip" flag; the tip is
+    /// a binding (<c>BindingSettings.TipButton</c>), so "off" means no binding. The prior binding is
+    /// stashed so turning the tip back on restores exactly what was there, falling back to the Adaptive
+    /// (Tip) default if there's no usable stash (#493).</summary>
+    private async Task SetPenTipDisabledAsync(bool disabled)
+    {
+        if (_applyAction == null) return;
+        if (disabled)
+        {
+            if (!PenSwitchBinding.IsOff(_profile.BindingSettings.TipButton))
+                AppSettings.Set(TipBackupKey, JsonConvert.SerializeObject(_profile.BindingSettings.TipButton));
+            // Version 1: off everywhere except this app's own window (so the switch stays reachable).
+            await ApplySettingsChange(p => p.BindingSettings.TipButton = PenSwitchBinding.MakeOwnWindowBinding());
+        }
+        else
+        {
+            var backup = AppSettings.Get(TipBackupKey);
+            PluginSettingStore? restored = null;
+            if (!string.IsNullOrEmpty(backup))
+            {
+                try { restored = JsonConvert.DeserializeObject<PluginSettingStore>(backup); }
+                catch { /* corrupt stash — fall back to the default below */ }
+            }
+            restored ??= PenSwitchBinding.MakeAdaptiveBinding(PenSwitchKind.Tip);
+            await ApplySettingsChange(p => p.BindingSettings.TipButton = restored);
+            AppSettings.Set(TipBackupKey, "");
+        }
+    }
+
+    private void RefreshFromProfile()
+    {
+        // Output mode
+        OutputModePath = _profile.OutputMode?.Path ?? "Not set";
+        OutputModeShort = OutputModePath.Split('.').LastOrDefault() ?? OutputModePath;
+
+        var isWinInk = OutputModePath.Contains("WinInk", StringComparison.OrdinalIgnoreCase);
+
+        _skipOutputModeChange = true;
+        // Detect the movement direction from the mode-path name, so OTD's NATIVE modes
+        // (OpenTabletDriver.Desktop.Output.AbsoluteMode/RelativeMode) are recognised as well as the
+        // WinInk modes — both carry the word "Absolute"/"Relative" (#140). For a WinInk path this is the
+        // same result the old exact-match gave, so Windows behaviour is unchanged.
+        IsAbsoluteOutputMode = OutputModePath.Contains("Absolute", StringComparison.OrdinalIgnoreCase);
+        IsRelativeOutputMode = OutputModePath.Contains("Relative", StringComparison.OrdinalIgnoreCase);
+        // "Don't use Windows Ink" is on whenever a Windows tablet is on a non-WinInk mode — either
+        // direction (#549).
+        DisableWindowsInk = OperatingSystem.IsWindows() && !isWinInk;
+        _skipOutputModeChange = false;
+
+        // "Fix output mode → Windows Ink" is a Windows-only remediation (VMulti + WinInk). Off-Windows the
+        // native mode is the correct output, so there's nothing to fix. On Windows it's fixable when the
+        // mode isn't already a WinInk one — UNLESS the user deliberately opted out via the "Don't use
+        // Windows Ink" sub-option, in which case nagging them to undo it would be wrong (#549).
+        CanFixOutputMode = OperatingSystem.IsWindows() && !isWinInk && _applyAction != null
+            && !WinInkAutoOptOut.IsOptedOut(_profile.Tablet);
+
+        // Bindings — pen switches (tip, eraser, barrel buttons)
+        var bindings = _profile.BindingSettings;
+        RefreshPenSwitchRows();
+
+        // Pen input toggles (#469) — load without re-persisting.
+        _skipPenInputPersist = true;
+        // R18: off = our fixed 30% curve (or OTD's own flag on a profile saved by an older build).
+        var pcRead = PressureCurveProfile.Read(_settings, _profile.Tablet ?? "");
+        var manual = PressureCurveProfile.ReadManual(_settings, _profile.Tablet ?? "");
+        DisablePressure = bindings.DisablePressure || manual.On || (pcRead is { } r0 && IsFixedPressureCurve(r0.Dynamics.Curve));
+        _skipManualPersist = true;
+        ManualTipPressure = manual.On ? manual.Tip : SavedManual("ManualTipPressure", manual.Tip);
+        ManualEraserPressure = manual.On ? manual.Eraser : SavedManual("ManualEraserPressure", manual.Eraser);
+        _skipManualPersist = false;
+        _legacyFlatPending = !manual.On && pcRead is { } r1 && IsFixedPressureCurve(r1.Dynamics.Curve);
+        DisableEraser = PenSwitchBinding.IsOff(bindings.EraserButton);
+        DisableTilt = bindings.DisableTilt;
+        DragBindingsEnabled = bindings.EnableDragBindings;
+        // The tip is disabled when it has no binding (#493). Derived from the profile so it stays in
+        // sync when the tip binding is edited directly on the pen-switch card.
+        DisablePenTip = PenSwitchBinding.IsOff(bindings.TipButton);
+        _skipPenInputPersist = false;
+        OnPropertyChanged(nameof(PressureDisabledNote));
+
+        // ExpressKeys — editable single-key bindings. While mapping is suspended we show the stashed
+        // bindings (greyed) so the user still sees what will come back.
+        var auxStores = EffectiveAuxStores();
+        AuxButtonCount = auxStores.Count.ToString();
+        var canEditAux = _applyAction != null && AuxButtonsEnabled;
+
+        var newAuxButtons = new List<ButtonBinding>();
+        for (int i = 0; i < auxStores.Count; i++)
+        {
+            var store = auxStores[i];
+            var binding = AuxKeyBinding.ReadBinding(store); // null = a binding this editor can't model
+            newAuxButtons.Add(new ButtonBinding(
+                index: i + 1,
+                binding: binding ?? AuxBinding.Unbound,
+                isOtherBinding: binding == null,
+                otherLabel: binding == null ? GetBindingName(store) : "",
+                canEdit: canEditAux,
+                applyBinding: ApplyAuxBindingAsync,
+                editBinding: _editBinding));
+        }
+        AuxButtons = newAuxButtons;
+        NoAuxButtons = newAuxButtons.Count == 0;
+        ShowAuxControls = newAuxButtons.Count > 0 && _applyAction != null;
+
+        // Wheel bindings — rotation (CW/CCW) + wheel buttons + thresholds per wheel.
+        RefreshWheels();
+
+        // Filters + raw JSON view (also refreshed after a dynamics toggle/edit persists, so the
+        // Filters tab reflects the DynamicsFilter's enabled state without a manual Refresh).
+        UpdateFiltersDisplay();
+
+        // Active-area diagram (full + effective area + mapped display).
+        RefreshTabletArea();
+
+        // Pen dynamics — curve + smoothing (load without triggering a persist)
+        var pc = PressureCurveProfile.Read(_settings, _profile.Tablet ?? "");
+        var dynamics = pc?.Dynamics ?? PenDynamicsSettings.Default;
+        _skipCurvePersist = true;
+        // R18: while pressure is off the filter holds the flat 30% curve; the Feel controls show the user's
+        // stashed curve, which comes back when the switch goes off.
+        Curve = IsFixedPressureCurve(dynamics.Curve) ? StashedCurve() ?? PressureCurveSettings.Default : dynamics.Curve;
+        // Clamp both to their slider ceilings (#487, #496) so a profile saved with a heavier value (or one
+        // set by another tool) reads back within the usable range.
+        PressureSmoothing = Math.Min(dynamics.PressureSmoothing, PenSmoothing.MaxPressureSmoothingAmount);
+        PositionSmoothing = Math.Min(dynamics.PositionSmoothing, PenSmoothing.MaxPositionSmoothingAmount);
+        // Order is no longer user-configurable (#558): pressure smoothing always runs after the curve.
+        SmoothAfterCurve = true;
+        _skipCurvePersist = false;
+        // Version 1: a profile saved by R18 still holds the flat 30% curve; rewrite it once as the user's curve
+        // plus the manual pressure.
+        if (_legacyFlatPending && _applyAction != null)
+        {
+            _legacyFlatPending = false;
+            _ = ApplySettingsChange(p =>
+                PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", WrittenDynamics(), enable: true, CurrentManual));
+        }
+        CanEditPressure = _applyAction != null;
+        NotifyDynamicsStatus();
+
+        // Hover limit (#188) — load without triggering a persist.
+        var hover = HoverProfile.Read(_settings, _profile.Tablet ?? "");
+        _skipHoverPersist = true;
+        MaxHoverDistance = hover?.MaxHoverDistance ?? DefaultMaxHoverDistance;
+        HoverLimitEnabled = hover?.Enabled ?? false;
+        NearProximityOnly = hover?.NearProximityOnly ?? false;
+        _skipHoverPersist = false;
+        CanEditHover = _applyAction != null;
+
+        RefreshCalibrationStatus();
+    }
+
+    /// <summary>Recomputes the Filters-tab list and the raw-JSON view from the current
+    /// <see cref="_profile"/>. Called on a full refresh and again after a dynamics edit persists,
+    /// so the Filters tab tracks the DynamicsFilter's enabled state without a manual Refresh.</summary>
+    private void UpdateFiltersDisplay()
+    {
+        Filters.Clear();
+        foreach (var f in _profile.Filters)
+        {
+            var path = f?.Path ?? "Unknown";
+            var typeName = path.Split('.').LastOrDefault() ?? "Unknown";
+            Filters.Add(new FilterCardViewModel(
+                title: FriendlyFilterName(typeName),
+                fullPath: path,
+                enabled: f?.Enable ?? true,
+                origin: ProfileFilterMaintenance.Classify(path)));
+        }
+        HasFilters = Filters.Count > 0;
+
+        RawJson = JsonConvert.SerializeObject(_profile, Formatting.Indented);
+    }
+
+    /// <summary>Maps our plugin filter class names to the friendly labels they carry as
+    /// <c>[PluginName]</c> in the plugin; anything else (third-party filters) keeps its type name.</summary>
+    private static string FriendlyFilterName(string typeName) => typeName switch
+    {
+        "DynamicsFilter" => "Pen Dynamics",
+        "HoverFilter" => "Hover Limit",
+        "CalibrationFilter" => "Calibration",
+        "RingGestureGate" => "Ring Gesture Gate",
+        _ => typeName,
+    };
+
+    [RelayCommand]
+    private async Task FixOutputMode()
+    {
+        await SetOutputMode(WinInkAbsoluteModePath);
+    }
+
+    /// <summary>Map the tablet to the currently-selected display. Called automatically when the user picks
+    /// a display in the diagram (there's no separate Apply button — the pick applies immediately).</summary>
+    private async Task ApplyDisplayAsync()
+    {
+        var display = Displays.FirstOrDefault(d => d.Number == SelectedDisplayNumber);
+        if (_applyAction == null || _settings == null || display == null) return;
+        AllDisplaysChosen = false;   // the artist picked one monitor
+
+        // Same mapping the tray's "Switch display" uses — aspect-locked, full-monitor (#187).
+        await ApplySettingsChange(p => DisplayMappingApplier.ApplyToProfile(p, _tabletDigitizer, display, Displays));
+    }
+
+    /// <summary>Re-read the connected monitors from Windows (manual Refresh or a live display change).</summary>
+    [RelayCommand]
+    private void RefreshDisplays()
+    {
+        var keep = SelectedDisplayNumber;
+        Displays = DisplayEnumerator.Enumerate();
+        // A display hot-plug moves the selection programmatically — suppress auto-apply so re-enumerating
+        // monitors never silently remaps the tablet.
+        _suppressMappingApply = true;
+        SelectedDisplayNumber =
+            (keep != null && Displays.Any(d => d.Number == keep)) ? keep
+            : DefaultSelectedDisplay();
+        _suppressMappingApply = false;
+        RefreshTabletArea(); // displays changed → recompute the mapped-display side of the diagram
+
+        // "All displays" was chosen: follow the new monitor layout (hot-plug / rearrange).
+        if (AllDisplaysChosen && _applyAction != null && Displays.Count > 0 && !IsAllDisplaysMapped)
+            _ = MapAllDisplays();
+        else
+            MaybeRefitAllDisplays();
+    }
+
+    [RelayCommand]
+    private void OpenDisplaySettings()
+    {
+        Services.PlatformShell.OpenDisplaySettings();
+    }
+
+    /// <summary>The display the profile is currently mapped to (full-monitor match), or null.</summary>
+    private int? CurrentlyMappedNumber() => DisplayMappingApplier.CurrentlyMapped(_profile, Displays)?.Number;
+
+    /// <summary>The display to pre-select in the picker. A clean mapping selects its monitor; a custom /
+    /// off-screen mapping selects nothing (so the diagram doesn't fake a clean pick — the warning guides
+    /// the user to choose); no mapping falls back to the primary as a sensible starting point.</summary>
+    private int? DefaultSelectedDisplay() => DisplayMappingApplier.IsAllDisplays(_profile, Displays) ? null
+        : DisplayMappingApplier.ClassifyMapping(_profile, Displays) switch
+    {
+        DisplayMappingValidity.Clean => CurrentlyMappedNumber(),
+        DisplayMappingValidity.Custom or DisplayMappingValidity.OffScreen => null,
+        _ => Displays.FirstOrDefault(d => d.IsPrimary)?.Number ?? Displays.FirstOrDefault()?.Number,
+    };
+
+    private void RefreshPenSwitchRows()
+    {
+        var bindings = _profile.BindingSettings;
+        var canEdit = _applyAction != null;
+        var rows = new List<PenSwitchRowViewModel>
+        {
+            new(PenSwitchKind.Tip, 1, bindings.TipButton, canEdit, ApplyPenSwitchBindingAsync),
+            new(PenSwitchKind.Eraser, 1, bindings.EraserButton, canEdit, ApplyPenSwitchBindingAsync),
+        };
+        for (int i = 0; i < bindings.PenButtons.Count; i++)
+            rows.Add(new(PenSwitchKind.PenButton, i + 1, bindings.PenButtons[i], canEdit, ApplyPenSwitchBindingAsync,
+                _editBinding != null ? ChoosePenButtonActionAsync : null));
+        if (rows.Count > 0) rows[0].IsFirst = true; // suppresses the leading divider in the merged card
+
+        // Expose each switch by slot so the visual pen diagram can bind tip/eraser/buttons (#pen-switch-diagram).
+        PenTipRow = rows[0];
+        PenEraserRow = rows[1];
+        var buttons = rows.Skip(2).ToList();
+        PenButton1Row = buttons.ElementAtOrDefault(0);
+        PenButton2Row = buttons.ElementAtOrDefault(1);
+        PenButton3Row = buttons.ElementAtOrDefault(2);
+    }
+
+    /// <summary>Wacom-style action picker for a pen side switch (macOS): the same editor the express keys use
+    /// (keystroke incl. ⌘, mouse button, scroll). "Clear" leaves the switch doing nothing.</summary>
+    private async Task ChoosePenButtonActionAsync(PenSwitchRowViewModel row)
+    {
+        if (_editBinding == null) return;
+        var initial = AuxKeyBinding.ReadBinding(row.Store) ?? AuxBinding.Unbound;
+        var result = await _editBinding(initial, $"Pen button {row.PenButtonIndex}");
+        if (result == null) return;   // cancelled
+        // Clear (Unbound) makes no store: an empty slot is how OTD stores "this button does nothing".
+        PluginSettingStore? store = result.IsBound ? AuxKeyBinding.MakeBinding(result) : null;
+        await ApplyPenSwitchBindingAsync(row.Kind, row.PenButtonIndex, store);
+    }
+
+    private async Task ApplyPenSwitchBindingAsync(PenSwitchKind kind, int penButtonIndex, PluginSettingStore? store)
+    {
+        await ApplySettingsChange(p =>
+        {
+            switch (kind)
+            {
+                case PenSwitchKind.Tip:
+                    p.BindingSettings.TipButton = store;
+                    break;
+                case PenSwitchKind.Eraser:
+                    p.BindingSettings.EraserButton = store;
+                    break;
+                case PenSwitchKind.PenButton:
+                    if (penButtonIndex >= 1 && penButtonIndex <= p.BindingSettings.PenButtons.Count)
+                        p.BindingSettings.PenButtons[penButtonIndex - 1] = store;
+                    break;
+            }
+        });
+    }
+
+    // ── ExpressKeys (auxiliary buttons): key bindings, enable-all toggle, clear-all ──────────────
+    private string AuxEnabledKey => $"AuxEnabled:{_profile.Tablet}";
+    private string AuxBackupKey => $"AuxBackup:{_profile.Tablet}";
+
+    /// <summary>Master switch (per tablet, persisted): when off, the buttons do nothing — their
+    /// bindings are stashed and empty ones are written to the driver, restored when toggled on.</summary>
+    [ObservableProperty] private bool _auxButtonsEnabled = true;
+    /// <summary>Show the enable-all toggle + clear-all button (only when the tablet has aux buttons
+    /// and this host can edit).</summary>
+    [ObservableProperty] private bool _showAuxControls;
+    private bool _suppressAuxEnabledApply;
+
+    private void LoadAuxEnabledState()
+    {
+        _suppressAuxEnabledApply = true;
+        AuxButtonsEnabled = AppSettings.Get(AuxEnabledKey) != "false"; // default enabled
+        _suppressAuxEnabledApply = false;
+    }
+
+    /// <summary>The aux stores to display: the live profile when enabled, else the stash (so a
+    /// suspended set is still visible) falling back to the profile.</summary>
+    private PluginSettingStoreCollection EffectiveAuxStores()
+    {
+        if (!AuxButtonsEnabled)
+        {
+            var backup = AppSettings.Get(AuxBackupKey);
+            if (!string.IsNullOrEmpty(backup))
+            {
+                try
+                {
+                    var restored = JsonConvert.DeserializeObject<PluginSettingStoreCollection>(backup);
+                    if (restored != null) return restored;
+                }
+                catch { /* corrupt stash — fall back to the live (empty) profile */ }
+            }
+        }
+        return _profile.BindingSettings.AuxButtons;
+    }
+
+    private async Task ApplyAuxBindingAsync(int buttonIndex, AuxBinding binding)
+    {
+        if (!AuxButtonsEnabled) return; // editing is locked while suspended
+        var store = AuxKeyBinding.MakeBinding(binding); // null = unbound
+        await ApplySettingsChange(p =>
+        {
+            var aux = p.BindingSettings.AuxButtons;
+            if (buttonIndex >= 1 && buttonIndex <= aux.Count)
+                aux[buttonIndex - 1] = store!;
+        });
+    }
+
+    // ── Wheel tab: rotation bindings (CW/CCW), wheel buttons, thresholds, live flash ──
+    // Reuses the ExpressKeys ButtonBinding editor — each rotation/button is a single OTD
+    // PluginSettingStore, exactly what AuxKeyBinding.Read/MakeBinding handle.
+    private string WheelEnabledKey => $"WheelEnabled:{_profile.Tablet}";
+    private string WheelBackupKey => $"WheelBackup:{_profile.Tablet}";
+
+    [ObservableProperty] private List<WheelEditor> _wheels = new();
+    public bool HasWheels => Wheels.Count > 0;
+    public bool NoWheels => Wheels.Count == 0;
+    public bool ShowWheelControls => Wheels.Count > 0 && _applyAction != null;
+
+    /// <summary>Master enable for all wheel bindings (stash/restore, like ExpressKeys).</summary>
+    [ObservableProperty] private bool _wheelEnabled = true;
+    private bool _suppressWheelEnabledApply;
+
+    partial void OnWheelsChanged(List<WheelEditor> value)
+    {
+        OnPropertyChanged(nameof(HasWheels));
+        OnPropertyChanged(nameof(NoWheels));
+        OnPropertyChanged(nameof(ShowWheelControls));
+    }
+
+    private void LoadWheelEnabledState()
+    {
+        _suppressWheelEnabledApply = true;
+        WheelEnabled = AppSettings.Get(WheelEnabledKey) != "false";
+        _suppressWheelEnabledApply = false;
+    }
+
+    /// <summary>Live wheel bindings, or the stashed set while wheels are suspended (so the greyed
+    /// editor still shows what will come back).</summary>
+    private List<WheelBindingSettings> EffectiveWheelBindings()
+    {
+        if (!WheelEnabled)
+        {
+            var backup = AppSettings.Get(WheelBackupKey);
+            if (!string.IsNullOrEmpty(backup))
+            {
+                try
+                {
+                    var restored = JsonConvert.DeserializeObject<List<WheelBindingSettings>>(backup);
+                    if (restored != null) return restored;
+                }
+                catch { /* corrupt stash — fall through to live */ }
+            }
+        }
+        return _profile.BindingSettings.WheelBindings;
+    }
+
+    private void RefreshWheels()
+    {
+        var wheels = EffectiveWheelBindings();
+        var canEdit = _applyAction != null && WheelEnabled;
+        var list = new List<WheelEditor>();
+        var stepSync = new List<(int Wheel, List<RingMode> Modes)>();
+        bool multi = wheels.Count > 1;
+        for (int w = 0; w < wheels.Count; w++)
+        {
+            var ws = wheels[w];
+            int wi = w;
+            // Physical rotation runs opposite to OTD's reported direction on tested rings (the Wacom
+            // Intuos Pro ring's position increments counter-clockwise), so our "Clockwise" maps to
+            // OTD's CounterClockwiseRotation and vice versa. WheelEditor's live flash is inverted to
+            // match, and PersistThresholdsAsync swaps the threshold fields the same way.
+            var cw = MakeWheelRow(wi, "Clockwise", ws.CounterClockwiseRotation, canEdit,
+                (_, b) => ApplyWheelRotationAsync(wi, false, b));
+            var ccw = MakeWheelRow(wi, "Anticlockwise", ws.ClockwiseRotation, canEdit,
+                (_, b) => ApplyWheelRotationAsync(wi, true, b));
+            var buttons = new List<ButtonBinding>();
+            for (int b = 0; b < ws.WheelButtons.Count; b++)
+            {
+                int bi = b;
+                var label = ws.WheelButtons.Count > 1 ? $"Button {b + 1}" : "Wheel button";
+                buttons.Add(MakeWheelRow(wi, label, ws.WheelButtons[b], canEdit,
+                    (_, bind) => ApplyWheelButtonAsync(wi, bi, bind)));
+            }
+            // Wacom-style ring modes (needs the ring button to switch them).
+            var modes = RingModeBinding.Load(ws, AppSettings.Get(RingModesKey(wi)),
+                AuxKeyBinding.ReadCombo(ws.CounterClockwiseRotation),   // physical CW ↔ OTD CCW
+                AuxKeyBinding.ReadCombo(ws.ClockwiseRotation));
+            var ringModes = new RingModesEditor(wi, modes, RingModeBinding.IsActive(ws),
+                hasRingButton: ws.WheelButtons.Count > 0, canEdit: canEdit, editBinding: _editBinding,
+                setOn: canEdit ? (on, m) => SetRingModesAsync(wi, on, m) : null,
+                changed: canEdit ? m => RingModesChangedAsync(wi, m) : null);
+            // Build H: a ring set up by an earlier build has no per-mode steps in the profile yet; write them
+            // once so the steps shown are the ones in effect (latched, so it can't loop).
+            if (canEdit && RingModeBinding.IsActive(ws)
+                && (!RingModeBinding.SameSteps(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws))
+                    || !RingModeBinding.SameKeys(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws)))   // build K migration
+                && _ringStepSyncTried.Add($"{_profile.Tablet}:{wi}"))
+                stepSync.Add((wi, modes));
+            list.Add(new WheelEditor(
+                wheelIndex: wi,
+                title: multi ? $"Wheel {w + 1}" : "Wheel",
+                showTitle: multi,
+                clockwise: cw, counterClockwise: ccw, buttons: buttons,
+                clockwiseThreshold: ws.CounterClockwiseActivationThreshold,       // physical CW ↔ OTD CCW
+                counterClockwiseThreshold: ws.ClockwiseActivationThreshold,
+                stepSizeDegrees: ws.StepSize,
+                applyThreshold: canEdit ? ApplyWheelThresholdAsync : null) { RingModes = ringModes });
+                ringModes?.RefreshFromStateFile();
+        }
+        Wheels = list;
+        foreach (var (wi, modes) in stepSync) _ = RingModesChangedAsync(wi, modes);
+    }
+
+    private readonly HashSet<string> _ringStepSyncTried = new();
+
+    private ButtonBinding MakeWheelRow(int wheelIndex, string label, PluginSettingStore? store,
+        bool canEdit, Func<int, AuxBinding, Task> apply)
+    {
+        var binding = AuxKeyBinding.ReadBinding(store); // null = a binding this editor can't model
+        return new ButtonBinding(
+            index: wheelIndex,
+            binding: binding ?? AuxBinding.Unbound,
+            isOtherBinding: binding == null,
+            otherLabel: binding == null ? GetBindingName(store) : "",
+            canEdit: canEdit,
+            applyBinding: apply,
+            label: label,
+            editBinding: _editBinding);
+    }
+
+    private Task ApplyWheelRotationAsync(int wheelIndex, bool clockwise, AuxBinding binding)
+    {
+        if (!WheelEnabled) return Task.CompletedTask;
+        var store = AuxKeyBinding.MakeBinding(binding); // null = unbound
+        return ApplySettingsChange(p =>
+        {
+            var wheels = p.BindingSettings.WheelBindings;
+            if (wheelIndex < 0 || wheelIndex >= wheels.Count) return;
+            if (clockwise) wheels[wheelIndex].ClockwiseRotation = store;
+            else wheels[wheelIndex].CounterClockwiseRotation = store;
+        });
+    }
+
+    private Task ApplyWheelButtonAsync(int wheelIndex, int buttonIndex, AuxBinding binding)
+    {
+        if (!WheelEnabled) return Task.CompletedTask;
+        var store = AuxKeyBinding.MakeBinding(binding); // null = unbound
+        return ApplySettingsChange(p =>
+        {
+            var wheels = p.BindingSettings.WheelBindings;
+            if (wheelIndex < 0 || wheelIndex >= wheels.Count) return;
+            var buttons = wheels[wheelIndex].WheelButtons;
+            if (buttonIndex >= 0 && buttonIndex < buttons.Count) buttons[buttonIndex] = store!;
+        });
+    }
+
+    // ── Ring modes (Wacom-style): the full list lives in AppSettings; the profile holds the bindings ──
+    private string RingModesKey(int wheelIndex) => $"RingModes:{_profile.Tablet}:{wheelIndex}";
+    private string RingModesBackupKey(int wheelIndex) => $"RingModesBackup:{_profile.Tablet}:{wheelIndex}";
+
+    /// <summary>The plain bindings a wheel had before ring modes took it over, so turning modes off
+    /// gives them back.</summary>
+    private sealed class RingPlainBackup
+    {
+        public PluginSettingStore? Clockwise { get; set; }
+        public PluginSettingStore? CounterClockwise { get; set; }
+        public PluginSettingStore? Button { get; set; }
+    }
+
+    /// <summary>Turn ring modes on/off for a wheel. Returns whether the profile really changed, so the switch
+    /// can flip back when nothing could be applied (Build F, review item 2).</summary>
+    private async Task<bool> SetRingModesAsync(int wheelIndex, bool on, IReadOnlyList<RingMode> modes)
+    {
+        if (!WheelEnabled) return false;
+        AppSettings.Set(RingModesKey(wheelIndex), RingModeBinding.Serialize(modes));
+        var current = _profile.BindingSettings.WheelBindings;
+        if (wheelIndex < 0 || wheelIndex >= current.Count) return false;
+        // Nothing to write (no ring button, or no mode that is on and has a key): don't pretend modes are on.
+        if (on && !RingModeBinding.CanApply(current[wheelIndex], modes)) return false;
+        var backupJson = AppSettings.Get(RingModesBackupKey(wheelIndex));
+        bool changed = false;
+        await ApplySettingsChange(p =>
+        {
+            var wheels = p.BindingSettings.WheelBindings;
+            if (wheelIndex < 0 || wheelIndex >= wheels.Count) return;
+            var ws = wheels[wheelIndex];
+            if (on)
+            {
+                if (RingModeBinding.IsActive(ws)) { changed = RingModeBinding.Apply(ws, modes); return; }
+                var backup = new RingPlainBackup
+                {
+                    Clockwise = ws.ClockwiseRotation,
+                    CounterClockwise = ws.CounterClockwiseRotation,
+                    Button = ws.WheelButtons.Count > 0 ? ws.WheelButtons[0] : null,
+                };
+                changed = RingModeBinding.Apply(ws, modes);
+                if (changed)
+                    AppSettings.Set(RingModesBackupKey(wheelIndex), JsonConvert.SerializeObject(backup));
+            }
+            else
+            {
+                RingPlainBackup? backup = null;
+                try { if (!string.IsNullOrEmpty(backupJson)) backup = JsonConvert.DeserializeObject<RingPlainBackup>(backupJson); }
+                catch (JsonException) { /* corrupt stash — treated as no backup */ }
+                // No backup (modes set up by hand in OTD, or the stash was lost): only the ring-mode slots are
+                // cleared, instead of also unbinding whatever else the ring button had.
+                RingModeBinding.Remove(ws, backup != null, backup?.Clockwise, backup?.CounterClockwise, backup?.Button);
+                AppSettings.Set(RingModesBackupKey(wheelIndex), "");
+                changed = true;
+            }
+            RingModeBinding.SyncGate(p);   // build J: pen gate only while a smooth-rotate mode exists
+        });
+        return changed;
+    }
+
+    /// <summary>Build N.1: Wacom-like "Default" on the Touch ring page — every wheel's ring modes back to OTA's
+    /// four defaults, through the same path as editing a mode (the view confirms first; nothing is saved
+    /// to disk here — Save stays the user's).</summary>
+    public async Task ResetTouchRingToDefaultsAsync()
+    {
+        for (int wi = 0; wi < Wheels.Count; wi++)
+            await RingModesChangedAsync(wi, RingModeBinding.Defaults.ToList());
+        RefreshWheels();
+    }
+
+    /// <summary>Build N.1: "Default" on the ExpressKeys page — OTA's default is every key unbound.</summary>
+    public async Task ResetExpressKeysToDefaultsAsync()
+    {
+        if (!AuxButtonsEnabled) return;
+        await ApplySettingsChange(p =>
+        {
+            var aux = p.BindingSettings.AuxButtons;
+            for (int i = 0; i < aux.Count; i++) aux[i] = null!;
+        });
+    }
+
+    private Task RingModesChangedAsync(int wheelIndex, IReadOnlyList<RingMode> modes)
+    {
+        AppSettings.Set(RingModesKey(wheelIndex), RingModeBinding.Serialize(modes));
+        var wheels = _profile.BindingSettings.WheelBindings;
+        if (!WheelEnabled || wheelIndex < 0 || wheelIndex >= wheels.Count || !RingModeBinding.IsActive(wheels[wheelIndex]))
+            return Task.CompletedTask;   // modes off: just remember the list
+        return ApplySettingsChange(p =>
+        {
+            var w = p.BindingSettings.WheelBindings;
+            if (wheelIndex < w.Count) RingModeBinding.Apply(w[wheelIndex], modes);
+            RingModeBinding.SyncGate(p);
+        });
+    }
+
+    // Thresholds change rapidly while a slider is dragged — debounce into one apply (and one rebuild)
+    // so the slider isn't yanked out from under the drag.
+    private readonly Dictionary<(int Wheel, bool Clockwise), double> _pendingThresholds = new();
+    private readonly TrailingDebounce _wheelThresholdDebounce = new(350, "wheel threshold");
+
+    private Task ApplyWheelThresholdAsync(int wheelIndex, bool clockwise, double degrees)
+    {
+        _pendingThresholds[(wheelIndex, clockwise)] = degrees;
+        NoteDraftEdit(DraftGroup.WheelThreshold);
+        _wheelThresholdDebounce.Schedule(PersistThresholdsAsync);
+        return Task.CompletedTask;
+    }
+
+    private async Task PersistThresholdsAsync()
+    {
+        DraftSubmitted(DraftGroup.WheelThreshold);
+        if (_pendingThresholds.Count == 0 || !WheelEnabled) return;
+        var pending = new Dictionary<(int Wheel, bool Clockwise), double>(_pendingThresholds);
+        _pendingThresholds.Clear();
+        await ApplySettingsChange(p =>
+        {
+            var wheels = p.BindingSettings.WheelBindings;
+            foreach (var (key, deg) in pending)
+            {
+                if (key.Wheel < 0 || key.Wheel >= wheels.Count) continue;
+                // physical clockwise ↔ OTD CounterClockwise (see RefreshWheels)
+                if (key.Clockwise) wheels[key.Wheel].CounterClockwiseActivationThreshold = (float)deg;
+                else wheels[key.Wheel].ClockwiseActivationThreshold = (float)deg;
+            }
+        });
+    }
+
+    partial void OnWheelEnabledChanged(bool value)
+    {
+        if (_suppressWheelEnabledApply) return;
+        _ = SetWheelEnabledAsync(value);
+    }
+
+    private async Task SetWheelEnabledAsync(bool enabled)
+    {
+        if (_applyAction == null) return;
+        AppSettings.Set(WheelEnabledKey, enabled ? "true" : "false");
+        if (!enabled)
+        {
+            // Suspend: stash the current bindings, then clear them so the wheel does nothing.
+            AppSettings.Set(WheelBackupKey, JsonConvert.SerializeObject(_profile.BindingSettings.WheelBindings));
+            await ApplySettingsChange(ClearWheels);
+        }
+        else
+        {
+            // Resume: restore the stashed rotation/button bindings (if any), then drop the stash.
+            var backup = AppSettings.Get(WheelBackupKey);
+            await ApplySettingsChange(p =>
+            {
+                if (string.IsNullOrEmpty(backup)) return;
+                try
+                {
+                    var restored = JsonConvert.DeserializeObject<List<WheelBindingSettings>>(backup);
+                    if (restored == null) return;
+                    var wheels = p.BindingSettings.WheelBindings;
+                    for (int i = 0; i < wheels.Count && i < restored.Count; i++)
+                    {
+                        wheels[i].ClockwiseRotation = restored[i].ClockwiseRotation;
+                        wheels[i].CounterClockwiseRotation = restored[i].CounterClockwiseRotation;
+                        var live = wheels[i].WheelButtons;
+                        var saved = restored[i].WheelButtons;
+                        for (int b = 0; b < live.Count && b < saved.Count; b++) live[b] = saved[b];
+                    }
+                }
+                catch { /* corrupt stash — leave the (cleared) profile as-is */ }
+            });
+            AppSettings.Set(WheelBackupKey, "");
+        }
+    }
+
+    // The "Clear all" button and its command are gone (#wheel-row-actions): every row clears itself now,
+    // and a wheel has three rows at most. ClearWheels stays — the enable toggle's suspend path uses it to
+    // empty the bindings after stashing them.
+    private static void ClearWheels(Profile p)
+    {
+        foreach (var w in p.BindingSettings.WheelBindings)
+        {
+            w.ClockwiseRotation = null;
+            w.CounterClockwiseRotation = null;
+            for (int b = 0; b < w.WheelButtons.Count; b++) w.WheelButtons[b] = null!;
+        }
+    }
+
+    // ── Live wheel feedback: flash the matching rotation row / light a pressed wheel button ──
+    private void OnWheelButtons(bool[][] states)
+    {
+        for (int w = 0; w < Wheels.Count; w++)
+        {
+            var buttons = Wheels[w].Buttons;
+            var wheelStates = w < states.Length ? states[w] : Array.Empty<bool>();
+            for (int b = 0; b < buttons.Count; b++)
+            {
+                bool down = b < wheelStates.Length && wheelStates[b];
+                // R18: the centre button (button 0) steps the driver's ring mode; once the plugin has
+                // published the new mode, light that mode's badge.
+                if (b == 0 && down && !buttons[b].IsPressed && Wheels[w].RingModes is { } rm)
+                    DispatcherTimer.RunOnce(() => rm.RefreshFromStateFile(), TimeSpan.FromMilliseconds(80));
+                buttons[b].IsPressed = down;
+            }
+        }
+    }
+
+    // ── Version 3: live pen-button test ──────────────────────────────────────
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(PenButtonTestText))] private bool _penButton1Pressed;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(PenButtonTestText))] private bool _penButton2Pressed;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(PenButtonTestText))] private bool _penButton3Pressed;
+    private DispatcherTimer? _penButtonIdle;
+
+    /// <summary>Under the pen picture: which barrel button the tablet reports as held.</summary>
+    public string PenButtonTestText
+    {
+        get
+        {
+            var down = new[] { (PenButton1Pressed, 1), (PenButton2Pressed, 2), (PenButton3Pressed, 3) }
+                .Where(b => b.Item1).Select(b => b.Item2.ToString()).ToList();
+            return down.Count switch
+            {
+                0 => "Press a pen button to test it.",
+                1 => $"Button {down[0]} pressed.",
+                _ => $"Buttons {string.Join(" and ", down)} pressed.",
+            };
+        }
+    }
+
+    /// <summary>Lights the matching button on the pen picture while it is held. Pen reports stop when the pen
+    /// leaves range, so the lights clear after a short quiet spell.</summary>
+    public void OnPenButtons(bool[] states)
+    {
+        PenButton1Pressed = states.Length > 0 && states[0];
+        PenButton2Pressed = states.Length > 1 && states[1];
+        PenButton3Pressed = states.Length > 2 && states[2];
+        _penButtonIdle ??= new DispatcherTimer(TimeSpan.FromMilliseconds(300), DispatcherPriority.Background,
+            (_, _) => { _penButtonIdle!.Stop(); PenButton1Pressed = PenButton2Pressed = PenButton3Pressed = false; });
+        _penButtonIdle.Stop();
+        if (PenButton1Pressed || PenButton2Pressed || PenButton3Pressed) _penButtonIdle.Start();
+    }
+
+    private void OnWheelPositions(uint?[] positions)
+    {
+        for (int w = 0; w < Wheels.Count && w < positions.Length; w++)
+            Wheels[w].OnAbsolutePosition(positions[w]);
+    }
+
+    private void OnWheelDeltas(int[] deltas)
+    {
+        for (int w = 0; w < Wheels.Count && w < deltas.Length; w++)
+            Wheels[w].OnRelativeDelta(deltas[w]);
+    }
+
+    partial void OnAuxButtonsEnabledChanged(bool value)
+    {
+        if (_suppressAuxEnabledApply) return;
+        _ = SetAuxButtonsEnabledAsync(value);
+    }
+
+    private async Task SetAuxButtonsEnabledAsync(bool enabled)
+    {
+        if (_applyAction == null) return;
+        AppSettings.Set(AuxEnabledKey, enabled ? "true" : "false");
+        if (!enabled)
+        {
+            // Suspend: stash the current bindings, then write empty ones so the buttons do nothing.
+            AppSettings.Set(AuxBackupKey, JsonConvert.SerializeObject(_profile.BindingSettings.AuxButtons));
+            await ApplySettingsChange(ClearAux);
+        }
+        else
+        {
+            // Resume: restore the stash (if any), then drop it.
+            var backup = AppSettings.Get(AuxBackupKey);
+            await ApplySettingsChange(p =>
+            {
+                if (string.IsNullOrEmpty(backup)) return;
+                try
+                {
+                    var restored = JsonConvert.DeserializeObject<PluginSettingStoreCollection>(backup);
+                    if (restored != null)
+                    {
+                        var aux = p.BindingSettings.AuxButtons;
+                        for (int i = 0; i < aux.Count && i < restored.Count; i++) aux[i] = restored[i];
+                    }
+                }
+                catch { /* corrupt stash — leave the (empty) profile as-is */ }
+            });
+            AppSettings.Set(AuxBackupKey, "");
+        }
+    }
+
+    // A "Clear all" command lived here, wiping every express-key binding and dropping the suspend stash
+    // with it. It was one unconfirmed click from losing a dozen mappings with no way back, sitting beside
+    // a toggle that keeps them — so the tab lost it (#aux-clear-all). Per-row Clear does the same job
+    // deliberately. ClearAux itself stays: suspending the buttons still writes empty bindings.
+    private static void ClearAux(Profile p)
+    {
+        var aux = p.BindingSettings.AuxButtons;
+        for (int i = 0; i < aux.Count; i++) aux[i] = null!;
+    }
+
+    public string TabletName { get; }
+
+    /// <summary>Brand line for the header — the first word of the name (e.g. "Wacom"), shown small above
+    /// the model. Empty when the name is a single word, so the header shows the model alone.</summary>
+    public string TabletBrand
+    {
+        get { var i = TabletName.IndexOf(' '); return i > 0 ? TabletName[..i] : ""; }
+    }
+
+    /// <summary>Model line for the header — everything after the first word (e.g. "PTK-670"), or the whole
+    /// name when it's a single word.</summary>
+    public string TabletModel
+    {
+        get { var i = TabletName.IndexOf(' '); return i > 0 ? TabletName[(i + 1)..].TrimStart() : TabletName; }
+    }
+
+    public bool HasTabletBrand => TabletBrand.Length > 0;
+
+    [ObservableProperty] private string _outputModeShort = "";
+    [ObservableProperty] private string _outputModePath = "";
+    [ObservableProperty] private bool _canFixOutputMode;
+    [ObservableProperty] private bool _isAbsoluteOutputMode;
+    [ObservableProperty] private bool _isRelativeOutputMode;
+    private bool _skipOutputModeChange;
+    public bool HasAreaMapping { get; }
+
+    /// <summary>A tab the page should open on, set by a health-issue "Fix" deep-link (e.g. Display Mapping
+    /// for an off-screen mapping) so the fix lands on the tab that carries it rather than the default
+    /// About tab. The view reads and clears it on attach; <see cref="TabRequested"/> also fires so a page
+    /// that's already visible switches immediately.</summary>
+    public TabletDetailTab? PendingTab { get; private set; }
+
+    /// <summary>Raised when a specific tab is requested — handled by the view to switch a page that's
+    /// already shown (where re-navigation wouldn't re-attach it).</summary>
+    public event Action<TabletDetailTab>? TabRequested;
+
+    /// <summary>Ask the page to open on <paramref name="tab"/>. Call before navigating to it.</summary>
+    public void RequestTab(TabletDetailTab tab)
+    {
+        PendingTab = tab;
+        TabRequested?.Invoke(tab);
+    }
+
+    /// <summary>Read and clear the pending deep-link tab (one-shot, so navigating back later isn't
+    /// forced onto it again).</summary>
+    public TabletDetailTab? ConsumePendingTab()
+    {
+        var tab = PendingTab;
+        PendingTab = null;
+        return tab;
+    }
+    // Per-slot views for the visual pen diagram (button slots are null when the pen lacks that button).
+    [ObservableProperty] private PenSwitchRowViewModel? _penTipRow;
+    [ObservableProperty] private PenSwitchRowViewModel? _penEraserRow;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPenButtons))]
+    private PenSwitchRowViewModel? _penButton1Row;
+    [ObservableProperty] private PenSwitchRowViewModel? _penButton2Row;
+    [ObservableProperty] private PenSwitchRowViewModel? _penButton3Row;
+
+    /// <summary>True when the pen has at least one barrel button — gates the PEN BUTTONS tab (#494), so
+    /// pens with none don't show an empty tab.</summary>
+    public bool HasPenButtons => PenButton1Row != null;
+
+    [ObservableProperty] private string _auxButtonCount = "0";
+    [ObservableProperty] private bool _noAuxButtons;
+    [ObservableProperty] private List<ButtonBinding> _auxButtons = [];
+    /// <summary>One card per filter on the profile (Filters tab). Rebuilt by <see cref="UpdateFiltersDisplay"/>.</summary>
+    public ObservableCollection<FilterCardViewModel> Filters { get; } = new();
+
+    /// <summary>False when the profile has no filters — the Filters tab shows its empty state.</summary>
+    [ObservableProperty] private bool _hasFilters;
+    [ObservableProperty] private string _rawJson = "";
+
+    // ── Pressure curve tab ──────────────────────────────────────
+
+    [ObservableProperty] private PressureCurveSettings _curve = PressureCurveSettings.Default;
+    [ObservableProperty] private bool _canEditPressure;
+
+    /// <summary>The curve's softness (−0.9 hard … 0 linear … 0.9 soft) as a bindable value, so it has a
+    /// keyboard-operable slider alongside the drag node on the chart (#603). Both write the same
+    /// <see cref="PressureCurveSettings.Softness"/>, so they stay in sync.</summary>
+    public double Softness
+    {
+        get => Curve.Softness;
+        set { if (Math.Abs(Curve.Softness - value) > 1e-6) Curve = Curve with { Softness = value }; }
+    }
+
+    /// <summary>Build O: Wacom-style "Tip Feel" — Soft (left) to Firm (right). The same pressure curve as the
+    /// Pressure tab's Softness, mirrored: Soft = +0.9 softness, Firm = −0.9. OTD has one curve for tip and
+    /// eraser, so the Eraser Feel slider is this same value.</summary>
+    public double TipFeel
+    {
+        get => -Softness;
+        set => Softness = Math.Clamp(-value, SoftnessMin, SoftnessMax);
+    }
+
+    /// <summary>Build O: the Pen tab's Default — the curve back to OTA's default (linear), like Wacom's
+    /// Default on the Pen tab. The view confirms first.</summary>
+    public void ResetPenFeelToDefault() => Curve = PressureCurveSettings.Default;
+
+    /// <summary>Softness slider bounds — matches the range the curve model accepts (see PressureCurve).</summary>
+    public double SoftnessMin => -0.9;
+    public double SoftnessMax => 0.9;
+
+    // The Pen Dynamics filter is always enabled internally (#dynamics-always-on); there's no on/off toggle.
+    // Users neutralize dynamics by leaving the curve linear and smoothing at 0 (a genuine no-op).
+    private PenDynamicsSettings CurrentDynamics =>
+        new(Curve, PressureSmoothing, PositionSmoothing, SmoothAfterCurve);
+
+    private double SavedManual(string key, double fallback) =>
+        double.TryParse(AppSettings.Get($"{key}:{_profile.Tablet}"), System.Globalization.NumberStyles.Float,
+            System.Globalization.CultureInfo.InvariantCulture, out var v) ? Math.Clamp(v, 0, 1) : fallback;
+
+    private void NotifyDynamicsStatus() =>
+        OnPropertyChanged(nameof(ShowLiveProcessed)); // depends on curve + pressure smoothing (#559)
+
+    [ObservableProperty] private double _pressureSmoothing;
+    [ObservableProperty] private double _positionSmoothing;
+    [ObservableProperty] private bool _smoothAfterCurve = true;
+
+    public string PressureSmoothingText => PressureSmoothing.ToString("0.00");
+    public string PositionSmoothingText => PositionSmoothing.ToString("0.00");
+
+    /// <summary>Upper bound for the position-smoothing slider (#487); heavier smoothing is too laggy to be
+    /// useful, so the slider stops here (see <see cref="PenSmoothing.MaxPositionSmoothingAmount"/>).</summary>
+    public double PositionSmoothingMax => PenSmoothing.MaxPositionSmoothingAmount;
+
+    /// <summary>Upper bound for the pressure-smoothing slider (#496); past this the lag outweighs the jitter
+    /// reduction, so the slider stops here (see <see cref="PenSmoothing.MaxPressureSmoothingAmount"/>).</summary>
+    public double PressureSmoothingMax => PenSmoothing.MaxPressureSmoothingAmount;
+
+    private bool _skipCurvePersist;
+    private readonly TrailingDebounce _persistDebounce = new(400, "pen dynamics");
+
+    partial void OnPressureSmoothingChanged(double value)
+    {
+        OnPropertyChanged(nameof(PressureSmoothingText));
+        NotifyDynamicsStatus();
+        SchedulePersist();
+    }
+
+    partial void OnPositionSmoothingChanged(double value)
+    {
+        OnPropertyChanged(nameof(PositionSmoothingText));
+        NotifyDynamicsStatus();
+        SchedulePersist();
+    }
+
+    partial void OnSmoothAfterCurveChanged(bool value) => SchedulePersist();
+
+    /// <summary>Cut (dead-zone) vs Clamp (floor) below the input minimum.</summary>
+    public bool CutBelowMinimum
+    {
+        get => Curve.MinApproach == PressureMinApproach.Cut;
+        set
+        {
+            var want = value ? PressureMinApproach.Cut : PressureMinApproach.Clamp;
+            if (Curve.MinApproach != want) Curve = Curve with { MinApproach = want };
+        }
+    }
+
+    // Live pressure read-out (#559): the current input pressure, for the LIVE PRESSURE bar's "raw" label.
+    // "—" when the pen is up / no pressure is being reported (the read-out shows all the time, so the dash
+    // distinguishes "no data" from an actual 0).
+    public string LiveInputText => LivePressure is { } v ? v.ToString("0.0000") : "—";
+
+    // The pressure deadzone: the x position of the curve's lower-left node (its input minimum) — pressure below
+    // this reads as the output minimum. Shown above the live readouts so the deadzone is explicit when
+    // judging why a hovering pen does or doesn't register.
+    public string DeadzoneText => Curve.InputMinimum.ToString("0.0000");
+
+    // Live processed pressure for the top pressure-level bar (#559): the raw pressure run through the SAME
+    // pipeline the daemon's Pen Dynamics filter uses — curve, then EMA smoothing — via a stateful
+    // PenDynamicsProcessor fed each pen sample. So the processed dot reflects smoothing's lag too, not just
+    // the curve. (Its exact magnitude tracks the UI sample rate, which may be coarser than the daemon's.)
+    private readonly PenDynamicsProcessor _liveProcessor = new();
+    [ObservableProperty] private double? _liveProcessed;
+    public string LiveProcessedText => LiveProcessed is { } v ? v.ToString("0.0000") : "—";
+    partial void OnLiveProcessedChanged(double? value) => OnPropertyChanged(nameof(LiveProcessedText));
+
+    /// <summary>Whether pen dynamics actually change the pressure, so the bar shows a processed dot.</summary>
+    public bool ShowLiveProcessed => CurrentDynamics.CurveShapesPressure || CurrentDynamics.HasPressureSmoothing;
+
+    private static double Clamp01(double v) => v < 0 ? 0 : v > 1 ? 1 : v;
+
+    partial void OnCurveChanged(PressureCurveSettings value)
+    {
+        OnPropertyChanged(nameof(CutBelowMinimum));
+        OnPropertyChanged(nameof(Softness)); // keep the Softness slider in sync with node drags / presets
+        OnPropertyChanged(nameof(TipFeel));
+        OnPropertyChanged(nameof(DeadzoneText));
+        NotifyDynamicsStatus();
+        SchedulePersist();
+    }
+
+    /// <summary>Quick-start curve presets (#103): a Soft→Hard ramp shown as curve thumbnails. The
+    /// parameter is the target <see cref="PressureCurveSettings.Softness"/> (0 = linear, &gt;0 soft/concave,
+    /// &lt;0 hard/convex); everything else resets to Default so a preset is a clean starting point.</summary>
+    [RelayCommand]
+    private void ApplyPreset(string softness) => Curve = PressureCurveSettings.Default with
+    {
+        Softness = double.Parse(softness, System.Globalization.CultureInfo.InvariantCulture),
+    };
+
+    // ── Live device-report preview: pen-pressure dot (#102) + aux-button highlight + area map ──
+    private readonly DaemonPenInputSource? _penInput;
+    [ObservableProperty] private double? _livePressure;
+    /// <summary>Live pen position (0..1 over the full tablet area) for the active-area diagram, or
+    /// null when no pen is in range. (#250)</summary>
+    [ObservableProperty] private double? _livePenX;
+    [ObservableProperty] private double? _livePenY;
+
+    /// <summary>With more than one tablet connected, the daemon debug stream interleaves all of them;
+    /// only show this profile's tablet (same rule as Diagnostics #190).</summary>
+    private bool AcceptDeviceReportForThisTablet(JObject data)
+    {
+        if (_deviceData is not { DetectedTablets.Count: > 1 }) return true;
+        var reportTablet = data["Tablet"]?["Properties"]?["Name"]?.ToString();
+        var ourTablet = _profile.Tablet;
+        if (reportTablet == null || string.IsNullOrEmpty(ourTablet)) return true;
+        return string.Equals(reportTablet, ourTablet, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Raised per pen sample for the pressure tab's preview canvases. The sample carries the pen
+    /// position (RawX/RawY, mapped by the view) and the RAW pressure; the second argument is that pressure
+    /// after the curve + smoothing, so one canvas can show the signal as it arrives and the other the exact
+    /// response you're editing (both work even when Windows Ink is off). A sample with
+    /// <c>IsDown == false</c> ends the current stroke.</summary>
+    public event Action<PenSample, double>? PreviewSample;
+
+    // Cached raw→desktop mapping (active area → mapped display), rebuilt when live input starts. Null in
+    // Relative / unmapped modes. Same context the Scribble page's Driver mode uses; the view does the
+    // desktop-pixel → canvas-local step (only it knows where the canvas sits on screen).
+    private (TabletDigitizerSpec Digi, MappingArea Input, MappingArea Output, bool Clip, bool Limit)? _previewMapping;
+
+    private void RecomputePreviewMapping()
+    {
+        // The preview canvas only needs raw→desktop (digitizer + tablet area + display area) — exactly what
+        // the Scribble page's Driver mode builds. It deliberately does NOT go through TryCalibrationContext:
+        // that also requires DisplayMappingApplier.CurrentlyMapped to match the mapped area to a *connected*
+        // display, which can fail on some multi-display layouts (seen on macOS) even when the absolute mapping
+        // itself is perfectly valid — leaving the pressure preview dead (#pressure-preview-nomap). That match
+        // only matters for calibration (drawing targets on a specific display); the preview never uses it.
+        var abs = _profile.AbsoluteModeSettings;
+        if (abs?.Tablet is { } t && abs.Display is { } disp
+            && t.Width > 0 && t.Height > 0 && disp.Width > 0 && disp.Height > 0
+            && _deviceData?.GetDigitizerSpec(_profile.Tablet ?? "") is { } digi)
+        {
+            _previewMapping = (digi,
+                new MappingArea(t.X, t.Y, t.Width, t.Height, t.Rotation),
+                new MappingArea(disp.X, disp.Y, disp.Width, disp.Height),
+                abs.EnableClipping, abs.EnableAreaLimiting);
+        }
+        else _previewMapping = null;
+    }
+
+    /// <summary>Map a raw tablet point to a virtual-desktop pixel — the same transform that drives the
+    /// pointer — or null when there's no absolute mapping (Relative mode). The preview canvas converts this
+    /// to a canvas-local position exactly as the Scribble page does.</summary>
+    public Vector2? MapRawToDesktop(double rawX, double rawY) =>
+        _previewMapping is { } m
+            ? AbsolutePositionMapper.MapToDesktop(new Vector2((float)rawX, (float)rawY), m.Digi, m.Input, m.Output, m.Clip, m.Limit)
+                + DisplayMappingApplier.DesktopOrigin(Displays) // OTD's space is 0-based; the view wants screen coords
+            : null;
+
+    // DeviceReportSample normalizes to 0..1; feed both the pressure dot and the active-area map.
+    /// <summary>Which pen end the live pressure displays are showing (R13): the tip and the eraser feed the same
+    /// bar, readouts and drawing pads, and share one pressure curve.</summary>
+    [ObservableProperty] private string _liveEndText = "";
+
+    private void OnPenSample(PenSample s)
+    {
+        LiveEndText = s.IsDown ? (s.IsEraser ? "Eraser" : "Pen tip") : "";
+        // R15: each end's bar follows only its own reports; the other end reads idle (0%).
+        // R18: the bars show the EFFECTIVE pressure: 0 while that end is disabled, the fixed 30% while
+        // pressure sensitivity is off, else the reported pressure. The tooltip keeps the raw value.
+        _liveTipRaw = s.IsDown && !s.IsEraser ? Clamp01(s.Pressure) : null;
+        _liveEraserRaw = s.IsDown && s.IsEraser ? Clamp01(s.Pressure) : null;
+        LiveTipPressure = Effective(_liveTipRaw, DisablePenTip, false);
+        LiveEraserPressure = Effective(_liveEraserRaw, DisableEraser, true);
+        LivePenX = s.X;
+        LivePenY = s.Y;
+        if (s.IsDown)
+        {
+            double raw = Clamp01(s.Pressure);
+            LivePressure = raw;
+            // Run the raw sample through the same curve+smoothing pipeline (#559) so the processed dot
+            // reflects smoothing's lag. Settings are refreshed each sample to track live edits.
+            _liveProcessor.Settings = CurrentDynamics;
+            // Same rule as the daemon's filter: a sample the curve maps to nothing (hover, the dead zone) is
+            // zero pressure and resets the smoothing. Without it, smoothing's tail from the last stroke kept
+            // the processed value above zero for hundreds of samples under a pen that reports hover pressure.
+            LiveProcessed = _liveProcessor.ProcessSample(raw);
+            // Preview canvases get the raw position (RawX/RawY, mapped by the view), the RAW pressure in the
+            // sample, and the SHAPED pressure alongside it.
+            PreviewSample?.Invoke(s with { Pressure = raw }, LiveProcessed ?? raw);
+        }
+        else
+        {
+            LivePressure = null;
+            _liveProcessor.ResetPressure(); // next press starts crisp, matching the filter
+            LiveProcessed = null;
+            PreviewSample?.Invoke(s, s.Pressure); // IsDown = false → the canvases end the stroke
+        }
+    }
+
+    // Live input/output read-out (#468) tracks the live pressure.
+    /// <summary>R14: the live value beside "Current pressure": a whole percent of full pressure, "0%" with the pen up.</summary>
+    public string LivePressurePercentText => Percent(LivePressure);
+
+    /// <summary>R15: live pressure of the pen tip only (null while the eraser or nothing is down) — Tablet › Pen's bar.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LiveTipPercentText), nameof(LiveTipInputText))]
+    private double? _liveTipPressure;
+    /// <summary>R15: live pressure of the eraser only — Tablet › Eraser's bar.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LiveEraserPercentText), nameof(LiveEraserInputText))]
+    private double? _liveEraserPressure;
+    public string LiveTipPercentText => Percent(LiveTipPressure);
+    public string LiveEraserPercentText => Percent(LiveEraserPressure);
+    private double? _liveTipRaw, _liveEraserRaw;
+    private double? Effective(double? raw, bool endDisabled, bool eraser) =>
+        raw is not { } r ? null : endDisabled ? 0 : DisablePressure ? (r > 0 ? ManualFor(eraser) : 0) : r;
+    private double ManualFor(bool eraser) => eraser ? ManualEraserPressure : ManualTipPressure;
+    public string LiveTipInputText => _liveTipRaw is { } v ? $"raw {v:0.0000}" : "—";
+    public string LiveEraserInputText => _liveEraserRaw is { } v ? $"raw {v:0.0000}" : "—";
+    private static string Percent(double? v) => $"{Math.Round((v ?? 0) * 100):0}%";
+
+    partial void OnLivePressureChanged(double? value)
+    {
+        OnPropertyChanged(nameof(LiveInputText));
+        OnPropertyChanged(nameof(LivePressurePercentText));
+    }
+
+    // Light up each aux-button card while its physical button is held (express-key live highlight).
+    private void OnAuxButtons(bool[] states)
+    {
+        for (int i = 0; i < AuxButtons.Count; i++)
+            AuxButtons[i].IsPressed = i < states.Length && states[i];
+    }
+
+    /// <summary>Enables the daemon's device-report stream (live pressure dot + aux highlight). Driven
+    /// by the view: on while the Dynamics or ExpressKeys tab is visible, off otherwise.</summary>
+    public void StartLiveInput()
+    {
+        RecomputePreviewMapping(); // resolve the pen-pointer mapping for the preview canvas
+        _ = _penInput?.StartAsync();
+    }
+
+    /// <summary>Stops the stream and clears any live state so nothing stays lit after we look away.</summary>
+    public void StopLiveInput()
+    {
+        LivePressure = null;
+        LiveProcessed = null;
+        LiveEndText = "";
+        LiveTipPressure = null;
+        LiveEraserPressure = null;
+        _liveProcessor.ResetPressure();
+        LivePenX = null;
+        LivePenY = null;
+        foreach (var b in AuxButtons) b.IsPressed = false;
+        foreach (var w in Wheels) w.ClearLiveState();
+        _ = _penInput?.StopAsync();
+    }
+
+    /// <summary>Active-area diagram geometry (full + effective area + mapped display), or null when
+    /// the tablet has no absolute mapping / digitizer specs. (#250/#252)</summary>
+    [ObservableProperty] private TabletAreaInfo? _tabletArea;
+
+    // ── Active-area rotation (#199) ──────────────────────────────────────────────────────────────
+    // Rotating the tablet's active area to match physically turning the tablet. OTD applies the TABLET
+    // (input) area's Rotation about its centre, and OTA's mapper already honours it — so this is just
+    // writing Tablet.Rotation through the normal apply path.
+
+    /// <summary>Current active-area rotation in degrees, normally 0/90/180/270. OTD's own UX can store
+    /// any angle, and <see cref="RefreshTabletArea"/> rounds what it finds to whole degrees and
+    /// normalises it into 0–359 — so a stored -90 arrives here as 270 and selects it, while a stored
+    /// 45.4 arrives as 45 and leaves the dropdown empty.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedRotation))]
+    private int _tabletRotation;
+
+    private static readonly RotationOption[] Rotations =
+        [new(0, "None"), new(90, "90°"), new(180, "180°"), new(270, "270°")];
+
+    /// <summary>What the Rotation dropdown lists. An instance property because that is what Avalonia's
+    /// bindings look for.</summary>
+    public IReadOnlyList<RotationOption> RotationOptions => Rotations;
+
+    /// <summary>The dropdown's selection, which is <see cref="TabletRotation"/> read as one of the four
+    /// choices — null, and so an empty box, for any other angle. Setting it applies immediately, as
+    /// ticking one of the radio buttons this replaced used to; the write-back the following refresh
+    /// causes lands on the value already stored, which <see cref="ApplyRotationAsync"/> ignores.</summary>
+    public RotationOption? SelectedRotation
+    {
+        get => Rotations.FirstOrDefault(o => o.Degrees == TabletRotation);
+        set { if (value is { } option) _ = ApplyRotationAsync(option.Degrees); }
+    }
+
+    /// <summary>True while a rotation apply is in flight; the dropdown binds it and is unavailable
+    /// until the apply lands.</summary>
+    ///
+    /// <remarks>
+    /// This is the radio buttons' behaviour, kept. They were bound to an <c>AsyncRelayCommand</c>, which
+    /// reports it cannot execute while it is running and so greyed them out for the duration — a gate
+    /// that disappeared when the command became a property setter, and whose absence was a real defect
+    /// rather than a tidiness point:
+    ///
+    /// <para>
+    /// <see cref="ApplySettingsChange"/> mutates the profile before awaiting, but
+    /// <see cref="TabletRotation"/> is only refreshed once the apply lands. So a second choice made in
+    /// that window is compared against the <em>pre-apply</em> rotation: pick 90°, then change your mind
+    /// back to None before the first apply returns, and the guard below reads 0 == 0 and drops it. The
+    /// refresh then snaps the dropdown to 90°, and the artist's last choice was never submitted.
+    /// </para>
+    /// </remarks>
+    [ObservableProperty] private bool _rotationApplyRunning;
+
+    /// <summary>Set the active-area rotation (0/90/180/270) and apply it, re-fitting the area to the
+    /// mapped display so it stays undistorted — for 90/270 the area shrinks to fit the rotated tablet
+    /// (#199). Ignores other values defensively, and a value arriving while an apply is still running
+    /// (see <see cref="RotationApplyRunning"/>) — the dropdown is disabled by then, so that is a
+    /// programmatic write or a queued one, and the refresh will correct what it shows.</summary>
+    private async Task ApplyRotationAsync(int deg)
+    {
+        if (RotationApplyRunning || deg is not (0 or 90 or 180 or 270) || deg == TabletRotation) return;
+        RotationApplyRunning = true;
+        try
+        {
+            var dig = _deviceData?.GetTabletDigitizer(_profile.Tablet ?? "") ?? _tabletDigitizer;
+            await ApplySettingsChange(p => DisplayMappingApplier.ApplyRotation(p, dig, deg, Displays));
+        }
+        finally
+        {
+            RotationApplyRunning = false;
+        }
+    }
+
+    private void RefreshTabletArea()
+    {
+        var t = _profile.AbsoluteModeSettings?.Tablet;
+        TabletRotation = t != null ? (((int)Math.Round(t.Rotation)) % 360 + 360) % 360 : 0;
+        // Read the digitizer live: its specs can arrive after this (cached) view-model was created — e.g.
+        // when the tablet (re)connects — so we don't rely only on the value captured at construction.
+        // That snapshot is the fallback (e.g. the tray dialog has no live device data). Previously only
+        // the snapshot was used, so a tablet whose specs weren't ready when its page was first opened
+        // stayed stuck on "Active-area details aren't available" until an app restart.
+        var dig = _deviceData?.GetTabletDigitizer(_profile.Tablet ?? "") ?? _tabletDigitizer;
+        if (t != null && dig is { } d && d.Width > 0 && d.Height > 0)
+        {
+            var mapped = DisplayMappingApplier.CurrentlyMapped(_profile, Displays);
+            TabletArea = new TabletAreaInfo(
+                FullWidth: d.Width, FullHeight: d.Height,
+                EffWidth: t.Width, EffHeight: t.Height, EffCenterX: t.X, EffCenterY: t.Y,
+                HasDisplay: mapped != null,
+                DisplayNumber: mapped?.Number ?? 0, DisplayName: mapped?.Name ?? "",
+                DisplayWidth: mapped?.Width ?? 0, DisplayHeight: mapped?.Height ?? 0,
+                Rotation: t.Rotation);
+        }
+        else
+        {
+            TabletArea = null;
+        }
+        // The stored display-output rectangle (0-based desktop coords; stored X/Y is its centre) for the
+        // diagram overlay — null when there's no absolute area to map.
+        var disp = _profile.AbsoluteModeSettings?.Display;
+        MappedOutput = disp is { Width: > 0, Height: > 0 }
+            ? new MappedOutputArea(disp.X - disp.Width / 2f, disp.Y - disp.Height / 2f, disp.Width, disp.Height)
+            : null;
+        // The mapped display drives where the calibration overlay pops up (Calibration tab hint).
+        OnPropertyChanged(nameof(CalibrationDisplayText));
+        // The stored mapping's validity drives the Display Mapping tab's warning/note.
+        OnPropertyChanged(nameof(MappingValidity));
+        OnPropertyChanged(nameof(IsAllDisplaysMapped));
+        OnPropertyChanged(nameof(HasSeveralDisplays));
+        OnPropertyChanged(nameof(ShowMappingOffScreen));
+        OnPropertyChanged(nameof(ShowMappingCustom));
+        OnPropertyChanged(nameof(MappingValidityText));
+        UpdateActiveAreaSizePercent();
+    }
+
+    // ── Active-area editing (#199): interactive resize/move (from the diagram) + a Size slider ──
+
+    /// <summary>Persist an interactive active-area edit from the diagram (it has already clamped the
+    /// values to the tablet + rotation). Keeps the aspect lock on.</summary>
+    public Task CommitActiveArea(double width, double height, double centerX, double centerY) =>
+        ApplySettingsChange(p =>
+        {
+            if (p.AbsoluteModeSettings?.Tablet is { } t)
+            {
+                t.Width = (float)width; t.Height = (float)height;
+                t.X = (float)centerX; t.Y = (float)centerY;
+            }
+        });
+
+    /// <summary>Active-area size as a percent (10–100) of the maximum that fits — the Size slider. User
+    /// changes are debounced and applied (resizing about the current centre); reads back from the stored
+    /// area on every refresh.</summary>
+    [ObservableProperty] private double _activeAreaSizePercent = 100;
+    private bool _syncingSize;
+    private bool _sizeEditPending;   // a user slider edit is in flight (see OnActiveAreaSizePercentChanged)
+    private readonly TrailingDebounce _sizeDebounce = new(250, "active area size");
+
+    partial void OnActiveAreaSizePercentChanged(double value)
+    {
+        if (_syncingSize) return;   // programmatic sync from the stored area, not a user edit
+        // A user edit is now in flight until its debounced apply lands. Guard against the periodic
+        // RefreshTabletArea poll (it fires every few hundred ms) clobbering the slider with the *old*
+        // stored value mid-debounce — that was the "click a new spot, snaps back to the previous value"
+        // bug (#size-snapback).
+        _sizeEditPending = true;
+        NoteDraftEdit(DraftGroup.Size);
+        _sizeDebounce.Schedule(ResizeAsync);
+    }
+
+    // Runs on the UI thread: the debounce preserves the context captured when the slider raised its
+    // change, and the body reads and writes VM state directly.
+    private async Task ResizeAsync()
+    {
+        DraftSubmitted(DraftGroup.Size);
+        var dig = _deviceData?.GetTabletDigitizer(_profile.Tablet ?? "") ?? _tabletDigitizer;
+        var display = DisplayMappingApplier.CurrentlyMapped(_profile, Displays);
+        if (dig is not { } d || display == null) { _sizeEditPending = false; return; }
+
+        var max = AreaMappingCalculator.FitForRotation(d.Width, d.Height, display.Width, display.Height, TabletRotation);
+        float frac = (float)Math.Clamp(ActiveAreaSizePercent / 100.0, 0.1, 1.0);
+        var cur = _profile.AbsoluteModeSettings?.Tablet;
+        float cx = cur?.X ?? d.Width / 2f, cy = cur?.Y ?? d.Height / 2f;
+        var clamped = AreaMappingCalculator.ClampArea(max.Width * frac, max.Height * frac, cx, cy,
+            TabletRotation, d.Width, d.Height, max.Width * 0.1f);
+        // Clear the guard just before committing: CommitActiveArea mutates _profile synchronously (before
+        // its first await), so from here every write-back reads the new value and is safe to apply.
+        _sizeEditPending = false;
+        await CommitActiveArea(clamped.Width, clamped.Height, clamped.X, clamped.Y);
+    }
+
+    // Reflect the stored area's size into the slider without re-triggering an apply.
+    private void UpdateActiveAreaSizePercent()
+    {
+        if (_sizeEditPending) return;   // don't overwrite an in-flight user edit with the pre-commit value
+        var t = _profile.AbsoluteModeSettings?.Tablet;
+        var dig = _deviceData?.GetTabletDigitizer(_profile.Tablet ?? "") ?? _tabletDigitizer;
+        var display = DisplayMappingApplier.CurrentlyMapped(_profile, Displays);
+        if (t == null || dig is not { } d || display == null) return;
+        var max = AreaMappingCalculator.FitForRotation(d.Width, d.Height, display.Width, display.Height, TabletRotation);
+        if (max.Width <= 0) return;
+        _syncingSize = true;
+        ActiveAreaSizePercent = Math.Round(Math.Clamp(t.Width / max.Width * 100.0, 10, 100));
+        _syncingSize = false;
+    }
+
+    // ── Active Area tab: read-out of the full vs. effective (used) area ──────────
+    // The diagram binds TabletArea directly; these drive the stat cells beside it. All recompute
+    // when TabletArea changes (a new mapping applied, displays changed, or profile reloaded).
+    partial void OnTabletAreaChanged(TabletAreaInfo? value)
+    {
+        OnPropertyChanged(nameof(ActiveAreaFullText));
+        OnPropertyChanged(nameof(ActiveAreaUsedText));
+        OnPropertyChanged(nameof(ActiveAreaUsagePercentText));
+        OnPropertyChanged(nameof(FullDiagonalText));
+        OnPropertyChanged(nameof(UsedDiagonalText));
+        OnPropertyChanged(nameof(FullAspectText));
+        OnPropertyChanged(nameof(UsedAspectText));
+    }
+
+    public string ActiveAreaFullText => TabletArea is { } a ? FormatSize(a.FullWidth, a.FullHeight) : "—";
+    public string ActiveAreaUsedText => TabletArea is { } a ? FormatSize(a.EffWidth, a.EffHeight) : "—";
+
+    /// <summary>Corner-to-corner diagonal of the full tablet area / the effective (active) area — the
+    /// TABLET and ACTIVE AREA columns of the mapping-tab comparison table.</summary>
+    public string FullDiagonalText => TabletArea is { } a ? FormatLength(Diagonal(a.FullWidth, a.FullHeight)) : "—";
+    public string UsedDiagonalText => TabletArea is { } a ? FormatLength(Diagonal(a.EffWidth, a.EffHeight)) : "—";
+
+    private static double Diagonal(double w, double h) => System.Math.Sqrt(w * w + h * h);
+
+    /// <summary>Width-to-height aspect ratio of the full tablet area / the effective (active) area. A
+    /// mismatch means the active area is shaped differently from the tablet — expected when it's mapped to
+    /// a display whose aspect differs from the tablet's.</summary>
+    /// <remarks>
+    /// Three decimals, because two cannot tell you what this table exists to tell you. The comparison
+    /// people make here is between the two columns, and at two decimals a 16:10 tablet and a 1.602 active
+    /// area both read "1.60" — so a real mismatch, which is the thing worth noticing, looks like a match.
+    /// The About tab's ratio already uses three for the same reason.
+    /// </remarks>
+    public string FullAspectText => TabletArea is { FullHeight: > 0 } a ? (a.FullWidth / a.FullHeight).ToString("0.000") : "—";
+    public string UsedAspectText => TabletArea is { EffHeight: > 0 } a ? (a.EffWidth / a.EffHeight).ToString("0.000") : "—";
+
+    // Both units, every time (#mapping-units). These used to switch on a toggle beside the table; the
+    // format now lives on TabletAboutInfo so this tab and the About tab cannot drift apart.
+    private static string FormatLength(double mm) => Domain.TabletAboutInfo.FormatLength(mm);
+    private static string FormatSize(double wMm, double hMm) =>
+        Domain.TabletAboutInfo.FormatSize(wMm, hMm);
+
+    /// <summary>Share of the full digitizer area covered by the effective area (width×height) — the
+    /// ACTIVE AREA column of the "Area" row (the TABLET column is always 100%).</summary>
+    public string ActiveAreaUsagePercentText => TabletArea is { FullWidth: > 0, FullHeight: > 0 } a
+        ? $"{a.EffWidth * a.EffHeight / (a.FullWidth * a.FullHeight) * 100:0.0}%" : "—";
+
+    /// <summary>Debounce rapid edits (node drags / slider) into a single daemon apply.</summary>
+    private void SchedulePersist()
+    {
+        if (_skipCurvePersist || _applyAction == null || _settings == null) return;
+        NoteDraftEdit(DraftGroup.Curve);
+        _persistDebounce.Schedule(PersistCurveAsync);
+    }
+
+    private PressureCurveSettings? StashedCurve()
+    {
+        var j = AppSettings.Get(CurveBackupKey);
+        if (string.IsNullOrEmpty(j)) return null;
+        try { return JsonConvert.DeserializeObject<PressureCurveSettings>(j); } catch { return null; }
+    }
+
+    private async Task PersistCurveAsync()
+    {
+        DraftSubmitted(DraftGroup.Curve);
+        if (_applyAction == null || _settings == null) return;
+        var draft = _draftGeneration;
+        var dynamics = WrittenDynamics();
+        // The filter is always enabled internally; users neutralize it with linear/zero settings, not a toggle.
+        PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", dynamics, enable: true);
+        // The write mutated _profile.Filters (added/enabled/disabled the DynamicsFilter); reflect that
+        // in the Filters tab and JSON view immediately rather than waiting for a manual Refresh.
+        UpdateFiltersDisplay();
+        TakeOutcome(await SubmitAsync(_settings), draft);
+    }
+
+    // ── Hover limit tab (#188) ──────────────────────────────────
+
+    public const int DefaultMaxHoverDistance = 127; // sensible mid-point when first enabled (range 0-255)
+    public int HoverDistanceMax => HoverProfile.MaxDistance;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HoverControlsOpacity))]
+    private bool _hoverLimitEnabled;
+    [ObservableProperty] private bool _canEditHover;
+    [ObservableProperty] private double _maxHoverDistance = DefaultMaxHoverDistance;
+    /// <summary>Only track while the pen is in the tablet's near-proximity band (Wacom's default). (#311)</summary>
+    [ObservableProperty] private bool _nearProximityOnly;
+
+    public string MaxHoverDistanceText => ((int)MaxHoverDistance).ToString();
+    /// <summary>Dim the hover controls when the limit is off so they read as inactive (like Dynamics).</summary>
+    public double HoverControlsOpacity => HoverLimitEnabled ? 1.0 : 0.4;
+
+    private bool _skipHoverPersist;
+    private readonly TrailingDebounce _hoverPersistDebounce = new(400, "hover");
+
+    partial void OnHoverLimitEnabledChanged(bool value) => SchedulePersistHover();
+    partial void OnNearProximityOnlyChanged(bool value) => SchedulePersistHover();
+
+    partial void OnMaxHoverDistanceChanged(double value)
+    {
+        OnPropertyChanged(nameof(MaxHoverDistanceText));
+        SchedulePersistHover();
+    }
+
+    private void SchedulePersistHover()
+    {
+        if (_skipHoverPersist || _applyAction == null || _settings == null) return;
+        NoteDraftEdit(DraftGroup.Hover);
+        _hoverPersistDebounce.Schedule(PersistHoverAsync);
+    }
+
+    private async Task PersistHoverAsync()
+    {
+        DraftSubmitted(DraftGroup.Hover);
+        if (_applyAction == null || _settings == null) return;
+        var draft = _draftGeneration;
+        HoverProfile.Write(_settings, _profile.Tablet ?? "", (int)MaxHoverDistance, HoverLimitEnabled, NearProximityOnly);
+        UpdateFiltersDisplay();
+        TakeOutcome(await SubmitAsync(_settings), draft);
+    }
+
+    /// <summary>
+    /// Close policy (#736): pending edits are <b>cancelled</b>, not flushed.
+    ///
+    /// These view models are cached for the life of the app and disposed only during shutdown, a few
+    /// lines before the session itself goes away. Flushing here would mean a daemon RPC plus a disk write
+    /// racing teardown, and the flush would have to be awaited from a synchronous Dispose on the UI
+    /// thread — the callbacks marshal back to that same thread, so blocking on them would deadlock.
+    ///
+    /// The cost is that an edit made inside the 250–400 ms before quitting is dropped. That is the
+    /// deliberate trade: previously those callbacks still fired, pushing settings at a half-disposed
+    /// session. Flushing safely needs the debounce to be owned by something that can be awaited before
+    /// teardown, which belongs with the settings-coordinator extraction (#740).
+    /// </summary>
+    public void Dispose()
+    {
+        if (_deviceData != null)
+        {
+            _deviceData.DataLoaded -= RefreshDetectionStatus;
+            _deviceData.DataLoaded -= RefreshConfigOverride;
+        }
+        DeveloperSettings.Instance.PropertyChanged -= OnDeveloperSettingsChanged;
+        StopLiveInput();
+        _wheelThresholdDebounce.Dispose();
+        _persistDebounce.Dispose();
+        _sizeDebounce.Dispose();
+        _hoverPersistDebounce.Dispose();
+        _mappingApplyGate.Dispose();
+    }
+}

@@ -1,0 +1,514 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using OpenTabletDriver.Desktop;
+using OpenTabletDriver.Desktop.Profiles;
+using OpenTabletDriver.Desktop.Reflection;
+using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
+using OpenTabletArtist.ViewModels;
+using Xunit;
+using OtdInterop;
+
+namespace OpenTabletArtist.Tests;
+
+public class TestViewModelTests
+{
+    private sealed class NoopDebugSession : IDaemonDebugSession
+    {
+#pragma warning disable CS0067 // not exercised by these tests
+        public event Action<JObject>? DeviceReport;
+#pragma warning restore CS0067
+        public Task SetTabletDebugAsync(bool enabled) => Task.CompletedTask;
+    }
+
+    private static TestViewModel NewVm(FakeDeviceData data) =>
+        new(new NoopDebugSession(), data);
+
+    private static Profile DetectedProfileWithDynamics(string tablet, bool enabled)
+        => ProfileWithDynamics(tablet, PenDynamicsSettings.Default, enabled);
+
+    private static Profile ProfileWithDynamics(string tablet, PenDynamicsSettings dyn, bool enabled)
+    {
+        var settings = new Settings { Profiles = new ProfileCollection { new Profile { OutputMode = new OpenTabletDriver.Desktop.Reflection.PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)), Tablet = tablet } } };
+        PressureCurveProfile.Write(settings, tablet, dyn, enable: enabled);
+        // A real profile has tip and eraser bindings; null now means "Disable pen tip / eraser" (R18).
+        var p = settings.Profiles.First();
+        p.BindingSettings.TipButton ??= PenSwitchBinding.MakeAdaptiveBinding(PenSwitchKind.Tip);
+        p.BindingSettings.EraserButton ??= PenSwitchBinding.MakeAdaptiveBinding(PenSwitchKind.Eraser);
+        return p;
+    }
+
+    private static FakeDeviceData DetectedWith(Profile profile) => new()
+    {
+        Profiles = new List<ProfileItem> { new(profile, IsDetected: true, LastSeen: null) }
+    };
+
+    [Fact]
+    public void NoProfiles_ReportsNotDetected()
+    {
+        var data = new FakeDeviceData { Profiles = new List<ProfileItem>() };
+        using var vm = NewVm(data);
+
+        data.RaiseDataLoaded();
+
+        Assert.False(vm.TabletDetected);
+        Assert.Equal("No tablet detected", vm.TabletStatusText);
+        Assert.False(vm.DynamicsActive);
+    }
+
+    [Fact]
+    public void DetectedProfile_ShowsName_NoDynamicsChipWhenDisabled()
+    {
+        var data = new FakeDeviceData
+        {
+            Profiles = new List<ProfileItem> { new(new Profile { OutputMode = new OpenTabletDriver.Desktop.Reflection.PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)), Tablet = "Wacom CTL-472" }, IsDetected: true, LastSeen: null) }
+        };
+        using var vm = NewVm(data);
+
+        data.RaiseDataLoaded();
+
+        Assert.True(vm.TabletDetected);
+        Assert.Equal("Wacom CTL-472", vm.TabletStatusText);
+        Assert.False(vm.DynamicsActive);
+    }
+
+    [Fact]
+    public void DetectedProfile_WithEnabledDynamics_ShowsChip()
+    {
+        var data = new FakeDeviceData
+        {
+            Profiles = new List<ProfileItem> { new(DetectedProfileWithDynamics("Wacom", enabled: true), IsDetected: true, LastSeen: null) }
+        };
+        using var vm = NewVm(data);
+
+        data.RaiseDataLoaded();
+
+        Assert.True(vm.DynamicsActive);
+    }
+
+    [Fact]
+    public void DetectedProfile_WithDisabledDynamicsFilter_NoChip()
+    {
+        var data = new FakeDeviceData
+        {
+            Profiles = new List<ProfileItem> { new(DetectedProfileWithDynamics("Wacom", enabled: false), IsDetected: true, LastSeen: null) }
+        };
+        using var vm = NewVm(data);
+
+        data.RaiseDataLoaded();
+
+        Assert.False(vm.DynamicsActive);
+    }
+
+    [Fact]
+    public void UndetectedProfilesPresent_StillReportsNotDetected()
+    {
+        var data = new FakeDeviceData
+        {
+            Profiles = new List<ProfileItem> { new(new Profile { OutputMode = new OpenTabletDriver.Desktop.Reflection.PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)), Tablet = "Paired-Only" }, IsDetected: false, LastSeen: null) }
+        };
+        using var vm = NewVm(data);
+
+        data.RaiseDataLoaded();
+
+        Assert.False(vm.TabletDetected);
+        Assert.Equal("No tablet detected", vm.TabletStatusText);
+    }
+
+    // --- #184: spell out which dynamics aspects are altering the pen ---
+
+    [Fact]
+    public void EnabledDynamics_WithCurveAndPressureSmoothing_FlagsExactlyThose()
+    {
+        var dyn = PenDynamicsSettings.Default with
+        {
+            Curve = PressureCurveSettings.Default with { Softness = 0.4 },
+            PressureSmoothing = 0.5,
+        };
+        var data = DetectedWith(ProfileWithDynamics("Wacom", dyn, enabled: true));
+        using var vm = NewVm(data);
+        data.RaiseDataLoaded();
+
+        Assert.True(vm.DynamicsActive);
+        Assert.True(vm.CurveActive);
+        Assert.True(vm.PressureSmoothingActive);
+        Assert.False(vm.PositionSmoothingActive);
+        Assert.False(vm.DynamicsNoOp);
+    }
+
+    [Fact]
+    public void EnabledDynamics_AtDefaults_IsNoOp_WithNoAspectFlags()
+    {
+        var data = DetectedWith(DetectedProfileWithDynamics("Wacom", enabled: true));
+        using var vm = NewVm(data);
+        data.RaiseDataLoaded();
+
+        Assert.True(vm.DynamicsActive);
+        Assert.True(vm.DynamicsNoOp);
+        Assert.False(vm.CurveActive);
+        Assert.False(vm.PressureSmoothingActive);
+        Assert.False(vm.PositionSmoothingActive);
+    }
+
+    [Fact]
+    public void DisabledDynamics_ClearsAllAspectFlags()
+    {
+        var dyn = PenDynamicsSettings.Default with { Curve = PressureCurveSettings.Default with { Softness = 0.4 } };
+        var data = DetectedWith(ProfileWithDynamics("Wacom", dyn, enabled: false));
+        using var vm = NewVm(data);
+        data.RaiseDataLoaded();
+
+        Assert.False(vm.DynamicsActive);
+        Assert.False(vm.CurveActive);
+        Assert.False(vm.DynamicsNoOp);
+    }
+
+    // --- #183: pointer-only mode hides dynamics ---
+
+    [Fact]
+    public void PointerOnlyWithDynamics_TrueOnlyInPointerOnlyModeWithDynamicsActive()
+    {
+        var data = DetectedWith(DetectedProfileWithDynamics("Wacom", enabled: true));
+        using var vm = NewVm(data);
+        data.RaiseDataLoaded();
+        Assert.True(vm.DynamicsActive);
+
+        vm.BrushMode = PenBrushMode.PressureToSize;
+        Assert.False(vm.PointerOnlyWithDynamics);
+
+        vm.BrushMode = PenBrushMode.PointerOnly;
+        Assert.True(vm.PointerOnlyWithDynamics);
+    }
+
+    // --- Following the app-wide active tablet ---
+
+    /// <summary>
+    /// Scribble re-targets when the active tablet changes somewhere else. This used to be one of two
+    /// paths — the page also had its own switcher — and it is now the only one: the switcher moved to the
+    /// shell (#697), so this subscription is what makes picking a tablet up there change what Scribble
+    /// shows. The picker's own tests went with it.
+    /// </summary>
+    [Fact]
+    public void ActiveTabletChangedElsewhere_RetargetsThePage()
+    {
+        var data = new FakeDeviceData
+        {
+            Profiles = new List<ProfileItem>
+            {
+                new(new Profile { OutputMode = new OpenTabletDriver.Desktop.Reflection.PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)), Tablet = "Wacom PTH-660" }, IsDetected: true, LastSeen: null),
+                new(new Profile { OutputMode = new OpenTabletDriver.Desktop.Reflection.PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)), Tablet = "XP-Pen Deco L" }, IsDetected: true, LastSeen: null),
+            },
+            ActiveTabletName = "Wacom PTH-660",
+        };
+        using var vm = NewVm(data);
+        data.RaiseDataLoaded();
+        Assert.Equal("Wacom PTH-660", vm.TabletStatusText);
+
+        // The shell's switcher moves the app-wide selection; the page follows without being told directly.
+        data.RaiseActiveTabletChanged("XP-Pen Deco L");
+
+        Assert.Equal("XP-Pen Deco L", vm.TabletStatusText);
+        Assert.True(vm.TabletDetected);
+    }
+
+    // --- Readout refresh + out-of-range ---
+
+    private static PenSample Sample(long timestamp, int? hover = 12) =>
+        new(0.5, 0.5, 4200, 3100, 0.5, 20, -10, 0, IsDown: true, HoverDistance: hover, Timestamp: timestamp);
+
+    [Fact]
+    public void Readouts_OnlyChangeWhenPublished()
+    {
+        using var vm = NewVm(new FakeDeviceData());
+        vm.UpdateReadout(Sample(1000));
+        Assert.Equal("—", vm.PressureText); // stashed, not yet on screen
+
+        vm.PublishReadouts();
+        Assert.Equal("0.500", vm.PressureText);
+        Assert.Equal("4200, 3100", vm.RawText);
+        Assert.Equal("12", vm.HoverText);
+        Assert.Equal("116.6°, 67.6°", vm.AzAltText); // tilt (20, -10): azimuth, altitude in one cell
+    }
+
+    [Fact]
+    public void AzAlt_ShowsADash_UntilThereIsAReading()
+    {
+        using var vm = NewVm(new FakeDeviceData());
+        Assert.Equal("—", vm.AzAltText);
+    }
+
+    [Fact]
+    public void PenLeavingRange_BlanksEveryReadout()
+    {
+        using var vm = NewVm(new FakeDeviceData());
+        var t = System.Diagnostics.Stopwatch.GetTimestamp();
+        vm.UpdateReadout(Sample(t));
+        vm.UpdateCanvasPosition(10, 20);
+        vm.PublishReadouts();
+        vm.PublishRate();
+
+        vm.ClearIfOutOfRange(t + System.Diagnostics.Stopwatch.Frequency); // a full second of silence
+
+        Assert.Equal("—", vm.CanvasText);
+        Assert.Equal("—", vm.RawText);
+        Assert.Equal("—", vm.TiltText);
+        Assert.Equal("—", vm.PressureText);
+        Assert.Equal("—", vm.AzimuthText);
+        Assert.Equal("—", vm.AltitudeText);
+        Assert.Equal("—", vm.TwistText);
+        Assert.Equal("—", vm.HoverText);
+        Assert.Equal("—", vm.RateText);
+    }
+
+    [Fact]
+    public void PenStillReporting_KeepsItsReadouts()
+    {
+        using var vm = NewVm(new FakeDeviceData());
+        var t = System.Diagnostics.Stopwatch.GetTimestamp();
+        vm.UpdateReadout(Sample(t));
+        vm.PublishReadouts();
+
+        vm.ClearIfOutOfRange(t + System.Diagnostics.Stopwatch.Frequency / 20); // 50 ms — still in range
+
+        Assert.Equal("0.500", vm.PressureText);
+    }
+
+    [Fact]
+    public void PenReturning_ShowsFreshValues_NotStaleOnes()
+    {
+        using var vm = NewVm(new FakeDeviceData());
+        var t = System.Diagnostics.Stopwatch.GetTimestamp();
+        vm.UpdateReadout(Sample(t));
+        vm.PublishReadouts();
+        vm.ClearIfOutOfRange(t + System.Diagnostics.Stopwatch.Frequency);
+
+        // Returns without a hover value: the old hover must not reappear.
+        vm.UpdateReadout(Sample(t + 2 * System.Diagnostics.Stopwatch.Frequency, hover: null));
+        vm.PublishReadouts();
+
+        Assert.Equal("0.500", vm.PressureText);
+        Assert.Equal("—", vm.HoverText);
+    }
+
+    // --- Pipeline counters ---
+
+    [Fact]
+    public void Counters_AreOffByDefault_AndCountNothing()
+    {
+        Assert.Null(Environment.GetEnvironmentVariable("OTA_SCRIBBLE_COUNTERS")); // the default under test
+        using var vm = NewVm(new FakeDeviceData());
+        Assert.False(vm.CountersEnabled);
+
+        vm.NoteHandled(Sample(1000), 2000);
+        vm.NoteOutcome(TestViewModel.SampleOutcome.Drawn);
+        vm.PublishCounters(newLagWindow: true);
+
+        Assert.Equal("no reports yet", vm.CountersText);
+
+        vm.CountersEnabled = true; // and switching on starts from zero
+        vm.PublishCounters();
+        Assert.Equal("no reports yet", vm.CountersText);
+    }
+
+    [Fact]
+    public void Counters_StartEmpty()
+    {
+        using var vm = NewVm(new FakeDeviceData());
+        vm.PublishCounters();
+        Assert.Equal("no reports yet", vm.CountersText);
+    }
+
+    [Fact]
+    public void Counters_SplitHandledSamplesByOutcome()
+    {
+        using var vm = NewVm(new FakeDeviceData());
+        vm.CountersEnabled = true;
+        var freq = System.Diagnostics.Stopwatch.Frequency;
+        for (var i = 0; i < 6; i++)
+        {
+            vm.NoteHandled(Sample(1000), 1000 + freq / 1000 * 2); // 2 ms lag each
+            vm.NoteOutcome(i < 3 ? TestViewModel.SampleOutcome.Drawn
+                         : i < 5 ? TestViewModel.SampleOutcome.Hover
+                         : TestViewModel.SampleOutcome.OffCanvas);
+        }
+
+        vm.PublishCounters(newLagWindow: true);
+
+        Assert.Contains("drawn 3", vm.CountersText);
+        Assert.Contains("hover 2", vm.CountersText);
+        Assert.Contains("off-canvas 1", vm.CountersText);
+        Assert.Contains("lag avg/max 2.0 / 2.0 ms", vm.CountersText);
+    }
+
+    [Fact]
+    public void Clear_ResetsTheCounters()
+    {
+        using var vm = NewVm(new FakeDeviceData());
+        vm.CountersEnabled = true;
+        vm.NoteHandled(Sample(1000), 2000);
+        vm.NoteOutcome(TestViewModel.SampleOutcome.Drawn);
+        vm.PublishCounters();
+        Assert.Contains("drawn 1", vm.CountersText);
+
+        vm.ClearCommand.Execute(null);
+        vm.PublishCounters();
+
+        Assert.Equal("no reports yet", vm.CountersText);
+    }
+
+    // ── what the Scribble canvas draws: the processed pressure, like the Pen page's processed canvas ──
+
+    private static PenSample Pen(double pressure) =>
+        new(X: 0.5, Y: 0.5, RawX: 100, RawY: 100, Pressure: pressure, TiltX: 0, TiltY: 0, Twist: 0, IsDown: pressure > 0);
+
+    private static (TestViewModel Vm, List<(PenSample Raw, double Draw)> Got) VmWithDynamics(
+        PenDynamicsSettings dynamics, bool filterEnabled)
+    {
+        var data = DetectedWith(ProfileWithDynamics("Wacom", dynamics, filterEnabled));
+        var vm = NewVm(data);
+        data.RaiseDataLoaded();
+        var got = new List<(PenSample, double)>();
+        vm.DriverSample += (s, draw) => got.Add((s, draw));
+        return (vm, got);
+    }
+
+    private static PenDynamicsSettings Hard() =>
+        PenDynamicsSettings.Default with { Curve = PressureCurveSettings.Default with { Softness = -0.6 } };
+
+    [Fact]
+    public void WithDynamicsOn_TheCanvasGetsTheCurvedPressure_AndTheSampleKeepsTheRawOne()
+    {
+        var (vm, got) = VmWithDynamics(Hard(), filterEnabled: true);
+        using (vm)
+        {
+            vm.OnDriverSample(Pen(0.5));
+
+            var (raw, draw) = Assert.Single(got);
+            Assert.Equal(0.5, raw.Pressure);                                           // the readouts show what the tablet said
+            // Six places, not nine: the profile stores softness as a 32-bit float, so -0.6 reads back as
+            // -0.60000002 and the curve's answer moves in the eighth decimal.
+            Assert.Equal(PressureCurve.Apply(0.5, Hard().Curve), draw, 6);             // the canvas draws the curve's answer
+            Assert.NotEqual(0.5, draw, 3);
+        }
+    }
+
+    // With the filter off, apps get the raw pressure; so must the canvas, whatever settings are stored.
+    [Fact]
+    public void WithTheDynamicsFilterOff_TheCanvasDrawsTheRawPressure()
+    {
+        var (vm, got) = VmWithDynamics(Hard(), filterEnabled: false);
+        using (vm)
+        {
+            vm.OnDriverSample(Pen(0.5));
+            Assert.Equal(0.5, Assert.Single(got).Draw, 9);
+        }
+    }
+
+    [Fact]
+    public void WithNoTabletDetected_TheCanvasDrawsTheRawPressure()
+    {
+        using var vm = NewVm(new FakeDeviceData { Profiles = new List<ProfileItem>() });
+        var got = new List<double>();
+        vm.DriverSample += (_, draw) => got.Add(draw);
+
+        vm.OnDriverSample(Pen(0.42));
+
+        Assert.Equal(0.42, Assert.Single(got), 9);
+    }
+
+    // The tail the Pen page had: smoothing leaves a decaying value after a stroke, and a pen that reports
+    // pressure while hovering never lifts. Under the dead zone the canvas must get exactly 0.
+    [Fact]
+    public void HoverPressureUnderTheDeadZone_IsZero_EvenRightAfterAStroke_WithSmoothingOn()
+    {
+        var dyn = PenDynamicsSettings.Default with
+        {
+            Curve = PressureCurveSettings.Default with { InputMinimum = 0.06 },
+            PressureSmoothing = 0.5,
+        };
+        var (vm, got) = VmWithDynamics(dyn, filterEnabled: true);
+        using (vm)
+        {
+            for (var i = 0; i < 60; i++) vm.OnDriverSample(Pen(0.6));
+            got.Clear();
+
+            vm.OnDriverSample(Pen(0.0013));
+
+            Assert.Equal(0.0, Assert.Single(got).Draw);
+        }
+    }
+
+    // Smoothing must follow the pen continuously: it has no idea the sample was off the canvas.
+    [Fact]
+    public void EverySampleIsProcessed_InOrder_SoSmoothingIsContinuous()
+    {
+        var dyn = PenDynamicsSettings.Default with { PressureSmoothing = 0.5 };
+        var (vm, got) = VmWithDynamics(dyn, filterEnabled: true);
+        using (vm)
+        {
+            var reference = new PenDynamicsProcessor { Settings = dyn };
+            foreach (var p in new[] { 0.8, 0.8, 0.2, 0.9, 0.1 })
+            {
+                vm.OnDriverSample(Pen(p));
+                Assert.Equal(reference.ProcessSample(p), got[^1].Draw, 9);
+            }
+            Assert.Equal(5, got.Count);
+        }
+    }
+
+    [Fact]
+    public void ZeroPressure_DrawsNothing()
+    {
+        var (vm, got) = VmWithDynamics(PenDynamicsSettings.Default, filterEnabled: true);
+        using (vm)
+        {
+            vm.OnDriverSample(Pen(0));
+            Assert.Equal(0.0, Assert.Single(got).Draw);
+        }
+    }
+
+    // ---- R18 --------------------------------------------------------------------------------------
+    // PTK-440 reports 0..2047. Normal mode: the canvas follows the real pressure through the curve.
+    [Theory]
+    [InlineData(0)] [InlineData(512)] [InlineData(1024)] [InlineData(2047)]
+    public void R18_NormalMode_Ptk440_FollowsTheCurve(int raw)
+    {
+        var dyn = PenDynamicsSettings.Default with { PressureSmoothing = 0, Curve = PressureCurveSettings.Default with { Softness = -0.38 } };
+        using var vm = NewVm(new FakeDeviceData { Profiles = new List<ProfileItem>() });
+        vm.SetInputSwitches(dyn, tipDisabled: false, eraserDisabled: false);
+        var p = raw / 2047.0;
+        var expected = PressureCurve.Apply(p, dyn.Curve);
+        Assert.Equal(expected, vm.ProcessPressure(Pen(p)), 6);
+        if (raw == 0) Assert.Equal(0.0, expected, 9);
+        if (raw == 2047) Assert.True(expected > 0.99);
+    }
+
+    // Disable pressure sensitivity: a flat curve, so every pressed sample is exactly 30%, lifted is 0.
+    [Theory]
+    [InlineData(1)] [InlineData(512)] [InlineData(1024)] [InlineData(2047)]
+    public void R18_DisabledPressure_IsExactly30Percent(int raw)
+    {
+        var dyn = PenDynamicsSettings.Default with { PressureSmoothing = 0, Curve = TabletDetailViewModel.FixedPressureCurve };
+        using var vm = NewVm(new FakeDeviceData { Profiles = new List<ProfileItem>() });
+        vm.SetInputSwitches(dyn, false, false);
+        Assert.Equal(0.30, vm.ProcessPressure(Pen(raw / 2047.0)), 9);
+        Assert.Equal(0.30, vm.ProcessPressure(Pen(raw / 2047.0) with { IsEraser = true }), 9);
+        Assert.Equal(0.0, vm.ProcessPressure(Pen(0)), 9);
+    }
+
+    [Fact]
+    public void R18_Scribble_IgnoresTheTip_WhenTheTipIsDisabled()
+    {
+        using var vm = NewVm(new FakeDeviceData { Profiles = new List<ProfileItem>() });
+        vm.SetInputSwitches(PenDynamicsSettings.Default with { PressureSmoothing = 0 }, tipDisabled: true, eraserDisabled: false);
+        foreach (var p in new[] { 0.1, 0.5, 1.0 }) Assert.Equal(0.0, vm.ProcessPressure(Pen(p)), 9);
+        Assert.True(vm.ProcessPressure(Pen(0.5) with { IsEraser = true }) > 0);   // eraser still works
+        vm.SetInputSwitches(PenDynamicsSettings.Default with { PressureSmoothing = 0 }, false, eraserDisabled: true);
+        Assert.Equal(0.0, vm.ProcessPressure(Pen(0.5) with { IsEraser = true }), 9);
+        Assert.True(vm.ProcessPressure(Pen(0.5)) > 0);
+    }
+}

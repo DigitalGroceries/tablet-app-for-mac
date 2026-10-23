@@ -1,0 +1,217 @@
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OpenTabletDriver.Desktop;
+using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
+using OtdInterop;
+
+namespace OpenTabletArtist.ViewModels;
+
+/// <summary>
+/// View model for the Saved Settings (snapshots) page. Page-VM split (#14 phase 2).
+/// Reads/applies live settings through the shared <see cref="ISettingsCoordinator"/> (Option C,
+/// #41 PR 3). Picks up the preset directory and rescans by self-subscribing to the session's
+/// <see cref="IDeviceData.DataLoaded"/> event rather than being pushed to by the shell.
+/// </summary>
+public partial class PresetsViewModel : ObservableObject, IDisposable
+{
+    private readonly IPresetStore _store;
+    private readonly ISettingsCoordinator _settings;
+    private readonly IDeviceData _deviceData;
+    private readonly IDialogService _dialogs;
+    private readonly IProfileHotkeys _hotkeys;
+    private readonly ProfileSwitchService _profileSwitch;
+
+    [ObservableProperty] private List<PresetInfo> _presets = [];
+    [ObservableProperty] private string _presetDirectory = "";
+
+    public bool HasPresets => Presets.Count > 0;
+    partial void OnPresetsChanged(List<PresetInfo> value) => OnPropertyChanged(nameof(HasPresets));
+
+    public PresetsViewModel(IPresetStore store, ISettingsCoordinator settings, IDeviceData deviceData,
+        IDialogService dialogs, IProfileHotkeys hotkeys, ProfileSwitchService profileSwitch)
+    {
+        _store = store;
+        _settings = settings;
+        _deviceData = deviceData;
+        _dialogs = dialogs;
+        _hotkeys = hotkeys;
+        _profileSwitch = profileSwitch;
+        _deviceData.DataLoaded += OnDataLoaded;
+    }
+
+    private void OnDataLoaded()
+    {
+        PresetDirectory = _deviceData.PresetDirectory;
+        // Fire-and-forget rescan; swallow so an enumeration/ordering failure can't surface as
+        // an unobserved exception (the old shell wrapped LoadAsync the same way, Codex #43).
+        _ = LoadSafelyAsync();
+    }
+
+    private async Task LoadSafelyAsync()
+    {
+        try { await LoadAsync(); }
+        catch (Exception ex)
+        {
+            // Must not surface as an unobserved exception, but a whole-list refresh failure (e.g. the
+            // directory is inaccessible) shouldn't vanish either (#21).
+            AppLog.Warn("Preset list refresh failed.", ex);
+        }
+    }
+
+    /// <summary>Rescans the preset directory, newest first. Called by the shell after connect.</summary>
+    public async Task LoadAsync()
+    {
+        if (string.IsNullOrEmpty(PresetDirectory) || !Directory.Exists(PresetDirectory))
+        {
+            Presets = [];
+            return;
+        }
+
+        var presetList = new List<PresetInfo>();
+        // Sort newest first by file last-write time so the most recent
+        // snapshot appears at the top of the list.
+        var files = Directory.GetFiles(PresetDirectory, "*.json")
+            .OrderByDescending(File.GetLastWriteTime);
+        foreach (var file in files)
+        {
+            try
+            {
+                var content = await File.ReadAllTextAsync(file);
+                var lastWrite = File.GetLastWriteTime(file);
+                var name = Path.GetFileNameWithoutExtension(file);
+                presetList.Add(new PresetInfo(
+                    Name: name,
+                    Path: file,
+                    Content: content,
+                    LastModified: lastWrite.ToString("yyyy-MM-dd HH:mm:ss")));
+            }
+            catch (Exception ex)
+            {
+                // One unreadable preset shouldn't drop the rest — skip it, but log so a missing preset
+                // isn't a mystery (#21).
+                AppLog.Warn($"Skipped a preset that couldn't be read: {file}", ex);
+            }
+        }
+        Presets = presetList;
+    }
+
+    [RelayCommand]
+    private void OpenFolder(string path)
+    {
+        Services.PlatformShell.RevealInFileManager(path);
+    }
+
+    [RelayCommand]
+    private async Task SavePreset()
+    {
+        var settings = _settings.CurrentSettings;
+        if (settings == null) return;
+        if (!Directory.Exists(PresetDirectory)) Directory.CreateDirectory(PresetDirectory);
+
+        // Pick the lowest "Profile N" name not already taken (lowest gap is reused).
+        // Date/time is shown separately on each card from the file's last-write time.
+        var existing = Directory.EnumerateFiles(PresetDirectory, "*.json")
+                                .Select(Path.GetFileNameWithoutExtension)
+                                .Where(s => s != null)!
+                                .Cast<string>();
+        var name = PresetNaming.NextSnapshotName(existing);
+
+        var path = Path.Combine(PresetDirectory, $"{name}.json");
+        _store.Save(settings, path);
+        await LoadAsync();
+    }
+
+    [RelayCommand]
+    private async Task LoadPreset(string name) => await _profileSwitch.SwitchToAsync(name);
+
+    [RelayCommand]
+    private async Task UpdatePreset(string name)
+    {
+        var settings = _settings.CurrentSettings;
+        if (settings == null) return;
+
+        var path = Path.Combine(PresetDirectory, $"{name}.json");
+        _store.Save(settings, path);
+        await LoadAsync();
+    }
+
+    [RelayCommand]
+    private async Task DuplicatePreset(string name)
+    {
+        var srcPath = Path.Combine(PresetDirectory, $"{name}.json");
+        if (!File.Exists(srcPath)) return;
+
+        // Copy the file verbatim under a fresh "<name> copy" name (numbered if taken). The duplicate is
+        // an independent preset with no hotkey mapping — unlike Rename, which carries one across.
+        var existing = Directory.EnumerateFiles(PresetDirectory, "*.json")
+                                .Select(Path.GetFileNameWithoutExtension)
+                                .Where(s => s != null)!
+                                .Cast<string>();
+        var newName = PresetNaming.NextCopyName(name, existing);
+
+        File.Copy(srcPath, Path.Combine(PresetDirectory, $"{newName}.json"));
+        await LoadAsync();
+    }
+
+    [RelayCommand]
+    private async Task RenamePreset(string name)
+    {
+        var oldPath = Path.Combine(PresetDirectory, $"{name}.json");
+        if (!File.Exists(oldPath)) return;
+
+        var newName = await _dialogs.ShowInputAsync(
+            "Rename Preset",
+            "Enter a new name for this preset:",
+            name);
+
+        if (!string.IsNullOrWhiteSpace(newName) && newName != name)
+        {
+            var newPath = Path.Combine(PresetDirectory, $"{newName}.json");
+            if (!File.Exists(newPath))
+            {
+                File.Move(oldPath, newPath);
+                _hotkeys.RenameSnapshot(name, newName); // carry the hotkey mapping across (#320)
+                await LoadAsync();
+            }
+            else
+            {
+                await _dialogs.ShowMessageAsync("Rename",
+                    $"A profile named \"{newName}\" already exists.");
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeletePreset(string name)
+    {
+        var path = Path.Combine(PresetDirectory, $"{name}.json");
+        if (!File.Exists(path)) return;
+
+        var confirmed = await _dialogs.ShowConfirmAsync(
+            "Delete Preset",
+            $"Delete the profile \"{name}\"?\n\nThis cannot be undone.");
+
+        if (!confirmed) return;
+
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception ex)
+        {
+            // User-initiated: don't let it look deleted, and don't clear its hotkey, when the file remains (#21).
+            AppLog.Warn($"Failed to delete preset {path}.", ex);
+            await _dialogs.ShowMessageAsync("Delete Preset",
+                $"Couldn't delete the profile \"{name}\": {ex.Message}");
+            return;
+        }
+        _hotkeys.ClearHotkey(name); // drop its hotkey mapping (#320)
+        await LoadAsync();
+    }
+
+    public void Dispose() => _deviceData.DataLoaded -= OnDataLoaded;
+}

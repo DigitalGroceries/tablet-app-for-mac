@@ -1,0 +1,129 @@
+using System;
+using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OpenTabletArtist.Services;
+
+namespace OpenTabletArtist.ViewModels;
+
+/// <summary>
+/// Shared daemon status/control surface, backed by the <see cref="AppSession"/>. Both the Home problem
+/// card and the Daemon page (Advanced → OpenTabletDriver) bind to one instance, so the daemon state +
+/// controls aren't duplicated. Home shows it only when there's a problem (<see cref="ShowDaemonProblem"/>);
+/// the Daemon page always shows the full card.
+/// </summary>
+public sealed partial class DaemonStatusViewModel : ObservableObject, IDisposable
+{
+    private readonly IConnectionState _session;
+    private readonly Action? _openDaemonPage;
+
+    /// <summary>
+    /// Takes the state it reads, not the class that happens to hold it (#900).
+    /// </summary>
+    /// <remarks>
+    /// It took <c>AppSession</c> itself, so nothing downstream of this -- which is the whole daemon page
+    /// -- could be built in a test. Both defects in the way back to the bundled daemon lived there, and
+    /// both were found by a person looking at the running app rather than by anything that could have
+    /// run in CI.
+    /// </remarks>
+    public DaemonStatusViewModel(IConnectionState session, Action? openDaemonPage = null)
+    {
+        _session = session;
+        _openDaemonPage = openDaemonPage;
+        _session.PropertyChanged += OnSessionChanged;
+    }
+
+    private void OnSessionChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != null) OnPropertyChanged(e.PropertyName);
+        if (e.PropertyName is nameof(DaemonSourcePath)) OnPropertyChanged(nameof(DaemonSourceDisplayPath));
+        if (e.PropertyName is nameof(IsConnected) or nameof(ShowDaemonActivity) or nameof(HasDaemonOperationError)
+            or nameof(ConnectStalled) or nameof(IsDaemonExeMissing))
+            OnPropertyChanged(nameof(ShowDaemonProblem));
+        if (e.PropertyName is nameof(IsConnected) or nameof(DaemonStatusText) or nameof(ConnectStalled))
+            OnPropertyChanged(nameof(HomeProblemText));
+        if (e.PropertyName is nameof(IsConnected) or nameof(ShowDaemonActivity))
+            OnPropertyChanged(nameof(ShowDisconnectedLabel));
+        if (e.PropertyName is nameof(IsConnected)) OnPropertyChanged(nameof(RefreshActionLabel));
+    }
+
+    // --- Forwarded session state (see AppSession) ---
+    public bool IsConnected => _session.IsConnected;
+    public string DaemonStatusText => _session.DaemonStatusText;
+    public bool ShowAppOwnedDaemon => _session.ShowAppOwnedDaemon;
+    public bool ShowForeignDaemonWarning => _session.ShowForeignDaemonWarning;
+    public bool HasBundledDaemon => _session.HasBundledDaemon;
+    public bool HasDaemonSourcePath => _session.HasDaemonSourcePath;
+    public bool ShowDaemonSourceUnknown => _session.ShowDaemonSourceUnknown;
+    public string DaemonSourcePath => _session.DaemonSourcePath;
+
+    /// <summary>The daemon's location as a person would name it — the .app bundle, not the binary four
+    /// levels inside it. The full path stays on the tooltip.</summary>
+    public string DaemonSourceDisplayPath => Domain.ExecutablePath.BundleOrSelf(_session.DaemonSourcePath);
+    public string DaemonVersion => _session.DaemonVersion;
+    public bool HasDaemonVersion => _session.HasDaemonVersion;
+    public bool CanStartDaemon => _session.CanStartDaemon;
+    public bool IsDaemonBusy => _session.IsDaemonBusy;
+    public bool ShowDaemonActivity => _session.ShowDaemonActivity;
+    public string DaemonActivityText => _session.DaemonActivityText;
+    public bool ShowStartButton => _session.ShowStartButton;
+    public string DaemonOperationError => _session.DaemonOperationError;
+    public bool HasDaemonOperationError => _session.HasDaemonOperationError;
+
+    /// <summary>An unsaved edit thrown away because the connected daemon changed (#787).</summary>
+    public string DiscardedChangeNotice => _session.DiscardedChangeNotice;
+    public bool HasDiscardedChangeNotice => _session.HasDiscardedChangeNotice;
+    public bool IsDaemonExeMissing => _session.IsDaemonExeMissing;
+    public bool ConnectStalled => _session.ConnectStalled;
+
+    public IAsyncRelayCommand StartDaemonCommand => _session.StartDaemonCommand;
+    public IAsyncRelayCommand StopDaemonCommand => _session.StopDaemonCommand;
+    public IAsyncRelayCommand RestartDaemonCommand => _session.RestartDaemonCommand;
+    public IRelayCommand LaunchOtdUxCommand => _session.LaunchOtdUxCommand;
+    /// <summary>False in a published build — the Daemon page hides the OTD UX card rather than
+    /// showing a button that can't work.</summary>
+    public bool CanLaunchOtdUx => _session.CanLaunchOtdUx;
+
+    /// <summary>Say "not connected" on the Daemon page's topology wire only when that is the settled
+    /// answer. While a start/stop/restart or the initial connect is in flight the wire carries its own
+    /// phase text ("Connecting…"), and labelling it "not connected" at the same time contradicts it —
+    /// the two were briefly on screen together (#daemon-topology).</summary>
+    public bool ShowDisconnectedLabel => !IsConnected && !ShowDaemonActivity;
+
+    /// <summary>Home surfaces the daemon only when there's a connection problem or an op in flight — never
+    /// in the normal connected state (an <em>external</em> daemon is a separate Needs-attention item).</summary>
+    public bool ShowDaemonProblem =>
+        !IsConnected || ShowDaemonActivity || HasDaemonOperationError || ConnectStalled;
+
+    /// <summary>Home-card wording. On Home the daemon card stands alone (no "OpenTabletDriver Daemon"
+    /// heading above it, unlike the Daemon page), so the subject is spelled out: "Not connected" reads as
+    /// "Not connected to daemon".</summary>
+    public string HomeProblemText
+    {
+        get
+        {
+            if (IsConnected) return DaemonStatusText;
+            if (ConnectStalled) return "Still trying to reach the daemon…";
+            return "Not connected to daemon";
+        }
+    }
+
+    /// <summary>"Fix" = start the daemon if needed and (re)connect. Same as the Start control.</summary>
+    public IAsyncRelayCommand FixCommand => _session.StartDaemonCommand;
+
+    /// <summary>What the re-check will actually do, for the menu item that runs it. Connected it
+    /// reloads settings without reopening the connection; disconnected it opens one. One label for both
+    /// described only the expensive half (#949).</summary>
+    public string RefreshActionLabel => IsConnected ? "Refresh status" : "Reconnect";
+
+    /// <summary>Re-check the daemon. The decision lives on the session, which is the only thing that
+    /// can say why it declined to wait — see <c>AppSession.RefreshAsync</c> (#912).</summary>
+    [RelayCommand]
+    private System.Threading.Tasks.Task Refresh() => _session.RefreshAsync();
+
+    /// <summary>Navigate to the Daemon page (Advanced → OpenTabletDriver → Daemon).</summary>
+    [RelayCommand]
+    private void OpenDaemonPage() => _openDaemonPage?.Invoke();
+
+    public void Dispose() => _session.PropertyChanged -= OnSessionChanged;
+}

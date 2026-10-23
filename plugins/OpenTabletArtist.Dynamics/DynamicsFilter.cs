@@ -1,0 +1,131 @@
+using System;
+using System.Numerics;
+using OpenTabletDriver.Plugin.Attributes;
+using OpenTabletDriver.Plugin.Output;
+using OpenTabletDriver.Plugin.Tablet;
+using OpenTabletArtist.Domain;
+
+namespace OpenTabletArtist.Dynamics;
+
+/// <summary>
+/// OpenTabletDriver filter implementing the OpenTabletArtist pen dynamics (#92): the "Extended"
+/// pressure curve plus EMA pressure/position smoothing. Because it runs in the daemon's pipeline,
+/// drawing apps (Krita, CSP, …) see the remapped, smoothed input.
+///
+/// The math lives in <see cref="Domain.PressureCurve"/> + <see cref="PenDynamicsProcessor"/>
+/// (source-shared with the app, so the editor preview matches and the logic is unit-tested there).
+/// </summary>
+[PluginName("Tablet App for Mac - Pen Dynamics")]
+public class DynamicsFilter : IPositionedPipelineElement<IDeviceReport>
+{
+    [Property("Softness"), DefaultPropertyValue(0f),
+     ToolTip("Curve shape: 0 = linear, positive = lighter touch (concave), negative = heavier (convex). Range -0.9 to 0.9.")]
+    public float Softness { get; set; }
+
+    [Property("Input Minimum"), DefaultPropertyValue(0f),
+     ToolTip("Pressure (0-1) below this is remapped to Output Minimum — or cut to zero if 'Cut below minimum' is on.")]
+    public float InputMinimum { get; set; }
+
+    [Property("Input Maximum"), DefaultPropertyValue(1f),
+     ToolTip("Pressure (0-1) above this is clamped to Output Maximum (lets you reach full output before pressing all the way).")]
+    public float InputMaximum { get; set; } = 1f;
+
+    [Property("Output Minimum"), DefaultPropertyValue(0f),
+     ToolTip("The output pressure (0-1) at the input minimum.")]
+    public float Minimum { get; set; }
+
+    [Property("Output Maximum"), DefaultPropertyValue(1f),
+     ToolTip("The output pressure (0-1) at full input. Lower it to cap how hard the pen registers.")]
+    public float Maximum { get; set; } = 1f;
+
+    [Property("Cut below minimum"), DefaultPropertyValue(false),
+     ToolTip("When on, pressure below Input Minimum produces zero output (a dead zone) instead of holding at Output Minimum.")]
+    public bool CutBelowMinimum { get; set; }
+
+    // Version 1: "Disable pressure sensitivity" draws at the user's own manual pressure, one per pen end.
+    [Property("Manual pressure"), DefaultPropertyValue(false),
+     ToolTip("Pressure sensitivity off: every pressed sample gets the manual pressure below.")]
+    public bool ManualPressure { get; set; }
+
+    [Property("Manual tip pressure"), DefaultPropertyValue(0.5f)]
+    public float ManualTipPressure { get; set; } = 0.5f;
+
+    [Property("Manual eraser pressure"), DefaultPropertyValue(0.5f)]
+    public float ManualEraserPressure { get; set; } = 0.5f;
+
+    private bool _eraser;
+
+    [Property("Pressure Smoothing"), DefaultPropertyValue(0f),
+     ToolTip("EMA smoothing of pressure (amount 0 = off to 1 = max, perceptually scaled). Reduces pressure jitter at the cost of lag. Applies while drawing.")]
+    public float PressureSmoothing { get; set; }
+
+    [Property("Position Smoothing"), DefaultPropertyValue(0f),
+     ToolTip("EMA smoothing of the pen position (amount 0 = off to 1 = max, perceptually scaled). Steadies wobbly lines at the cost of lag. Applies while drawing.")]
+    public float PositionSmoothing { get; set; }
+
+    [Property("Smooth after curve"), DefaultPropertyValue(true),
+     ToolTip("On: apply the curve, then smooth (default). Off: smooth the raw pressure, then apply the curve.")]
+    public bool SmoothAfterCurve { get; set; } = true;
+
+    [TabletReference]
+    public TabletReference? Tablet { get; set; }
+
+    public PipelinePosition Position => PipelinePosition.PreTransform;
+
+    public event Action<IDeviceReport>? Emit;
+
+    private readonly PenDynamicsProcessor _processor = new();
+
+    public void Consume(IDeviceReport value)
+    {
+        _processor.Settings = new PenDynamicsSettings(
+            new PressureCurveSettings(
+                Softness, InputMinimum, InputMaximum, Minimum, Maximum,
+                CutBelowMinimum ? PressureMinApproach.Cut : PressureMinApproach.Clamp),
+            PressureSmoothing, PositionSmoothing, SmoothAfterCurve);
+
+        // Pen left the sensor — reset smoothing so the next stroke doesn't lerp in from here.
+        if (value is IProximityReport { NearProximity: false })
+            _processor.Reset();
+
+        // Which end is in use: reports that carry Eraser say so; Wacom Intuos-protocol tablets announce the
+        // tool once in a tool report and then send plain pen reports.
+        if (value is IToolReport tool) _eraser = tool.Tool == ToolType.Eraser;
+        if (value is IEraserReport er) _eraser = er.Eraser;
+
+        // Skip entirely when MaxPressure is unknown (some custom configs) — normalizing needs it, and
+        // we must not zero pressure just because we can't process it (Codex #106). Pass through.
+        if (value is ITabletReport report && (Tablet?.Properties?.Specifications?.Pen?.MaxPressure ?? 0) > 0)
+        {
+            var max = Tablet!.Properties!.Specifications!.Pen!.MaxPressure;
+            double norm = report.Pressure / (double)max;
+
+            // "Drawing" means the curve actually emits pressure (PenDynamicsProcessor.IsDrawing, shared
+            // with the app's live preview). Both hover (raw 0) and the Cut/Clamp dead zone (raw > 0 but
+            // mapped to 0) count as not-drawing: zero the output and reset smoothing so the first real
+            // sample starts crisp — no lag/fly-in carried over from the pre-stroke approach (Codex #106).
+            // Position is smoothed only while drawing, so a pen-out coordinate is never folded into the
+            // next stroke either.
+            if (!_processor.IsDrawing(norm))
+            {
+                report.Pressure = 0;
+                _processor.Reset();
+            }
+            else
+            {
+                if (PositionSmoothing > 0)
+                {
+                    var (x, y) = _processor.ProcessPosition(report.Position.X, report.Position.Y);
+                    report.Position = new Vector2((float)x, (float)y);
+                }
+
+                var outPressure = ManualPressure
+                    ? Math.Clamp(_eraser ? ManualEraserPressure : ManualTipPressure, 0f, 1f)
+                    : _processor.ProcessPressure(norm);
+                report.Pressure = (uint)Math.Round(outPressure * max);
+            }
+        }
+
+        Emit?.Invoke(value);
+    }
+}

@@ -1,0 +1,152 @@
+<UserControl x:Class="OpenTabletArtist.Views.DashboardView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls"
+             xmlns:conv="using:OpenTabletArtist.Converters">
+
+    <!-- DataContext is the DashboardViewModel, supplied by the typed-nav DataTemplate (#15). No page
+         title — the highlighted "home" wordmark in the top bar names the section (Zune). Home stays
+         quiet: content (Needs attention / Your tablets) leads directly. -->
+    <!-- Two-column Home (#combine): the home content on the left, the folded-in About content on the
+         right. Left-aligned block, capped so the two columns stay a comfortable reading width. -->
+    <Grid ColumnDefinitions="*,32,*" MaxWidth="1360" HorizontalAlignment="Left">
+        <!-- LEFT — about · tablets. About/Resources lead as a short preamble, above the tablets
+             they introduce; everything wanting attention lives in the right column. -->
+        <StackPanel Grid.Column="0">
+            <!-- (The embedded OTD version + OTD UX launcher moved to Advanced → Daemon.) -->
+
+
+            <!-- The folded-in About content (what-is · resources · version), rendered from the
+                 AboutViewModel via the typed-nav DataTemplate so the markup isn't duplicated. -->
+            <!-- No nudge needed to line the columns up: "about" and "needs attention" are both the
+                 display layer now, so they carry identical leading and align on their own. (This used to
+                 need 14px, back when the left column opened with a 10px eyebrow against a 44px heading
+                 opposite — equal boxes, unequal text.) -->
+
+            <!-- YOUR TABLETS: the former standalone Tablets page, merged into Home (#317). Each row opens
+                 the tablet page and carries detection timing + specs. -->
+            <TextBlock Text="Your tablets" Classes="Display" Margin="0,10,0,12" />
+            <ItemsControl ItemsSource="{Binding TabletsOverview.Tablets}"
+                          IsVisible="{Binding TabletsOverview.HasTablets}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <!-- Double-click the card to open the tablet's settings (#tablet-card-mapping): the
+                             per-card "edit" button was removed in favour of this, so the card is one clear
+                             target. The "…" menu offers the same thing by name, for anyone who would never
+                             think to double-click a row; it handles its own click. -->
+                        <c:Entity DoubleTapped="OnTabletCardDoubleTapped" Padding="0,14"
+                                  ToolTip.Tip="Double-click to open this tablet's settings">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <StackPanel Grid.Column="0" MinWidth="0" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="14">
+                                        <TextBlock x:Name="TabletNameText" Text="{Binding Name}" FontWeight="SemiBold" FontSize="30" VerticalAlignment="Center" />
+                                        <!-- Detection status as the same link / link-off icon the tablet
+                                             dropdown uses (#593: both neutral — the link vs link-off icon,
+                                             not color, shows state); the old "Detected"/"Not detected" word
+                                             is now the icon's tooltip. -->
+                                        <Panel Width="26" Height="26" VerticalAlignment="Center"
+                                               ToolTip.Tip="{Binding StatusText}">
+                                            <PathIcon Data="{StaticResource IconLink}" Width="26" Height="26"
+                                                      Foreground="{DynamicResource NeutralBrush}"
+                                                      IsVisible="{Binding IsDetected}" />
+                                            <PathIcon Data="{StaticResource IconLinkOff}" Width="26" Height="26"
+                                                      Foreground="{DynamicResource NeutralBrush}"
+                                                      IsVisible="{Binding !IsDetected}" />
+                                        </Panel>
+                                    </StackPanel>
+                                    <!-- The quiet end of the ramp (TextBlock.Detail): CONNECTED, or when
+                                         this tablet was last seen. A timestamp is context, not something
+                                         you read the card for; and a connected tablet has no timestamp, so
+                                         this line used to go blank and the card lost a row. -->
+                                    <TextBlock x:Name="TabletStatusText" Text="{Binding StatusDetail}" Margin="0,6,0,0" Classes="Detail" FontSize="22" LetterSpacing="1"
+                                               IsVisible="{Binding HasStatusDetail}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                            VerticalAlignment="Center">
+                                    <!-- The row's actions behind one "…", as on the preset rows and the
+                                         daemon, VMulti and plugin cards (#row-actions). This was a lone
+                                         trash glyph, which made the only visible thing you could do to a
+                                         tablet the destructive one — and left opening its settings
+                                         discoverable solely by double-clicking the row, or by reading the
+                                         tooltip that says so.
+
+                                         Forget removes a remembered tablet, or resets a connected one to
+                                         defaults; the confirm dialog says which (#575). It keeps the error
+                                         color but as a NAMED item rather than a glyph you must hover to
+                                         identify.
+
+                                         Command bindings, not Click handlers: both commands are on the
+                                         row's own DataContext, which a flyout inherits — unlike the preset
+                                         rows, whose commands live on an ancestor a popup cannot walk to. -->
+                                    <c:IconButton Icon="{StaticResource IconDotsHorizontal}" Width="40" Height="40"
+                                                  ToolTip.Tip="More actions for this tablet"
+                                                  AutomationProperties.Name="More actions">
+                                        <c:IconButton.Flyout>
+                                            <MenuFlyout>
+                                                <MenuItem Header="Open tablet settings"
+                                                          Command="{Binding OpenCommand}" />
+                                                <Separator />
+                                                <MenuItem Header="Forget this tablet"
+                                                          Command="{Binding ForgetCommand}"
+                                                          Foreground="{DynamicResource ErrorBrush}" />
+                                            </MenuFlyout>
+                                        </c:IconButton.Flyout>
+                                    </c:IconButton>
+                                </StackPanel>
+                            </Grid>
+                        </c:Entity>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- No tablets at all → a quiet inline empty state (boxless, left-aligned to the section
+                 rhythm — the full Zune hero lives on the TABLET page). -->
+            <StackPanel Spacing="4" Margin="0,0,0,6" IsVisible="{Binding !TabletsOverview.HasTablets}">
+                <TextBlock Text="No tablets connected or remembered"
+                           FontSize="{DynamicResource TypeTitleSize}"
+                           Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                <TextBlock Text="Connect a tablet and it'll appear here."
+                           Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+            </StackPanel>
+
+
+            <!-- Build R4: anything that genuinely needs attention, as one small calm line each (no heading,
+                 no alarm colour), only when there is something. -->
+            <StackPanel x:Name="AttentionNotices" Spacing="4" Margin="0,8,0,0">
+                <ItemsControl x:Name="AttentionList" ItemsSource="{Binding Health.Issues}" IsVisible="{Binding Health.HasIssues}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,2">
+                                <TextBlock Classes="attentionNotice" Text="{Binding Title}" FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" MaxWidth="460" ToolTip.Tip="{Binding Detail}" />
+                                <Button Content="{Binding Remediation.ActionLabel}"
+                                        IsVisible="{Binding Remediation, Converter={StaticResource NotNull}}"
+                                        Command="{Binding $parent[ItemsControl].DataContext.RemediateCommand}"
+                                        CommandParameter="{Binding}"
+                                        Theme="{StaticResource LinkButton}" Padding="0" FontSize="12" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding Daemon.ShowDaemonProblem}">
+                    <TextBlock Classes="attentionNotice" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="460"
+                               Text="{Binding Daemon.HomeProblemText}" />
+                    <Button Content="Fix" Command="{Binding Daemon.FixCommand}" IsVisible="{Binding Daemon.CanStartDaemon}"
+                            IsEnabled="{Binding !Daemon.IsDaemonBusy}" Theme="{StaticResource LinkButton}" Padding="0" FontSize="12" />
+                    <Button Content="Open daemon page" Command="{Binding Daemon.OpenDaemonPageCommand}"
+                            Theme="{StaticResource LinkButton}" Padding="0" FontSize="12" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- (The run-at-startup toggle moved to Settings → System.) -->
+
+        </StackPanel>
+
+        <!-- RIGHT — Build R4: the links grid (AboutView), top-right. Attention moved to a calm line under
+             "Your tablets"; there is no heading and no all-clear text any more. -->
+        <!-- Build R6: the links moved up into the nav row (MainWindow HomeLinksHost). -->
+    </Grid>
+</UserControl>

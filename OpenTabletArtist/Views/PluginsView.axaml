@@ -1,0 +1,78 @@
+<UserControl x:Class="OpenTabletArtist.Views.PluginsView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls">
+
+    <!-- DataContext is the PluginsViewModel, supplied by the typed-nav DataTemplate (#15).
+
+         Two columns: the installed-plugin list on the left, the Windows Ink section on the right. Windows
+         Ink used to sit under DRIVERS beside the VMulti driver, but it installs and manages a PLUGIN — so
+         it belongs next to the list of them (#winink-to-plugins). -->
+    <!-- Neither MaxWidth nor HorizontalAlignment, matching the tablet About tab and the Developer panes.
+         Both attributes worked against even columns here:
+           - "Left" sizes a Grid to its CONTENT, so the star columns divided only what the content needed.
+             The plugin list is narrow, so the left column shrank to it and the halves came out lopsided.
+           - MaxWidth alone then CENTRED the grid once the window was wider than the cap, which left a
+             gutter down the left and broke the page's alignment with the tab menu above it. -->
+    <Grid ColumnDefinitions="*,32,*">
+
+        <StackPanel Grid.Column="0">
+        <!-- Header card: title + folder actions.
+
+             Both actions sit behind one "…", as on the configs, daemon, Windows Ink, VMulti and
+             driver-cleanup cards. They were two bare glyphs stacked under the heading, which read as a
+             small toolbar and left each action to a tooltip to explain. -->
+        <c:Section>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBlock Grid.Column="0" Text="Installed plugins" Classes="Display section"
+                           VerticalAlignment="Center" />
+                <c:IconButton Grid.Column="1" VerticalAlignment="Top"
+                              Icon="{StaticResource IconDotsHorizontal}"
+                              ToolTip.Tip="Plugin folder actions"
+                              AutomationProperties.Name="Plugin folder actions">
+                    <c:IconButton.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="Rescan plugin folder" Command="{Binding RefreshCommand}" />
+                            <MenuItem Header="Open plugin folder" Command="{Binding BrowseCommand}" />
+                        </MenuFlyout>
+                    </c:IconButton.Flyout>
+                </c:IconButton>
+            </Grid>
+        </c:Section>
+
+        <!-- Empty state -->
+        <TextBlock Text="{Binding EmptyMessage}" FontStyle="Italic"
+                   Foreground="{DynamicResource TextMutedBrush}" Margin="0,10,0,0"
+                   IsVisible="{Binding !HasPlugins}" />
+
+        <!-- One card per installed plugin: name/version, with an Active/Installed badge. -->
+        <ItemsControl ItemsSource="{Binding Plugins}" IsVisible="{Binding HasPlugins}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <c:Entity>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Note}" TextWrapping="Wrap" FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           IsVisible="{Binding Note, Converter={StaticResource NonEmptyToBool}}" />
+                                <TextBlock Text="{Binding Version}"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           IsVisible="{Binding Version, Converter={StaticResource NonEmptyToBool}}" />
+                            </StackPanel>
+                            <c:Chip Grid.Column="1" Text="{Binding Status}" Kind="Accent" />
+                        </Grid>
+                    </c:Entity>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        </StackPanel>
+
+        <!-- Hidden off Windows, where the VM is null: nothing inside WindowsInkView guards the OS itself —
+             it relied on the VMULTI pivot (which carried it) being filtered out, and PLUGINS is not. -->
+        <ContentControl Grid.Column="2" VerticalAlignment="Top"
+                        Content="{Binding WindowsInk}"
+                        IsVisible="{Binding HasWindowsInk}" />
+    </Grid>
+</UserControl>

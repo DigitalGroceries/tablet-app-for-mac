@@ -1,0 +1,71 @@
+<UserControl x:Class="OpenTabletArtist.Views.PenBasicsPanel"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="using:OpenTabletArtist.Controls">
+
+    <!-- R14 (the user's mock-up): the old Pen › Basics settings, now one panel on Tablet › Pen under the Tilt/Tip Feel
+         column and the pen drawing. DataContext is the TabletDetailViewModel. Headings match the 17 px pen card
+         headings. Pressing is Windows-only (CanDisableWindowsInk), so it is hidden on macOS and Linux. -->
+    <UserControl.Resources>
+        <DataTemplate x:Key="ChoiceOptionTemplate">
+            <StackPanel Spacing="2" MaxWidth="300" Margin="0,3">
+                <TextBlock Text="{Binding Title}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="ChoiceOptionNameTemplate">
+            <TextBlock Text="{Binding Title}" TextWrapping="Wrap" />
+        </DataTemplate>
+    </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="TextBlock.basicsHeading">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="300,32,*">
+        <StackPanel Spacing="12">
+            <TextBlock Text="Movement" Classes="basicsHeading" />
+            <TextBlock x:Name="MovementSharedNote" Text="Shared with Pen." FontSize="11" IsVisible="False"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+            <ComboBox x:Name="MovementBox" HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding MovementOptions}"
+                      SelectedItem="{Binding SelectedMovement, Mode=TwoWay}"
+                      ItemTemplate="{StaticResource ChoiceOptionTemplate}"
+                      SelectionBoxItemTemplate="{StaticResource ChoiceOptionNameTemplate}"
+                      AutomationProperties.Name="Movement" />
+            <TextBlock Text="Output mode needs to use Windows Ink for pressure and tilt to work"
+                       Foreground="{DynamicResource TextPrimaryBrush}" FontStyle="Italic" TextWrapping="Wrap"
+                       IsVisible="{Binding CanFixOutputMode}" />
+            <Button Content="Fix" Theme="{StaticResource AccentButton}" Command="{Binding FixOutputModeCommand}"
+                    Padding="12,6" HorizontalAlignment="Left" IsVisible="{Binding CanFixOutputMode}" />
+            <ctrl:LabeledSlider Label="Position smoothing" LabelWidth="130" Margin="0,4,0,0"
+                                Minimum="0" Maximum="0.25"
+                                Ticks="0,0.05,0.1,0.15,0.2,0.25" TickPlacement="BottomRight"
+                                Value="{Binding PositionSmoothing}"
+                                ValueTextOverride="{Binding PositionSmoothingText}"
+                                Monospace="True" ValueWidth="44"
+                                ToolTip.Tip="EMA smoothing of the pen position: steadies wobbly lines, at a little lag." />
+            <StackPanel Spacing="12" Margin="0,8,0,0" IsVisible="{Binding CanDisableWindowsInk}">
+                <TextBlock Text="Pressing" Classes="basicsHeading" />
+                <ComboBox HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding PressModeOptions}"
+                          SelectedItem="{Binding SelectedPressMode, Mode=TwoWay}"
+                          ItemTemplate="{StaticResource ChoiceOptionTemplate}"
+                          SelectionBoxItemTemplate="{StaticResource ChoiceOptionNameTemplate}" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="2" Spacing="12">
+            <TextBlock x:Name="InputHeading" Text="Pen input" Classes="basicsHeading" />
+            <ctrl:ToggleSetting x:Name="DisableTipSwitch" Label="Disable pen tip" InlineDescription="True" IsChecked="{Binding DisablePenTip}" />
+            <!-- R18: on the Eraser tab the end switch is the eraser's own (separate setting). -->
+            <ctrl:ToggleSetting x:Name="DisableEraserSwitch" Label="Disable eraser" InlineDescription="True" IsChecked="{Binding DisableEraser}" IsVisible="False" />
+            <ctrl:ToggleSetting x:Name="DisablePressureSwitch" Label="Disable pressure sensitivity" InlineDescription="True" IsChecked="{Binding DisablePressure}"
+                                ToolTip.Tip="Every stroke is drawn at a fixed 30% pressure." />
+            <TextBlock x:Name="PressureSharedNote" Text="Pressure sensitivity is shared with Pen." FontSize="11" IsVisible="False"
+                       Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,258 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using Avalonia.Media;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OpenTabletDriver.Plugin;
+using OpenTabletDriver.Plugin.Logging;
+using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
+using OtdInterop;
+
+namespace OpenTabletArtist.ViewModels;
+
+/// <summary>
+/// View model for the Log page — a live view of the OpenTabletDriver daemon's log, like OTD's
+/// own Console tab. Seeds from the daemon's buffered log on connect (<see cref="IDaemonLogSource"/>)
+/// and appends each pushed message. A minimum-level filter and a bounded buffer keep it readable and
+/// cheap; the view handles auto-scroll + copy via <see cref="ScrollToEndRequested"/> / <see cref="BuildLogText"/>.
+/// </summary>
+public partial class LogViewModel : ObservableObject, IDisposable
+{
+    // Bound so a long-running daemon can't grow the log without limit; oldest entries drop off.
+    private const int MaxEntries = 5000;
+
+    private readonly IDaemonLogSource _log;
+    private readonly IConnectionState? _connection;
+    // Unfiltered history, so changing the level filter can rebuild the visible list without a reseed.
+    private readonly List<LogEntry> _all = new();
+    // Incoming messages are queued (as raw LogMessage) and flushed to the UI in batches.
+    // LogEntry construction happens on the UI thread because it creates Avalonia Brush objects.
+    private readonly List<LogMessage> _pending = new();
+    private readonly object _pendingLock = new();
+    private bool _flushScheduled;
+
+    /// <summary>The currently-visible (level-filtered) log entries.</summary>
+    public ObservableCollection<LogEntry> Entries { get; } = new();
+
+    /// <summary>Minimum severity shown. Entries below this are hidden (kept in history).</summary>
+    public LogLevel[] Levels { get; } = { LogLevel.Debug, LogLevel.Info, LogLevel.Warning, LogLevel.Error };
+    [ObservableProperty] private LogLevel _minLevel = LogLevel.Info;
+
+    /// <summary>Follow the tail: scroll to the newest entry as messages arrive.</summary>
+    [ObservableProperty] private bool _autoScroll = true;
+
+    /// <summary>Case-insensitive substring filter on the message text (#275).</summary>
+    [ObservableProperty] private string _searchText = "";
+
+    [ObservableProperty] private bool _isConnected;
+
+    public bool HasEntries => Entries.Count > 0;
+
+    /// <summary>Shown when the buffer is empty or filters hide every entry.</summary>
+    public bool ShowEmptyState => Entries.Count == 0;
+
+    public string EmptyStateText => _all.Count == 0
+        ? "No log messages yet."
+        : "No matching log entries.";
+
+    /// <summary>When filtering, how many entries are visible (e.g. "3 matching").</summary>
+    public string FilterSummary => string.IsNullOrWhiteSpace(SearchText) ? "" : $"{Entries.Count} matching";
+
+    public bool ShowFilterSummary => !string.IsNullOrWhiteSpace(SearchText);
+
+    /// <summary>Raised (UI thread) when the view should scroll to the latest entry.</summary>
+    public event Action? ScrollToEndRequested;
+
+    public LogViewModel(IDaemonLogSource log, IConnectionState? connection = null)
+    {
+        _log = log;
+        _connection = connection;
+        _log.LogReceived += OnLogReceived;
+        if (_connection != null)
+        {
+            _connection.PropertyChanged += OnConnectionChanged;
+            IsConnected = _connection.IsConnected;
+        }
+        if (IsConnected) _ = SeedAsync();
+    }
+
+    private void OnConnectionChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(IConnectionState.IsConnected)) return;
+        IsConnected = _connection!.IsConnected;
+        // On a fresh connection, re-seed from the daemon's authoritative buffer.
+        if (IsConnected) _ = SeedAsync();
+    }
+
+    private async Task SeedAsync()
+    {
+        var current = await _log.GetCurrentLogAsync();
+        // GetCurrentLogAsync resumes off the UI thread; mutate the collections on the UI thread.
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _all.Clear();
+            foreach (var m in current) _all.Add(new LogEntry(m));
+            if (_all.Count > MaxEntries) _all.RemoveRange(0, _all.Count - MaxEntries);
+            Rebuild();
+            if (AutoScroll) ScrollToEndRequested?.Invoke();
+        });
+    }
+
+    // The daemon pushes Message off the RPC thread — queue and flush in batches to avoid
+    // per-message UI rendering overhead (collection changed + property notifications + scroll).
+    private void OnLogReceived(LogMessage message)
+    {
+        lock (_pendingLock)
+        {
+            _pending.Add(message);
+            if (_flushScheduled) return;
+            _flushScheduled = true;
+        }
+        // Schedule a single UI-thread flush; subsequent messages within the window are coalesced.
+        Dispatcher.UIThread.Post(FlushPending, DispatcherPriority.Background);
+    }
+
+    private void FlushPending()
+    {
+        List<LogMessage> batch;
+        lock (_pendingLock)
+        {
+            batch = new List<LogMessage>(_pending);
+            _pending.Clear();
+            _flushScheduled = false;
+        }
+
+        // Create LogEntry on the UI thread — its constructor creates Avalonia Brush objects
+        // which are thread-affine.
+        foreach (var msg in batch)
+        {
+            var entry = new LogEntry(msg);
+            _all.Add(entry);
+            if (Passes(entry)) Entries.Add(entry);
+        }
+        if (_all.Count > MaxEntries) _all.RemoveRange(0, _all.Count - MaxEntries);
+        while (Entries.Count > MaxEntries) Entries.RemoveAt(0);
+        OnPropertyChanged(nameof(HasEntries));
+        OnPropertyChanged(nameof(ShowEmptyState));
+        OnPropertyChanged(nameof(EmptyStateText));
+        OnPropertyChanged(nameof(FilterSummary));
+        OnPropertyChanged(nameof(ShowFilterSummary));
+        if (AutoScroll) ScrollToEndRequested?.Invoke();
+    }
+
+    private bool Passes(LogEntry e) => LogFilter.Matches(e.RawLevel, MinLevel, e.Message, SearchText);
+
+    private void Rebuild()
+    {
+        Entries.Clear();
+        foreach (var e in _all.Where(Passes)) Entries.Add(e);
+        OnPropertyChanged(nameof(HasEntries));
+        OnPropertyChanged(nameof(ShowEmptyState));
+        OnPropertyChanged(nameof(EmptyStateText));
+        OnPropertyChanged(nameof(FilterSummary));
+        OnPropertyChanged(nameof(ShowFilterSummary));
+    }
+
+    partial void OnMinLevelChanged(LogLevel value) => Rebuild();
+
+    partial void OnSearchTextChanged(string value) => Rebuild();
+
+    [RelayCommand]
+    private void Clear()
+    {
+        _all.Clear();
+        Entries.Clear();
+        OnPropertyChanged(nameof(HasEntries));
+        OnPropertyChanged(nameof(ShowEmptyState));
+        OnPropertyChanged(nameof(EmptyStateText));
+        OnPropertyChanged(nameof(FilterSummary));
+        OnPropertyChanged(nameof(ShowFilterSummary));
+    }
+
+    /// <summary>Plain-text dump of the visible log, for the view's Copy action.</summary>
+    public string BuildLogText()
+    {
+        var sb = new StringBuilder();
+        foreach (var e in Entries)
+            sb.AppendLine($"[{e.Time}] [{e.Level}] {e.Group}: {e.Message}");
+        return sb.ToString();
+    }
+
+    /// <summary>The visible log as a Markdown table (Copy ▸ Markdown).</summary>
+    public string BuildLogMarkdown()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("| Time | Level | Group | Message |");
+        sb.AppendLine("| --- | --- | --- | --- |");
+        foreach (var e in Entries)
+            sb.AppendLine($"| {e.Time} | {e.Level} | {Md(e.Group)} | {Md(e.Message)} |");
+        return sb.ToString();
+    }
+
+    /// <summary>The visible log as an HTML table (Copy ▸ HTML).</summary>
+    public string BuildLogHtml()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("<table>");
+        sb.AppendLine("  <thead><tr><th>Time</th><th>Level</th><th>Group</th><th>Message</th></tr></thead>");
+        sb.AppendLine("  <tbody>");
+        foreach (var e in Entries)
+            sb.AppendLine($"    <tr><td>{Html(e.Time)}</td><td>{Html(e.Level)}</td><td>{Html(e.Group)}</td><td>{Html(e.Message)}</td></tr>");
+        sb.AppendLine("  </tbody>");
+        sb.AppendLine("</table>");
+        return sb.ToString();
+    }
+
+    // Escape Markdown table cells (pipes break columns; newlines break rows).
+    private static string Md(string s) => (s ?? "").Replace("|", "\\|").Replace("\r", "").Replace("\n", " ");
+    private static string Html(string s) =>
+        (s ?? "").Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+
+    public void Dispose()
+    {
+        _log.LogReceived -= OnLogReceived;
+        if (_connection != null) _connection.PropertyChanged -= OnConnectionChanged;
+    }
+}
+
+/// <summary>One log line, projected from a daemon <see cref="LogMessage"/> for display.</summary>
+public sealed class LogEntry
+{
+    // Fixed per-level accent colors (shared instances) for the small LEVEL tag. A console reads fine
+    // with stable level colors rather than theme-driven ones. Warning is a neutral grey rather than
+    // orange (#no-orange-text) — the "WARNING" label carries the level; only the Error tag stays a
+    // color (red), so genuine failures still stand out.
+    private static readonly IBrush DebugBrush = new SolidColorBrush(Color.Parse("#9CA3AF"));
+    private static readonly IBrush InfoBrush = new SolidColorBrush(Color.Parse("#3B82F6"));
+    private static readonly IBrush WarnBrush = new SolidColorBrush(Color.Parse("#9CA3AF"));
+    private static readonly IBrush ErrorBrush = new SolidColorBrush(Color.Parse("#EF4444"));
+
+    public LogEntry(LogMessage m)
+    {
+        RawLevel = m.Level;
+        Time = m.Time.ToString("HH:mm:ss");
+        Level = m.Level.ToString().ToUpperInvariant();
+        Group = m.Group ?? "";
+        Message = m.Message ?? "";
+        LevelBrush = m.Level switch
+        {
+            LogLevel.Debug => DebugBrush,
+            LogLevel.Warning => WarnBrush,
+            LogLevel.Error or LogLevel.Fatal => ErrorBrush,
+            _ => InfoBrush,
+        };
+    }
+
+    public LogLevel RawLevel { get; }
+    public string Time { get; }
+    public string Level { get; }
+    public string Group { get; }
+    public string Message { get; }
+    public IBrush LevelBrush { get; }
+}

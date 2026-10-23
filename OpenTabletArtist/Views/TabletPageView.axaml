@@ -1,0 +1,22 @@
+<UserControl x:Class="OpenTabletArtist.Views.TabletPageView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:OpenTabletArtist.Views">
+
+    <!-- The switcher/status/dot styles that used to live here moved into the hosted TabletDetailView when
+         it took over the toolbar row (#542); this page only hosts that view + the no-tablet hero. -->
+
+    <!-- DataContext is a TabletPageViewModel. The single TABLET page (#542): a switcher dropdown of every
+         known tablet + the selected one's headerless detail view, or a placeholder when none is known. -->
+    <Grid ColumnDefinitions="*">
+
+        <!-- The selected tablet's detail view. It owns the toolbar row now (switcher · pivots · compact
+             actions on one line), so this page just hosts it full-height — or the hero below when there's
+             no tablet. -->
+        <ContentControl Content="{Binding Content}" IsVisible="{Binding HasTablet}" />
+
+        <!-- Placeholder when nothing is detected or remembered (#542/#580). -->
+        <views:NoTabletHero IsVisible="{Binding !HasTablet}"
+                            Description="Connect a tablet and it'll show up here — remembered tablets appear too." />
+    </Grid>
+</UserControl>

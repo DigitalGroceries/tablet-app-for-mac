@@ -1,0 +1,522 @@
+using System;
+using System.IO;
+using System.Linq;
+using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OpenTabletArtist.Services;
+
+namespace OpenTabletArtist.ViewModels;
+
+/// <summary>
+/// View model for the Theme page. Owns app-level appearance preferences that aren't tied to a tablet:
+/// the theme (Light / Dark / System + the Sakura/Anime skin, #139/#207) and the user-tunable Custom
+/// skin (accent color + background image). Persisted via <see cref="ThemeService"/> /
+/// <see cref="CustomThemeSettings"/>. The picker shows a color swatch + label per option and a
+/// one-line description; skin-specific controls appear only for the skin they apply to.
+/// </summary>
+public partial class ThemeViewModel : ObservableObject
+{
+    /// <summary>One selectable appearance. <see cref="Id"/> is the persisted <see cref="ThemeService"/>
+    /// value; <see cref="Label"/> is what the user sees (e.g. "Anime" surfaces as "Sakura").</summary>
+    public sealed record ThemeOption(string Id, string Label, string Description, IBrush Swatch);
+
+    // Build R3: the Wacom style swatch shows the current lightness colours (dark by default), never white.
+    private static readonly SolidColorBrush WacomSwatch = new(LightnessService.For(LightnessService.Saved).Surface);
+    static ThemeViewModel() => LightnessService.Changed += () => WacomSwatch.Color = LightnessService.For(LightnessService.Saved).Surface;
+
+    public ThemeOption[] ThemeOptions { get; } =
+    {
+        new(ThemeService.System, "System", "Follows your system's light/dark setting.", SystemSwatch()),
+        new(ThemeService.Wacom,  "Graphite", "Dark grey panels (the default).", WacomSwatch),
+        new(ThemeService.Light,  "Silver",  "A clean, bright grey theme.", new SolidColorBrush(Color.Parse("#E4E4E4"))),
+        new(ThemeService.Dark,   "Charcoal",   "A clean, dark grey theme for low light.", new SolidColorBrush(Color.Parse("#2B2B2B"))),
+        new(ThemeService.Anime,  "Rose", "Pink skin with a soft gradient backdrop, falling cherry blossoms and frosted-glass panels.", SakuraSwatch()),
+        new(ThemeService.DarkSakura, "Burgundy", "A moody dark skin: pink accents and falling cherry blossoms over a dark gradient backdrop.", DarkSakuraSwatch()),
+        new(ThemeService.Custom, "Custom", "A translucent skin: pick the accent colour and a background image.", CustomSwatch()),
+    };
+
+    [ObservableProperty] private ThemeOption _selectedTheme;
+
+    /// <summary>Description of the currently-selected theme (shown under the picker).</summary>
+    // Build R2: lightness slider (dark → soft light). Applied live; saved in the app settings.
+    public int LightnessMax => LightnessService.Steps - 1;
+    public int Lightness
+    {
+        get => LightnessService.Saved;
+        set { if (value == LightnessService.Saved) return; LightnessService.Set(value); OnPropertyChanged(); }
+    }
+    public bool LightnessApplies => SelectedTheme is { } t && LightnessService.DrivesTheme(t.Id);
+
+    public string SelectedDescription => SelectedTheme?.Description ?? "";
+
+    private bool IsSakura => SelectedTheme?.Id == ThemeService.Anime;
+    private bool IsDarkSakura => SelectedTheme?.Id == ThemeService.DarkSakura;
+    private bool IsCustom => SelectedTheme?.Id == ThemeService.Custom;
+
+    /// <summary>Falling petals apply to every blossom skin (Sakura, Dark Sakura, Custom).</summary>
+    public bool ShowPetalsToggle => IsSakura || IsDarkSakura || IsCustom;
+    public bool ShowFrostControls => IsSakura || IsDarkSakura || IsCustom;
+    /// <summary>The accent-color + background-image controls are Custom-only.</summary>
+    public bool ShowCustomControls => IsCustom;
+    /// <summary>The highlight/accent color is pickable on every translucent skin (#557).</summary>
+    public bool ShowAccentControl => IsSakura || IsDarkSakura || IsCustom;
+
+    // Choose a code-generated gradient backdrop or a flat color.
+    // Both blossom skins offer it since Dark Sakura swapped its fixed artwork for the same tunable
+    // backdrop (#glow-darksakura). Custom has its own backdrop controls.
+    public bool ShowSakuraBackground => IsSakura || IsDarkSakura;
+    public bool SakuraSolidBackground => IsBlossom && SkinColorSettings.Background(SkinKey) == "solid";
+    public bool SakuraCodeGenBackground => IsBlossom && SkinColorSettings.Background(SkinKey) == "codegen";
+
+    private bool IsBlossom => IsSakura || IsDarkSakura;
+
+    /// <summary>Whether the BACKDROP subtab has anything on it. Light and Dark paint nothing behind their
+    /// content, so the pane says so rather than sitting empty.</summary>
+    public bool ShowBackdropTab => IsBlossom || IsCustom;
+
+    // CodeGen-only: the flat base color behind the glows (#556). Editing it saves + re-tints live; the
+    // glows themselves are tuned under BACKDROP on this page. Invalid hex (mid-typing) is kept for display but
+    // not applied, so a partial value never crashes the parse in RefreshSkin.
+    // Seeded with Sakura's; the ctor and the skin switch overwrite it with the active skin's stored value,
+    // as they do for the card tint.
+    [ObservableProperty] private string _sakuraBaseColor =
+        GradientBackground.LoadBaseColor(SkinColorSettings.SakuraSkin);
+
+    partial void OnSakuraBaseColorChanged(string value)
+    {
+        if (!IsBlossom || !Color.TryParse(value, out _)) return;
+        GradientBackground.SaveBaseColor(SkinKey, value);
+        Gradients.RefreshPreview(); // the preview stacks the glows over THIS color
+        RefreshSkin();
+    }
+
+    /// <summary>The backdrop glow editor, shown on this page under BACKDROP (#appearance-merge). It was a
+    /// Developer subtab until then, which put a skin's glows a tab away from the base color they sit on.</summary>
+    public GradientEditorViewModel Gradients { get; } = new();
+
+    // Per-skin highlight/accent (#557). Custom stores its accent in CustomThemeSettings; the blossom skins
+    // in SkinColorSettings. Their default reproduces each skin's original pink.
+    private string ActiveAccentHex() => IsCustom ? CustomThemeSettings.AccentHex
+        : IsDarkSakura ? SkinColorSettings.DarkSakuraAccentHex : SkinColorSettings.SakuraAccentHex;
+    private string DefaultAccentHexForSkin => IsCustom ? CustomThemeSettings.DefaultAccentHex
+        : IsDarkSakura ? SkinColorSettings.DarkSakuraAccentDefault : SkinColorSettings.SakuraAccentDefault;
+    private Color DefaultAccentColorForSkin => ParseColorOr(DefaultAccentHexForSkin, Colors.DeepPink);
+
+    // The active translucent skin's storage bucket + its per-skin defaults, so each skin keeps its own
+    // card tint/opacity — changing one never touches another (#241).
+    private string SkinKey => IsCustom ? "Custom" : IsDarkSakura ? "DarkSakura" : "Sakura";
+    private double DefaultCardOpacityForSkin => IsDarkSakura ? 0.35 : AcrylicSettings.DefaultMaterialOpacity;
+    private string DefaultCardHexForSkin => IsCustom ? SkinColorSettings.CustomCardDefault
+        : IsDarkSakura ? SkinColorSettings.DarkSakuraCardDefault : SkinColorSettings.SakuraCardDefault;
+
+    /// <summary>Falling-petal animation (#207), reused by the Custom skin. Persisted; the overlay reacts live.</summary>
+    [ObservableProperty] private bool _petalsEnabled = AnimationSettings.PetalsEnabled;
+
+    /// <summary>Overall opacity of the falling petals (0..1). Persisted; the overlay reacts live.</summary>
+    [ObservableProperty] private double _petalsOpacity = AnimationSettings.PetalsOpacity;
+
+    // ── Card translucency ("frosted glass") ──
+    // Avalonia can't blur in-app content behind a control, so "frosted glass" is a tunable translucent
+    // tint: the backdrop shows through the cards. Driving the global GlassBgBrush resource re-frosts
+    // every card live. Scoped to the translucent skins — cleared for other themes. The card tint now
+    // comes from CardColor (per-skin, user-tunable); a single "Card opacity" sets its alpha.
+    // Seeded with the generic default; the ctor overwrites it with the active skin's stored value.
+    [ObservableProperty] private double _cardOpacity = AcrylicSettings.DefaultMaterialOpacity;
+
+    // ── Translucent-skin colors ──
+    // CardColor is the frosted-card tint for the active skin (persisted per-skin). BaseColor + AccentColor
+    // + BackgroundImagePath are the Custom skin's background, scheme, and backdrop.
+    [ObservableProperty] private Color _cardColor;
+    [ObservableProperty] private Color _baseColor;
+    [ObservableProperty] private Color _accentColor;
+    [ObservableProperty] private string? _backgroundImagePath;
+
+    /// <summary>Opacity (0..1) of the Custom background image over the base color. Lower = more base
+    /// color shows through. Persisted; the backdrop reacts live.</summary>
+    [ObservableProperty] private double _backgroundImageOpacity = CustomThemeSettings.DefaultBackgroundImageOpacity;
+
+    /// <summary>The per-skin card tint stored for the active translucent skin.</summary>
+    private string ActiveCardHex() =>
+        IsCustom ? SkinColorSettings.CustomCardHex
+        : IsDarkSakura ? SkinColorSettings.DarkSakuraCardHex
+        : SkinColorSettings.SakuraCardHex;
+
+    public bool HasBackgroundImage => !string.IsNullOrWhiteSpace(BackgroundImagePath);
+    /// <summary>Filename of the chosen image, or a placeholder when none is set.</summary>
+    public string BackgroundImageLabel =>
+        HasBackgroundImage ? Path.GetFileName(BackgroundImagePath!) : "No image chosen";
+    /// <summary>The image-opacity slider only makes sense once an image is chosen (Custom skin).</summary>
+    public bool ShowBackgroundImageOpacity => IsCustom && HasBackgroundImage;
+
+    public ThemeViewModel()
+    {
+        // Assign backing fields directly so restoring the persisted values here doesn't re-fire the
+        // change handlers at construction (the theme is already applied at startup via ApplySaved).
+        _selectedTheme = ThemeOptions.FirstOrDefault(o => o.Id == ThemeService.SavedChoice) ?? ThemeOptions[0];
+        _accentColor = ParseColorOr(ActiveAccentHex(), Color.Parse(DefaultAccentHexForSkin));
+        _cardColor = ParseColorOr(ActiveCardHex(), Color.Parse(DefaultCardHexForSkin));
+        _cardOpacity = AcrylicSettings.MaterialOpacity(SkinKey, DefaultCardOpacityForSkin);
+        // Per-skin as well, since Dark Sakura joined (#glow-darksakura): without this the picker opened on
+        // Sakura's pale pink under Dark Sakura, and touching it would have saved that as the dark base.
+        if (IsBlossom) _sakuraBaseColor = GradientBackground.LoadBaseColor(SkinKey);
+        _baseColor = ParseColorOr(SkinColorSettings.CustomBaseHex, Color.Parse(SkinColorSettings.CustomBaseDefault));
+        _backgroundImagePath = CustomThemeSettings.BackgroundImagePath;
+        _backgroundImageOpacity = CustomThemeSettings.BackgroundImageOpacity;
+        RefreshSkin(); // restore the persisted skin overrides (frost / accent / base / backdrop)
+    }
+
+    partial void OnCardOpacityChanged(double value)
+    {
+        AcrylicSettings.SetMaterialOpacity(SkinKey, value);
+        RefreshSkin();
+    }
+
+    partial void OnCardColorChanged(Color value)
+    {
+        // Persist to the active skin's card-tint slot so each translucent skin keeps its own tint.
+        if (IsCustom) SkinColorSettings.CustomCardHex = value.ToString();
+        else if (IsDarkSakura) SkinColorSettings.DarkSakuraCardHex = value.ToString();
+        else SkinColorSettings.SakuraCardHex = value.ToString();
+        RefreshSkin();
+    }
+
+    partial void OnBaseColorChanged(Color value)
+    {
+        SkinColorSettings.CustomBaseHex = value.ToString();
+        RefreshSkin();
+    }
+
+    partial void OnAccentColorChanged(Color value)
+    {
+        // Persist to the active skin's accent slot so each translucent skin keeps its own highlight (#557).
+        if (IsCustom) CustomThemeSettings.AccentHex = value.ToString();
+        else if (IsDarkSakura) SkinColorSettings.DarkSakuraAccentHex = value.ToString();
+        else if (IsSakura) SkinColorSettings.SakuraAccentHex = value.ToString();
+        RefreshSkin();
+    }
+
+    partial void OnBackgroundImagePathChanged(string? value)
+    {
+        CustomThemeSettings.BackgroundImagePath = value;
+        OnPropertyChanged(nameof(HasBackgroundImage));
+        OnPropertyChanged(nameof(BackgroundImageLabel));
+        OnPropertyChanged(nameof(ShowBackgroundImageOpacity));
+        RefreshSkin();
+    }
+
+    partial void OnBackgroundImageOpacityChanged(double value)
+    {
+        CustomThemeSettings.BackgroundImageOpacity = value;
+        RefreshSkin();
+    }
+
+    /// <summary>Clears the Custom background image (called by the "Clear" button).</summary>
+    [RelayCommand]
+    private void ClearBackgroundImage() => BackgroundImagePath = null;
+
+    // Fires only on user-driven changes, so it both applies and persists.
+    partial void OnSelectedThemeChanged(ThemeOption value)
+    {
+        OnPropertyChanged(nameof(LightnessApplies));
+        OnPropertyChanged(nameof(SelectedDescription));
+        OnPropertyChanged(nameof(ShowPetalsToggle));
+        OnPropertyChanged(nameof(ShowFrostControls));
+        OnPropertyChanged(nameof(ShowCustomControls));
+        OnPropertyChanged(nameof(ShowBackgroundImageOpacity));
+        OnPropertyChanged(nameof(ShowAccentControl));
+        OnPropertyChanged(nameof(ShowSakuraBackground));
+        OnPropertyChanged(nameof(ShowBackdropTab));
+        OnPropertyChanged(nameof(SakuraSolidBackground));
+        OnPropertyChanged(nameof(SakuraCodeGenBackground));
+        // Point the frost controls at the new skin's own stored values (backing fields directly, so this
+        // doesn't re-persist — it's a display sync, not a user edit). Each skin keeps separate settings.
+        _cardColor = ParseColorOr(ActiveCardHex(), Color.Parse(DefaultCardHexForSkin));
+        _cardOpacity = AcrylicSettings.MaterialOpacity(SkinKey, DefaultCardOpacityForSkin);
+        _accentColor = ParseColorOr(ActiveAccentHex(), Color.Parse(DefaultAccentHexForSkin));
+        if (IsBlossom) _sakuraBaseColor = GradientBackground.LoadBaseColor(SkinKey);
+        OnPropertyChanged(nameof(CardColor));
+        OnPropertyChanged(nameof(CardOpacity));
+        OnPropertyChanged(nameof(AccentColor));
+        OnPropertyChanged(nameof(SakuraBaseColor));
+        if (value != null) ThemeService.Apply(value.Id);
+        RefreshSkin(); // apply the new skin's overrides, clear the old skin's
+    }
+
+    partial void OnPetalsEnabledChanged(bool value) => AnimationSettings.PetalsEnabled = value;
+    partial void OnPetalsOpacityChanged(double value) => AnimationSettings.PetalsOpacity = value;
+
+    /// <summary>Radio choice for the Sakura backdrop: "codegen" (a code-generated gradient) or "solid"
+    /// (a flat color).</summary>
+    [RelayCommand]
+    private void SelectSakuraBackground(string mode)
+    {
+        if (IsBlossom) SkinColorSettings.SetBackground(SkinKey, mode);
+        OnPropertyChanged(nameof(SakuraSolidBackground));
+        OnPropertyChanged(nameof(SakuraCodeGenBackground));
+        RefreshSkin();
+    }
+
+
+    // ── Live resource overrides ────────────────────────────────────────────────────────────────
+    // The translucent skins customise app brushes at runtime by writing directly into
+    // Application.Resources, which shadows the theme-dictionary entries of the same key. Everything set
+    // here must be removed when leaving the skin so it never bleeds into Light/Dark/other skins.
+
+    /// <summary>Applies the current skin's live overrides, clearing any from a previously-selected skin.
+    /// The override keys live in <see cref="SkinOverrides"/> (shared with the screenshot tool, #437).</summary>
+    private void RefreshSkin()
+    {
+        try { RefreshSkinCore(); }
+        finally { NoNearWhite.Apply(); }   // R12: nothing brighter than #E4E4E4, whatever the skin
+    }
+
+    private void RefreshSkinCore()
+    {
+        if (Application.Current is not { } app) return;
+        SkinOverrides.Clear(app);
+        // Build R6: Clear() also removes keys the lightness palette owns (accent, checkbox tick, switch knob,
+        // GlassBg…). For the neutral themes put the lightness palette straight back; without this the theme
+        // dictionary's light #CFCFCF accent and Fluent's white tick showed through (white tick on
+        // Force proportions, white active-area outline and slider knob).
+        if (!(IsSakura || IsDarkSakura || IsCustom)) { LightnessService.ApplySaved(); return; }
+
+        // Highlight/accent scheme (#557): always for Custom (it has no theme-dictionary accent); for Sakura /
+        // Dark Sakura only when the user picked a non-default accent, so the skins' hand-tuned default look
+        // (e.g. Sakura's pink→rose button gradient) is preserved until they choose otherwise.
+        if (IsCustom || AccentColor != DefaultAccentColorForSkin)
+            ApplyAccentScheme(app, AccentColor);
+
+        app.Resources["GlassBgBrush"] = FrostBrush(CardColor);
+
+        if (IsCustom)
+        {
+            ApplyCustomBackdrop(app);
+        }
+        else
+        {
+            // Blossom backdrop mode (#556): a code-generated gradient (default) or a flat color. The
+            // cherry-blossom image mode was retired; "image" migrates to "codegen" in SkinColorSettings.
+            // Dark Sakura joined here when its own artwork was retired too (#glow-darksakura) — it kept a
+            // glow along the bottom edge that no setting could reach, because the glow was in the picture.
+            if (IsBlossom)
+            {
+                // That artwork needed a scrim to sit under; a generated backdrop does not, and the scrim
+                // would dim the glows as well since it paints over the bands.
+                app.Resources["BackdropScrimBrush"] = Brushes.Transparent;
+
+                if (SkinColorSettings.Background(SkinKey) == "solid")
+                    app.Resources["AppBackdropBrush"] =
+                        new SolidColorBrush(Color.Parse(SkinColorSettings.SolidBgColor(SkinKey)));
+                else
+                {
+                    // Flat base fills the window; the glows (from the persisted/edited settings) fill the
+                    // fixed-thickness edge bands. All tunable live under this page's BACKDROP subtab (#556).
+                    var glows = GradientBackground.Load(SkinKey);
+                    app.Resources["AppBackdropBrush"] = new SolidColorBrush(ParseColorOr(
+                        GradientBackground.LoadBaseColor(SkinKey),
+                        Color.Parse(GradientBackground.DefaultBaseColor(SkinKey))));
+                    GradientBackground.ApplyGlowBrushes(app.Resources, glows);
+                }
+            }
+        }
+    }
+
+    /// <summary>Override the accent-derived brushes (buttons, radios, selected nav, system accent shades)
+    /// from a single accent color. Shared by every translucent skin (#557).</summary>
+    private void ApplyAccentScheme(Application app, Color accent)
+    {
+        var light1 = Lighten(accent, 0.14);
+        var light2 = Lighten(accent, 0.28);
+        var light3 = Lighten(accent, 0.50);
+        var dark1 = Darken(accent, 0.14);
+        var dark2 = Darken(accent, 0.30);
+        var dark3 = Darken(accent, 0.46);
+
+        app.Resources["Accent"] = accent;
+        app.Resources["AccentBrush"] = new SolidColorBrush(accent);
+        app.Resources["AccentMutedBrush"] = new SolidColorBrush(WithAlpha(accent, 0x1F));
+        app.Resources["NavActiveBrush"] = new SolidColorBrush(WithAlpha(accent, 0x30));
+
+        app.Resources["SystemAccentColor"] = accent;
+        app.Resources["SystemAccentColorLight1"] = light1;
+        app.Resources["SystemAccentColorLight2"] = light2;
+        app.Resources["SystemAccentColorLight3"] = light3;
+        app.Resources["SystemAccentColorDark1"] = dark1;
+        app.Resources["SystemAccentColorDark2"] = dark2;
+        app.Resources["SystemAccentColorDark3"] = dark3;
+
+        app.Resources["RadioButtonOuterEllipseCheckedFill"] = new SolidColorBrush(accent);
+        app.Resources["RadioButtonOuterEllipseCheckedFillPointerOver"] = new SolidColorBrush(light1);
+        app.Resources["RadioButtonOuterEllipseCheckedFillPressed"] = new SolidColorBrush(dark1);
+        app.Resources["RadioButtonOuterEllipseCheckedStroke"] = new SolidColorBrush(accent);
+        app.Resources["RadioButtonOuterEllipseCheckedStrokePointerOver"] = new SolidColorBrush(light1);
+        app.Resources["RadioButtonOuterEllipseCheckedStrokePressed"] = new SolidColorBrush(dark1);
+
+        // The checkmark glyph, the "on" toggle knob, and the radio dot all sit on a solid-accent fill and
+        // are hard-coded white by Fluent — invisible on a light accent (e.g. pink). Pick white / near-black
+        // by contrast against the accent so each stays legible in every checked/on state.
+        var onAccentInk = new SolidColorBrush(ContrastingInk(accent));
+        // R12: a ticked box is light grey with a dark tick in every skin, whatever the accent.
+        var tickInk = new SolidColorBrush(Color.FromRgb(0x14, 0x14, 0x14));
+        var tickBox = new SolidColorBrush(Color.FromRgb(0xD8, 0xD8, 0xD8));
+        app.Resources["CheckBoxCheckGlyphForegroundChecked"] = tickInk;
+        app.Resources["CheckBoxCheckGlyphForegroundCheckedPointerOver"] = tickInk;
+        app.Resources["CheckBoxCheckGlyphForegroundCheckedPressed"] = tickInk;
+        foreach (var k in new[] { "CheckBoxCheckBackgroundFillChecked", "CheckBoxCheckBackgroundFillCheckedPointerOver",
+                     "CheckBoxCheckBackgroundFillCheckedPressed", "CheckBoxCheckBackgroundStrokeChecked",
+                     "CheckBoxCheckBackgroundStrokeCheckedPointerOver", "CheckBoxCheckBackgroundStrokeCheckedPressed" })
+            app.Resources[k] = tickBox;
+
+        app.Resources["ToggleSwitchKnobFillOn"] = onAccentInk;
+        app.Resources["ToggleSwitchKnobFillOnPointerOver"] = onAccentInk;
+        app.Resources["ToggleSwitchKnobFillOnPressed"] = onAccentInk;
+
+        app.Resources["RadioButtonCheckGlyphFill"] = onAccentInk;
+        app.Resources["RadioButtonCheckGlyphFillPointerOver"] = onAccentInk;
+        app.Resources["RadioButtonCheckGlyphFillPressed"] = onAccentInk;
+
+        app.Resources["AccentButtonFillBrush"] = Gradient(light1, accent);
+        app.Resources["AccentButtonFillHoverBrush"] = Gradient(Lighten(accent, 0.22), light1);
+        // Accent buttons hard-coded white text, which is unreadable on a light accent (e.g. pink). Pick
+        // white or near-black by contrast instead, evaluated against the LIGHTEST stop the label ever sits
+        // on (the hover gradient's top, Lighten(accent, 0.22)) so it stays legible at rest and on hover.
+        // Both rest + hover use the same ink so the label color doesn't flip mid-interaction.
+        var buttonInk = new SolidColorBrush(ContrastingInk(Lighten(accent, 0.22)));
+        app.Resources["AccentButtonForegroundBrush"] = buttonInk;
+        app.Resources["AccentButtonForegroundHoverBrush"] = buttonInk;
+        app.Resources["GlassBorderBrush"] = new SolidColorBrush(WithAlpha(accent, 0x40));
+        app.Resources["CardShadow"] = new BoxShadows(new BoxShadow
+        {
+            OffsetX = 0, OffsetY = 4, Blur = 16, Spread = 0, Color = WithAlpha(accent, 0x40),
+        });
+
+    }
+
+    /// <summary>Custom-only backdrop: the base color always fills the window; a chosen image layers over it
+    /// at the user's opacity (lower = more base color shows through). The base fill also means an
+    /// unset/unreadable image just falls back to the user's chosen base instead of a hard-coded black.</summary>
+    private void ApplyCustomBackdrop(Application app)
+    {
+        app.Resources["AppBackdropBrush"] = new SolidColorBrush(BaseColor);
+
+        var path = BackgroundImagePath;
+        if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+        {
+            try
+            {
+                var opacity = Math.Clamp(BackgroundImageOpacity, 0, 1);
+                app.Resources["AppBackdropImageBrush"] = new ImageBrush(new Bitmap(path))
+                {
+                    Stretch = Stretch.UniformToFill,
+                    AlignmentX = AlignmentX.Center,
+                    AlignmentY = AlignmentY.Center,
+                    Opacity = opacity,
+                };
+                // Legibility scrim, faded out with the image so a faint image (low opacity) doesn't leave
+                // the base color needlessly darkened.
+                app.Resources["BackdropScrimBrush"] = new SolidColorBrush(Color.FromArgb((byte)(0x66 * opacity), 0, 0, 0));
+                return;
+            }
+            catch
+            {
+                // Unreadable/missing image → just the flat base color, no overlay/scrim.
+            }
+        }
+
+        app.Resources.Remove("AppBackdropImageBrush");
+        app.Resources.Remove("BackdropScrimBrush");
+    }
+
+    /// <summary>Restore the active translucent skin's tunables (card tint/opacity, left-pane opacity,
+    /// petals, accent, the Sakura codegen backdrop color, and — for Custom — base color and background
+    /// image) to their defaults.</summary>
+    [RelayCommand]
+    private void ResetToDefaults()
+    {
+        // Each assignment goes through its change handler, so this both persists and re-applies live.
+        // Defaults are per-skin, so a reset only restores the active skin's own look (#241).
+        CardOpacity = DefaultCardOpacityForSkin;
+        PetalsEnabled = true;
+        PetalsOpacity = AnimationSettings.DefaultPetalsOpacity;
+        CardColor = Color.Parse(DefaultCardHexForSkin);
+        AccentColor = Color.Parse(DefaultAccentHexForSkin); // per-skin highlight (#557)
+        if (IsBlossom) SakuraBaseColor = GradientBackground.DefaultBaseColor(SkinKey); // codegen backdrop base (#556)
+        if (IsCustom)
+        {
+            BaseColor = Color.Parse(SkinColorSettings.CustomBaseDefault);
+            BackgroundImagePath = null;
+            BackgroundImageOpacity = CustomThemeSettings.DefaultBackgroundImageOpacity;
+        }
+    }
+
+    /// <summary>A translucent card-frost brush: the card tint at the current card opacity (its alpha).</summary>
+    private SolidColorBrush FrostBrush(Color tint)
+    {
+        var a = (byte)(Math.Clamp(CardOpacity, 0, 1) * 255);
+        return new SolidColorBrush(Color.FromArgb(a, tint.R, tint.G, tint.B));
+    }
+
+    private static Color ParseColorOr(string? hex, Color fallback) =>
+        Color.TryParse(hex, out var c) ? c : fallback;
+
+    /// <summary>White or near-black — whichever stays legible as label text on the given button color.
+    /// Uses WCAG relative luminance so light fills (e.g. a pink accent) get dark text instead of white.</summary>
+    private static Color ContrastingInk(Color buttonColor) =>
+        RelativeLuminance(buttonColor) > 0.42 ? Color.FromRgb(0x1A, 0x1A, 0x1A) : Color.FromRgb(0xE4, 0xE4, 0xE4);
+
+    /// <summary>WCAG relative luminance (0 = black, 1 = white) of an sRGB color.</summary>
+    private static double RelativeLuminance(Color c)
+    {
+        static double Lin(byte v)
+        {
+            var s = v / 255.0;
+            return s <= 0.03928 ? s / 12.92 : Math.Pow((s + 0.055) / 1.055, 2.4);
+        }
+        return 0.2126 * Lin(c.R) + 0.7152 * Lin(c.G) + 0.0722 * Lin(c.B);
+    }
+
+    private static Color WithAlpha(Color c, byte a) => Color.FromArgb(a, c.R, c.G, c.B);
+    private static Color Lighten(Color c, double amount) => Mix(c, Colors.White, amount);
+    private static Color Darken(Color c, double amount) => Mix(c, Colors.Black, amount);
+
+    private static Color Mix(Color a, Color b, double t) => Color.FromArgb(
+        255,
+        (byte)(a.R + (b.R - a.R) * t),
+        (byte)(a.G + (b.G - a.G) * t),
+        (byte)(a.B + (b.B - a.B) * t));
+
+    /// <summary>Sakura swatch: the same pink→rose gradient as the skin's accent buttons.</summary>
+    private static IBrush SakuraSwatch() => Gradient(Color.Parse("#FF7EC4"), Color.Parse("#E0218A"));
+
+    /// <summary>Dark Sakura swatch: pink accent emerging from a dark plum, hinting the dark scheme.</summary>
+    private static IBrush DarkSakuraSwatch() => Gradient(Color.Parse("#2A1420"), Color.Parse("#E0218A"));
+
+    /// <summary>Custom swatch: the default indigo, hinting the accent is user-chosen.</summary>
+    private static IBrush CustomSwatch() => Gradient(Color.Parse("#7C7EF4"), Color.Parse("#6366F1"));
+
+    /// <summary>System swatch: a half-light/half-dark split hinting it follows the OS.</summary>
+    private static IBrush SystemSwatch() => new LinearGradientBrush
+    {
+        StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+        EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+        GradientStops =
+        {
+            new GradientStop(Color.Parse("#E4E4EA"), 0.5),
+            new GradientStop(Color.Parse("#13131C"), 0.5),
+        },
+    };
+
+    private static LinearGradientBrush Gradient(Color from, Color to) => new()
+    {
+        StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+        EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+        GradientStops =
+        {
+            new GradientStop(from, 0),
+            new GradientStop(to, 1),
+        },
+    };
+}

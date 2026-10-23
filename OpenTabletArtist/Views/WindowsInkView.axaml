@@ -1,0 +1,107 @@
+<UserControl x:Class="OpenTabletArtist.Views.WindowsInkView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls">
+
+    <!-- DataContext is the WindowsInkViewModel, supplied by the typed-nav DataTemplate (#15). Moved off
+         the Home page (#317): Home flags a missing/misconfigured plugin and directs you here. -->
+    <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+
+        <c:Section>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <StackPanel Grid.Column="0" MinWidth="0" VerticalAlignment="Center">
+                    <!-- Title -->
+                    <TextBlock Classes="Display section" Text="Windows Ink plugin"
+                               TextWrapping="Wrap" />
+
+                    <!-- Install status (version folded into the text, e.g. "v0.5.2 installed") -->
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBlock Text="{Binding WinInkInstallStatusText}" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </StackPanel>
+
+                    <!-- Active status: whether the active profile actually uses Windows Ink output mode -->
+                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0"
+                                IsVisible="{Binding WinInkInstalled}">
+                        <TextBlock Text="{Binding WindowsInkStatusText}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </StackPanel>
+
+                    <!-- Supported driver version vs running OTD version -->
+                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0"
+                                IsVisible="{Binding WinInkInstalled}">
+                        <TextBlock Foreground="{DynamicResource TextMutedBrush}"
+                                   Text="{Binding WinInkSupportedDriverVersion, StringFormat='Supported driver: v{0}'}" />
+                        <TextBlock Foreground="{DynamicResource TextMutedBrush}" Margin="8,0,0,0"
+                                   Text="{Binding CurrentOtdVersion, StringFormat='· OTD: v{0}'}" />
+                    </StackPanel>
+
+                    <!-- Compatibility mismatch warning -->
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0"
+                                IsVisible="{Binding WinInkVersionMismatch}">
+                        <TextBlock Classes="warning" />
+                        <TextBlock FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="{Binding CurrentOtdVersion, StringFormat='May be incompatible with OpenTabletDriver v{0}'}" />
+                    </StackPanel>
+
+                    <!-- Not-installed hint -->
+                    <TextBlock Text="Install to enable pressure &amp; tilt in drawing apps"
+                               Foreground="{DynamicResource TextMutedBrush}" FontStyle="Italic"
+                               TextWrapping="Wrap" Margin="0,4,0,0"
+                               IsVisible="{Binding !WinInkInstalled}" />
+                    <!-- The reverse of the pointer on the VMulti card (#695): this plugin injects through
+                         the VMulti virtual pen, so one without the other still gets you no pressure. -->
+                    <TextBlock Text="Needs the VMulti driver, on Settings → Drivers."
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               TextWrapping="Wrap" Margin="0,6,0,0" />
+
+                    <!-- Update-check result -->
+                    <TextBlock Text="{Binding WinInkUpdateCheckStatus}" FontStyle="Italic"
+                               Foreground="{DynamicResource TextMutedBrush}" Margin="0,6,0,0"
+                               IsVisible="{Binding HasWinInkUpdateCheckStatus}" />
+
+                    <!-- The actions moved into the "…" menu beside the heading (#winink-overflow). What is
+                         left here is STATUS, not an action: "Installing v0.5.2…" has to stay on the card,
+                         since the menu it would otherwise live in is closed while the work runs. -->
+                    <TextBlock Text="{Binding WinInkBusyStatus}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0,12,0,0" TextWrapping="Wrap"
+                               IsVisible="{Binding WinInkBusy}" />
+                </StackPanel>
+
+                <!-- Every action behind one "…", as on the daemon cards and the preset rows. This card
+                     carried an accent Install/Install-Update, a ghost Check for Update, a solid red
+                     Uninstall and a refresh glyph — four treatments for a card whose job is reporting what
+                     is installed. The items are mutually exclusive in pairs (Install XOR Uninstall,
+                     Check-for-update XOR Install-update), so the menu is never longer than three. -->
+                <c:IconButton Grid.Column="1" VerticalAlignment="Top"
+                              Icon="{StaticResource IconDotsHorizontal}"
+                              ToolTip.Tip="Windows Ink plugin actions"
+                              AutomationProperties.Name="Windows Ink plugin actions">
+                    <c:IconButton.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="Refresh plugin info"
+                                      Command="{Binding RefreshWindowsInkCommand}"
+                                      IsVisible="{Binding ShowWinInkRefresh}" />
+                            <Separator />
+                            <MenuItem Header="Install"
+                                      Command="{Binding InstallWindowsInkCommand}"
+                                      IsVisible="{Binding ShowWinInkInstall}" />
+                            <MenuItem Header="Check for update"
+                                      Command="{Binding CheckForWindowsInkUpdateCommand}"
+                                      IsVisible="{Binding ShowWinInkCheckUpdate}" />
+                            <MenuItem Header="{Binding WinInkLatestVersion, StringFormat='Install update (v{0})'}"
+                                      Command="{Binding InstallWindowsInkUpdateCommand}"
+                                      IsVisible="{Binding ShowWinInkInstallUpdate}" />
+                            <MenuItem Header="Uninstall"
+                                      Command="{Binding UninstallWindowsInkCommand}"
+                                      IsVisible="{Binding ShowWinInkUninstall}"
+                                      Foreground="{DynamicResource ErrorBrush}" />
+                        </MenuFlyout>
+                    </c:IconButton.Flyout>
+                </c:IconButton>
+            </Grid>
+        </c:Section>
+    </StackPanel>
+</UserControl>

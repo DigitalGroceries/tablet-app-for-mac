@@ -1,0 +1,41 @@
+# .NET
+bin/
+obj/
+publish/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+
+# Claude
+.claude/settings.local.json
+
+# Design-canvas working files (seeded artifact + its .dc.html sources)
+.design/
+
+# Documentation site and local Python environment
+site/
+.venv-docs/
+__pycache__/
+shots/
+shots-before/

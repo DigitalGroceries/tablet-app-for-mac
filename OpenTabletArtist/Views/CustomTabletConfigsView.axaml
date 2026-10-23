@@ -1,0 +1,144 @@
+<UserControl x:Class="OpenTabletArtist.Views.CustomTabletConfigsView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls">
+
+    <!-- DataContext is the CustomTabletConfigsViewModel, supplied by the typed-nav DataTemplate (#15). -->
+    <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+        <c:Section>
+            <StackPanel>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" MinWidth="0">
+                        <TextBlock Classes="Display section" Text="Configurations folder" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ConfigurationsDirectory}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   TextTrimming="CharacterEllipsis" TextWrapping="Wrap" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <!-- Both actions behind one "…", as on the daemon, Windows Ink, VMulti and
+                         driver-cleanup cards. Two bare glyphs read as a small toolbar the section did not
+                         need; the menu names what each one does instead of relying on a tooltip. -->
+                    <c:IconButton Grid.Column="1" VerticalAlignment="Top"
+                                  Icon="{StaticResource IconDotsHorizontal}"
+                                  ToolTip.Tip="Configurations folder actions"
+                                  AutomationProperties.Name="Configurations folder actions">
+                        <c:IconButton.Flyout>
+                            <MenuFlyout>
+                                <MenuItem Header="Reload list"
+                                          Command="{Binding RefreshConfigurationsCommand}" />
+                                <MenuItem Header="Open configurations folder"
+                                          Command="{Binding OpenConfigurationsFolderCommand}" />
+                            </MenuFlyout>
+                        </c:IconButton.Flyout>
+                    </c:IconButton>
+                </Grid>
+
+                <!-- Empty state -->
+                <TextBlock Text="No configurations in this folder."
+                           FontStyle="Italic"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           Margin="0,12,0,0"
+                           IsVisible="{Binding !HasConfigurations}" />
+
+                <!-- Configurations list -->
+                <ItemsControl ItemsSource="{Binding Configurations}"
+                              Margin="0,12,0,0"
+                              IsVisible="{Binding HasConfigurations}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <!-- An installed config is a THING in a list, so it is a c:Entity like every
+                                 other such row. It used to be a hand-rolled Border wearing GlassBgBrush,
+                                 which rebuilt the very box #574 removed — and slipped past the CI guard,
+                                 because that greps for the GlassPanel CLASS and this reached for the brush
+                                 directly. -->
+                            <c:Entity>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" MinWidth="0">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <TextBlock Text="{Binding FileName}"
+                                                       Foreground="{DynamicResource TextMutedBrush}" />
+                                            <TextBlock Text="  •  "
+                                                       Foreground="{DynamicResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding SizeText}"
+                                                       Foreground="{DynamicResource TextMutedBrush}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <Button Content="View"
+                                                Theme="{StaticResource GhostButton}"
+                                                Command="{Binding $parent[ItemsControl].DataContext.ViewConfigurationCommand}"
+                                                CommandParameter="{Binding Path}"
+                                                Padding="10,4" Margin="0,0,6,4" />
+                                        <!-- .danger, not the solid DeleteButton. The style comment names
+                                             this exact case — "a destructive row action (delete a preset,
+                                             a config)" — but #642 only ever reached the preset. A solid
+                                             red block in a boxless row out-shouts even the accent primary;
+                                             DeleteButton's fill is for text actions that ARE the page's
+                                             main action. -->
+                                        <c:IconButton Classes="danger"
+                                                      Icon="{StaticResource IconTrashCanOutline}"
+                                                      Command="{Binding $parent[ItemsControl].DataContext.DeleteConfigurationCommand}"
+                                                      CommandParameter="{Binding Path}"
+                                                      ToolTip.Tip="Delete this configuration"
+                                                      AutomationProperties.Name="Delete" />
+                                    </WrapPanel>
+                                </Grid>
+                            </c:Entity>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </c:Section>
+
+        <!-- #480: install approved tablet configs from OpenTabletDriver's repo that aren't bundled yet. -->
+        <c:Section Margin="0,16,0,0">
+            <StackPanel>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" MinWidth="0">
+                        <TextBlock Classes="Display section" Text="Add tablet support" TextWrapping="Wrap" />
+                        <TextBlock Text="Install approved OpenTabletDriver tablet configs that your version doesn't ship yet, for newly supported tablets."
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   TextWrapping="Wrap" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Check for more configs"
+                            VerticalAlignment="Center"
+                            Command="{Binding FetchAvailableCommand}"
+                            IsEnabled="{Binding !IsFetchingAvailable}"
+                            Theme="{StaticResource GhostButton}" Padding="12,6" />
+                </Grid>
+
+                <TextBlock Text="{Binding AvailableStatus}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           Margin="0,10,0,0"
+                           IsVisible="{Binding AvailableStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                <!-- Available (not-yet-installed) configs -->
+                <ItemsControl ItemsSource="{Binding AvailableConfigs}"
+                              Margin="0,12,0,0"
+                              IsVisible="{Binding HasAvailableConfigs}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <c:Entity>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" MinWidth="0">
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Manufacturer}" Margin="0,2,0,0"
+                                                   Foreground="{DynamicResource TextMutedBrush}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Install"
+                                            VerticalAlignment="Center"
+                                            Theme="{StaticResource GhostButton}"
+                                            Command="{Binding $parent[ItemsControl].DataContext.InstallApprovedCommand}"
+                                            CommandParameter="{Binding}"
+                                            Padding="10,4" />
+                                </Grid>
+                            </c:Entity>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </c:Section>
+    </StackPanel>
+</UserControl>
