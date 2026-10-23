@@ -23,8 +23,8 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 - A Mac with Apple silicon.
 - The OpenTabletDriver daemon (included in the app).
-- Input Monitoring and Accessibility permissions.
-- No other tablet driver running.
+- Input Monitoring and Accessibility permissions (Accessibility is called Device Control and Data Access on macOS 27).
+- Uninstall the Wacom driver first, as both can't run at once.
 
 ## Install and first launch
 
