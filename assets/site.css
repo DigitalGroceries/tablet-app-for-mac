@@ -40,3 +40,5 @@ button.copy{font:inherit;font-size:14px;background:#3A3A3A;color:var(--head);bor
 .attn ol{padding-left:1.4em}.attn li{margin:0 0 18px;font-size:1.05rem;line-height:1.5}
 .attn strong{color:#E4E4E4}.attn a{color:#E4B04A}
 .attn .istep img{display:block;max-width:min(100%,480px);height:auto;margin:10px 0 0;border-radius:10px;border:1px solid #3A3A3A}
+
+.dlcount{color:#9A9A9A;font-size:.95rem;margin:8px 0 0}
