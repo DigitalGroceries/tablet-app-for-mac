@@ -6,7 +6,8 @@ Tested only with macOS 27.0.1 and a Wacom Intuos4 Small (PTK-440).
 
 ## Download and install
 
-- [Download for Mac (Tablet-App-for-Mac.dmg)](https://github.com/DigitalGroceries/tablet-app-for-mac/releases/latest/download/Tablet-App-for-Mac.dmg): the latest version.
+- [Download for Apple silicon (Tablet-App-for-Mac.dmg)](https://github.com/DigitalGroceries/tablet-app-for-mac/releases/latest/download/Tablet-App-for-Mac.dmg): latest, tested.
+- [Download for Intel Mac (Tablet-App-for-Mac-Intel.dmg)](https://github.com/DigitalGroceries/tablet-app-for-mac/releases/latest/download/Tablet-App-for-Mac-Intel.dmg): latest, not yet tested on a real Intel Mac.
 - [Install steps](https://digitalgroceries.github.io/tablet-app-for-mac/#get): open the .dmg, drag Tablet App for Mac to Applications, open it (if macOS warns: right-click › Open, or System Settings › Privacy & Security › Open Anyway). Allow Input Monitoring and Accessibility.
 
 ## Documentation
