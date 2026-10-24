@@ -1,6 +1,6 @@
 # Tablet App for Mac
 
-> Free, open-source (GPL-3.0) settings app for drawing tablets on macOS 15 or later (Apple silicon; Intel Mac users can use Wacom’s own driver), built on OpenTabletDriver. Current version: Version 8.
+> Free, open-source (GPL-3.0) settings app for drawing tablets on macOS 15 or later (Apple silicon), built on OpenTabletDriver. Current version: Version 8.
 
 Tested only with macOS 27.0.1 and a Wacom Intuos4 Small (PTK-440).
 
