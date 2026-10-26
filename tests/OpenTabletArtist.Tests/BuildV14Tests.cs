@@ -68,3 +68,105 @@ public class BuildV14Tests
         Assert.Equal("Ok", picked[0].DisplayName);
     }
 }
+
+/// <summary>Version 14: per-pen settings (Tool-row pen tiles).</summary>
+public class BuildV14PenTests
+{
+    static string Tablet => "TestTablet-PerPen-" + Guid.NewGuid().ToString("N")[..8];
+
+    static OpenTabletDriver.Desktop.Profiles.BindingSettings Bindings(bool tipBound)
+    {
+        var b = new OpenTabletDriver.Desktop.Profiles.BindingSettings();
+        if (tipBound) b.TipButton = new OpenTabletDriver.Desktop.Reflection.PluginSettingStore(typeof(OpenTabletDriver.Desktop.Binding.MouseBinding));
+        return b;
+    }
+
+    [Fact]
+    public void Signal_RoundTrips_AndKeysOnSerial()
+    {
+        var s = new PenToolSignal(0x1A2B3C, 0x802, Eraser: false);
+        Assert.Equal("1A2B3C 802 tip", s.Format());
+        Assert.Equal(s, PenToolSignal.Parse(s.Format()));
+        var eraser = new PenToolSignal(0x1A2B3C, 0x80A, Eraser: true);
+        Assert.Equal(s.Key, eraser.Key); // both ends of one pen
+        Assert.Equal("t802", new PenToolSignal(0, 0x802, false).Key);
+        Assert.Null(PenToolSignal.Parse("garbage"));
+        Assert.Null(PenToolSignal.Parse("0 0 tip"));
+    }
+
+    [Fact]
+    public void Signal_FileRoundTrip()
+    {
+        var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "v14-pen-" + Guid.NewGuid().ToString("N"), "pen-tool");
+        var s = new PenToolSignal(0xABC, 0x804, true);
+        s.Write(path);
+        Assert.Equal(s, PenToolSignal.Read(path));
+        Assert.False(System.IO.File.Exists(path + ".tmp"));
+    }
+
+    [Theory]
+    [InlineData(0x802u, "Grip Pen")]
+    [InlineData(0x80Au, "Grip Pen")]
+    [InlineData(0x804u, "Art Pen")]
+    [InlineData(0x902u, "Airbrush Pen")]
+    [InlineData(0x4802u, "Classic Pen")]
+    [InlineData(0x2802u, "Inking Pen")]
+    [InlineData(0x100802u, "Grip Pen")]
+    [InlineData(0x123u, "Pen")]
+    public void ToolNames_FollowLibwacom(uint id, string name) => Assert.Equal(name, PenBindings.ToolName(id));
+
+    [Fact]
+    public void UniqueName_NumbersRepeats()
+    {
+        Assert.Equal("Grip Pen", PenBindings.UniqueName(0x802, new string[0]));
+        Assert.Equal("Grip Pen 2", PenBindings.UniqueName(0x802, new[] { "Grip Pen" }));
+        Assert.Equal("Grip Pen 3", PenBindings.UniqueName(0x802, new[] { "Grip Pen", "Grip Pen 2" }));
+    }
+
+    [Fact]
+    public void Overlay_CopiesOnlyPenParts()
+    {
+        var target = Bindings(false);
+        target.AuxButtons = new OpenTabletDriver.Desktop.Reflection.PluginSettingStoreCollection { null };
+        var pen = Bindings(true);
+        pen.TipActivationThreshold = 7;
+        pen.AuxButtons = new OpenTabletDriver.Desktop.Reflection.PluginSettingStoreCollection();
+        PenBindings.Overlay(target, pen);
+        Assert.NotNull(target.TipButton);
+        Assert.Equal(7, target.TipActivationThreshold);
+        Assert.Single(target.AuxButtons); // ExpressKeys untouched
+    }
+
+    [Fact]
+    public void FirstPen_IsMain_OthersAreAdded_EraserEndIsTheSamePen_PucksIgnored()
+    {
+        var tablet = Tablet;
+        var main = new PenToolSignal(0x111, 0x802, false);
+        Assert.Equal(Services.PerPenStore.SeenResult.BecameMainPen, Services.PerPenStore.Seen(tablet, main, Bindings(true), out _));
+        Assert.Equal(Services.PerPenStore.SeenResult.MainPen, Services.PerPenStore.Seen(tablet, main with { Eraser = true, RawToolId = 0x80A }, Bindings(true), out _));
+        Assert.Empty(Services.PerPenStore.List(tablet));
+
+        var art = new PenToolSignal(0x222, 0x804, false);
+        Assert.Equal(Services.PerPenStore.SeenResult.Added, Services.PerPenStore.Seen(tablet, art, Bindings(true), out var added));
+        Assert.Equal("Art Pen", added!.DisplayName);
+        Assert.NotNull(added.Bindings.TipButton); // a copy of the main pen's settings
+        Assert.Equal(Services.PerPenStore.SeenResult.Known, Services.PerPenStore.Seen(tablet, art with { Eraser = true, RawToolId = 0x80C }, Bindings(true), out _));
+
+        Assert.Equal(Services.PerPenStore.SeenResult.Ignored, Services.PerPenStore.Seen(tablet, new PenToolSignal(0x333, 0x806, false), Bindings(true), out _));
+        Assert.Single(Services.PerPenStore.List(tablet));
+
+        Assert.True(Services.PerPenStore.Remove(tablet, art.Key));
+        Assert.Empty(Services.PerPenStore.List(tablet));
+    }
+
+    [Fact]
+    public void SecondGripPen_IsNumbered()
+    {
+        var tablet = Tablet;
+        Services.PerPenStore.Seen(tablet, new PenToolSignal(1, 0x802, false), Bindings(false), out _);
+        Services.PerPenStore.Seen(tablet, new PenToolSignal(2, 0x802, false), Bindings(false), out var a);
+        Services.PerPenStore.Seen(tablet, new PenToolSignal(3, 0x802, false), Bindings(false), out var b);
+        Assert.Equal("Grip Pen", a!.DisplayName);
+        Assert.Equal("Grip Pen 2", b!.DisplayName);
+    }
+}

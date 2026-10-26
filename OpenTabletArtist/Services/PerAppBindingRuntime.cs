@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using OpenTabletDriver.Desktop;
 using OpenTabletDriver.Desktop.Profiles;
 using OtdInterop;
+using OpenTabletArtist.Domain;
 
 namespace OpenTabletArtist.Services;
 
@@ -27,6 +28,11 @@ public sealed class PerAppBindingRuntime : IDisposable
     private readonly DispatcherTimer _timer;
     private string? _appliedBundleId; // null = All is on the daemon
     private string? _pendingBundleId;
+    // Version 14: per-pen overlay. Null = the main pen (no overlay).
+    private string? _appliedPenKey;
+    private string? _pendingPenKey;
+    private bool _penPending;
+    private DateTime _penFileStamp;
     private bool _busy;
     private bool _disposed;
 
@@ -36,7 +42,17 @@ public sealed class PerAppBindingRuntime : IDisposable
     /// <summary>Bundle id whose bindings are currently on the daemon, or null for All.</summary>
     public string? AppliedBundleId => _appliedBundleId;
 
+    /// <summary>Version 14: the extra pen whose settings are on the daemon, or null for the main pen.</summary>
+    public string? AppliedPenKey => _appliedPenKey;
+
+    /// <summary>Version 14: the last pen that came near the tablet (from the pen-dynamics plugin).</summary>
+    public PenToolSignal? LastPen { get; private set; }
+
     public event Action? AppliedChanged;
+
+    /// <summary>Version 14: a pen came near (raised on the UI thread with the tablet name). The Tablet page
+    /// uses it to add a tile for a new pen.</summary>
+    public event Action<string, PenToolSignal>? PenSeen;
 
     public PerAppBindingRuntime(ISettingsCoordinator settings, Func<string?> activeTablet, Func<bool> tipDown)
     {
@@ -61,8 +77,8 @@ public sealed class PerAppBindingRuntime : IDisposable
     /// <summary>Call before Save / Restore so the on-disk All profile is what the daemon holds.</summary>
     public async Task EnsureAllOnDaemonAsync()
     {
-        if (_appliedBundleId == null && _pendingBundleId == null) return;
-        await ApplyTargetAsync(null).ConfigureAwait(true);
+        if (_appliedBundleId == null && _pendingBundleId == null && _appliedPenKey == null && !_penPending) return;
+        await ApplyTargetAsync(null, null).ConfigureAwait(true);
     }
 
     /// <summary>Re-evaluate now (e.g. after the user edits a listed app's bindings).</summary>
@@ -80,22 +96,58 @@ public sealed class PerAppBindingRuntime : IDisposable
         if (!string.IsNullOrEmpty(front) && PerAppBindingStore.Find(tablet, front!) != null)
             target = front;
 
+        // Version 14: which pen is near, and does it have its own settings?
+        ReadPen(tablet);
+        string? penTarget = null;
+        if (LastPen is { } pen && PerPenStore.Find(tablet, pen.Key) != null)
+            penTarget = pen.Key;
+
         if (string.Equals(target, _appliedBundleId, StringComparison.OrdinalIgnoreCase)
-            && _pendingBundleId == null)
+            && _pendingBundleId == null
+            && penTarget == _appliedPenKey && !_penPending)
             return;
 
         // Defer while the tip is down so we don't SetSettings mid-stroke.
         if (_tipDown())
         {
             _pendingBundleId = target ?? "";
+            _pendingPenKey = penTarget;
+            _penPending = true;
             return;
         }
 
         _pendingBundleId = null;
-        await ApplyTargetAsync(target).ConfigureAwait(true);
+        _pendingPenKey = null;
+        _penPending = false;
+        await ApplyTargetAsync(target, penTarget).ConfigureAwait(true);
     }
 
-    private async Task ApplyTargetAsync(string? bundleId)
+    /// <summary>Reads the pen file when it changed and tells listeners about the pen.</summary>
+    private void ReadPen(string tablet)
+    {
+        try
+        {
+            var path = PenToolSignal.FilePath;
+            if (!System.IO.File.Exists(path)) return;
+            var stamp = System.IO.File.GetLastWriteTimeUtc(path);
+            if (stamp == _penFileStamp) return;
+            _penFileStamp = stamp;
+            if (PenToolSignal.Read(path) is not { } pen) return;
+            var changed = LastPen?.Key != pen.Key;
+            LastPen = pen;
+            if (changed) AppLog.Info($"Pen: near the tablet: {pen.Format()} (key {pen.Key}).");
+            if (AllBindings(tablet) is { } all)
+            {
+                var result = PerPenStore.Seen(tablet, pen, all, out var added);
+                if (result == PerPenStore.SeenResult.BecameMainPen) AppLog.Info($"Pen: {pen.Key} is the main pen of {tablet}.");
+                if (added != null) AppLog.Info($"Pen: added \"{added.DisplayName}\" ({added.Key}) to {tablet}.");
+            }
+            PenSeen?.Invoke(tablet, pen);
+        }
+        catch (Exception ex) { AppLog.Warn("Pen: couldn't read the pen file.", ex); }
+    }
+
+    private async Task ApplyTargetAsync(string? bundleId, string? penKey)
     {
         if (_busy) return;
         _busy = true;
@@ -133,10 +185,19 @@ public sealed class PerAppBindingRuntime : IDisposable
                 bindings = PerAppBindingStore.CloneBindings(app.Bindings);
             }
 
+            // Version 14: an extra pen's own tip / eraser / side-button settings win over All and the app.
+            if (penKey is not null && PerPenStore.Find(tablet, penKey) is { } pen)
+            {
+                bindings = PerAppBindingStore.CloneBindings(bindings);
+                PenBindings.Overlay(bindings, PerAppBindingStore.CloneBindings(pen.Bindings));
+            }
+            else penKey = null;
+
             profile.BindingSettings = bindings;
             var outcome = await _settings.ApplySettingsAsync(clone).ConfigureAwait(true);
             if (!outcome.IsLive) return;
             _appliedBundleId = bundleId;
+            _appliedPenKey = penKey;
             AppliedChanged?.Invoke();
         }
         catch (Exception ex)
@@ -147,6 +208,21 @@ public sealed class PerAppBindingRuntime : IDisposable
     }
 
     public static string AllBindingsKey(string tablet) => $"PerAppAllBindings:{tablet}";
+
+    /// <summary>The All binding table (kept in sync by the editor), else the live profile's.</summary>
+    private BindingSettings? AllBindings(string tablet)
+    {
+        var allJson = AppSettings.Get(AllBindingsKey(tablet));
+        if (!string.IsNullOrEmpty(allJson))
+        {
+            try
+            {
+                if (Newtonsoft.Json.JsonConvert.DeserializeObject<BindingSettings>(allJson) is { } b) return b;
+            }
+            catch { /* fall back to the profile */ }
+        }
+        return _settings.CurrentSettings?.Profiles.FirstOrDefault(p => p.Tablet == tablet)?.BindingSettings;
+    }
 
     /// <summary>Persist the All binding table whenever the user edits All (so focus-restore is accurate
     /// even if the workspace draft briefly held an overlay).</summary>

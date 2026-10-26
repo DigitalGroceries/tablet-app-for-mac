@@ -129,6 +129,10 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (LblEraserManualNote != null) LblEraserManualNote.Text = Localizer.T("tablet.eraser.manual_note");
 
         if (AppAddButton != null) ToolTip.SetTip(AppAddButton, Localizer.T("tablet.app.add_tip"));
+        if (DeviceAddButton != null) ToolTip.SetTip(DeviceAddButton, Localizer.Te("tablet.device.add_tip", "Add a tablet."));
+        if (DeviceRemoveButton != null) ToolTip.SetTip(DeviceRemoveButton, Localizer.Te("tablet.device.remove_tip", "Forget this tablet and its settings."));
+        if (ToolAddButton != null) ToolTip.SetTip(ToolAddButton, Localizer.Te("tablet.pen.add_tip", "Add a pen."));
+        if (ToolRemoveButton != null) ToolTip.SetTip(ToolRemoveButton, Localizer.Te("tablet.pen.remove_tip", "Remove the selected pen's settings."));
         if (AppRemoveButton != null) ToolTip.SetTip(AppRemoveButton, Localizer.T("tablet.app.remove_tip"));
 
 
@@ -138,7 +142,11 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     internal void SyncToolChips()
     {
         if (ButtonsTab.IsChecked == true || WheelsTab.IsChecked == true) SelectTool(ToolFunctionsButton);
-        else if (PenTab.IsChecked == true || EraserTab.IsChecked == true || MappingTab.IsChecked == true) SelectTool(ToolPenButton);
+        else if (PenTab.IsChecked == true || EraserTab.IsChecked == true || MappingTab.IsChecked == true)
+        {
+            // Version 14: an extra pen tile stays selected while you move between Pen, Eraser and Mapping.
+            if (string.IsNullOrEmpty(Vm?.SelectedPenKey)) SelectTool(ToolPenButton);
+        }
         else if (AboutTab.IsChecked == true || CalibrationTab.IsChecked == true || FiltersTab.IsChecked == true
                  || JsonTab.IsChecked == true || HoverTab.IsChecked == true) SelectTool(ToolMoreButton);
     }
@@ -149,7 +157,47 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     {
         foreach (var t in new[] { ToolFunctionsButton, ToolPenButton, ToolMoreButton })
             t.IsChecked = ReferenceEquals(t, tile);
+        // Version 14: a base tile clears any extra-pen selection; the Pen tabs follow the Pen tool.
+        if (Vm != null)
+        {
+            Vm.SelectedPenKey = null;
+            Vm.PenToolActive = ReferenceEquals(tile, ToolPenButton);
+        }
     }
+
+    /// <summary>Version 14: an extra pen tile — the Pen tabs, editing that pen's own settings.</summary>
+    private void OnPenProfileTile(object? s, RoutedEventArgs e)
+    {
+        if (s is not Control { Tag: string key } || Vm is null) return;
+        foreach (var t in new[] { ToolFunctionsButton, ToolPenButton, ToolMoreButton }) t.IsChecked = false;
+        Vm.PenToolActive = true;
+        if (PenTab.IsChecked != true && EraserTab.IsChecked != true && MappingTab.IsChecked != true) PenTab.IsChecked = true;
+        Vm.SelectPenProfileCommand.Execute(key);
+    }
+
+    private async void OnDeviceAdd(object? s, RoutedEventArgs e)
+    {
+        if (Vm != null) await Vm.AddTabletAsync();
+    }
+
+    private async void OnDeviceRemove(object? s, RoutedEventArgs e)
+    {
+        if (Vm != null) await Vm.ForgetCommand.ExecuteAsync(null);
+    }
+
+    private async void OnToolAdd(object? s, RoutedEventArgs e)
+    {
+        if (Vm != null) await Vm.AddPenAsync();
+    }
+
+    private async void OnToolRemove(object? s, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        await Vm.RemoveSelectedPenCommand.ExecuteAsync(null);
+        if (string.IsNullOrEmpty(Vm.SelectedPenKey)) SelectTool(ToolPenButton);
+    }
+
+    private void OnPenSeen(string tablet, Domain.PenToolSignal pen) => Vm?.OnPenSeen(tablet, pen);
 
     // Build O: Tool tiles choose the tab group, like Wacom's Tool row.
     private void OnToolFunctions(object? s, RoutedEventArgs e) { ButtonsTab.IsChecked = true; SelectTool(ToolFunctionsButton); }
@@ -256,6 +304,9 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         // the page is already shown (re-navigation wouldn't re-attach the view).
         if (Vm != null) Vm.TabRequested += OnTabRequested;
         if (Vm?.ConsumePendingTab() is { } pending) SelectTab(pending);
+        // Version 14: a new pen that comes near gets its tile while the page is open.
+        if (PerAppBindingRuntime.Shared is { } runtime) runtime.PenSeen += OnPenSeen;
+        Vm?.LoadPenProfiles();
 
         _screens = TopLevel.GetTopLevel(this)?.Screens;
         if (_screens != null) _screens.Changed += OnScreensChanged;
@@ -277,6 +328,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     {
         base.OnDetachedFromVisualTree(e);
         if (Vm != null) Vm.TabRequested -= OnTabRequested;
+        if (PerAppBindingRuntime.Shared is { } runtime) runtime.PenSeen -= OnPenSeen;
         if (_screens != null) { _screens.Changed -= OnScreensChanged; _screens = null; }
         ButtonsTab.IsCheckedChanged -= OnLiveTabChanged;
         WheelsTab.IsCheckedChanged -= OnLiveTabChanged;
@@ -398,9 +450,9 @@ public partial class TabletDetailView : UserControl, ITabbedContent
             case TabletDetailTab.PenTilt:
             case TabletDetailTab.PenBehavior:
             case TabletDetailTab.PenInputs:
-                ToolPenButton.IsChecked = true; PenTab.IsChecked = true; break;
+                SelectTool(ToolPenButton); PenTab.IsChecked = true; break;
             case TabletDetailTab.PenDynamics:
-                ToolPenButton.IsChecked = true; PenTab.IsChecked = true; FeelDetails.IsVisible = true; break;
+                SelectTool(ToolPenButton); PenTab.IsChecked = true; FeelDetails.IsVisible = true; break;
             // R14: every pen deep-link (behaviour, inputs, tilt) lands on Tablet › Pen; the PEN page is gone.
         }
     }

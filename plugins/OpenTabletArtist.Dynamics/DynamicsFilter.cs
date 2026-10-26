@@ -90,7 +90,11 @@ public class DynamicsFilter : IPositionedPipelineElement<IDeviceReport>
 
         // Which end is in use: reports that carry Eraser say so; Wacom Intuos-protocol tablets announce the
         // tool once in a tool report and then send plain pen reports.
-        if (value is IToolReport tool) _eraser = tool.Tool == ToolType.Eraser;
+        if (value is IToolReport tool)
+        {
+            _eraser = tool.Tool == ToolType.Eraser;
+            AnnouncePen(tool);
+        }
         if (value is IEraserReport er) _eraser = er.Eraser;
 
         // Skip entirely when MaxPressure is unknown (some custom configs) — normalizing needs it, and
@@ -127,5 +131,23 @@ public class DynamicsFilter : IPositionedPipelineElement<IDeviceReport>
         }
 
         Emit?.Invoke(value);
+    }
+
+    // Version 14: tell the app which pen (and which end) is near, for per-pen settings. Written only when it
+    // changes, so the file is touched once per pen change, not on every report.
+    static PenToolSignal? _lastAnnounced;
+    static readonly object AnnounceGate = new();
+
+    static void AnnouncePen(IToolReport tool)
+    {
+        var signal = new PenToolSignal(tool.Serial, tool.RawToolID, tool.Tool == ToolType.Eraser);
+        if (signal.Serial == 0 && signal.RawToolId == 0) return;
+        lock (AnnounceGate)
+        {
+            if (_lastAnnounced == signal) return;
+            _lastAnnounced = signal;
+        }
+        try { signal.Write(); }
+        catch (Exception) { /* the pen still works; only the per-pen switch misses this change */ }
     }
 }

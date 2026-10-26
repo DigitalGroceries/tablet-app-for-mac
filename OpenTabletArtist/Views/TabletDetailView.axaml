@@ -323,6 +323,15 @@
                     </ScrollViewer>
                 </Border>
                 <RepeatButton Grid.Row="0" Grid.Column="3" Classes="wacomArrow" Content="&gt;" Tag="DeviceScroll" Click="OnTileScrollRight" />
+                <!-- Version 14: + and − on every row, like Application. Device: + explains how a tablet is added,
+                     − forgets (or resets) this tablet, as on its Home card. -->
+                <StackPanel Grid.Row="0" Grid.Column="4" Spacing="2" VerticalAlignment="Center">
+                    <Button x:Name="DeviceAddButton" Classes="wacomPlusMinus" Content="+" Click="OnDeviceAdd"
+                            ToolTip.Tip="Add a tablet." />
+                    <Button x:Name="DeviceRemoveButton" Classes="wacomPlusMinus" Content="−" Click="OnDeviceRemove"
+                            IsEnabled="{Binding CanForgetTablet}"
+                            ToolTip.Tip="Forget this tablet and its settings." />
+                </StackPanel>
                 <TextBlock x:Name="LblTool" Grid.Row="1" Text="Tool:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
                 <RepeatButton Grid.Row="1" Grid.Column="1" Classes="wacomArrow" Content="&lt;" Tag="ToolScroll" Click="OnTileScrollLeft" />
                 <Border Grid.Row="1" Grid.Column="2" Classes="wacomWell">
@@ -340,6 +349,28 @@
                                     <TextBlock x:Name="LblToolPen" Text="Pen" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
                                 </StackPanel>
                             </RadioButton>
+                            <!-- Version 14: extra pens (Wacom-style per-pen settings), added when they come near. -->
+                            <ItemsControl x:Name="PenTilesHost" ItemsSource="{Binding PenProfiles}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="4" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <RadioButton GroupName="WacomPenTile" Theme="{StaticResource WacomTile}"
+                                                     Tag="{Binding Key}" Click="OnPenProfileTile"
+                                                     IsChecked="{Binding IsSelected, Mode=OneWay}"
+                                                     ToolTip.Tip="{Binding DisplayName}">
+                                            <StackPanel Spacing="2">
+                                                <ctrl:PenIcon />
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="11" HorizontalAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                             <RadioButton x:Name="ToolMoreButton" GroupName="WacomTool" Theme="{StaticResource WacomTile}" Click="OnToolMore" ToolTip.Tip="More">
                                 <StackPanel Spacing="2">
                                     <Viewbox Width="34" Height="26"><Canvas Width="34" Height="26"><Ellipse Canvas.Left="4" Canvas.Top="10" Width="6" Height="6" Classes="tileIcon" /><Ellipse Canvas.Left="14" Canvas.Top="10" Width="6" Height="6" Classes="tileIcon" /><Ellipse Canvas.Left="24" Canvas.Top="10" Width="6" Height="6" Classes="tileIcon" /></Canvas></Viewbox>
@@ -350,6 +381,13 @@
                     </ScrollViewer>
                 </Border>
                 <RepeatButton Grid.Row="1" Grid.Column="3" Classes="wacomArrow" Content="&gt;" Tag="ToolScroll" Click="OnTileScrollRight" />
+                <StackPanel Grid.Row="1" Grid.Column="4" Spacing="2" VerticalAlignment="Center">
+                    <Button x:Name="ToolAddButton" Classes="wacomPlusMinus" Content="+" Click="OnToolAdd"
+                            ToolTip.Tip="Add a pen." />
+                    <Button x:Name="ToolRemoveButton" Classes="wacomPlusMinus" Content="−" Click="OnToolRemove"
+                            IsEnabled="{Binding CanRemovePen}"
+                            ToolTip.Tip="Remove the selected pen's settings." />
+                </StackPanel>
                 <TextBlock x:Name="LblApplication" Grid.Row="2" Text="Application:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
                 <RepeatButton Grid.Row="2" Grid.Column="1" Classes="wacomArrow" Content="&lt;" Tag="ApplicationScroll" Click="OnTileScrollLeft" />
                 <Border Grid.Row="2" Grid.Column="2" Classes="wacomWell">
@@ -430,16 +468,16 @@
                         </MultiBinding>
                     </RadioButton.IsVisible>
                 </RadioButton>
-                <RadioButton Content="pen" x:Name="PenTab" IsChecked="True" IsVisible="{Binding #ToolPenButton.IsChecked}"
+                <RadioButton Content="pen" x:Name="PenTab" IsChecked="True" IsVisible="{Binding PenToolActive}"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
-                <RadioButton Content="eraser" x:Name="EraserTab" IsVisible="{Binding #ToolPenButton.IsChecked}"
+                <RadioButton Content="eraser" x:Name="EraserTab" IsVisible="{Binding PenToolActive}"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
                 <RadioButton Content="mapping" x:Name="MappingTab"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3">
                     <RadioButton.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
                             <Binding Path="HasAreaMapping" />
-                            <Binding Path="#ToolPenButton.IsChecked" />
+                            <Binding Path="PenToolActive" />
                         </MultiBinding>
                     </RadioButton.IsVisible>
                 </RadioButton>
@@ -1352,6 +1390,8 @@
             <!-- Shared right margin with WacomHeader (+/−): fill the content column, no fixed 720 left strip. -->
             <Border Classes="wacomPane" HorizontalAlignment="Stretch">
             <StackPanel Spacing="10">
+                <!-- Version 14: an extra pen is selected: say what is per pen and what is shared. -->
+                <TextBlock Text="{Binding PerPenNote}" IsVisible="{Binding ShowPerPenNote}" TextWrapping="Wrap" Opacity="0.85" />
                 <Grid ColumnDefinitions="250,24,*">
                     <StackPanel Spacing="12">
                         <HeaderedContentControl x:Name="PenTiltGroup" Classes="wacomGroup" Header="Tilt">

@@ -871,6 +871,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         LoadAuxEnabledState();
         LoadWheelEnabledState();
         LoadAppProfiles();
+        LoadPenProfiles();
         RefreshFromProfile();
         RefreshDetectionStatus();
         RefreshConfigOverride();

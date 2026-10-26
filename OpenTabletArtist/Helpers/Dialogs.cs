@@ -140,7 +140,11 @@ public static class Dialogs
             await dialog.ShowDialog(parent);
     }
 
-    public static async Task<bool> ShowConfirmAsync(string title, string message, Window? parent = null)
+    public static Task<bool> ShowConfirmAsync(string title, string message, Window? parent = null)
+        => ShowConfirmAsync(title, message, "Yes", "No", parent);
+
+    /// <summary>Version 14: the same confirm with its own button words (e.g. "Tablet configs" / "Close").</summary>
+    public static async Task<bool> ShowConfirmAsync(string title, string message, string yesText, string noText, Window? parent = null)
     {
         parent ??= GetMainWindow();
         bool result = false;
@@ -172,8 +176,8 @@ public static class Dialogs
                         Children =
                         {
                             // Windows convention: the affirmative action goes first/left (#502).
-                            new Button { Content = "Yes", Padding = new Thickness(24, 8), FontSize = 13 },
-                            new Button { Content = "No", Padding = new Thickness(24, 8), FontSize = 13 }
+                            new Button { Content = yesText, Padding = new Thickness(24, 8), FontSize = 13 },
+                            new Button { Content = noText, Padding = new Thickness(24, 8), FontSize = 13 }
                         }
                     }
                 }

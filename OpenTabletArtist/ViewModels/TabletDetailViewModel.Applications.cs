@@ -45,6 +45,10 @@ public partial class TabletDetailViewModel
     /// <summary>Bindings the ExpressKeys / pen / ring editors should show and write.</summary>
     internal BindingSettings WorkingBindings()
     {
+        // Version 14: an extra pen's own settings come first (its tile is only selectable on the Pen tool).
+        if (!string.IsNullOrEmpty(SelectedPenKey)
+            && PerPenStore.Find(_profile.Tablet ?? "", SelectedPenKey) is { } pen)
+            return pen.Bindings;
         if (!string.IsNullOrEmpty(SelectedAppBundleId)
             && PerAppBindingStore.Find(_profile.Tablet ?? "", SelectedAppBundleId!) is { } app)
             return app.Bindings;
@@ -141,6 +145,19 @@ public partial class TabletDetailViewModel
     /// <summary>Write a binding change either to All (OTD profile) or to the selected app's store.</summary>
     internal async Task ApplyBindingMutationAsync(Action<BindingSettings> mutate)
     {
+        // Version 14: editing an extra pen writes to that pen's own settings.
+        if (!string.IsNullOrEmpty(SelectedPenKey))
+        {
+            var tablet = _profile.Tablet ?? "";
+            var pen = PerPenStore.Find(tablet, SelectedPenKey);
+            if (pen is null) return;
+            var copy = PerAppBindingStore.CloneBindings(pen.Bindings);
+            mutate(copy);
+            PerPenStore.SaveBindings(tablet, SelectedPenKey!, copy);
+            RefreshBindingEditorsFromSelection();
+            PerAppBindingRuntime.Shared?.Kick();
+            return;
+        }
         if (!string.IsNullOrEmpty(SelectedAppBundleId))
         {
             var tablet = _profile.Tablet ?? "";
