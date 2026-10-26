@@ -62,3 +62,8 @@ section.chap{scroll-margin-top:16px}section.chap h2{scroll-margin-top:16px}
 
 /* V14 era: links to the two previous versions under the Download button */
 .dl .older{margin:10px 0 0}
+
+/* BETA download next to the stable one (Zak, 26 Oct 2026) */
+.btn.beta{background:transparent;border:1px dashed #C9A227;color:#E8D07A}.btn.beta:hover{background:#2A2614}
+.dl .betanote{color:#CFCFCF;font-size:15px;margin:10px 0 0;padding:10px 14px;border-left:3px solid #C9A227;background:#221F14;border-radius:0 8px 8px 0}
+.tag.betatag{border-color:#C9A227;color:#E8D07A}.rel.betarel{border-color:#5C4E1C}
