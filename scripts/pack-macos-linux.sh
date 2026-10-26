@@ -5,11 +5,15 @@
 # Needs: .NET SDK from global.json ($HOME/.dotnet), rcodesign (cargo install apple-codesign; 0.29.0 used).
 # Usage: scripts/pack-macos-linux.sh <version> <out-dir> [arm64|x64 ...]
 #   e.g. scripts/pack-macos-linux.sh 14 /tmp/v14 arm64
+#   BETA build: BETA=2 scripts/pack-macos-linux.sh 14 /tmp/v14b2 arm64  (the app then knows it is "14 BETA 2",
+#   so its update check offers the stable version, newer BETAs and going back to stable; tag it v14-beta2).
 set -euo pipefail
 VER=${1:?version, e.g. 14}
 OUT=${2:?output folder}
 shift 2
 ARCHES=${*:-arm64}
+BETA=${BETA:-0}
+INFO=$VER; [ "$BETA" != 0 ] && INFO="$VER-beta$BETA"
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 RC=${RCODESIGN:-$HOME/.cargo/bin/rcodesign}
 BID=com.freetabletapp.mac
@@ -22,7 +26,7 @@ for a in $ARCHES; do
   suf=""; [ "$a" = x64 ] && suf="-Intel"
   P="$OUT/pub-$a"; rm -rf "$P"
   dotnet publish "$ROOT/OpenTabletArtist/OpenTabletArtist.csproj" -c Release -r osx-$a --self-contained true \
-    -p:PublishSingleFile=true -p:Version="$VER" -o "$P/app" -nologo -v q
+    -p:PublishSingleFile=true -p:Version="$VER" -p:InformationalVersion="$INFO" -o "$P/app" -nologo -v q
   dotnet publish "$ROOT/external/OpenTabletDriver/OpenTabletDriver.Daemon/OpenTabletDriver.Daemon.csproj" -c Release -r osx-$a \
     --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o "$P/daemon" -nologo -v q
 

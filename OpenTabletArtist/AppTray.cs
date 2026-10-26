@@ -274,7 +274,7 @@ public sealed class AppTray : IDisposable
         await AppUpdateState.Shared.CheckAsync();
         // Tray can't show Home's status line — open the window and, when already latest, say so in a dialog.
         ShowWindow();
-        if (AppUpdateState.Shared.UpdateReady) return;
+        if (AppUpdateState.Shared.UpdateReady) { await ChooseUpdateFromTrayAsync(); return; }
         try
         {
             await Helpers.Dialogs.ShowMessageAsync(
@@ -289,7 +289,18 @@ public sealed class AppTray : IDisposable
     {
         if (!AppUpdateState.Shared.UpdateReady) return;
         ShowWindow();
-        await AppUpdateState.Shared.InstallPendingAsync();
+        await ChooseUpdateFromTrayAsync();
+    }
+
+    /// <summary>Version 14: the choice window (newer stable, BETA not tested yet, or back to stable), then install
+    /// the chosen one.</summary>
+    private async Task ChooseUpdateFromTrayAsync()
+    {
+        Services.Updater.Release? chosen;
+        try { chosen = await Views.UpdatePromptWindow.ChooseAsync(AppUpdateState.Shared.Choices); }
+        catch (Exception ex) { AppLog.Warn("Tray update: couldn't show the choice window", ex); return; }
+        if (chosen == null) return;
+        await AppUpdateState.Shared.InstallAsync(chosen);
         // If install returned an error string (app still running), surface it.
         var status = AppUpdateState.Shared.Status;
         if (!string.IsNullOrEmpty(status) && status != Localizer.T("update.installing")

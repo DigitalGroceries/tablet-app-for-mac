@@ -18,6 +18,8 @@ namespace OpenTabletArtist.Services;
 public static class Updater
 {
     public const string Api = "https://api.github.com/repos/DigitalGroceries/tablet-app-for-mac/releases/latest";
+    /// <summary>Version 14: all recent releases (stable and BETA pre-releases), so the user can choose.</summary>
+    public const string ListApi = "https://api.github.com/repos/DigitalGroceries/tablet-app-for-mac/releases?per_page=30";
     /// <summary>Version 7 test 3: one app per Mac type (no universal launcher), so the updater picks its own zip.</summary>
     public static string ZipName => ZipNameFor(System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture);
     public static string ZipNameFor(System.Runtime.InteropServices.Architecture a)
@@ -25,7 +27,36 @@ public static class Updater
     public const string SumsName = "SHA256SUMS";
     public static readonly TimeSpan Every = TimeSpan.FromDays(7);
 
-    public sealed record Release(int Version, string ZipUrl, string SumsUrl);
+    /// <summary>A release. <paramref name="Beta"/> 0 = stable; 1, 2, … = BETA number (a GitHub pre-release).</summary>
+    public sealed record Release(int Version, string ZipUrl, string SumsUrl, int Beta = 0)
+    {
+        public bool IsBeta => Beta > 0;
+        public int Rank => RankOf(Version, Beta);
+        /// <summary>"14" or "14 BETA 2" (used after "Version ").</summary>
+        public string Label => IsBeta ? $"{Version} BETA {Beta}" : Version.ToString();
+    }
+
+    /// <summary>Version 14: what the user can choose from. <see cref="Stable"/> is a newer stable version, or —
+    /// when <see cref="StableIsGoBack"/> — the stable version a BETA user can go back to. <see cref="Beta"/> is a
+    /// BETA newer than both the running app and the newest stable version.</summary>
+    public sealed record UpdateChoices(Release? Stable, Release? Beta, bool StableIsGoBack)
+    {
+        public static readonly UpdateChoices None = new(null, null, false);
+        public bool Any => Stable != null || Beta != null;
+        public Release? StableUpgrade => StableIsGoBack ? null : Stable;
+        public Release? GoBack => StableIsGoBack ? Stable : null;
+    }
+
+    /// <summary>Order of versions: 14 BETA 1 &lt; 14 BETA 2 &lt; 14 (stable) &lt; 15 BETA 1. Pure, unit-tested.</summary>
+    public static int RankOf(int version, int beta) => version * 1000 + (beta > 0 ? Math.Min(beta, 998) : 999);
+
+    /// <summary>"v14-beta2" / "14-beta2+abc" → 2; "v14-beta" → 1; "v14", "14+abc" → 0. Pure, unit-tested.</summary>
+    public static int ParseBeta(string? tag)
+    {
+        var m = System.Text.RegularExpressions.Regex.Match(tag ?? "", @"(?i)-beta(\d*)");
+        if (!m.Success) return 0;
+        return m.Groups[1].Value.Length == 0 ? 1 : (int.TryParse(m.Groups[1].Value, out var n) && n > 0 ? n : 1);
+    }
 
     sealed class State { public DateTime LastCheck { get; set; } public bool Automatic { get; set; } }
     static string StatePath => Path.Combine(AppPaths.LocalAppData, "updates.json");
@@ -47,9 +78,15 @@ public static class Updater
         return int.TryParse(head, out var n) ? n : 0;
     }
 
-    public static int Current => ParseVersion(System.Reflection.Assembly.GetExecutingAssembly()
+    static string? InformationalVersion => System.Reflection.Assembly.GetExecutingAssembly()
         .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
-        .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion);
+        .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion;
+
+    public static int Current => ParseVersion(InformationalVersion);
+
+    /// <summary>Version 14: 0 for a stable build; the BETA number for a BETA build (built with
+    /// InformationalVersion "14-beta2").</summary>
+    public static int CurrentBeta => ParseBeta(InformationalVersion);
 
     /// <summary>Reads a GitHub "latest release" reply. Pure, unit-tested.</summary>
     public static Release? Parse(string json)
@@ -64,6 +101,46 @@ public static class Updater
         return zip == null || sums == null ? null : new Release(ParseVersion(r.GetProperty("tag_name").GetString()), zip, sums);
     }
 
+    /// <summary>Version 14: reads a GitHub release list (stable and pre-releases; drafts and releases without this
+    /// Mac's zip are skipped). A pre-release is a BETA; its number comes from the tag ("v14-beta2"), else 1.
+    /// Pure, unit-tested.</summary>
+    public static System.Collections.Generic.List<Release> ParseAll(string json)
+    {
+        var list = new System.Collections.Generic.List<Release>();
+        using var d = JsonDocument.Parse(json);
+        if (d.RootElement.ValueKind != JsonValueKind.Array) return list;
+        foreach (var r in d.RootElement.EnumerateArray())
+        {
+            if (r.TryGetProperty("draft", out var dr) && dr.ValueKind == JsonValueKind.True) continue;
+            if (!r.TryGetProperty("assets", out var assets) || assets.ValueKind != JsonValueKind.Array) continue;
+            string? Url(string name) => assets.EnumerateArray()
+                .Where(a => a.TryGetProperty("name", out var n) && n.GetString() == name)
+                .Select(a => a.GetProperty("browser_download_url").GetString()).FirstOrDefault();
+            var zip = Url(ZipName); var sums = Url(SumsName);
+            var tag = r.TryGetProperty("tag_name", out var t) ? t.GetString() : null;
+            var version = ParseVersion(tag);
+            if (zip == null || sums == null || version == 0) continue;
+            var pre = r.TryGetProperty("prerelease", out var p) && p.ValueKind == JsonValueKind.True;
+            list.Add(new Release(version, zip, sums, pre ? Math.Max(1, ParseBeta(tag)) : 0));
+        }
+        return list;
+    }
+
+    /// <summary>Version 14: the stable / BETA choice for an app at <paramref name="version"/> (BETA
+    /// <paramref name="beta"/>, 0 = stable). Pure, unit-tested.</summary>
+    public static UpdateChoices Choose(System.Collections.Generic.IEnumerable<Release> all, int version, int beta)
+    {
+        var cur = RankOf(version, beta);
+        var releases = all.ToList();
+        var stable = releases.Where(r => !r.IsBeta).OrderByDescending(r => r.Rank).FirstOrDefault();
+        var newestBeta = releases.Where(r => r.IsBeta).OrderByDescending(r => r.Rank).FirstOrDefault();
+        Release? s = null; var goBack = false;
+        if (stable != null && stable.Rank > cur) s = stable;
+        else if (stable != null && beta > 0 && stable.Rank < cur) { s = stable; goBack = true; }
+        var b = newestBeta != null && newestBeta.Rank > cur && (stable == null || newestBeta.Rank > stable.Rank) ? newestBeta : null;
+        return new UpdateChoices(s, b, goBack);
+    }
+
     /// <summary>The hash for a file in SHA256SUMS ("hash  name" lines). Pure, unit-tested.</summary>
     public static string? HashFor(string sums, string name) => sums.Split('\n')
         .Select(l => l.Trim().Split((char[])null!, 2, StringSplitOptions.RemoveEmptyEntries))
@@ -71,20 +148,27 @@ public static class Updater
 
     static HttpClient Http() { var h = new HttpClient { Timeout = TimeSpan.FromMinutes(10) }; h.DefaultRequestHeaders.UserAgent.ParseAdd("TabletAppForMac-Updater"); return h; }
 
-    /// <summary>The newer release, or null when up to date (or offline).</summary>
-    public static async Task<Release?> CheckAsync()
+    /// <summary>The newer stable release, or null when up to date (or offline).</summary>
+    public static async Task<Release?> CheckAsync() => (await CheckChoicesAsync()).StableUpgrade;
+
+    /// <summary>Version 14: what the user can choose (newer stable, newer BETA, or back to stable), or
+    /// <see cref="UpdateChoices.None"/> when up to date or offline.</summary>
+    public static async Task<UpdateChoices> CheckChoicesAsync()
     {
         var s = Load(); s.LastCheck = DateTime.UtcNow; Save(s);
         try
         {
             using var h = Http();
-            var r = Parse(await h.GetStringAsync(Api));
-            return r != null && r.Version > Current ? r : null;
+            var all = ParseAll(await h.GetStringAsync(ListApi));
+            var c = Choose(all, Current, CurrentBeta);
+            AppLog.Info($"Update check: running {(CurrentBeta > 0 ? $"{Current} BETA {CurrentBeta}" : Current.ToString())}; " +
+                        $"stable {(c.StableUpgrade?.Label ?? "-")}, BETA {(c.Beta?.Label ?? "-")}, back to stable {(c.GoBack?.Label ?? "-")}.");
+            return c;
         }
-        catch (Exception ex) { AppLog.Warn("Update check failed.", ex); return null; }
+        catch (Exception ex) { AppLog.Warn("Update check failed.", ex); return UpdateChoices.None; }
     }
 
-    public sealed record Prepared(int Version, string CurrentApp, string FreshApp, string StagingDir);
+    public sealed record Prepared(int Version, string CurrentApp, string FreshApp, string StagingDir, string Label = "");
 
     static Prepared? _prepared;
 
@@ -99,7 +183,7 @@ public static class Updater
         var i = exe.IndexOf(".app/", StringComparison.Ordinal);
         if (i < 0) return "Couldn't find the app to update.";
         var app = exe[..(i + 4)];
-        var dir = Path.Combine(Path.GetTempPath(), "tablet-app-update-" + r.Version);
+        var dir = Path.Combine(Path.GetTempPath(), "tablet-app-update-" + r.Label.Replace(' ', '-'));
         try
         {
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
@@ -118,7 +202,7 @@ public static class Updater
             await unpack.WaitForExitAsync();
             var fresh = Directory.GetDirectories(Path.Combine(dir, "new"), "*.app").FirstOrDefault();
             if (unpack.ExitCode != 0 || fresh == null) return "Couldn't unpack the update.";
-            _prepared = new Prepared(r.Version, app, fresh, dir);
+            _prepared = new Prepared(r.Version, app, fresh, dir, r.Label);
             return null;
         }
         catch (Exception ex) { AppLog.Warn("Update download failed.", ex); _prepared = null; return "The update couldn't be downloaded. Try again later."; }

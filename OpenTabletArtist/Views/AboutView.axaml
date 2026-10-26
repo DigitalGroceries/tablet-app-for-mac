@@ -78,6 +78,11 @@
                     <Button x:Name="CheckForUpdatesButton" Content="{Binding CheckUpdatesLabel}" Command="{Binding CheckForUpdatesCommand}" />
                     <Button x:Name="UpdateNowButton" Content="{Binding UpdateNowLabel}" IsVisible="{Binding UpdateReady}" Command="{Binding UpdateNowCommand}" />
                 </StackPanel>
+                <!-- Version 14: the choice between stable and BETA (not tested yet), and back to stable from a BETA. -->
+                <StackPanel x:Name="UpdateChoicesRow" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" IsVisible="{Binding ShowUpdateChoices}">
+                    <Button x:Name="TryBetaButton" Content="{Binding TryBetaLabel}" IsVisible="{Binding BetaOfferReady}" Command="{Binding TryBetaCommand}" />
+                    <Button x:Name="GoBackButton" Content="{Binding GoBackLabel}" IsVisible="{Binding GoBackReady}" Command="{Binding GoBackCommand}" />
+                </StackPanel>
                 <TextBlock Text="{Binding UpdateStatus}" HorizontalAlignment="Right" TextWrapping="Wrap" />
                 <CheckBox x:Name="UpdateAutomaticallyBox" Content="{Binding UpdateAutomaticallyLabel}" IsChecked="{Binding UpdateAutomatically}" HorizontalAlignment="Right" />
             </StackPanel>

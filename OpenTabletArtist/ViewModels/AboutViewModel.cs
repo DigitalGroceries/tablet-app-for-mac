@@ -45,17 +45,22 @@ public partial class AboutViewModel : ObservableObject
             OnPropertyChanged(nameof(CheckUpdatesLabel));
             OnPropertyChanged(nameof(UpdateNowLabel));
             OnPropertyChanged(nameof(UpdateAutomaticallyLabel));
+            OnPropertyChanged(nameof(UpdateNowLabel));
+            OnPropertyChanged(nameof(TryBetaLabel));
+            OnPropertyChanged(nameof(GoBackLabel));
         };
         // Keep Home's update UI in sync with the pen-menu tray (shared AppUpdateState).
         Services.AppUpdateState.Shared.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is null or nameof(Services.AppUpdateState.Status))
                 UpdateStatus = Services.AppUpdateState.Shared.Status;
-            if (e.PropertyName is null or nameof(Services.AppUpdateState.UpdateReady))
-                UpdateReady = Services.AppUpdateState.Shared.UpdateReady;
+            if (e.PropertyName is null or nameof(Services.AppUpdateState.UpdateReady)
+                or nameof(Services.AppUpdateState.HasStableOffer) or nameof(Services.AppUpdateState.HasBetaOffer)
+                or nameof(Services.AppUpdateState.HasGoBackOffer))
+                SyncUpdateOffers();
         };
         UpdateStatus = Services.AppUpdateState.Shared.Status;
-        UpdateReady = Services.AppUpdateState.Shared.UpdateReady;
+        SyncUpdateOffers();
     }
 
     public string GetHelpLabel => Services.Localizer.T("home.get_help");
@@ -70,7 +75,14 @@ public partial class AboutViewModel : ObservableObject
     public string AboutBlurb => Services.Localizer.T("home.about_blurb");
     public string AboutLineText => AboutBlurb.TrimEnd() + " " + AppVersionSentence;
     public string CheckUpdatesLabel => Services.Localizer.T("update.check_now");
-    public string UpdateNowLabel => Services.Localizer.T("update.now");
+    public string UpdateNowLabel => Services.AppUpdateState.Shared.StableOffer is { } s
+        ? Services.Localizer.Tf("update.install_stable", ("version", s.Label)) : Services.Localizer.T("update.now");
+    /// <summary>Version 14: "Try Version 15 BETA 1".</summary>
+    public string TryBetaLabel => Services.AppUpdateState.Shared.BetaOffer is { } b
+        ? Services.Localizer.Tf("update.try_beta", ("beta", b.Label)) : "";
+    /// <summary>Version 14: "Go back to Version 13" (shown while running a BETA).</summary>
+    public string GoBackLabel => Services.AppUpdateState.Shared.GoBackOffer is { } g
+        ? Services.Localizer.Tf("update.go_back", ("version", g.Label)) : "";
     public string UpdateAutomaticallyLabel => Services.Localizer.T("update.automatic");
 
     // R18: targets live in Services.AppLinks (TODO placeholders until the user's pages exist).
@@ -110,17 +122,57 @@ public partial class AboutViewModel : ObservableObject
 
     // Version 7: updates (state shared with the pen-menu tray via AppUpdateState).
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty] private string _updateStatus = "";
+    /// <summary>A newer stable version (Home's "Install Version N" button).</summary>
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty] private bool _updateReady;
+    /// <summary>Version 14: a newer BETA to try.</summary>
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty] private bool _betaOfferReady;
+    /// <summary>Version 14: running a BETA; the stable version to go back to.</summary>
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty] private bool _goBackReady;
+
+    /// <summary>Version 14: the second update row (Try BETA / Go back) is shown only when it has a button.</summary>
+    public bool ShowUpdateChoices => BetaOfferReady || GoBackReady;
+
+    void SyncUpdateOffers()
+    {
+        var u = Services.AppUpdateState.Shared;
+        UpdateReady = u.HasStableOffer;
+        BetaOfferReady = u.HasBetaOffer;
+        GoBackReady = u.HasGoBackOffer;
+        OnPropertyChanged(nameof(ShowUpdateChoices));
+        OnPropertyChanged(nameof(UpdateNowLabel));
+        OnPropertyChanged(nameof(TryBetaLabel));
+        OnPropertyChanged(nameof(GoBackLabel));
+    }
     public bool UpdateAutomatically { get => Services.Updater.Automatic; set => Services.Updater.Automatic = value; }
 
     [RelayCommand]
     private async Task CheckForUpdates() => await Services.AppUpdateState.Shared.CheckAsync();
 
     [RelayCommand]
-    private async Task UpdateNow() => await Services.AppUpdateState.Shared.InstallPendingAsync();
+    private async Task UpdateNow()
+    {
+        if (Services.AppUpdateState.Shared.StableOffer is { } s) await Services.AppUpdateState.Shared.InstallAsync(s);
+    }
+
+    /// <summary>Version 14: install the BETA after saying it isn't tested yet.</summary>
+    [RelayCommand]
+    private async Task TryBeta()
+    {
+        if (Services.AppUpdateState.Shared.BetaOffer is not { } b) return;
+        if (await Views.UpdatePromptWindow.AskBetaAsync(b.Label)) await Services.AppUpdateState.Shared.InstallAsync(b);
+    }
+
+    /// <summary>Version 14: from a BETA back to the stable version.</summary>
+    [RelayCommand]
+    private async Task GoBack()
+    {
+        if (Services.AppUpdateState.Shared.GoBackOffer is not { } g) return;
+        if (await Views.UpdatePromptWindow.AskGoBackAsync(g.Label)) await Services.AppUpdateState.Shared.InstallAsync(g);
+    }
 
     /// <summary>Called on launch: the weekly check. With "Update automatically" on, downloads then asks
-    /// OK to install; otherwise asks before downloading.</summary>
+    /// OK to install; otherwise asks before downloading. Version 14: only a newer stable version is offered
+    /// this way (a BETA only to someone already running a BETA); other BETAs are a choice on Home.</summary>
     public async Task MonthlyCheckAsync()
     {
         if (!Services.Updater.IsDueNow()) return;
@@ -131,11 +183,11 @@ public partial class AboutViewModel : ObservableObject
         {
             var err = await Services.AppUpdateState.Shared.DownloadPendingAsync();
             if (err != null) return;
-            if (await Views.UpdatePromptWindow.AskReadyAsync(pending.Version))
+            if (await Views.UpdatePromptWindow.AskReadyAsync(pending.Label))
                 await Services.AppUpdateState.Shared.ApplyPendingAsync();
             return;
         }
-        if (await Views.UpdatePromptWindow.AskAsync(pending.Version)) await UpdateNow();
+        if (await Views.UpdatePromptWindow.AskAsync(pending.Label)) await Services.AppUpdateState.Shared.InstallAsync(pending);
     }
 
     /// <summary>Opens a URL in the user's default browser.</summary>
