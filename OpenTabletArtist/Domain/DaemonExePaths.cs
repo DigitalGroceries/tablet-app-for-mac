@@ -68,8 +68,20 @@ public static class DaemonExePaths
     /// Windows releases; absent on macOS, where nothing is bundled yet (Phase C of
     /// docs/design/official-otd-release.md) — so "switch to the bundled daemon" is not always an option
     /// that exists.</summary>
-    public static string BundledPath(string baseDir) =>
-        Path.GetFullPath(Path.Combine(baseDir, "Daemon", DaemonExeName));
+    public static string BundledPath(string baseDir)
+    {
+        // Version 7: the universal macOS app carries one daemon per architecture in Daemon/arm64 and Daemon/x64.
+        if (OperatingSystem.IsMacOS())
+        {
+            var perArch = Path.GetFullPath(Path.Combine(baseDir, "Daemon", ArchFolder, DaemonExeName));
+            if (File.Exists(perArch)) return perArch;
+        }
+        return Path.GetFullPath(Path.Combine(baseDir, "Daemon", DaemonExeName));
+    }
+
+    /// <summary>Version 7: the per-architecture daemon folder name for this process (arm64 or x64).</summary>
+    public static string ArchFolder =>
+        System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.Arm64 ? "arm64" : "x64";
 
     /// <summary>
     /// The copies of the daemon that are OTA's to start, in order.

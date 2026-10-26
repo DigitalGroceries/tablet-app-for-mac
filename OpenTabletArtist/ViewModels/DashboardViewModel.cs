@@ -45,6 +45,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         About = new AboutViewModel(dialogs,
             () => TabletsOverview.Tablets.FirstOrDefault(t => t.IsDetected)?.Name);
         About.ManualRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(Views.ManualWindow.ShowManual);
+        // Version 7: weekly update check at launch (auto: download then OK to install).
+        if (System.OperatingSystem.IsMacOS()) Avalonia.Threading.Dispatcher.UIThread.Post(async () => await About.MonthlyCheckAsync());
 
         _session.PropertyChanged += OnSessionPropertyChanged;
 
@@ -198,6 +200,19 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     public bool HasTablet => _session.HasTablet;
 
     [ObservableProperty] private string _tabletStatusText = "No tablet detected";
+
+    /// <summary>Version 7: macOS has not given the Accessibility grant, so the pen can't move the pointer.</summary>
+    [ObservableProperty] private bool _accessibilityMissing = !Services.MacAccessibility.IsTrusted();
+    public string AccessibilityMissingText => Services.MacAccessibility.MissingText;
+
+    [RelayCommand]
+    private void OpenAccessibility()
+    {
+        Services.PlatformShell.OpenAccessibilitySettings();
+    }
+
+    /// <summary>Re-checks the Accessibility grant (called when Home is shown).</summary>
+    public void RecheckAccessibility() => AccessibilityMissing = !Services.MacAccessibility.IsTrusted();
 
     /// <summary>True when this column really has nothing to say. The daemon problem card lives outside the
     /// health catalog by design (#317), so "no health issues" was never the same as "nothing is wrong" —

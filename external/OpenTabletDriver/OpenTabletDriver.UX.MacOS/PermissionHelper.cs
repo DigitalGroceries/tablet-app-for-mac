@@ -20,7 +20,7 @@ namespace OpenTabletDriver.UX.MacOS
             //Permissions are inherited from parent application such as Terminal, Visual Studio if the app is not launched from finder/dock/etc...
             var responsiblePid = LibQuarantine.responsibility_get_pid_responsible_for_pid(Environment.ProcessId);
             var selfResponsible = responsiblePid == Environment.ProcessId;
-            var responsibleAppName = NSRunningApplication.GetRunningApplication(responsiblePid)?.LocalizedName ?? "OpenTabletDriver";
+            var responsibleAppName = NSRunningApplication.GetRunningApplication(responsiblePid)?.LocalizedName ?? "Tablet App for Mac";
 
             //https://openradar.appspot.com/7381305
             //Have to call IOHIDRequestAccess before AXIsProcessTrusted
@@ -31,7 +31,7 @@ namespace OpenTabletDriver.UX.MacOS
             {
                 handlePermission(
                     type: "Input Monitoring",
-                    message: "To use OpenTabletDriver, you need to grant the \"Input Monitoring\" permission so that input from the tablet can be received By OpenTabletDriver.\n\n" +
+                    message: "To use Tablet App for Mac, you need to grant the \"Input Monitoring\" permission so that input from the tablet can be received by Tablet App for Mac.\n\n" +
                         $"To enable this permission, please click on \"Open Input Monitoring Preferences\" below. In the Input Preferences Monitoring panel that opens, tick the box next to \"{responsibleAppName}\".\n\n" +
                         $"If \"{responsibleAppName}\" is already selected, you can remove it from the list by clicking on the \"-\" button, and then add it back to the list.",
                     preferencesLink: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent",
@@ -51,7 +51,7 @@ namespace OpenTabletDriver.UX.MacOS
             {
                 handlePermission(
                     type: "Accessibility",
-                    message: $"To use OpenTabletDriver, you need to grant the \"Accessibility\" permission so that input from the tablet can be injected into the computer. \n\n" +
+                    message: $"To use Tablet App for Mac, you need to grant the \"Accessibility\" permission so that input from the tablet can be injected into the computer. \n\n" +
                         $"To enable this permission, please click on \"Open Accessibility Preferences\" below. In the Accessibility Preferences panel that opens, tick the box next to \"{responsibleAppName}\".\n\n" +
                         $"If \"{responsibleAppName}\" is already selected, you can remove it from the list by clicking on the \"-\" button, and then add it back to the list.",
                     preferencesLink: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
@@ -69,7 +69,7 @@ namespace OpenTabletDriver.UX.MacOS
                 {
                     var alert = new NSAlert()
                     {
-                        MessageText = $"Please restart {responsibleAppName} and launch OpenTabletDriver again.",
+                        MessageText = $"Please restart {responsibleAppName} and launch Tablet App for Mac again.",
                         AlertStyle = NSAlertStyle.Warning,
                     };
                     alert.RunModal();

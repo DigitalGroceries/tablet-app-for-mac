@@ -56,6 +56,7 @@ public class ObjCSelectorTests
             "mainAppService", "status", "registerAndReturnError:", "unregisterAndReturnError:", "localizedDescription",
             "UTF8String", "setIgnoresMouseEvents:", "setCollectionBehavior:", "window", "setLevel:", "screen", "frame",
             "setFrame:display:", "agentServiceWithPlistName:", "stringWithUTF8String:",
+            "sharedApplication", "setActivationPolicy:",
         };
         Assert.Equal(expected, OpenTabletArtist.Services.ObjCSelectors.All);
         Assert.DoesNotContain("mainApp", OpenTabletArtist.Services.ObjCSelectors.All);

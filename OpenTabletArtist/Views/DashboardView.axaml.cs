@@ -1,7 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using OpenTabletArtist.Domain.Health;
+using OpenTabletArtist.Services;
 using OpenTabletArtist.ViewModels;
 
 namespace OpenTabletArtist.Views;
@@ -11,9 +13,18 @@ public partial class DashboardView : UserControl
     public DashboardView()
     {
         InitializeComponent();
+        ApplyLanguage();
+        Localizer.LanguageChanged += ApplyLanguage;
+        DetachedFromLogicalTree += (_, _) => Localizer.LanguageChanged -= ApplyLanguage;
         // Hidden developer affordance: right-clicking a synthetic ("developer-induced") Needs-attention
         // card offers a Dismiss. Real warnings raise no menu, so they can't be dismissed this way.
         AddHandler(ContextRequestedEvent, OnCardContextRequested, RoutingStrategies.Bubble);
+    }
+
+    void ApplyLanguage()
+    {
+        Localizer.EnsureLoaded();
+        if (LblYourTablets != null) LblYourTablets.Text = Localizer.T("home.your_tablets");
     }
 
     private void OnCardContextRequested(object? sender, ContextRequestedEventArgs e)

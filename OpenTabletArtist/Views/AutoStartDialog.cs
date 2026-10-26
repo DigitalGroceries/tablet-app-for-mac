@@ -22,7 +22,7 @@ public sealed class AutoStartDialog : AppWindow
 
     public AutoStartDialog()
     {
-        Title = "Tablet App for Mac";
+        Title = Services.Localizer.T("app.name");
         Width = 460;
         SizeToContent = SizeToContent.Height;
         CanResize = false;
@@ -39,8 +39,8 @@ public sealed class AutoStartDialog : AppWindow
             },
         };
 
-        ManualButton = new Button { Content = "Manually", MinWidth = 110, HorizontalContentAlignment = HorizontalAlignment.Center };
-        AutoButton = new Button { Content = "Start automatically", MinWidth = 150, IsDefault = true, HorizontalContentAlignment = HorizontalAlignment.Center };
+        ManualButton = new Button { Content = Services.Localizer.T("autostart.no"), MinWidth = 110, HorizontalContentAlignment = HorizontalAlignment.Center };
+        AutoButton = new Button { Content = Services.Localizer.T("autostart.yes"), MinWidth = 150, IsDefault = true, HorizontalContentAlignment = HorizontalAlignment.Center };
         AutoButton.Classes.Add("accent");
         ManualButton.Click += (_, _) => { Result = false; Close(); };
         AutoButton.Click += (_, _) => { Result = true; Close(); };
@@ -64,9 +64,9 @@ public sealed class AutoStartDialog : AppWindow
                                 [Grid.ColumnProperty] = 2, Spacing = 8,
                                 Children =
                                 {
-                                    new TextBlock { Text = Question, FontWeight = FontWeight.SemiBold, FontSize = 14, TextWrapping = TextWrapping.Wrap },
-                                    new TextBlock { Text = Explanation, FontSize = 13, TextWrapping = TextWrapping.Wrap },
-                                    new TextBlock { Text = "You can change this later in Advanced › Startup.", FontSize = 12, Opacity = 0.7, TextWrapping = TextWrapping.Wrap },
+                                    new TextBlock { Text = Services.Localizer.T("autostart.title"), FontWeight = FontWeight.SemiBold, FontSize = 14, TextWrapping = TextWrapping.Wrap },
+                                    new TextBlock { Text = Services.Localizer.T("autostart.body"), FontSize = 13, TextWrapping = TextWrapping.Wrap },
+                                    new TextBlock { Text = Services.Localizer.T("autostart.later_hint"), FontSize = 12, Opacity = 0.7, TextWrapping = TextWrapping.Wrap },
                                 },
                             },
                         },
@@ -92,7 +92,7 @@ public sealed class AutoStartDialog : AppWindow
         if (dlg.Result is not { } automatic) return;   // closed without answering: ask again next launch
         if (coordinator.Choose(automatic) is { } message)
         {
-            await Helpers.Dialogs.ShowMessageAsync("Start at login", message);
+            await Helpers.Dialogs.ShowMessageAsync(Services.Localizer.T("startup.section"), message);
             coordinator.Service.OpenLoginItemsSettings();
         }
     }

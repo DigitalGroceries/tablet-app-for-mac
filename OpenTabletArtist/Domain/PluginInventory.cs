@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using OpenTabletArtist.Services;
+
 namespace OpenTabletArtist.Domain;
 
 /// <summary>One installed OTD plugin as shown on the read-only Plugins page.</summary>
@@ -9,7 +11,7 @@ public sealed record PluginInfo(string Name, string Version, bool IsActive, stri
 {
     /// <summary>Active = referenced by an enabled output mode or filter in some profile; otherwise
     /// it's installed/loaded but not in use.</summary>
-    public string Status => IsActive ? "Active" : "Installed";
+    public string Status => IsActive ? Localizer.T("plugins.status.active") : Localizer.T("plugins.status.installed");
 }
 
 public static class PluginInventory

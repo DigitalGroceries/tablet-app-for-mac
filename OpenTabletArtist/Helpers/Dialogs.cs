@@ -10,6 +10,8 @@ using Avalonia.Media;
 using OpenTabletArtist.Domain;
 using OpenTabletArtist.Views;
 
+using OpenTabletArtist.Services;
+
 namespace OpenTabletArtist.Helpers;
 
 public enum UnsavedSettingsChoice { Cancel, Save, Continue }
@@ -23,14 +25,14 @@ public static class Dialogs
     {
         var parent = GetMainWindow();
         if (parent is null) return UnsavedSettingsChoice.Cancel;
-        if (parent is MainWindow main) main.BringToFront();
+        if (parent is MainWindow main) main.BringToFront("unsaved-settings question");
         var choice = UnsavedSettingsChoice.Cancel;
-        var cancel = new Button { Content = "Cancel" };
-        var discard = new Button { Content = forQuit ? "Don't Save" : "Continue without saving" };
-        var save = new Button { Content = "Save" };
+        var cancel = new Button { Content = Localizer.T("app.cancel") };
+        var discard = new Button { Content = forQuit ? Localizer.T("save.dont_save") : Localizer.T("save.continue_without") };
+        var save = new Button { Content = Localizer.T("save.button") };
         var dialog = new AppWindow
         {
-            Title = forQuit ? "Save changes before quitting?" : "Unsaved OTD daemon settings",
+            Title = forQuit ? Localizer.T("save.dialog.quit_title") : Localizer.T("save.dialog.unsaved_title"),
             Width = 520,
             SizeToContent = SizeToContent.Height,
             CanResize = false,
@@ -43,7 +45,7 @@ public static class Dialogs
                 {
                     new TextBlock
                     {
-                        Text = forQuit ? QuitPromptText : "Save your current settings before continuing? Unsaved changes may be lost when the OTD daemon restarts or another preset is loaded. Continuing does not undo changes already running on the OTD daemon.",
+                        Text = forQuit ? Localizer.T("save.dialog.quit_body") : Localizer.T("save.dialog.unsaved_body"),
                         TextWrapping = TextWrapping.Wrap,
                     },
                     new StackPanel

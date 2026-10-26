@@ -9,7 +9,7 @@
     <!-- Base version for dev builds; the release workflow overrides it with the tag (-p:Version=…).
          Surfaced in the sidebar footer via AssemblyInformationalVersion. -->
     <!-- Version 1: versions are plain numbers 1 to 99, shown as "Version N". -->
-    <Version>6</Version>
+    <Version>13</Version>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>

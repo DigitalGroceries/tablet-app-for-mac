@@ -308,7 +308,7 @@
                  Eraser / Mapping; More = OTA's own tabs (About, Calibration, Filters, JSON). -->
             <Border x:Name="WacomHeaderPane" Classes="wacomPane" Margin="0,6,0,0">
             <Grid x:Name="WacomHeader" ColumnDefinitions="78,20,*,20,26" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="3">
-                <TextBlock Grid.Row="0" Text="Device:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
+                <TextBlock x:Name="LblDevice" Grid.Row="0" Text="Device:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
                 <RepeatButton Grid.Row="0" Grid.Column="1" Classes="wacomArrow" Content="&lt;" Tag="DeviceScroll" Click="OnTileScrollLeft" />
                 <Border Grid.Row="0" Grid.Column="2" Classes="wacomWell">
                     <ScrollViewer x:Name="DeviceScroll" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
@@ -323,7 +323,7 @@
                     </ScrollViewer>
                 </Border>
                 <RepeatButton Grid.Row="0" Grid.Column="3" Classes="wacomArrow" Content="&gt;" Tag="DeviceScroll" Click="OnTileScrollRight" />
-                <TextBlock Grid.Row="1" Text="Tool:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
+                <TextBlock x:Name="LblTool" Grid.Row="1" Text="Tool:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
                 <RepeatButton Grid.Row="1" Grid.Column="1" Classes="wacomArrow" Content="&lt;" Tag="ToolScroll" Click="OnTileScrollLeft" />
                 <Border Grid.Row="1" Grid.Column="2" Classes="wacomWell">
                     <ScrollViewer x:Name="ToolScroll" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
@@ -331,45 +331,72 @@
                             <RadioButton x:Name="ToolFunctionsButton" GroupName="WacomTool" Theme="{StaticResource WacomTile}" Click="OnToolFunctions" ToolTip.Tip="Functions">
                                 <StackPanel Spacing="2">
                                     <Viewbox Width="34" Height="26"><Canvas Width="34" Height="26"><Rectangle Canvas.Left="9" Width="16" Height="26" RadiusX="3" RadiusY="3" Classes="tileIcon" /><Ellipse Canvas.Left="12" Canvas.Top="8" Width="10" Height="10" Stroke="{DynamicResource WacomTileWellBrush}" StrokeThickness="1.5" /><Rectangle Canvas.Left="13" Canvas.Top="2" Width="8" Height="3" Fill="{DynamicResource WacomTileWellBrush}" Opacity="0.6" /><Rectangle Canvas.Left="13" Canvas.Top="21" Width="8" Height="3" Fill="{DynamicResource WacomTileWellBrush}" Opacity="0.6" /></Canvas></Viewbox>
-                                    <TextBlock Text="Functions" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                    <TextBlock x:Name="LblFunctions" Text="Functions" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton x:Name="ToolPenButton" GroupName="WacomTool" Theme="{StaticResource WacomTile}" IsChecked="True" Click="OnToolPen" ToolTip.Tip="Pen">
                                 <StackPanel Spacing="2">
                                     <ctrl:PenIcon x:Name="ToolPenIcon" />
-                                    <TextBlock Text="Pen" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                    <TextBlock x:Name="LblToolPen" Text="Pen" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
                                 </StackPanel>
                             </RadioButton>
                             <RadioButton x:Name="ToolMoreButton" GroupName="WacomTool" Theme="{StaticResource WacomTile}" Click="OnToolMore" ToolTip.Tip="More">
                                 <StackPanel Spacing="2">
                                     <Viewbox Width="34" Height="26"><Canvas Width="34" Height="26"><Ellipse Canvas.Left="4" Canvas.Top="10" Width="6" Height="6" Classes="tileIcon" /><Ellipse Canvas.Left="14" Canvas.Top="10" Width="6" Height="6" Classes="tileIcon" /><Ellipse Canvas.Left="24" Canvas.Top="10" Width="6" Height="6" Classes="tileIcon" /></Canvas></Viewbox>
-                                    <TextBlock Text="More" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                    <TextBlock x:Name="LblMore" Text="More" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
                                 </StackPanel>
                             </RadioButton>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <RepeatButton Grid.Row="1" Grid.Column="3" Classes="wacomArrow" Content="&gt;" Tag="ToolScroll" Click="OnTileScrollRight" />
-                <TextBlock Grid.Row="2" Text="Application:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
+                <TextBlock x:Name="LblApplication" Grid.Row="2" Text="Application:" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" />
                 <RepeatButton Grid.Row="2" Grid.Column="1" Classes="wacomArrow" Content="&lt;" Tag="ApplicationScroll" Click="OnTileScrollLeft" />
                 <Border Grid.Row="2" Grid.Column="2" Classes="wacomWell">
                     <ScrollViewer x:Name="ApplicationScroll" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                         <StackPanel Orientation="Horizontal" Spacing="4" Margin="4,3">
-                            <RadioButton x:Name="AppAllTile" GroupName="WacomApp" Theme="{StaticResource WacomTile}" IsChecked="True" ToolTip.Tip="All">
+                            <RadioButton x:Name="AppAllTile" GroupName="WacomApp" Theme="{StaticResource WacomTile}" IsChecked="True"
+                                         Click="OnAppAllTile" ToolTip.Tip="All">
                                 <StackPanel Spacing="2">
                                     <Viewbox Width="34" Height="26"><Canvas Width="34" Height="26"><Rectangle Canvas.Left="6" Canvas.Top="1" Width="10" Height="10" Classes="tileIcon" /><Rectangle Canvas.Left="18" Canvas.Top="1" Width="10" Height="10" Classes="tileIcon" Opacity="0.7" /><Rectangle Canvas.Left="6" Canvas.Top="13" Width="10" Height="10" Classes="tileIcon" Opacity="0.7" /><Rectangle Canvas.Left="18" Canvas.Top="13" Width="10" Height="10" Classes="tileIcon" Opacity="0.5" /></Canvas></Viewbox>
-                                    <TextBlock Text="All" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                    <TextBlock x:Name="LblAll" Text="All" FontSize="11" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="86" />
                                 </StackPanel>
                             </RadioButton>
+                            <ItemsControl x:Name="AppTilesHost" ItemsSource="{Binding AppProfiles}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="4" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <RadioButton GroupName="WacomApp" Theme="{StaticResource WacomTile}"
+                                                     Tag="{Binding BundleId}" Click="OnAppProfileTile"
+                                                     ToolTip.Tip="{Binding BundleId}">
+                                            <StackPanel Spacing="2">
+                                                <Viewbox Width="34" Height="26">
+                                                    <Canvas Width="34" Height="26">
+                                                        <Rectangle Canvas.Left="7" Canvas.Top="2" Width="20" Height="22" RadiusX="3" RadiusY="3" Classes="tileIcon" />
+                                                        <Rectangle Canvas.Left="11" Canvas.Top="6" Width="12" Height="8" Fill="{DynamicResource WacomTileWellBrush}" Opacity="0.55" />
+                                                    </Canvas>
+                                                </Viewbox>
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="11" HorizontalAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis" MaxWidth="86" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
                 <RepeatButton Grid.Row="2" Grid.Column="3" Classes="wacomArrow" Content="&gt;" Tag="ApplicationScroll" Click="OnTileScrollRight" />
                 <StackPanel Grid.Row="2" Grid.Column="4" Spacing="2" VerticalAlignment="Center">
-                    <Button x:Name="AppAddButton" Classes="wacomPlusMinus" Content="+" IsEnabled="False"
-                            ToolTip.Tip="Application-specific settings: Tablet App for Mac has no per-app switching yet, so every setting applies to All." />
-                    <Button x:Name="AppRemoveButton" Classes="wacomPlusMinus" Content="−" IsEnabled="False"
-                            ToolTip.Tip="No application-specific settings to remove." />
+                    <Button x:Name="AppAddButton" Classes="wacomPlusMinus" Content="+" Click="OnAppAdd"
+                            ToolTip.Tip="Add an application with its own ExpressKeys, Touch Ring and pen bindings." />
+                    <Button x:Name="AppRemoveButton" Classes="wacomPlusMinus" Content="−" Click="OnAppRemove"
+                            IsEnabled="{Binding CanRemoveApp}"
+                            ToolTip.Tip="Remove the selected application's settings." />
                 </StackPanel>
             </Grid>
             </Border>
@@ -462,7 +489,7 @@
                 <StackPanel Grid.Column="0">
                 <ctrl:Section>
                     <StackPanel>
-                        <TextBlock Text="Model" Classes="Display section" Margin="0,0,0,0" />
+                        <TextBlock x:Name="LblModel" Text="Model" Classes="Display section" Margin="0,0,0,0" />
                         <!-- Spec rows; each is included by the VM only when the value is known. -->
                         <ItemsControl ItemsSource="{Binding TabletFacts}" Margin="0,6,0,0"
                                       IsVisible="{Binding HasTabletFacts}">
@@ -498,7 +525,7 @@
                 <StackPanel Grid.Column="2" VerticalAlignment="Top">
                 <ctrl:Section IsVisible="{Binding HasTabletFeatures}">
                     <StackPanel>
-                        <TextBlock Text="Features" Classes="Display section" Margin="0,0,0,0" />
+                        <TextBlock x:Name="LblFeatures" Text="Features" Classes="Display section" Margin="0,0,0,0" />
                         <ItemsControl ItemsSource="{Binding TabletFeatures}" Margin="0,6,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -554,14 +581,14 @@
                                  maximum but about its current centre, so it is not the same operation.
                                  Dragging on the diagram is how the area is centred now. -->
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="12" Margin="0,10,0,0">
-                                <TextBlock Grid.Column="0" Text="Size" VerticalAlignment="Center"
+                                <TextBlock x:Name="LblMapSize" Grid.Column="0" Text="Size" VerticalAlignment="Center"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                                 <Slider Grid.Column="1" Minimum="10" Maximum="100" MinWidth="120"
                                         Value="{Binding ActiveAreaSizePercent}" VerticalAlignment="Center" />
                                 <TextBlock Grid.Column="2" Text="{Binding ActiveAreaSizePercent, StringFormat={}{0:0.0}%}"
                                            MinWidth="38" VerticalAlignment="Center"
                                            Foreground="{DynamicResource TextSecondaryBrush}" />
-                                <TextBlock Grid.Column="3" Text="Rotation" VerticalAlignment="Center"
+                                <TextBlock x:Name="LblMapRotation" Grid.Column="3" Text="Rotation" VerticalAlignment="Center"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                                 <ComboBox Grid.Column="4" MinWidth="104" VerticalAlignment="Center"
                                           ItemsSource="{Binding RotationOptions}"
@@ -582,17 +609,17 @@
                                  table, and it made the artist set a switch in order to read a number. -->
                             <Grid ColumnDefinitions="Auto,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
                                   Margin="0,14,0,0" ColumnSpacing="16" RowSpacing="7">
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Tablet" Classes="SectionLabel" />
-                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Active area" Classes="SectionLabel" />
+                                <TextBlock x:Name="LblMapTablet" Grid.Row="0" Grid.Column="1" Text="Tablet" Classes="SectionLabel" />
+                                <TextBlock x:Name="LblMapActiveArea" Grid.Row="0" Grid.Column="2" Text="Active area" Classes="SectionLabel" />
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Area"
+                                <TextBlock x:Name="LblMapArea" Grid.Row="1" Grid.Column="0" Text="Area"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                                 <TextBlock Grid.Row="1" Grid.Column="1" Text="100%" FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextPrimaryBrush}" />
                                 <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding ActiveAreaUsagePercentText}"
                                            FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Dimensions"
+                                <TextBlock x:Name="LblMapDimensions" Grid.Row="2" Grid.Column="0" Text="Dimensions"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                                 <!-- These four carry both units, so they are the widest cells in the table
                                      and the ones that stop fitting first: at MainWindow.MinWidth (800)
@@ -608,7 +635,7 @@
                                            FontWeight="SemiBold" TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextPrimaryBrush}" />
 
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Diagonal"
+                                <TextBlock x:Name="LblMapDiagonal" Grid.Row="3" Grid.Column="0" Text="Diagonal"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                                 <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding FullDiagonalText}"
                                            FontWeight="SemiBold" TextWrapping="Wrap"
@@ -617,7 +644,7 @@
                                            FontWeight="SemiBold" TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextPrimaryBrush}" />
 
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Aspect ratio"
+                                <TextBlock x:Name="LblMapAspect" Grid.Row="4" Grid.Column="0" Text="Aspect ratio"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                                 <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding FullAspectText}"
                                            FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
@@ -671,18 +698,18 @@
                              whole extended desktop; clicking a display in the diagram maps it to that one. -->
                         <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,10"
                                     IsVisible="{Binding HasSeveralDisplays}">
-                            <TextBlock Text="Screen area:" VerticalAlignment="Center"
+                            <TextBlock x:Name="LblScreenArea" Text="Screen area:" VerticalAlignment="Center"
                                        Foreground="{DynamicResource TextMutedBrush}" />
-                            <Button Content="All displays" Padding="10,5"
+                            <Button x:Name="BtnAllDisplays" Content="All displays" Padding="10,5"
                                     Command="{Binding MapAllDisplaysCommand}"
                                     ToolTip.Tip="Map the pen across every screen (the whole extended desktop)" />
-                            <TextBlock Text="✓ in use" VerticalAlignment="Center" FontWeight="SemiBold"
+                            <TextBlock x:Name="LblInUse" Text="✓ in use" VerticalAlignment="Center" FontWeight="SemiBold"
                                        IsVisible="{Binding IsAllDisplaysMapped}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock Text="or click one display below" VerticalAlignment="Center"
+                            <TextBlock x:Name="LblOrClickOne" Text="or click one display below" VerticalAlignment="Center"
                                        IsVisible="{Binding !IsAllDisplaysMapped}"
                                        Foreground="{DynamicResource TextMutedBrush}" />
-                            <CheckBox Content="Force proportions" IsChecked="{Binding ForceProportions}"
+                            <CheckBox x:Name="ChkForceProportions" Content="Force proportions" IsChecked="{Binding ForceProportions}"
                                       ToolTip.Tip="Keep the desktop's shape so circles stay round (force proportions)" />
                         </StackPanel>
                         <ctrl:ScreenMappingDiagram Displays="{Binding Displays}"
@@ -694,7 +721,7 @@
                                                    WarningBrush="{DynamicResource WarningBrush}"
                                                    InkBrush="{DynamicResource TextPrimaryBrush}"
                                                    Height="320" />
-                        <Button Content="Display Settings" Margin="0,10,0,0"
+                        <Button x:Name="BtnDisplaySettings" Content="Display Settings" Margin="0,10,0,0"
                                 Command="{Binding OpenDisplaySettingsCommand}"
                                 ToolTip.Tip="{x:Static h:PlatformText.DisplaySettingsTip}"
                                 Theme="{StaticResource GhostButton}" Padding="10,5" HorizontalAlignment="Left" />
@@ -932,7 +959,7 @@
                      stop halfway through. -->
                 <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,10"
                             HorizontalAlignment="Left" IsVisible="{Binding ShowAuxControls}">
-                    <TextBlock Text="Enable buttons" VerticalAlignment="Center"
+                    <TextBlock x:Name="LblEnableButtons" Text="Enable buttons" VerticalAlignment="Center"
                                Foreground="{DynamicResource TextSecondaryBrush}" />
                     <ToggleSwitch IsChecked="{Binding AuxButtonsEnabled}" OnContent="" OffContent=""
                                   MinWidth="0" VerticalAlignment="Center"
@@ -977,15 +1004,17 @@
             <!-- What express keys are, for anyone who opened this tab unsure. Hidden when the tablet has
                  none: explaining keys you do not have is noise. -->
             <StackPanel Width="300" VerticalAlignment="Top" IsVisible="{Binding !NoAuxButtons}">
-                <TextBlock Classes="Display section" Text="About ExpressKeys" Margin="0,0,0,8" />
+                <TextBlock x:Name="LblAboutExpressKeys" Classes="Display section" Text="About ExpressKeys" Margin="0,0,0,8" />
+                <TextBlock x:Name="LblPerAppBindingsNote" IsVisible="{Binding ShowPerAppBindingsOnlyNote}"
+                           TextWrapping="Wrap" Margin="0,0,0,8" Opacity="0.85" />
                 <StackPanel Spacing="10">
-                    <TextBlock TextWrapping="Wrap"
+                    <TextBlock x:Name="LblExpressKeysBody" TextWrapping="Wrap"
                                Text="The keys on the tablet itself, not on the pen. Each one can hold a keyboard shortcut, a mouse button or a scroll, and they belong to this tablet's profile." />
                     <!-- The live highlight is the answer to "which key is Button 3?", and nothing on the
                          tab said it was there. Saying so is the cheapest version of that fix. -->
-                    <TextBlock TextWrapping="Wrap"
+                    <TextBlock x:Name="LblExpressKeysPress" TextWrapping="Wrap"
                                Text="Press a key on the tablet to light its row here." />
-                    <TextBlock TextWrapping="Wrap"
+                    <TextBlock x:Name="LblExpressKeysEnableNote" TextWrapping="Wrap"
                                Text="Enable buttons switches every key off without deleting anything, for when one sits where your hand rests. Turn it back on and your mappings return." />
                 </StackPanel>
             </StackPanel>
@@ -1007,7 +1036,7 @@
                      #wheel-row-actions.) Each wheel still labels itself, when there is more than one. -->
                 <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,10"
                             HorizontalAlignment="Left" IsVisible="{Binding ShowWheelControls}">
-                    <TextBlock Text="Enable wheels" VerticalAlignment="Center"
+                    <TextBlock x:Name="LblEnableWheels" Text="Enable wheels" VerticalAlignment="Center"
                                Foreground="{DynamicResource TextSecondaryBrush}" />
                     <ToggleSwitch IsChecked="{Binding WheelEnabled}" OnContent="" OffContent=""
                                   MinWidth="0" VerticalAlignment="Center"
@@ -1053,7 +1082,7 @@
 
                                             <!-- While ring modes are on, the ring button belongs to them. -->
                                             <StackPanel Spacing="2" Margin="0,8" IsVisible="{Binding RingModes.IsOn, FallbackValue=False}">
-                                                <TextBlock Text="Centre button" FontWeight="SemiBold"
+                                                <TextBlock x:Name="LblCentreButton" Text="Centre button" FontWeight="SemiBold"
                                                            Foreground="{DynamicResource TextPrimaryBrush}" />
                                                 <TextBlock Text="Steps to the next ring mode."
                                                            Foreground="{DynamicResource TextSecondaryBrush}" />
@@ -1092,7 +1121,7 @@
                                     <Border Classes="wheelRowDivider" Margin="0,10,0,0" />
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,8,364,8">
                                         <StackPanel Spacing="2" VerticalAlignment="Center">
-                                            <TextBlock Text="Touch Ring modes" FontWeight="SemiBold"
+                                            <TextBlock x:Name="LblTouchRingModes" Text="Touch Ring modes" FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextPrimaryBrush}" />
                                             <TextBlock Text="{Binding RingModes.Summary}" TextWrapping="Wrap"
                                                        Foreground="{DynamicResource TextSecondaryBrush}" />
@@ -1103,7 +1132,7 @@
                                                       AutomationProperties.Name="Ring modes"
                                                       ToolTip.Tip="Up to four ring modes, each with its own keys. The centre button switches mode." />
                                     </Grid>
-                                    <CheckBox Content="Show touch ring setting (on-screen mode display)"
+                                    <CheckBox x:Name="ChkShowTouchRing" Content="Show touch ring setting (on-screen mode display)"
                                               IsChecked="{Binding RingModes.ShowOnScreen}"
                                               IsVisible="{Binding RingModes.IsOn, FallbackValue=False}"
                                               Margin="0,0,0,4" />
@@ -1200,7 +1229,7 @@
             <!-- What the touch ring is (R18: rewritten; top right corner, level with Enable wheels). Always shown:
                  the pivot itself is hidden when the tablet reports no wheel, so reaching this tab means there is one. -->
             <StackPanel x:Name="AboutTouchRing" Width="340" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <TextBlock Classes="Display section" Text="About the touch ring" Margin="0,0,0,8" />
+                <TextBlock x:Name="LblAboutTouchRing" Classes="Display section" Text="About the touch ring" Margin="0,0,0,8" />
                 <StackPanel Spacing="10">
                     <TextBlock TextWrapping="Wrap"
                                Text="Clockwise and anticlockwise turns can have different actions, and the centre button can have its own." />
@@ -1320,29 +1349,30 @@
              so those Wacom controls are replaced by what OTD can do (tilt on/off) or left out. ===== -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
                       IsVisible="{Binding #PenTab.IsChecked}">
-            <Border Classes="wacomPane" HorizontalAlignment="Left" Width="720">
+            <!-- Shared right margin with WacomHeader (+/−): fill the content column, no fixed 720 left strip. -->
+            <Border Classes="wacomPane" HorizontalAlignment="Stretch">
             <StackPanel Spacing="10">
                 <Grid ColumnDefinitions="250,24,*">
                     <StackPanel Spacing="12">
-                        <HeaderedContentControl Classes="wacomGroup" Header="Tilt">
-                            <CheckBox Content="Turn tilt off" IsChecked="{Binding DisableTilt}"
+                        <HeaderedContentControl x:Name="PenTiltGroup" Classes="wacomGroup" Header="Tilt">
+                            <CheckBox x:Name="PenTiltOff" Content="Turn tilt off" IsChecked="{Binding DisableTilt}"
                                       ToolTip.Tip="OTD has no tilt-sensitivity curve; tilt can only be on or off." />
                         </HeaderedContentControl>
-                        <HeaderedContentControl Classes="wacomGroup" Header="Tip Feel">
+                        <HeaderedContentControl x:Name="PenTipFeelGroup" Classes="wacomGroup" Header="Tip Feel">
                             <StackPanel Spacing="4">
                                 <Slider x:Name="TipFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
                                         TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
                                         AutomationProperties.Name="Tip Feel" />
-                                <Grid ColumnDefinitions="*,*"><TextBlock Text="Soft" FontSize="12" />
-                                    <TextBlock Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
-                                <Button Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeFeel"
+                                <Grid ColumnDefinitions="*,*"><TextBlock x:Name="PenSoft" Text="Soft" FontSize="12" />
+                                    <TextBlock x:Name="PenFirm" Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <Button x:Name="PenCustomise" Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeFeel"
                                         ToolTip.Tip="Open the full pressure curve (shared by tip and eraser)." />
-                                <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock Text="Current pressure" FontSize="12" />
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock x:Name="LblPenCurrentPressure" Text="Current pressure" FontSize="12" />
                                     <TextBlock Grid.Column="1" x:Name="LivePressurePercent" Text="{Binding LiveTipPercentText}" FontSize="12" FontWeight="SemiBold"
                                                ToolTip.Tip="{Binding LiveTipInputText}" /></Grid>
                                 <ProgressBar Minimum="0" Maximum="1" Value="{Binding LiveTipPressure, FallbackValue=0, TargetNullValue=0}" Height="10" MinWidth="0" />
-                                <Grid ColumnDefinitions="*,*"><TextBlock Text="Click" FontSize="12" />
-                                    <TextBlock Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <Grid ColumnDefinitions="*,*"><TextBlock x:Name="LblPenClick" Text="Click" FontSize="12" />
+                                    <TextBlock x:Name="LblPenFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
                             </StackPanel>
                         </HeaderedContentControl>
                         <!-- Version 1: the pressure used while pressure sensitivity is off. -->
@@ -1359,14 +1389,14 @@
                                 </Grid>
                                 <Grid ColumnDefinitions="*,*"><TextBlock Text="0%" FontSize="12" />
                                     <TextBlock Grid.Column="1" Text="100%" FontSize="12" HorizontalAlignment="Right" /></Grid>
-                                <TextBlock Text="Used for every stroke while pressure sensitivity is off." FontSize="11" TextWrapping="Wrap"
+                                <TextBlock x:Name="PenManualNote" Text="Used for every stroke while pressure sensitivity is off." FontSize="11" TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>
                         </HeaderedContentControl>
                     </StackPanel>
                     <Grid Grid.Column="2" ColumnDefinitions="64,24,*">
                         <views:PenDiagram VerticalAlignment="Center" />
-                        <StackPanel Grid.Column="2" Spacing="24" VerticalAlignment="Center">
+                        <StackPanel Grid.Column="2" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Right">
                             <TextBlock x:Name="PenButtonTestLine" Text="{Binding PenButtonTestText}" FontSize="12"
                                        Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HasPenButtons}" />
                             <views:PenSwitchCard DataContext="{Binding PenButton3Row}"
@@ -1397,34 +1427,35 @@
         <!-- ===== Build O: ERASER tab (Eraser Feel + the eraser's function beside the drawn pen). ===== -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
                       IsVisible="{Binding #EraserTab.IsChecked}">
-            <Border Classes="wacomPane" HorizontalAlignment="Left" Width="720">
+            <!-- Shared right margin with WacomHeader (+/−): fill the content column, no fixed 720 left strip. -->
+            <Border Classes="wacomPane" HorizontalAlignment="Stretch">
             <StackPanel Spacing="10">
                 <Grid ColumnDefinitions="250,24,*">
                     <!-- R18: every Pen-frame control has its Eraser counterpart. OTD has one tilt flag and one
                          pressure curve for both ends, so those are the same settings, marked "Shared with Pen". -->
                     <StackPanel x:Name="EraserLeftColumn" Spacing="12">
-                        <HeaderedContentControl Classes="wacomGroup" Header="Tilt">
+                        <HeaderedContentControl x:Name="EraserTiltGroup" Classes="wacomGroup" Header="Tilt">
                             <StackPanel Spacing="4">
                                 <CheckBox x:Name="EraserTiltBox" Content="Turn tilt off" IsChecked="{Binding DisableTilt}" />
-                                <TextBlock Text="Shared with Pen." FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                                <TextBlock x:Name="LblEraserTiltShared" Text="Shared with Pen." FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>
                         </HeaderedContentControl>
-                        <HeaderedContentControl Classes="wacomGroup" Header="Eraser Feel">
+                        <HeaderedContentControl x:Name="EraserFeelGroup" Classes="wacomGroup" Header="Eraser Feel">
                             <StackPanel Spacing="4">
                                 <Slider x:Name="EraserFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
                                         TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
                                         AutomationProperties.Name="Eraser Feel" />
-                                <Grid ColumnDefinitions="*,*"><TextBlock Text="Soft" FontSize="12" />
-                                    <TextBlock Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <Grid ColumnDefinitions="*,*"><TextBlock x:Name="EraserSoft" Text="Soft" FontSize="12" />
+                                    <TextBlock x:Name="EraserFirm" Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
                                 <Button x:Name="EraserCustomizeButton" Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeEraserFeel"
                                         ToolTip.Tip="Open the full pressure curve." />
-                                <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock Text="Current pressure" FontSize="12" />
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock x:Name="LblEraserCurrentPressure" Text="Current pressure" FontSize="12" />
                                     <TextBlock Grid.Column="1" x:Name="EraserPressurePercent" Text="{Binding LiveEraserPercentText}" FontSize="12" FontWeight="SemiBold"
                                                ToolTip.Tip="{Binding LiveEraserInputText}" /></Grid>
                                 <ProgressBar Minimum="0" Maximum="1" Value="{Binding LiveEraserPressure, FallbackValue=0, TargetNullValue=0}" Height="10" MinWidth="0" />
-                                <Grid ColumnDefinitions="*,*"><TextBlock Text="Click" FontSize="12" />
-                                    <TextBlock Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
-                                <TextBlock Text="Shared with Pen (one curve for tip and eraser)." FontSize="11" TextWrapping="Wrap"
+                                <Grid ColumnDefinitions="*,*"><TextBlock x:Name="LblEraserClick" Text="Click" FontSize="12" />
+                                    <TextBlock x:Name="LblEraserFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <TextBlock x:Name="LblEraserSharedCurve" Text="Shared with Pen (one curve for tip and eraser)." FontSize="11" TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>
                         </HeaderedContentControl>
@@ -1442,7 +1473,7 @@
                                 </Grid>
                                 <Grid ColumnDefinitions="*,*"><TextBlock Text="0%" FontSize="12" />
                                     <TextBlock Grid.Column="1" Text="100%" FontSize="12" HorizontalAlignment="Right" /></Grid>
-                                <TextBlock Text="Used for every eraser stroke while pressure sensitivity is off." FontSize="11" TextWrapping="Wrap"
+                                <TextBlock x:Name="LblEraserManualNote" Text="Used for every eraser stroke while pressure sensitivity is off." FontSize="11" TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>
                         </HeaderedContentControl>
@@ -1452,7 +1483,7 @@
                              flipped pen's order: button 1 (now nearest the top) first, the eraser card by the eraser end.
                              They are the same pen-button rows as the Pen tab: OTD has one set of barrel buttons. -->
                         <views:PenDiagram x:Name="EraserPenDiagram" Flipped="True" VerticalAlignment="Center" />
-                        <StackPanel x:Name="EraserCards" Grid.Column="2" Spacing="24" VerticalAlignment="Center">
+                        <StackPanel x:Name="EraserCards" Grid.Column="2" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Right">
                             <views:PenSwitchCard DataContext="{Binding PenButton1Row}"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
                             <views:PenSwitchCard DataContext="{Binding PenButton2Row}"
@@ -1480,7 +1511,7 @@
         <Border Grid.Row="3" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Padding="0,8,0,0" Margin="0,8,0,0">
             <StackPanel x:Name="WacomBottomBar" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
                 <!-- Version 5: the bottom About button duplicated the About page and did nothing there; removed. -->
-                <Button Classes="bottomBar" Content="Options…" Click="OnBottomOptions" ToolTip.Tip="More tablet options (calibration, filters, JSON)." />
+                <Button x:Name="BtnOptions" Classes="bottomBar" Content="Options…" Click="OnBottomOptions" ToolTip.Tip="More tablet options (calibration, filters, JSON)." />
                 <Button Classes="bottomBar" Content="?" MinWidth="34" Click="OnBottomHelp" ToolTip.Tip="Open the user manual." />
             </StackPanel>
         </Border>

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -47,8 +48,10 @@ public partial class TestViewModel : ObservableObject, IDisposable
         IDeviceData deviceData,
         Func<string>? daemonVersion = null,
         Func<StrokeRecordingViewModel, Task>? showRecordingReview = null,
-        Func<string, Task>? showRecordingProblem = null)
+        Func<string, Task>? showRecordingProblem = null,
+        Func<Profile, Task<SettingsApplyOutcome>>? applyProfile = null)
     {
+        _applyProfile = applyProfile;
         _driver = new DaemonPenInputSource(daemon);
         _driver.Sample += OnDriverSample;
         _driver.CountSamples = CountersEnabled; // the initializer doesn't go through OnCountersEnabledChanged
@@ -459,11 +462,50 @@ public partial class TestViewModel : ObservableObject, IDisposable
     /// <summary>Driver mode but no usable Absolute mapping → canvas disabled, show the note.</summary>
     public bool DriverCanvasDisabled => !_mapping.HasValue;
 
-    public string DriverDisabledNote =>
-        "Painting here needs an Absolute output mode on the active tablet, so " +
-        "the pen's position on the tablet can be mapped to the screen. The current mode doesn't map " +
-        "position, so the canvas is disabled. The readouts above still work. Set this tablet to an " +
-        "Absolute output mode to draw here.";
+    /// <summary>Version 7: why the canvas is off, for a short plain note.</summary>
+    public enum CanvasOffReason { None, NoTablet, NotOnScreen, NoScreenArea }
+
+    private readonly Func<Profile, Task<SettingsApplyOutcome>>? _applyProfile;
+    [ObservableProperty] private CanvasOffReason _offReason = CanvasOffReason.NoTablet;
+
+    public string DriverDisabledNote => OffReason switch
+    {
+        CanvasOffReason.NoTablet => "Drawing is off because no tablet is connected.",
+        CanvasOffReason.NoScreenArea => "Drawing is off because the pen has no screen area yet.",
+        _ => "Drawing is off because the pen isn't set to follow the screen.",
+    };
+
+    /// <summary>Where the setting lives, in one line.</summary>
+    public string DriverDisabledWhere => "You can also change this in Tablet › Pen › Movement (Normal (Absolute)) and Tablet › Mapping.";
+
+    public bool CanUsePenOnScreen => _applyProfile != null && OffReason is CanvasOffReason.NotOnScreen or CanvasOffReason.NoScreenArea;
+
+    partial void OnOffReasonChanged(CanvasOffReason value)
+    {
+        OnPropertyChanged(nameof(DriverDisabledNote));
+        OnPropertyChanged(nameof(CanUsePenOnScreen));
+    }
+
+    /// <summary>"Use pen on screen": the active tablet's Movement becomes Normal (Absolute), and if it has no
+    /// screen area yet it is mapped to all displays (the app's usual default).</summary>
+    [RelayCommand]
+    private async Task UsePenOnScreen()
+    {
+        if (_applyProfile == null || ActiveProfile() is not { } profile) return;
+        profile.OutputMode ??= new OpenTabletDriver.Desktop.Reflection.PluginSettingStore(AbsoluteModePath, true);
+        profile.OutputMode.Path = AbsoluteModePath;
+        var abs = profile.AbsoluteModeSettings;
+        if (abs != null && (abs.Display is not { Width: > 0, Height: > 0 } || abs.Tablet is not { Width: > 0, Height: > 0 }))
+        {
+            var digi = ReadDigitizer(profile.Tablet);
+            DisplayMappingApplier.ApplyAllDisplays(profile, digi is { } d ? (d.Width, d.Height) : null, DisplayEnumerator.Enumerate());
+        }
+        try { await _applyProfile(profile); }
+        catch (Exception ex) { AppLog.Warn($"Use pen on screen failed: {ex.Message}"); }
+        RecomputeMapping();
+    }
+
+    internal const string AbsoluteModePath = "OpenTabletDriver.Desktop.Output.AbsoluteMode";
 
     // Where OTD's 0-based virtual-desktop space starts on screen — non-zero when a monitor sits left of /
     // above the primary. Without it a mapped point lands that far off the canvas and nothing draws.
@@ -486,16 +528,19 @@ public partial class TestViewModel : ObservableObject, IDisposable
     private (TabletDigitizerSpec, MappingArea, MappingArea, bool, bool)? BuildMapping()
     {
         var profile = ActiveProfile();
+        OffReason = profile == null ? CanvasOffReason.NoTablet : CanvasOffReason.NotOnScreen;
         // Absolute output modes (OTD AbsoluteOutputMode + VoiD's WinInkAbsoluteMode) carry "Absolute"
         // in their type path; Relative modes don't map an absolute position.
         if (profile?.OutputMode?.Path is not { } path ||
             !path.Contains("Absolute", StringComparison.OrdinalIgnoreCase))
             return null;
 
+        OffReason = CanvasOffReason.NoScreenArea;
         var abs = profile.AbsoluteModeSettings;
         if (abs?.Tablet is not { } t || abs.Display is not { } disp) return null;
         if (t.Width <= 0 || t.Height <= 0 || disp.Width <= 0 || disp.Height <= 0) return null;
-        if (ReadDigitizer(profile.Tablet) is not { } digi) return null;
+        if (ReadDigitizer(profile.Tablet) is not { } digi) { OffReason = CanvasOffReason.NoTablet; return null; }
+        OffReason = CanvasOffReason.None;
 
         return (digi,
             new MappingArea(t.X, t.Y, t.Width, t.Height, t.Rotation),

@@ -42,6 +42,15 @@ public partial class MainWindow : Window
         // Regaining focus re-pulls settings so an external edit (e.g. the mapping changed in the OTD UX
         // while we were in the background) is picked up promptly rather than on the next fallback poll.
         Activated += (_, _) => (DataContext as MainViewModel)?.OnWindowActivated();
+        // Version 7 test 7: log every time the window opens, and hide it again if something opened it during a
+        // login start without a request (the stack says what did).
+        Opened += (_, _) =>
+        {
+            if (_showRequested || !Program.LaunchInBackground) { AppLog.Info($"Window: opened (requested {_showRequested}, login start {Program.LaunchInBackground})."); return; }
+            var who = string.Join(" < ", Environment.StackTrace.Split('\n').Skip(2).Take(6).Select(l => l.Trim()));
+            AppLog.Info("Window: opened without a request during a login start: " + who);
+            if (DateTime.UtcNow < HiddenStartUntil) { HideToTray("login start reopen"); }
+        };
         Closed += (_, _) =>
         {
             if (_switchSub != null) { _switchSub.Switched -= OnProfileSwitched; _switchSub.SwitchFailed -= OnProfileSwitchFailed; _switchSub.RestoreFailed -= OnProfileRestoreFailed; }
@@ -153,11 +162,34 @@ public partial class MainWindow : Window
 
     /// <summary>Surface the window from a hidden/minimized state and focus it. Used by the tray click
     /// and by a second app instance asking the running one to come forward (#191).</summary>
-    public void BringToFront()
+    public void BringToFront() => BringToFront("app request");
+
+    /// <summary>Version 7 test 7/8: until this time (UTC) a login start stays hidden: automatic requests to show the
+    /// window (macOS reopen event, second-copy signal) are ignored and logged. Clicks in the pen menu still show it.</summary>
+    public static DateTime HiddenStartUntil { get; set; } = DateTime.MinValue;
+    private bool _showRequested;
+
+    public static bool KeepHidden(bool byUser, bool background, DateTime now, DateTime until) => !byUser && background && now < until;
+
+    public void BringToFront(string reason, bool byUser = true)
     {
+        if (KeepHidden(byUser, Program.LaunchInBackground, DateTime.UtcNow, HiddenStartUntil))
+        { AppLog.Info($"Window: kept hidden at login (ignored: {reason})."); return; }
+        AppLog.Info($"Window: shown ({reason}).");
+        _showRequested = true;
+        // Version 7 test 9: Dock icon back before the window appears.
+        MacActivationPolicy.SetRegular();
+        // Version 7 test 8: first user-visible show after a login start assigns MainWindow (it was left
+        // unset so Avalonia would not auto-show it at startup).
+        if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+            && !ReferenceEquals(desktop.MainWindow, this))
+            desktop.MainWindow = this;
         Show();
         WindowState = WindowState.Normal;
         Activate();
+        // Quiet-login tablet VMs may have enumerated displays while MainWindow was unset (empty list).
+        // Re-read after Show so Avalonia Screens has a platform handle (sync call can still be empty).
+        Dispatcher.UIThread.Post(() => (DataContext as MainViewModel)?.RefreshTabletDisplays());
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)
@@ -174,10 +206,18 @@ public partial class MainWindow : Window
             }
             else
             {
-                Hide();
+                HideToTray("window closed");
             }
         }
         base.OnClosing(e);
+    }
+
+    /// <summary>Version 7 test 9: hide to the pen menu and drop the Dock icon (Accessory).</summary>
+    private void HideToTray(string reason)
+    {
+        Hide();
+        MacActivationPolicy.SetAccessory();
+        AppLog.Info($"Window: hidden to pen menu ({reason}).");
     }
 
     private async Task ShowTrayHintThenHide()
@@ -187,7 +227,7 @@ public partial class MainWindow : Window
             "Tablet App for Mac is still running in the system tray. Click the tray icon to reopen it, " +
             "or right-click it and choose Quit to exit.",
             this);
-        Hide();
+        HideToTray("tray hint closed");
     }
 
     // ── Developer screenshots (#437) ──────────────────────────────────────────────────────────────

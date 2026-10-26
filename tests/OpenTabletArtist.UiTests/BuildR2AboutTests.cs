@@ -28,7 +28,7 @@ public class BuildR2AboutTests
         var sentence = string.Concat(runs);
         Assert.StartsWith("Tablet App for Mac is a free, artist-friendly tablet app. Version ", sentence);
         Assert.DoesNotContain("based on", sentence);
-        Assert.Equal("Version 6.", vm.AppVersionSentence);
+        Assert.Equal("Version 7.", vm.AppVersionSentence);
         var flyoutText = (((Button)view.FindControl<Button>("CreditsButton")!).Flyout as Flyout)!.Content as TextBlock;
         Assert.NotNull(flyoutText);
         foreach (var s in new[] { "modified version based on OpenTabletArtist and OpenTabletDriver", "GPL-3.0", "LGPL-3.0" })

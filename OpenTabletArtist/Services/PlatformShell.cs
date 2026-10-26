@@ -102,6 +102,13 @@ public static class PlatformShell
     public static void OpenInputMonitoringSettings()
         => OpenInputMonitoringSettings(OperatingSystem.IsMacOS(), Start);
 
+    /// <summary>Version 7: open the macOS Accessibility pane. macOS-only; a no-op elsewhere. Best-effort.</summary>
+    public static void OpenAccessibilitySettings()
+    {
+        if (!OperatingSystem.IsMacOS()) return;
+        Launch(new ProcessStartInfo("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") { UseShellExecute = true }, Start);
+    }
+
     /// <summary>Whether a string is a link this will open. Pure — unit-tested.</summary>
     public static bool IsWebLink(string? url) =>
         Uri.TryCreate(url, UriKind.Absolute, out var parsed)

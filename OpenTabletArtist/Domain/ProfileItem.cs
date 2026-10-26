@@ -1,4 +1,5 @@
 using OpenTabletDriver.Desktop.Profiles;
+using OpenTabletArtist.Services;
 
 namespace OpenTabletArtist.Domain;
 
@@ -15,7 +16,7 @@ public record ProfileItem(Profile Profile, bool IsDetected, DateTime? LastSeen)
         get
         {
             if (IsDetected) return "Detected";
-            if (LastSeen == null) return "Not detected";
+            if (LastSeen == null) return Localizer.Te("home.not_detected", "Not detected");
             return $"Not detected — {FormatRelativeTime(LastSeen.Value)}";
         }
     }
@@ -34,7 +35,7 @@ public record ProfileItem(Profile Profile, bool IsDetected, DateTime? LastSeen)
     {
         get
         {
-            if (IsDetected) return "CONNECTED";
+            if (IsDetected) return Localizer.Te("home.connected", "CONNECTED");
             if (LastSeen == null) return null;
             return $"Last seen {LastSeen.Value:yyyy-MM-dd} at {LastSeen.Value:h:mm tt}";
         }

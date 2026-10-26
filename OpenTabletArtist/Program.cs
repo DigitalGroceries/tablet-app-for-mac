@@ -40,6 +40,16 @@ class Program
         if (!LaunchInBackground && OperatingSystem.IsMacOS()
             && AutoStartCoordinator.Default.IsLikelyLoginLaunch(AutoStartCoordinator.LoginSessionAge))
             LaunchInBackground = true;
+        // Version 7 test 5: also hidden when macOS reopens the app at login (window restore), not only via the login item.
+        if (OperatingSystem.IsMacOS())
+        {
+            AutoStartCoordinator.TurnOffWindowRestore();
+            MacLoginItemService.MigrateFromAgent();
+            MacLoginItemService.EnsureMatchesChoice(AppSettings.Get(AutoStartCoordinator.ChoiceKey));
+            if (!LaunchInBackground && AutoStartCoordinator.Default.IsLoginTimeLaunch(AutoStartCoordinator.LoginSessionAge))
+                LaunchInBackground = true;
+            AppLog.Info($"Login check: start hidden = {LaunchInBackground}.");
+        }
         // Version 1: a launch by the login agent passes --background (above). The heuristic stays for the older
         // mainApp login item, which passes no arguments.
         // If another instance is already running, it's been signalled to surface its window — exit

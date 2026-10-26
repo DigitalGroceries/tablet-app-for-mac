@@ -46,8 +46,13 @@ public partial class PluginsViewModel : ObservableObject, IDisposable
         _deviceData = deviceData;
         _settings = settings;
         _deviceData.DataLoaded += Refresh;
+        Localizer.LanguageChanged += OnLanguageChanged;
         Refresh();
     }
+
+    void OnLanguageChanged() => Refresh();
+
+    // Note: Dispose also unhooks LanguageChanged below.
 
     /// <summary>Open the daemon's plugin folder in File Explorer.</summary>
     [RelayCommand]
@@ -62,7 +67,7 @@ public partial class PluginsViewModel : ObservableObject, IDisposable
         var dir = _deviceData.PluginDirectory;
         if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
         {
-            EmptyMessage = "Plugin directory not available (is the daemon connected?).";
+            EmptyMessage = Localizer.T("plugins.dir_unavailable");
             Plugins = [];
             return;
         }
@@ -88,7 +93,7 @@ public partial class PluginsViewModel : ObservableObject, IDisposable
         }
         catch { /* best-effort listing */ }
 
-        EmptyMessage = "No plugins installed.";
+        EmptyMessage = Localizer.T("plugins.empty");
         Plugins = list;
     }
 
@@ -135,5 +140,9 @@ public partial class PluginsViewModel : ObservableObject, IDisposable
         catch { return ""; }
     }
 
-    public void Dispose() => _deviceData.DataLoaded -= Refresh;
+    public void Dispose()
+    {
+        _deviceData.DataLoaded -= Refresh;
+        Localizer.LanguageChanged -= OnLanguageChanged;
+    }
 }

@@ -61,7 +61,7 @@
         </Style>
     </UserControl.Styles>
 
-    <StackPanel Spacing="12" Width="300" HorizontalAlignment="Left">
+    <StackPanel Spacing="12" Width="300" HorizontalAlignment="Right">
         <!-- Heading, with the current action on the same line for side buttons ("BUTTON 2:  Right click"). -->
         <!-- R14 (the user's mock-up): the button's current action in a dark value box. The heading column has a fixed
              width so every card's box starts at the same x; the boxes are one width (the two buttons below). -->
@@ -73,9 +73,9 @@
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding ShowChooseAction}">
-            <Button Classes="penAction" Content="Change…" Command="{Binding ChooseActionCommand}"
+            <Button x:Name="BtnChange" Classes="penAction" Content="Change…" Command="{Binding ChooseActionCommand}"
                     ToolTip.Tip="Choose what this pen button does" />
-            <Button Classes="penAction" Content="Default" Command="{Binding SetAutoCommand}"
+            <Button x:Name="BtnDefault" Classes="penAction" Content="Default" Command="{Binding SetAutoCommand}"
                     IsVisible="{Binding ShowUseAdaptive}"
                     ToolTip.Tip="Put this button back to its normal behaviour" />
         </StackPanel>
@@ -85,7 +85,7 @@
                     ToolTip.Tip="This input uses its default action. This is not a hardware test.">
             <PathIcon Classes="working" Data="{StaticResource IconCheckCircle}"
                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
-            <TextBlock Classes="working" Text="Default setting" />
+            <TextBlock x:Name="LblDefaultSetting" Classes="working" Text="Default setting" />
         </StackPanel>
 
         <StackPanel Spacing="8" IsVisible="{Binding IsNotRecommended}">

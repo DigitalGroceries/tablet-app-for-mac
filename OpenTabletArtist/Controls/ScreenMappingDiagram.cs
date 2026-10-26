@@ -11,6 +11,8 @@ using Avalonia.Media;
 using OpenTabletArtist.Helpers;
 using OpenTabletArtist.Domain;
 
+using OpenTabletArtist.Services;
+
 namespace OpenTabletArtist.Controls;
 
 /// <summary>
@@ -127,7 +129,7 @@ public sealed class ScreenMappingDiagram : Control
         var displays = Displays;
         if (displays == null || displays.Count == 0)
         {
-            DiagramDrawing.DrawCentered(ctx, new Rect(Bounds.Size), "No displays detected", 13, pal.SubText);
+            DiagramDrawing.DrawCentered(ctx, new Rect(Bounds.Size), Localizer.T("tablet.mapping.no_displays"), 13, pal.SubText);
             return;
         }
 

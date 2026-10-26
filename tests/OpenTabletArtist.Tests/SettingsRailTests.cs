@@ -14,14 +14,14 @@ namespace OpenTabletArtist.Tests;
 public class SettingsRailTests
 {
     [Fact]
-    public void System_ShownOnWindowsAndLinux_HiddenOnMac()
+    public void System_ShownOnWindowsLinuxAndMac()
     {
         // Windows: the Startup + Shortcut pages.
         Assert.True(SettingsViewModel.TabAppliesToOs(SettingsTab.System, isWindows: true, isLinux: false));
         // Linux: the application-menu-entry card.
         Assert.True(SettingsViewModel.TabAppliesToOs(SettingsTab.System, isWindows: false, isLinux: true));
-        // macOS (neither): no equivalent yet, so the pivot is hidden.
-        Assert.False(SettingsViewModel.TabAppliesToOs(SettingsTab.System, isWindows: false, isLinux: false));
+        // macOS (neither): Version 7 shows the Start at login switch here.
+        Assert.True(SettingsViewModel.TabAppliesToOs(SettingsTab.System, isWindows: false, isLinux: false));
     }
 
     [Fact]

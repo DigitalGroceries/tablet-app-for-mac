@@ -73,11 +73,11 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
                         IsVisible="{Binding !SettingsSession.SettingsPaused}"
                         IsEnabled="{Binding !SettingsSession.SettingsBusy}">
-                <Button Content="Save" Command="{Binding SaveSettingsCommand}"
+                <Button x:Name="SaveButton" Content="Save" Command="{Binding SaveSettingsCommand}"
                         Classes="save" Classes.unsaved="{Binding SettingsSession.HasUnsavedChanges}"
                         Theme="{StaticResource AccentButton}" Padding="22,5"
                         IsEnabled="{Binding SettingsSession.CanEditSettings}" />
-                <Button Content="Revert to saved" Command="{Binding RevertSettingsCommand}"
+                <Button x:Name="RevertButton" Content="Revert to saved" Command="{Binding RevertSettingsCommand}"
                         Theme="{StaticResource GhostButton}" Padding="16,5"
                         IsEnabled="{Binding SettingsSession.CanEditSettings}"
                         ToolTip.Tip="Replace live settings with the OTD daemon’s saved file, discarding unsaved changes." />

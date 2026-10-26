@@ -73,6 +73,10 @@ public sealed class AppTray : IDisposable
     private readonly NativeMenuItem _stopItem;
     private readonly NativeMenuItem _restartItem;
     private readonly NativeMenuItem _quitStopItem; // Quit + stop the daemon (#596)
+    private readonly NativeMenuItem _showItem;
+    private readonly NativeMenuItem _checkUpdatesItem;
+    private readonly NativeMenuItem _updateAvailableItem;
+    private readonly NativeMenuItem _quitItem;
 
     // Signatures of the last-built submenus (so the 3s data poll doesn't churn an open menu): the
     // display submenu (active tablet + monitor geometry + mapped display) and the active-tablet
@@ -94,35 +98,43 @@ public sealed class AppTray : IDisposable
         _onCloseAsync = onCloseAsync;
         _onPrepareStopAsync = onPrepareStopAsync;
 
-        _tray = new TrayIcon { ToolTipText = "Tablet App for Mac. Your tablet works while this is running", IsVisible = true };
+        Current = this;
+        _tray = new TrayIcon { ToolTipText = Localizer.T("tray.tooltip"), IsVisible = true };
         ApplyTrayIcon(_tray);
 
-        var showItem = new NativeMenuItem("Show Tablet App for Mac");
-        showItem.Click += (_, _) => ShowWindow();
+        _showItem = new NativeMenuItem(Localizer.T("tray.show"));
+        _showItem.Click += (_, _) => ShowWindow();
 
         // Active-tablet picker (#190 phase 3): only shown when more than one tablet is connected; the
         // tablet actions below all target the active tablet.
         _activeTabletMenu = new NativeMenu();
-        _activeTabletItem = new NativeMenuItem("Active Tablet") { Menu = _activeTabletMenu };
+        _activeTabletItem = new NativeMenuItem(Localizer.T("tray.active_tablet")) { Menu = _activeTabletMenu };
 
         // Tablet group (#187): the "Switch Display" submenu for the active tablet.
         _displayMenu = new NativeMenu();
-        _switchDisplayItem = new NativeMenuItem("Switch Display") { Menu = _displayMenu };
+        _switchDisplayItem = new NativeMenuItem(Localizer.T("tray.switch_display")) { Menu = _displayMenu };
         _tabletSeparator = new NativeMenuItemSeparator();
 
-        _startItem = new NativeMenuItem("Start Daemon") { Command = _conn.StartDaemonCommand };
-        _restartItem = new NativeMenuItem("Restart Daemon") { Command = _conn.RestartDaemonCommand };
-        _stopItem = new NativeMenuItem("Stop Daemon") { Command = _conn.StopDaemonCommand };
+        _startItem = new NativeMenuItem(Localizer.T("tray.start_daemon")) { Command = _conn.StartDaemonCommand };
+        _restartItem = new NativeMenuItem(Localizer.T("tray.restart_daemon")) { Command = _conn.RestartDaemonCommand };
+        _stopItem = new NativeMenuItem(Localizer.T("tray.stop_daemon")) { Command = _conn.StopDaemonCommand };
+
+        // Updates: always offer a check; show "Update available" only when a newer release is known
+        // (shared with Home/About via AppUpdateState). Own section above Quit — Quit stays last.
+        _checkUpdatesItem = new NativeMenuItem(Localizer.T("update.check_now"));
+        _checkUpdatesItem.Click += (_, _) => _ = CheckUpdatesFromTrayAsync();
+        _updateAvailableItem = new NativeMenuItem(Localizer.T("update.prompt_title")) { IsVisible = false };
+        _updateAvailableItem.Click += (_, _) => _ = InstallUpdateFromTrayAsync();
 
         // Quit leaves the daemon running (it's a separate process); "Quit and stop the daemon" also
         // stops it (#596), shown only when there's a running daemon to stop.
-        var quitItem = new NativeMenuItem("Quit");
-        quitItem.Click += (_, _) => Quit();
-        _quitStopItem = new NativeMenuItem("Quit and stop the daemon");
+        _quitItem = new NativeMenuItem(Localizer.T("tray.quit"));
+        _quitItem.Click += (_, _) => Quit();
+        _quitStopItem = new NativeMenuItem(Localizer.T("tray.quit_stop"));
         _quitStopItem.Click += (_, _) => Quit(stopDaemon: true);
 
         var menu = new NativeMenu();
-        menu.Items.Add(showItem);
+        menu.Items.Add(_showItem);
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(_activeTabletItem);
         menu.Items.Add(_switchDisplayItem);
@@ -131,7 +143,10 @@ public sealed class AppTray : IDisposable
         menu.Items.Add(_restartItem);
         menu.Items.Add(_stopItem);
         menu.Items.Add(new NativeMenuItemSeparator());
-        menu.Items.Add(quitItem);
+        menu.Items.Add(_checkUpdatesItem);
+        menu.Items.Add(_updateAvailableItem);
+        menu.Items.Add(new NativeMenuItemSeparator());
+        menu.Items.Add(_quitItem);
         menu.Items.Add(_quitStopItem);
         _tray.Menu = menu;
 
@@ -139,10 +154,32 @@ public sealed class AppTray : IDisposable
 
         _conn.PropertyChanged += OnConnectionChanged;
         _deviceData.DataLoaded += OnDataLoaded;
+        AppUpdateState.Shared.PropertyChanged += OnUpdateStateChanged;
+        // NativeMenuItem headers are set once at construction; refresh them when the language changes
+        // (the main window already did; the pen menu stayed on the old language until this).
+        Localizer.LanguageChanged += OnLanguageChanged;
         UpdateMenu();
+        SyncUpdateMenu();
 
         TrayIcon.SetIcons(Application.Current!, new TrayIcons { _tray });
+        AppLog.Info($"Tray icon created ({TrayDiagnostics()}).");
+        // Version 7: the app now starts through a small launcher. Set the icon again once the app has
+        // finished launching, so the menu-bar item is (re)registered with the running app.
+        DispatcherTimer.RunOnce(() =>
+        {
+            try
+            {
+                _tray.IsVisible = false; _tray.IsVisible = true;
+                TrayIcon.SetIcons(Application.Current!, new TrayIcons { _tray });
+                AppLog.Info("Tray icon set again after launch.");
+            }
+            catch (Exception ex) { AppLog.Warn("Tray icon: couldn't set it again after launch", ex); }
+        }, TimeSpan.FromSeconds(2));
     }
+
+    /// <summary>What the log needs to explain a missing menu-bar icon: our process path and bundle.</summary>
+    public static string TrayDiagnostics()
+        => $"exe {Environment.ProcessPath}, args0 {Environment.GetCommandLineArgs().FirstOrDefault()}";
 
     private void OnConnectionChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -153,6 +190,30 @@ public sealed class AppTray : IDisposable
     // The data load already raises this on the UI thread, but Post keeps it uniform with the
     // connection callback above and harmless if a future caller isn't on the dispatcher.
     private void OnDataLoaded() => Dispatcher.UIThread.Post(UpdateMenu);
+
+    private void OnLanguageChanged() => Dispatcher.UIThread.Post(() =>
+    {
+        ApplyLocalizedLabels();
+        // Force display submenu rebuild so "Display N" strings pick up the new language.
+        _displaySignature = "";
+        UpdateMenu();
+    });
+
+    /// <summary>Re-apply tray menu titles from Localizer after a language change. Headers are not
+    /// bindings — Avalonia NativeMenuItem keeps the string from construction until we set Header.</summary>
+    private void ApplyLocalizedLabels()
+    {
+        _showItem.Header = Localizer.T("tray.show");
+        _activeTabletItem.Header = Localizer.T("tray.active_tablet");
+        _switchDisplayItem.Header = Localizer.T("tray.switch_display");
+        _startItem.Header = Localizer.T("tray.start_daemon");
+        _restartItem.Header = Localizer.T("tray.restart_daemon");
+        _stopItem.Header = Localizer.T("tray.stop_daemon");
+        _checkUpdatesItem.Header = Localizer.T("update.check_now");
+        _updateAvailableItem.Header = Localizer.T("update.prompt_title");
+        _quitItem.Header = Localizer.T("tray.quit");
+        _quitStopItem.Header = Localizer.T("tray.quit_stop");
+    }
 
     private void UpdateMenu()
     {
@@ -189,9 +250,54 @@ public sealed class AppTray : IDisposable
         _restartItem.IsEnabled = !busy;
         _stopItem.IsEnabled = !busy;
         _quitStopItem.IsEnabled = !busy;
-        _tray.ToolTipText = $"Tablet App for Mac — {_conn.DaemonStatusText}. Your tablet works while this is running.";
+        _tray.ToolTipText = Localizer.Tf("tray.tooltip_status", ("status", _conn.DaemonStatusText));
 
         UpdateTabletItems(connected);
+        SyncUpdateMenu();
+    }
+
+    private void OnUpdateStateChanged(object? sender, PropertyChangedEventArgs e)
+        => Dispatcher.UIThread.Post(SyncUpdateMenu);
+
+    /// <summary>Show "Update available" only when AppUpdateState knows a newer release.</summary>
+    private void SyncUpdateMenu()
+    {
+        var ready = AppUpdateState.Shared.UpdateReady;
+        _updateAvailableItem.IsVisible = ready;
+        var busy = AppUpdateState.Shared.IsBusy;
+        _checkUpdatesItem.IsEnabled = !busy;
+        _updateAvailableItem.IsEnabled = ready && !busy;
+    }
+
+    private async Task CheckUpdatesFromTrayAsync()
+    {
+        await AppUpdateState.Shared.CheckAsync();
+        // Tray can't show Home's status line — open the window and, when already latest, say so in a dialog.
+        ShowWindow();
+        if (AppUpdateState.Shared.UpdateReady) return;
+        try
+        {
+            await Helpers.Dialogs.ShowMessageAsync(
+                Localizer.T("update.check_now"),
+                Localizer.T("update.latest"),
+                _window);
+        }
+        catch (Exception ex) { AppLog.Warn("Tray update check: couldn't show the latest-version dialog", ex); }
+    }
+
+    private async Task InstallUpdateFromTrayAsync()
+    {
+        if (!AppUpdateState.Shared.UpdateReady) return;
+        ShowWindow();
+        await AppUpdateState.Shared.InstallPendingAsync();
+        // If install returned an error string (app still running), surface it.
+        var status = AppUpdateState.Shared.Status;
+        if (!string.IsNullOrEmpty(status) && status != Localizer.T("update.installing")
+            && status != Localizer.T("update.downloading"))
+        {
+            try { await Helpers.Dialogs.ShowMessageAsync(Localizer.T("update.prompt_title"), status, _window); }
+            catch (Exception ex) { AppLog.Warn("Tray update: couldn't show the install-error dialog", ex); }
+        }
     }
 
     /// <summary>Refresh the active-tablet picker, the dynamics-reveal line, and the tablet actions —
@@ -268,7 +374,7 @@ public sealed class AppTray : IDisposable
         _displayMenu.Items.Clear();
         foreach (var d in displays)
         {
-            var label = $"Display {d.Number}";
+            var label = Localizer.Tf("tray.display_n", ("number", d.Number));
             if (!string.IsNullOrWhiteSpace(d.Name)) label += $" — {d.Name}";
             label += $"  ({d.Width}×{d.Height})";
             if (d.IsPrimary) label += " · primary";
@@ -305,16 +411,23 @@ public sealed class AppTray : IDisposable
         catch { /* best-effort; the next data load will resync the menu's checkmark */ }
     }
 
-    private void ShowWindow() => _window.BringToFront();
+    private void ShowWindow() => _window.BringToFront("pen menu");
 
     /// <summary>Build P: the warning shown before quitting (the tablet needs the app running).</summary>
     public const string QuitWarning = "Your tablet will stop working until you open Tablet App for Mac again.";
 
+    /// <summary>The running tray (null before startup finishes).</summary>
+    public static AppTray? Current { get; private set; }
+
+    /// <summary>Version 7 test 3: used by setup's "Restart the app". Our daemon must stop too, or it keeps the
+    /// old permission state and the pen still can't move the pointer after the restart.</summary>
+    public void QuitAndStopDaemon() => Quit(stopDaemon: true);
+
     private async void Quit(bool stopDaemon = false)
     {
         // A dialog needs a visible owner; the window may be hidden in the menu bar, so show it first.
-        _window.BringToFront();
-        if (!await Helpers.Dialogs.ShowConfirmAsync("Quit Tablet App for Mac?", QuitWarning + " Quit now?", _window)) return;
+        _window.BringToFront("quit");
+        if (!await Helpers.Dialogs.ShowConfirmAsync(Localizer.T("tray.quit_title"), Localizer.T("tray.quit_warning") + " " + Localizer.T("tray.quit_now"), _window)) return;
         if (_onQuitAsync is not null && !await _onQuitAsync()) return;
         _window.AllowCloseForQuit();
 
@@ -335,8 +448,10 @@ public sealed class AppTray : IDisposable
 
     public void Dispose()
     {
+        Localizer.LanguageChanged -= OnLanguageChanged;
         _conn.PropertyChanged -= OnConnectionChanged;
         _deviceData.DataLoaded -= OnDataLoaded;
+        AppUpdateState.Shared.PropertyChanged -= OnUpdateStateChanged;
         _tray.IsVisible = false;
         if (Application.Current is { } app)
             TrayIcon.SetIcons(app, new TrayIcons());

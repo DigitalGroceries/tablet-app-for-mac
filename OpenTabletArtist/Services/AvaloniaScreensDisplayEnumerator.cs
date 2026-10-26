@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
-using Avalonia.Controls;                 // Screens
+using Avalonia.Controls;                 // Screens, Window
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;                 // Screen
 using OpenTabletArtist.Domain;
@@ -21,18 +21,31 @@ namespace OpenTabletArtist.Services;
 /// daemon's stored area). Do not assume physical pixels here.</para>
 ///
 /// <para>Avalonia's <c>Screens</c> lives on a window, so this needs a live <see cref="Screens"/> instance.
-/// It's supplied by a provider (default: the desktop lifetime's main window) so the type stays testable
-/// and never hard-depends on a particular window. If no screens are available yet (e.g. the window handle
-/// isn't created), it returns an empty list rather than throwing — same contract as the Windows path.</para>
+/// It's supplied by a provider (default: the desktop lifetime's main window, then any open window, then a
+/// window registered via <see cref="RegisterWindow"/>) so the type stays testable and never hard-depends on
+/// a particular window. Version 7+ leaves <c>desktop.MainWindow</c> unset on a quiet login start until the
+/// user opens the window — without the registered-window / open-windows fallback, Mapping cached an empty
+/// display list and stayed on "No displays detected". If no screens are available yet (e.g. the window
+/// handle isn't created), it returns an empty list rather than throwing — same contract as the Windows
+/// path.</para>
 /// </summary>
 public sealed class AvaloniaScreensDisplayEnumerator : IDisplayEnumerator
 {
     private readonly Func<Screens?> _screensProvider;
 
+    /// <summary>Window created at startup even when not yet assigned as <c>desktop.MainWindow</c>
+    /// (quiet login / tray-only). Weak so a closed window does not keep the enumerator alive.</summary>
+    private static WeakReference<Window>? _registeredWindow;
+
     public AvaloniaScreensDisplayEnumerator(Func<Screens?>? screensProvider = null)
     {
         _screensProvider = screensProvider ?? (() => DefaultScreens);
     }
+
+    /// <summary>Remember the app's main <see cref="Window"/> so display enumeration works before
+    /// (and after) it is assigned as <c>IClassicDesktopStyleApplicationLifetime.MainWindow</c>.</summary>
+    public static void RegisterWindow(Window window) =>
+        _registeredWindow = new WeakReference<Window>(window);
 
     public IReadOnlyList<DisplayInfo> Enumerate()
     {
@@ -77,10 +90,48 @@ public sealed class AvaloniaScreensDisplayEnumerator : IDisplayEnumerator
         return result;
     }
 
-    /// <summary>Resolve <see cref="Screens"/> from the running app's main window. Null when there's no
-    /// desktop lifetime or the window/handle isn't up yet.</summary>
-    private static Screens? DefaultScreens =>
-        Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-            ? desktop.MainWindow?.Screens
-            : null;
+    /// <summary>Resolve <see cref="Screens"/> from the running app: MainWindow first, then any open
+    /// window, then the window registered at startup. Null when nothing has a live Screens yet.</summary>
+    private static Screens? DefaultScreens
+    {
+        get
+        {
+            try
+            {
+                if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                {
+                    if (TryScreens(desktop.MainWindow) is { } fromMain)
+                        return fromMain;
+                    foreach (var w in desktop.Windows)
+                        if (TryScreens(w) is { } fromOpen)
+                            return fromOpen;
+                }
+                if (_registeredWindow != null
+                    && _registeredWindow.TryGetTarget(out var registered)
+                    && TryScreens(registered) is { } fromRegistered)
+                    return fromRegistered;
+            }
+            catch
+            {
+                // Never throw from the default provider — Enumerate already treats null as empty.
+            }
+            return null;
+        }
+    }
+
+    /// <summary>Prefer a <see cref="Screens"/> that already lists at least one monitor; otherwise return
+    /// whatever Screens object exists (caller still gets an empty list rather than null-provider).</summary>
+    private static Screens? TryScreens(Window? window)
+    {
+        if (window?.Screens is not { } screens) return null;
+        try
+        {
+            if (screens.All.Count > 0) return screens;
+        }
+        catch
+        {
+            // Fall through — return the Screens instance so Enumerate can apply its own catch.
+        }
+        return screens;
+    }
 }

@@ -5,6 +5,18 @@
 
     <!-- DataContext is the StartupViewModel, supplied by the typed-nav DataTemplate (#15). -->
     <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+        <!-- Version 8: Language (Settings › System), near Start at login. -->
+        <c:Section Title="{Binding LanguageSectionTitle}">
+            <StackPanel Spacing="10">
+                <ComboBox MinWidth="240" HorizontalAlignment="Left"
+                          ItemsSource="{Binding LanguageOptions}"
+                          SelectedItem="{Binding SelectedLanguage}"
+                          DisplayMemberBinding="{Binding NativeName}" />
+                <TextBlock Text="{Binding LanguageNote}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" />
+            </StackPanel>
+        </c:Section>
+
         <!-- Startup (#360): launch with Windows so hotkeys are ready at login. -->
         <c:Section Title="Auto-run" IsVisible="{Binding StartupSupported}">
             <StackPanel Spacing="10">
@@ -18,20 +30,20 @@
         </c:Section>
 
         <!-- Build P: macOS start at login (SMAppService.mainAppService). Re-checked whenever this page opens. -->
-        <c:Section Title="Start at login" IsVisible="{Binding LoginItemSupported}">
+        <c:Section Title="{Binding StartAtLoginSectionTitle}" IsVisible="{Binding LoginItemSupported}">
             <StackPanel Spacing="10">
-                <c:ToggleSetting x:Name="StartAtLoginToggle" Label="Start automatically when I log in"
-                                 Description="Your tablet only works while Tablet App for Mac is running. If this is off, open Tablet App for Mac each time before using your tablet."
+                <c:ToggleSetting x:Name="StartAtLoginToggle" Label="{Binding StartAtLoginToggleLabel}"
+                                 Description="{Binding StartAtLoginDescription}"
                                  IsChecked="{Binding StartAtLogin}" />
                 <TextBlock Text="{Binding LoginMessage}" TextWrapping="Wrap"
                            Foreground="{DynamicResource TextPrimaryBrush}" IsVisible="{Binding HasLoginMessage}" />
-                <Button Content="Open Login Items…" HorizontalAlignment="Left" Command="{Binding OpenLoginItemsCommand}"
-                        ToolTip.Tip="System Settings › General › Login Items" />
+                <Button Content="{Binding OpenLoginItemsLabel}" HorizontalAlignment="Left" Command="{Binding OpenLoginItemsCommand}"
+                        ToolTip.Tip="{Binding OpenLoginItemsTip}" />
             </StackPanel>
         </c:Section>
 
         <!-- Build Q: macOS without a working SMAppService: the choice is shown as unavailable. -->
-        <c:Section Title="Start at login" IsVisible="{Binding LoginItemUnavailableOnMac}">
+        <c:Section Title="{Binding StartAtLoginSectionTitle}" IsVisible="{Binding LoginItemUnavailableOnMac}">
             <TextBlock Text="{Binding LoginUnavailableMessage}" TextWrapping="Wrap"
                        Foreground="{DynamicResource TextSecondaryBrush}" />
         </c:Section>

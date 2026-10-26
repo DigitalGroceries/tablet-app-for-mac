@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using OpenTabletDriver.Desktop;
 using OpenTabletDriver.Desktop.Reflection;
 using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
 
 namespace OpenTabletArtist.ViewModels;
 
@@ -37,17 +38,24 @@ public partial class PenSwitchRowViewModel : ObservableObject
         _penButtonIndex = penButtonIndex;
         _applyAsync = applyAsync;
         _chooseAction = chooseAction;
-        SectionLabel = kind switch
-        {
-            PenSwitchKind.Tip => "Pen tip",
-            PenSwitchKind.Eraser => "Eraser",
-            PenSwitchKind.PenButton => $"Button {penButtonIndex}",
-            _ => "SWITCH"
-        };
         RefreshFromStore(store, canEdit);
+        Localizer.LanguageChanged += () => OnPropertyChanged(nameof(SectionLabel));
     }
 
-    public string SectionLabel { get; }
+    public string SectionLabel => _kind switch
+    {
+        PenSwitchKind.Tip => Localizer.Te("tablet.pen.tip", "Pen tip"),
+        PenSwitchKind.Eraser => Localizer.Te("tablet.eraser.heading", "Eraser"),
+        PenSwitchKind.PenButton => ButtonLabel(_penButtonIndex),
+        _ => "SWITCH"
+    };
+
+    static string ButtonLabel(int n)
+    {
+        var t = Localizer.T("tablet.pen.button_n");
+        if (t == "tablet.pen.button_n") return $"Button {n}";
+        return t.Replace("{number}", n.ToString(), StringComparison.Ordinal);
+    }
 
     /// <summary>First row in the merged Pen Switches card — its separating divider is hidden.</summary>
     public bool IsFirst { get; set; }

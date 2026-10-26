@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
 
 namespace OpenTabletArtist.ViewModels;
 
@@ -28,12 +29,20 @@ public partial class ButtonBinding : ObservableObject
         _applyBinding = applyBinding;
         _editBinding = editBinding;
         _applied = binding;
+        Localizer.LanguageChanged += () => OnPropertyChanged(nameof(Label));
     }
 
     public int Index { get; }
     private readonly string? _label;
-    /// <summary>Row title. Defaults to "Button N"; wheel rows pass a custom label (the direction).</summary>
-    public string Label => _label ?? $"Button {Index}";
+    /// <summary>Row title. Defaults to localised "Button N"; wheel rows pass a custom label (the direction).</summary>
+    public string Label => _label ?? ButtonLabel(Index);
+
+    static string ButtonLabel(int n)
+    {
+        var t = Localizer.T("tablet.pen.button_n");
+        if (t == "tablet.pen.button_n") return $"Button {n}";
+        return t.Replace("{number}", n.ToString(), StringComparison.Ordinal);
+    }
 
     /// <summary>Read-only summary shown on the card: the friendly name of a binding this editor can't
     /// model, else "Ctrl + Z" / "Left click" / "Scroll up" / "Do nothing".</summary>

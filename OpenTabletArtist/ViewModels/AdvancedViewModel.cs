@@ -13,12 +13,13 @@ public partial class AdvancedTabItem : ObservableObject
 {
     public AdvancedTabItem(string label, AdvancedTab tab, object content)
     {
-        Label = label;
+        _label = label;
         Tab = tab;
         Content = content;
     }
 
-    public string Label { get; }
+    public string Label { get => _label; set { if (_label == value) return; _label = value; OnPropertyChanged(nameof(Label)); } }
+    private string _label;
     public AdvancedTab Tab { get; }
     // The subpage view model; the content host resolves it to a view by DataTemplate on its runtime type.
     public object Content { get; }
@@ -61,15 +62,16 @@ public partial class AdvancedViewModel : ObservableObject
         // by OS at all.
         var tabs = new AdvancedTabItem[]
         {
-            new("DAEMON", AdvancedTab.Daemon, daemon),
-            new("CONSOLE", AdvancedTab.Console, log),
-            new("CONFIGS", AdvancedTab.CustomTabletConfigs, configs),
-            new("DIAGNOSTICS", AdvancedTab.Diagnostics, diagnostics),
-            new("PLUGINS", AdvancedTab.Plugins, plugins),
+            new(Localizer.T("advanced.tab.daemon"), AdvancedTab.Daemon, daemon),
+            new(Localizer.T("advanced.tab.console"), AdvancedTab.Console, log),
+            new(Localizer.T("advanced.tab.configs"), AdvancedTab.CustomTabletConfigs, configs),
+            new(Localizer.T("advanced.tab.diagnostics"), AdvancedTab.Diagnostics, diagnostics),
+            new(Localizer.T("advanced.tab.plugins"), AdvancedTab.Plugins, plugins),
         };
         Tabs = tabs;
         _allTabs = tabs;
         UpdateSelection();
+        Localizer.LanguageChanged += RefreshLocalizedLabels;
 
         // Diagnostics is a developer view: hidden unless Settings → Dev → Interface turns it on.
         _diagnosticsItem = tabs.First(t => t.Tab == AdvancedTab.Diagnostics);
@@ -130,5 +132,22 @@ public partial class AdvancedViewModel : ObservableObject
     private void UpdateSelection()
     {
         foreach (var t in _allTabs) t.IsSelected = t.Tab == SelectedTab;
+    }
+
+    public void RefreshLocalizedLabels()
+    {
+        foreach (var tab in _allTabs)
+        {
+            tab.Label = tab.Tab switch
+            {
+                AdvancedTab.Daemon => Localizer.T("advanced.tab.daemon"),
+                AdvancedTab.Console => Localizer.T("advanced.tab.console"),
+                AdvancedTab.CustomTabletConfigs => Localizer.T("advanced.tab.configs"),
+                AdvancedTab.Diagnostics => Localizer.T("advanced.tab.diagnostics"),
+                AdvancedTab.Plugins => Localizer.T("advanced.tab.plugins"),
+                _ => tab.Label,
+            };
+        }
+        OnPropertyChanged(nameof(CurrentTabTitle));
     }
 }

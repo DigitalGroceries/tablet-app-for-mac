@@ -1,6 +1,7 @@
 using System.Numerics;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.LogicalTree;
 using Avalonia.Interactivity;
 using OpenTabletArtist.Domain;
 using OpenTabletArtist.Helpers;
@@ -19,6 +20,34 @@ public partial class TestView : UserControl
         // The pen position always comes from the daemon, never the OS pointer (#scribble-driver-only).
         PaintCanvas.IgnorePointer = true;
         DataContextChanged += OnDataContextChanged;
+        ApplyLanguage();
+        Localizer.LanguageChanged += ApplyLanguage;
+        DetachedFromLogicalTree += (_, _) => Localizer.LanguageChanged -= ApplyLanguage;
+    }
+
+    void ApplyLanguage()
+    {
+        Localizer.EnsureLoaded();
+        if (LblPressureCurve != null) LblPressureCurve.Text = Localizer.T("scribble.pressure_curve");
+        if (LblPressureSmoothing != null) LblPressureSmoothing.Text = Localizer.T("scribble.pressure_smoothing");
+        if (LblPositionSmoothing != null) LblPositionSmoothing.Text = Localizer.T("scribble.position_smoothing");
+        if (LblPointerOnly != null) LblPointerOnly.Text = Localizer.T("scribble.pointer_only_note");
+        if (LblBrush != null) LblBrush.Text = Localizer.T("scribble.brush");
+        if (BtnClear != null) BtnClear.Content = Localizer.T("scribble.clear");
+        if (BtnCopy != null) BtnCopy.Content = Localizer.T("scribble.copy");
+        if (ChkMarkPositions != null) ChkMarkPositions.Content = Localizer.T("scribble.mark_positions");
+        if (BtnRecord != null) BtnRecord.Content = Localizer.T("scribble.record");
+        if (BtnStop != null) BtnStop.Content = Localizer.T("scribble.stop");
+        if (LblCanvas != null) LblCanvas.Text = Localizer.T("scribble.canvas");
+        if (LblRaw != null) LblRaw.Text = Localizer.T("scribble.raw");
+        if (LblTilt != null) LblTilt.Text = Localizer.T("scribble.tilt");
+        if (LblPressure != null) LblPressure.Text = Localizer.T("scribble.pressure");
+        if (LblTwist != null) LblTwist.Text = Localizer.T("scribble.twist");
+        if (LblAzAl != null) LblAzAl.Text = Localizer.T("scribble.azal");
+        if (LblHover != null) LblHover.Text = Localizer.T("scribble.hover");
+        if (LblRate != null) LblRate.Text = Localizer.T("scribble.rate");
+        if (LblReports != null) LblReports.Text = Localizer.T("scribble.reports");
+        if (UsePenOnScreenButton != null) UsePenOnScreenButton.Content = Localizer.T("scribble.use_pen_on_screen");
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)

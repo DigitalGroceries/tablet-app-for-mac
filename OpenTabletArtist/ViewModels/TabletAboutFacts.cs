@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
 
 namespace OpenTabletArtist.ViewModels;
 
@@ -17,11 +18,13 @@ public sealed record TabletFact(string Label, string Value);
 /// <summary>Builds the ABOUT tab's rows. Pure: every input arrives as a parameter.</summary>
 public static class TabletAboutFacts
 {
+    static string L(string key, string english) => Localizer.Te(key, english);
+
     // Core dimensions — the SPECIFICATIONS card (up to and including the active-area aspect ratio).
     public static IReadOnlyList<TabletFact> BuildFacts(TabletAboutInfo a)
     {
         var facts = new System.Collections.Generic.List<TabletFact>();
-        if (!string.IsNullOrEmpty(a.Name)) facts.Add(new("Name", a.Name));
+        if (!string.IsNullOrEmpty(a.Name)) facts.Add(new(L("tablet.about.name", "Name"), a.Name));
         return facts;
     }
 
@@ -33,10 +36,10 @@ public static class TabletAboutFacts
         var facts = new System.Collections.Generic.List<TabletFact>();
         if (a.WidthMm > 0 && a.HeightMm > 0)
         {
-            facts.Add(new("Size", TabletAboutInfo.FormatSize(a.WidthMm, a.HeightMm)));
+            facts.Add(new(L("tablet.mapping.size", "Size"), TabletAboutInfo.FormatSize(a.WidthMm, a.HeightMm)));
             double diag = System.Math.Sqrt(a.WidthMm * a.WidthMm + a.HeightMm * a.HeightMm);
-            facts.Add(new("Diagonal", TabletAboutInfo.FormatLength(diag)));
-            facts.Add(new("Aspect ratio", TabletAboutInfo.FormatAspectRatio(a.WidthMm, a.HeightMm)));
+            facts.Add(new(L("tablet.mapping.diagonal", "Diagonal"), TabletAboutInfo.FormatLength(diag)));
+            facts.Add(new(L("tablet.mapping.aspect", "Aspect ratio"), TabletAboutInfo.FormatAspectRatio(a.WidthMm, a.HeightMm)));
         }
         return facts;
     }
@@ -46,13 +49,13 @@ public static class TabletAboutFacts
     {
         var facts = new System.Collections.Generic.List<TabletFact>();
         if (a.LpMm is > 0 && a.Lpi is > 0)
-            facts.Add(new("Digitizer resolution", $"{a.LpMm:N0} LPmm ({a.Lpi:N0} LPI)"));
-        if (a.MaxPressure is > 0) facts.Add(new("Pressure levels", $"{a.MaxPressure:N0}"));
-        if (a.PenButtons is { } pb) facts.Add(new("Pen buttons", pb.ToString()));
-        if (a.ExpressKeys is > 0) facts.Add(new("Tablet buttons", a.ExpressKeys!.Value.ToString()));
-        if (a.WheelCount > 0) facts.Add(new("Wheels", a.WheelCount == 1 ? "Yes" : a.WheelCount.ToString()));
-        if (a.StripCount > 0) facts.Add(new("Touch strips", a.StripCount.ToString()));
-        if (a.HasTouch) facts.Add(new("Touch input", "Supported"));
+            facts.Add(new(L("tablet.about.digitizer_resolution", "Digitizer resolution"), $"{a.LpMm:N0} LPmm ({a.Lpi:N0} LPI)"));
+        if (a.MaxPressure is > 0) facts.Add(new(L("tablet.about.pressure_levels", "Pressure levels"), $"{a.MaxPressure:N0}"));
+        if (a.PenButtons is { } pb) facts.Add(new(L("tablet.about.pen_buttons", "Pen buttons"), pb.ToString()));
+        if (a.ExpressKeys is > 0) facts.Add(new(L("tablet.about.tablet_buttons", "Tablet buttons"), a.ExpressKeys!.Value.ToString()));
+        if (a.WheelCount > 0) facts.Add(new(L("tablet.about.wheels", "Wheels"), a.WheelCount == 1 ? L("tablet.about.yes", "Yes") : a.WheelCount.ToString()));
+        if (a.StripCount > 0) facts.Add(new(L("tablet.about.touch_strips", "Touch strips"), a.StripCount.ToString()));
+        if (a.HasTouch) facts.Add(new(L("tablet.about.touch_input", "Touch input"), L("tablet.about.supported", "Supported")));
         return facts;
     }
 }

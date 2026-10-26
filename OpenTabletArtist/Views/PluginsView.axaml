@@ -24,7 +24,7 @@
              small toolbar and left each action to a tooltip to explain. -->
         <c:Section>
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                <TextBlock Grid.Column="0" Text="Installed plugins" Classes="Display section"
+                <TextBlock x:Name="LblInstalledPlugins" Grid.Column="0" Text="Installed plugins" Classes="Display section"
                            VerticalAlignment="Center" />
                 <c:IconButton Grid.Column="1" VerticalAlignment="Top"
                               Icon="{StaticResource IconDotsHorizontal}"
@@ -32,8 +32,8 @@
                               AutomationProperties.Name="Plugin folder actions">
                     <c:IconButton.Flyout>
                         <MenuFlyout>
-                            <MenuItem Header="Rescan plugin folder" Command="{Binding RefreshCommand}" />
-                            <MenuItem Header="Open plugin folder" Command="{Binding BrowseCommand}" />
+                            <MenuItem x:Name="MenuRescan" Header="Rescan plugin folder" Command="{Binding RefreshCommand}" />
+                            <MenuItem x:Name="MenuOpenFolder" Header="Open plugin folder" Command="{Binding BrowseCommand}" />
                         </MenuFlyout>
                     </c:IconButton.Flyout>
                 </c:IconButton>

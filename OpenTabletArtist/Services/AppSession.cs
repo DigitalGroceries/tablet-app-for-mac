@@ -298,18 +298,18 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         or SettingsSaveState.Disconnected or SettingsSaveState.ChangedElsewhere or SettingsSaveState.CouldNotCheck;
     public string SaveStatusText => !string.IsNullOrEmpty(_session.SettingsProblem) ? _session.SettingsProblem : SaveState switch
     {
-        SettingsSaveState.Applying => "Applying…",
-        SettingsSaveState.Unsaved => "Unsaved changes",
-        SettingsSaveState.Saving => "Saving…",
+        SettingsSaveState.Applying => Localizer.Te("save.status.applying", "Applying…"),
+        SettingsSaveState.Unsaved => Localizer.Te("save.status.unsaved", "Unsaved changes"),
+        SettingsSaveState.Saving => Localizer.Te("save.status.saving", "Saving…"),
         // Saved says nothing, because there is nothing to say: every edit is already live on the driver,
         // and the only question this line answers is whether anything would be lost by a restart. An
         // artist who has just pressed Save watches "Saving…" turn into silence, which is the answer.
         // "Applied — not saved" tried to explain the whole model in four words and mostly raised the
         // question of what "applied" meant; "Unsaved changes" names the one thing at stake.
         SettingsSaveState.Saved => "",
-        SettingsSaveState.Failed => "Save failed",
-        SettingsSaveState.ApplyFailed => "Change not applied",
-        SettingsSaveState.Disconnected => "Disconnected",
+        SettingsSaveState.Failed => Localizer.Te("save.failed", "Save failed"),
+        SettingsSaveState.ApplyFailed => Localizer.Te("save.status.apply_failed", "Change not applied"),
+        SettingsSaveState.Disconnected => Localizer.Te("save.status.disconnected", "Disconnected"),
         // Short lines, because this one shares a row with the other save states and is read at a glance.
         // What caused the pause, and what leaving it costs, is SettingsPausedView's to say -- it is on
         // screen for exactly these states and has room for a sentence.
@@ -319,8 +319,8 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         // SetSettings, and ProfileCollection.GetProfile adds the missing one), which the next observation
         // reads as a difference like any other. Naming an editor would be wrong most of the time and
         // would send the artist looking for an application that is not running (#919).
-        SettingsSaveState.ChangedElsewhere => "Reload settings to continue",
-        SettingsSaveState.CouldNotCheck => "Reload settings",
+        SettingsSaveState.ChangedElsewhere => Localizer.Te("save.status.reload_continue", "Reload settings to continue"),
+        SettingsSaveState.CouldNotCheck => Localizer.Te("save.status.reload", "Reload settings"),
         _ => "",
     };
     [ObservableProperty]
@@ -654,6 +654,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         // An asserted pause has to move the same properties a real one does, or the page would not
         // follow it (#developer-pause).
         DeveloperSettings.Instance.PropertyChanged += OnDeveloperSettingsChanged;
+        Localizer.LanguageChanged += () => OnPropertyChanged(nameof(SaveStatusText));
 
         _session.Connected += change => Dispatcher.UIThread.Post(() =>
         {

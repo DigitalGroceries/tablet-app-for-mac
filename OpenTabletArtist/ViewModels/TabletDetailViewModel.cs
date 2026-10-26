@@ -870,6 +870,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         Displays = DisplayEnumerator.Enumerate();
         LoadAuxEnabledState();
         LoadWheelEnabledState();
+        LoadAppProfiles();
         RefreshFromProfile();
         RefreshDetectionStatus();
         RefreshConfigOverride();
@@ -973,6 +974,13 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         ActiveAreaFacts = info != null ? TabletAboutFacts.BuildActiveAreaFacts(info) : System.Array.Empty<TabletFact>();
         TabletFeatures = info != null ? TabletAboutFacts.BuildFeatures(info) : System.Array.Empty<TabletFact>();
         SetAboutDiagram(info);
+    }
+
+    /// <summary>Version 9 leftovers: rebuild localised ABOUT fact labels and pen-button test line after a language change.</summary>
+    public void RefreshLocalizedLabels()
+    {
+        RefreshAbout();
+        OnPropertyChanged(nameof(PenButtonTestText));
     }
 
     // ── ABOUT tab's active-area diagram ─────────────────────────────────────────────────────────────
@@ -1133,14 +1141,38 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         await _wheelThresholdDebounce.FlushAsync();
     }
 
+
+    /// <summary>Copy the stashed All BindingSettings onto <see cref="_profile"/> after a live overlay
+    /// was cleared, so the next submit writes All rather than the previous app's table.</summary>
+    private void RestoreAllBindingsOntoProfile()
+    {
+        var tablet = _profile.Tablet ?? "";
+        var raw = AppSettings.Get(PerAppBindingRuntime.AllBindingsKey(tablet));
+        if (string.IsNullOrEmpty(raw)) return;
+        try
+        {
+            var b = JsonConvert.DeserializeObject<BindingSettings>(raw);
+            if (b != null) _profile.BindingSettings = b;
+        }
+        catch (Exception ex) { AppLog.Warn("Couldn't restore All bindings onto the editor profile.", ex); }
+    }
+
     private async Task ApplySettingsChange(Action<Profile> modify)
     {
         if (_applyAction == null || _settings == null) return;
+        // If a per-app overlay is on the daemon/workspace, restore All bindings first so this edit
+        // (mapping, dynamics, All bindings) lands on the All table — not the transient overlay.
+        if (PerAppBindingRuntime.Shared?.AppliedBundleId != null)
+        {
+            await PerAppBindingRuntime.Shared.EnsureAllOnDaemonAsync();
+            RestoreAllBindingsOntoProfile();
+        }
         var draft = NoteDraftEdit();
         modify(_profile);
         var outcome = await SubmitAsync(_settings);
         if (draft != _draftGeneration || _unsubmitted != DraftGroup.None) return;
         if (!TakeOutcome(outcome, draft)) RefreshFromProfile();
+        PerAppBindingRuntime.Shared?.Kick();
     }
 
     private Task<SettingsApplyOutcome> SubmitAsync(Settings settings) => _applyAction!(settings);
@@ -1543,7 +1575,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
     private void RefreshPenSwitchRows()
     {
-        var bindings = _profile.BindingSettings;
+        var bindings = WorkingBindings();
         var canEdit = _applyAction != null;
         var rows = new List<PenSwitchRowViewModel>
         {
@@ -1579,19 +1611,19 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
     private async Task ApplyPenSwitchBindingAsync(PenSwitchKind kind, int penButtonIndex, PluginSettingStore? store)
     {
-        await ApplySettingsChange(p =>
+        await ApplyBindingMutationAsync(b =>
         {
             switch (kind)
             {
                 case PenSwitchKind.Tip:
-                    p.BindingSettings.TipButton = store;
+                    b.TipButton = store;
                     break;
                 case PenSwitchKind.Eraser:
-                    p.BindingSettings.EraserButton = store;
+                    b.EraserButton = store;
                     break;
                 case PenSwitchKind.PenButton:
-                    if (penButtonIndex >= 1 && penButtonIndex <= p.BindingSettings.PenButtons.Count)
-                        p.BindingSettings.PenButtons[penButtonIndex - 1] = store;
+                    if (penButtonIndex >= 1 && penButtonIndex <= b.PenButtons.Count)
+                        b.PenButtons[penButtonIndex - 1] = store;
                     break;
             }
         });
@@ -1633,16 +1665,16 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 catch { /* corrupt stash — fall back to the live (empty) profile */ }
             }
         }
-        return _profile.BindingSettings.AuxButtons;
+        return WorkingBindings().AuxButtons;
     }
 
     private async Task ApplyAuxBindingAsync(int buttonIndex, AuxBinding binding)
     {
         if (!AuxButtonsEnabled) return; // editing is locked while suspended
         var store = AuxKeyBinding.MakeBinding(binding); // null = unbound
-        await ApplySettingsChange(p =>
+        await ApplyBindingMutationAsync(b =>
         {
-            var aux = p.BindingSettings.AuxButtons;
+            var aux = b.AuxButtons;
             if (buttonIndex >= 1 && buttonIndex <= aux.Count)
                 aux[buttonIndex - 1] = store!;
         });
@@ -1694,7 +1726,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 catch { /* corrupt stash — fall through to live */ }
             }
         }
-        return _profile.BindingSettings.WheelBindings;
+        return WorkingBindings().WheelBindings;
     }
 
     private void RefreshWheels()
@@ -1720,7 +1752,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             for (int b = 0; b < ws.WheelButtons.Count; b++)
             {
                 int bi = b;
-                var label = ws.WheelButtons.Count > 1 ? $"Button {b + 1}" : "Wheel button";
+                var label = ws.WheelButtons.Count > 1 ? Localizer.Tf("tablet.pen.button_n", ("number", b + 1)) : "Wheel button";
                 buttons.Add(MakeWheelRow(wi, label, ws.WheelButtons[b], canEdit,
                     (_, bind) => ApplyWheelButtonAsync(wi, bi, bind)));
             }
@@ -1775,9 +1807,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         if (!WheelEnabled) return Task.CompletedTask;
         var store = AuxKeyBinding.MakeBinding(binding); // null = unbound
-        return ApplySettingsChange(p =>
+        return ApplyBindingMutationAsync(b =>
         {
-            var wheels = p.BindingSettings.WheelBindings;
+            var wheels = b.WheelBindings;
             if (wheelIndex < 0 || wheelIndex >= wheels.Count) return;
             if (clockwise) wheels[wheelIndex].ClockwiseRotation = store;
             else wheels[wheelIndex].CounterClockwiseRotation = store;
@@ -1788,9 +1820,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         if (!WheelEnabled) return Task.CompletedTask;
         var store = AuxKeyBinding.MakeBinding(binding); // null = unbound
-        return ApplySettingsChange(p =>
+        return ApplyBindingMutationAsync(b =>
         {
-            var wheels = p.BindingSettings.WheelBindings;
+            var wheels = b.WheelBindings;
             if (wheelIndex < 0 || wheelIndex >= wheels.Count) return;
             var buttons = wheels[wheelIndex].WheelButtons;
             if (buttonIndex >= 0 && buttonIndex < buttons.Count) buttons[buttonIndex] = store!;
@@ -1870,9 +1902,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     public async Task ResetExpressKeysToDefaultsAsync()
     {
         if (!AuxButtonsEnabled) return;
-        await ApplySettingsChange(p =>
+        await ApplyBindingMutationAsync(b =>
         {
-            var aux = p.BindingSettings.AuxButtons;
+            var aux = b.AuxButtons;
             for (int i = 0; i < aux.Count; i++) aux[i] = null!;
         });
     }
@@ -2011,12 +2043,22 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         {
             var down = new[] { (PenButton1Pressed, 1), (PenButton2Pressed, 2), (PenButton3Pressed, 3) }
                 .Where(b => b.Item1).Select(b => b.Item2.ToString()).ToList();
-            return down.Count switch
+            if (down.Count == 0)
+                return Localizer.Te("tablet.pen.test_buttons", "Press a pen button to test it.");
+            if (down.Count == 1)
             {
-                0 => "Press a pen button to test it.",
-                1 => $"Button {down[0]} pressed.",
-                _ => $"Buttons {string.Join(" and ", down)} pressed.",
-            };
+                var t = Localizer.T("tablet.pen.button_pressed");
+                return t == "tablet.pen.button_pressed"
+                    ? $"Button {down[0]} pressed."
+                    : t.Replace("{number}", down[0], StringComparison.Ordinal);
+            }
+            {
+                var list = string.Join(" and ", down);
+                var t = Localizer.T("tablet.pen.buttons_pressed");
+                return t == "tablet.pen.buttons_pressed"
+                    ? $"Buttons {list} pressed."
+                    : t.Replace("{list}", list, StringComparison.Ordinal);
+            }
         }
     }
 

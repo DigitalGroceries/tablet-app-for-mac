@@ -15,13 +15,14 @@ public partial class SettingsTabItem : ObservableObject
 {
     public SettingsTabItem(string label, SettingsTab tab, object content, bool isVisible = true)
     {
-        Label = label;
+        _label = label;
         Tab = tab;
         Content = content;
         _isVisible = isVisible;
     }
 
-    public string Label { get; }
+    public string Label { get => _label; set { if (_label == value) return; _label = value; OnPropertyChanged(nameof(Label)); } }
+    private string _label;
     public SettingsTab Tab { get; }
     // The subpage view model; the content host resolves it to a view by DataTemplate on its runtime type.
     public object Content { get; }
@@ -50,7 +51,7 @@ public partial class SettingsViewModel : ObservableObject
         // The "System" pivot holds each OS's own integration capabilities, kept deliberately separate so
         // Windows and Linux each do their native thing (no shared abstraction). On Windows it's Startup +
         // Shortcut stacked; on Linux it's the single application-menu-entry (.desktop) card, the counterpart
-        // to the Windows Start-menu shortcut. macOS has no equivalent yet, so the pivot is hidden there (see
+        // to the Windows Start-menu shortcut. On macOS (Version 7) it holds the Start at login switch (see
         // TabAppliesToOs).
         //
         // Driver Cleanup used to be System's right column (#drivers-tab). It is not an integration
@@ -59,6 +60,7 @@ public partial class SettingsViewModel : ObservableObject
         // now, which also leaves System as a single column of two small cards.
         object system = OperatingSystem.IsWindows()
             ? new CompositeSectionViewModel(startup, shortcut)
+            : OperatingSystem.IsMacOS() ? startup   // Version 7: the "Start at login" switch
             : desktopEntry;
 
         // Both drivers the app manages, side by side: what is wrong with the machine's existing drivers on
@@ -67,12 +69,12 @@ public partial class SettingsViewModel : ObservableObject
         var drivers = new TwoColumnSectionViewModel(new object[] { driverCleanup }, new object[] { vmulti });
         var tabs = new SettingsTabItem[]
         {
-            new("PRESETS", SettingsTab.Presets, presets),
-            new("HOTKEYS", SettingsTab.Hotkeys, hotkeys),
-            new("THEME", SettingsTab.Theme, theme),
-            new("SYSTEM", SettingsTab.System, system),
-            new("DRIVERS", SettingsTab.Drivers, drivers),
-            new("DEV", SettingsTab.Developer, developer),
+            new(Localizer.T("settings.tab.presets"), SettingsTab.Presets, presets),
+            new(Localizer.T("settings.tab.hotkeys"), SettingsTab.Hotkeys, hotkeys),
+            new(Localizer.T("settings.tab.theme"), SettingsTab.Theme, theme),
+            new(Localizer.T("settings.tab.system"), SettingsTab.System, system),
+            new(Localizer.T("settings.tab.drivers"), SettingsTab.Drivers, drivers),
+            new(Localizer.T("settings.tab.dev"), SettingsTab.Developer, developer),
         }.Where(t => TabAppliesToOs(t.Tab, OperatingSystem.IsWindows(), OperatingSystem.IsLinux())).ToArray();
         Tabs = tabs;
         _allTabs = tabs;
@@ -85,14 +87,13 @@ public partial class SettingsViewModel : ObservableObject
 
     /// <summary>Whether a SETTINGS pivot applies on the given OS. The <b>System</b> pivot holds OS-specific
     /// integration capabilities — the Windows pages (Startup Run key + Shortcut .lnk) on Windows, the
-    /// application-menu-entry card on Linux — so it shows on both but is hidden on macOS, which has no
-    /// equivalent yet. <b>Drivers</b> is Windows-only: the conflicting drivers it finds and the cleanup tool
+    /// application-menu-entry card on Linux — and, from Version 7, the Start at login page on macOS, so it shows everywhere. <b>Drivers</b> is Windows-only: the conflicting drivers it finds and the cleanup tool
     /// it runs are both Windows things, and it inherits that from the Driver Cleanup page it holds, which was
     /// Windows-only inside System. Every other pivot is cross-platform. Pure (OS passed in, not checked
     /// inline) so it's unit-testable — matching <see cref="AdvancedViewModel.RailTabAppliesToOs"/>.</summary>
     public static bool TabAppliesToOs(SettingsTab tab, bool isWindows, bool isLinux) => tab switch
     {
-        SettingsTab.System => isWindows || isLinux,
+        SettingsTab.System => true,   // Version 7: macOS shows Start at login here
         SettingsTab.Drivers => isWindows,
         _ => true,
     };
@@ -157,4 +158,24 @@ public partial class SettingsViewModel : ObservableObject
     {
         foreach (var t in _allTabs) t.IsSelected = t.Tab == SelectedTab;
     }
+
+    /// <summary>Version 8: refresh rail labels after a language change.</summary>
+    public void RefreshLocalizedLabels()
+    {
+        foreach (var t in _allTabs)
+        {
+            t.Label = t.Tab switch
+            {
+                SettingsTab.Presets => Localizer.T("settings.tab.presets"),
+                SettingsTab.Hotkeys => Localizer.T("settings.tab.hotkeys"),
+                SettingsTab.Theme => Localizer.T("settings.tab.theme"),
+                SettingsTab.System => Localizer.T("settings.tab.system"),
+                SettingsTab.Drivers => Localizer.T("settings.tab.drivers"),
+                SettingsTab.Developer => Localizer.T("settings.tab.dev"),
+                _ => t.Label,
+            };
+        }
+        OnPropertyChanged(nameof(CurrentTabTitle));
+    }
 }
+

@@ -24,11 +24,15 @@ public static class ObjCSelectors
     public const string SetFrameDisplay = "setFrame:display:";
     public const string AgentServiceWithPlistName = "agentServiceWithPlistName:";
     public const string StringWithUtf8String = "stringWithUTF8String:";
+    // Version 7 test 9: Dock hide while only the pen menu-bar icon is showing.
+    public const string SharedApplication = "sharedApplication";
+    public const string SetActivationPolicy = "setActivationPolicy:";
 
     public static IReadOnlyList<string> All { get; } = new[]
     {
         MainAppService, Status, Register, Unregister, LocalizedDescription, Utf8String, SetIgnoresMouseEvents,
         SetCollectionBehavior, Window, SetLevel, Screen, Frame, SetFrameDisplay, AgentServiceWithPlistName, StringWithUtf8String,
+        SharedApplication, SetActivationPolicy,
     };
 }
 

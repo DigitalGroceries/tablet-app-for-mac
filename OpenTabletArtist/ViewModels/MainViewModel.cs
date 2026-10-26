@@ -36,6 +36,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly ProfileHotkeyManager _profileHotkeys;
     private readonly MonitorCycleService _monitorCycle;
     private readonly MonitorCycleHotkeys _monitorHotkeys;
+    private readonly PerAppBindingRuntime? _perAppBindings;
+    private readonly PenBusySampler? _penBusy;
 
     // One cached settings VM per tablet (heavy: holds subscriptions). Reconciled on each data load.
     private readonly Dictionary<string, TabletDetailViewModel> _tabletDetails = new(StringComparer.OrdinalIgnoreCase);
@@ -234,6 +236,27 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _profileHotkeys = new ProfileHotkeyManager(_globalHotkeys, _profileSwitch);
         _monitorCycle = new MonitorCycleService(_session, _session);
         _monitorHotkeys = new MonitorCycleHotkeys(_globalHotkeys, _monitorCycle);
+        // Application-row focus-apply (bindings only). macOS only; no-op elsewhere.
+        // Tip-down comes from the daemon DeviceReport stream (PenBusySampler), same contact
+        // rule as RingGestureGate.PenBusy, so SetSettings is deferred mid-stroke.
+        if (OperatingSystem.IsMacOS())
+        {
+            _penBusy = new PenBusySampler(_session.Daemon);
+            _penBusy.Start();
+            _perAppBindings = new PerAppBindingRuntime(
+                _session, () => _session.ActiveTabletName, tipDown: () =>
+                {
+                    _penBusy.Kick(); // re-arm debug if another page turned it off
+                    return _penBusy.TipDown;
+                });
+        }
+        else
+        {
+            _penBusy = null;
+            _perAppBindings = null;
+        }
+        PerAppBindingRuntime.Shared = _perAppBindings;
+        _perAppBindings?.Start();
         // Page VMs depend on the session through its role interfaces and on IDialogService,
         // and self-subscribe to the session's data load / connection state.
         DriverCleanup = new DriverCleanupViewModel(dialogs, _conflicts);
@@ -253,7 +276,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
             () => OpenAdvancedTab(AdvancedTab.CustomTabletConfigs));  // pen links → Tablet › Pen (R14: no PEN page)
         Test = new TestViewModel(_session.Daemon, _session, () => _session.DaemonVersion,
             showRecordingReview: dialogs.ShowRecordingReviewAsync,
-            showRecordingProblem: message => dialogs.ShowMessageAsync("Can't record", message));
+            showRecordingProblem: message => dialogs.ShowMessageAsync("Can't record", message),
+            applyProfile: _session.ApplyProfileAsync);
         Log = new LogViewModel(_session.Daemon, _session);
         // Windows Ink moved to PLUGINS from the pivot now called VMULTI, so it is handed to that page —
         // and only
@@ -292,11 +316,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // The whole top-level nav as one ordered list (Zune Phase 0.2). Presets live in
         // SETTINGS tabs (#571). Selection is synced in OnCurrentPageChanged. TABLET's page carries a
         // placeholder when no tablet is known; SETTINGS + ADVANCED each open a tabbed page.
-        NavSections.Add(new NavLeafViewModel("HOME", Dashboard));
-        NavSections.Add(new NavLeafViewModel("TABLET", TabletPage));
-        NavSections.Add(new NavLeafViewModel("SCRIBBLE", Test));
-        NavSections.Add(new NavLeafViewModel("SETTINGS", Settings));
-        NavSections.Add(new NavLeafViewModel("ADVANCED", Advanced));
+        NavSections.Add(new NavLeafViewModel(Services.Localizer.T("nav.home"), Dashboard));
+        NavSections.Add(new NavLeafViewModel(Services.Localizer.T("nav.tablet"), TabletPage));
+        NavSections.Add(new NavLeafViewModel(Services.Localizer.T("nav.scribble"), Test));
+        NavSections.Add(new NavLeafViewModel(Services.Localizer.T("nav.settings"), Settings));
+        NavSections.Add(new NavLeafViewModel(Services.Localizer.T("nav.advanced"), Advanced));
+        Services.Localizer.LanguageChanged += RefreshNavLabels;
 
         // Keep the TABLET + PEN switchers pointed at the app-wide active tablet, so all three tablet
         // switchers (incl. SCRIBBLE, which drives it directly) stay linked when it changes from anywhere
@@ -341,6 +366,19 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private void Navigate(object page) => CurrentPage = page as ObservableObject;
+
+    void RefreshNavLabels()
+    {
+        if (NavSections.Count < 5) return;
+        NavSections[0].Label = Services.Localizer.T("nav.home");
+        NavSections[1].Label = Services.Localizer.T("nav.tablet");
+        NavSections[2].Label = Services.Localizer.T("nav.scribble");
+        NavSections[3].Label = Services.Localizer.T("nav.settings");
+        NavSections[4].Label = Services.Localizer.T("nav.advanced");
+        Settings.RefreshLocalizedLabels();
+        Advanced.RefreshLocalizedLabels();
+        RebuildTablets(); // CONNECTED / last-seen lines use Localizer
+    }
 
     /// <summary>Open the ADVANCED tabbed page on a specific tab — the deep-link target for health-issue
     /// "Fix" buttons (Windows Ink, VMulti, Driver Cleanup) and the Home daemon card's "Open daemon page".</summary>
@@ -407,6 +445,16 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         vm.ShowHeader = false;
         return vm;
+    }
+
+    /// <summary>Re-enumerate monitors on every cached tablet detail VM. Quiet login builds those VMs
+    /// before <c>desktop.MainWindow</c> is set, so the first Enumerate is empty; call this after the
+    /// window is shown so Tablet › Mapping gets the arrangement.</summary>
+    public void RefreshTabletDisplays()
+    {
+        foreach (var vm in _tabletDetails.Values)
+            if (vm.RefreshDisplaysCommand.CanExecute(null))
+                vm.RefreshDisplaysCommand.Execute(null);
     }
 
     /// <summary>Open the TABLET page on a specific tablet (the Home cards, a health-issue "Fix" deep-link),
@@ -542,6 +590,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             foreach (var editor in _tabletDetails.Values.ToArray())
                 await editor.FlushPendingEditsAsync();
+            if (_perAppBindings is not null)
+                await _perAppBindings.EnsureAllOnDaemonAsync();
             return await _session.SaveSettingsAsync();
         }
         catch (Exception ex)
@@ -695,6 +745,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _session.DataLoaded -= RebuildTablets;
         _session.DataLoaded -= ReconcileOpenTabletDetails;
         _session.SettingsReplaced -= ResetEditorInput;
+        _perAppBindings?.Dispose();
+        if (ReferenceEquals(PerAppBindingRuntime.Shared, _perAppBindings))
+            PerAppBindingRuntime.Shared = null;
+        _penBusy?.Dispose();
         _autoMapper.Dispose();    // unsubscribes DataLoaded (first-detection auto-mapping)
         _winInkAutoSetup.Dispose(); // unsubscribes DataLoaded (Windows Ink auto-setup)
         Daemon.Dispose();         // stops the connection card's uptime timer + unsubscribes
@@ -731,12 +785,12 @@ public partial class NavLeafViewModel : ObservableObject
 {
     public NavLeafViewModel(string label, ObservableObject page, bool isVisible = true)
     {
-        Label = label;
+        _label = label;
         Page = page;
         _isVisible = isVisible;
     }
 
-    public string Label { get; }
+    [ObservableProperty] private string _label;
     public ObservableObject Page { get; }
     [ObservableProperty] private bool _isSelected;
     [ObservableProperty] private bool _isVisible;

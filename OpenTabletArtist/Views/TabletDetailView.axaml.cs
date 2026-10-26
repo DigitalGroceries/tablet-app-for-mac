@@ -5,10 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.LogicalTree;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using OpenTabletArtist.Controls;
+using OpenTabletArtist.Services;
 using OpenTabletArtist.ViewModels;
 
 namespace OpenTabletArtist.Views;
@@ -35,6 +37,102 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         PenTab.IsCheckedChanged += OnLiveTabChanged;
         EraserTab.IsCheckedChanged += OnLiveTabChanged;
         SyncToolChips();
+        ApplyLanguage();
+        Localizer.LanguageChanged += ApplyLanguage;
+        DetachedFromLogicalTree += (_, _) => Localizer.LanguageChanged -= ApplyLanguage;
+    }
+
+    /// <summary>Version 8: refresh high-visibility Tablet chrome when the language preference changes.</summary>
+    void ApplyLanguage()
+    {
+        Localizer.EnsureLoaded();
+        if (LblDevice != null) LblDevice.Text = Localizer.T("tablet.device");
+        if (LblTool != null) LblTool.Text = Localizer.T("tablet.tool");
+        if (LblApplication != null) LblApplication.Text = Localizer.T("tablet.application");
+        if (LblFunctions != null) LblFunctions.Text = Localizer.T("tablet.tool.functions");
+        if (LblToolPen != null) LblToolPen.Text = Localizer.T("tablet.tool.pen");
+        if (LblMore != null) LblMore.Text = Localizer.T("tablet.tool.more");
+        if (LblAll != null) LblAll.Text = Vm?.AllAppLabel ?? Localizer.T("tablet.app.all");
+        if (ToolFunctionsButton != null) ToolTip.SetTip(ToolFunctionsButton, Localizer.T("tablet.tool.functions"));
+        if (ToolPenButton != null) ToolTip.SetTip(ToolPenButton, Localizer.T("tablet.tool.pen"));
+        if (ToolMoreButton != null) ToolTip.SetTip(ToolMoreButton, Localizer.T("tablet.tool.more"));
+        if (AppAllTile != null) ToolTip.SetTip(AppAllTile, Vm?.AllAppLabel ?? Localizer.T("tablet.app.all"));
+
+        if (ButtonsTab != null) ButtonsTab.Content = Localizer.T("tablet.tab.expresskeys");
+        if (WheelsTab != null) WheelsTab.Content = Localizer.T("tablet.tab.touch_ring");
+        if (PenTab != null) PenTab.Content = Localizer.T("tablet.tab.pen");
+        if (EraserTab != null) EraserTab.Content = Localizer.T("tablet.tab.eraser");
+        if (MappingTab != null) MappingTab.Content = Localizer.T("tablet.tab.mapping");
+        if (AboutTab != null) AboutTab.Content = Localizer.T("tablet.tab.about");
+        if (CalibrationTab != null) CalibrationTab.Content = Localizer.T("tablet.tab.calibration");
+        if (HoverTab != null) HoverTab.Content = Localizer.T("tablet.tab.hover");
+        if (FiltersTab != null) FiltersTab.Content = Localizer.T("tablet.tab.filters");
+        if (JsonTab != null) JsonTab.Content = Localizer.T("tablet.tab.json");
+
+        if (PenTiltGroup != null) PenTiltGroup.Header = Localizer.T("tablet.pen.tilt");
+        if (PenTiltOff != null) PenTiltOff.Content = Localizer.T("tablet.pen.turn_tilt_off");
+        if (PenTipFeelGroup != null) PenTipFeelGroup.Header = Localizer.T("tablet.pen.tip_feel");
+        if (PenSoft != null) PenSoft.Text = Localizer.T("tablet.pen.soft");
+        if (PenFirm != null) PenFirm.Text = Localizer.T("tablet.pen.firm");
+        if (PenCustomise != null) PenCustomise.Content = Localizer.T("tablet.pen.customise");
+        if (ManualTipPressureFrame != null) ManualTipPressureFrame.Header = Localizer.T("tablet.pen.manual_tip_pressure");
+        if (PenManualNote != null) PenManualNote.Text = Localizer.T("tablet.pen.manual_tip_note");
+
+        if (EraserTiltGroup != null) EraserTiltGroup.Header = Localizer.T("tablet.pen.tilt");
+        if (EraserTiltBox != null) EraserTiltBox.Content = Localizer.T("tablet.pen.turn_tilt_off");
+        if (EraserFeelGroup != null) EraserFeelGroup.Header = Localizer.T("tablet.eraser.feel");
+        if (EraserSoft != null) EraserSoft.Text = Localizer.T("tablet.pen.soft");
+        if (EraserFirm != null) EraserFirm.Text = Localizer.T("tablet.pen.firm");
+        if (EraserCustomizeButton != null) EraserCustomizeButton.Content = Localizer.T("tablet.pen.customise");
+        if (ManualEraserPressureFrame != null) ManualEraserPressureFrame.Header = Localizer.T("tablet.eraser.manual_pressure");
+
+        if (LblMapSize != null) LblMapSize.Text = Localizer.T("tablet.mapping.size");
+        if (LblMapRotation != null) LblMapRotation.Text = Localizer.T("tablet.mapping.rotation");
+        if (LblMapTablet != null) LblMapTablet.Text = Localizer.T("tablet.mapping.tablet");
+        if (LblMapActiveArea != null) LblMapActiveArea.Text = Localizer.T("tablet.mapping.active_area");
+        if (LblMapArea != null) LblMapArea.Text = Localizer.T("tablet.mapping.area");
+        if (LblMapDimensions != null) LblMapDimensions.Text = Localizer.T("tablet.mapping.dimensions");
+        if (LblMapDiagonal != null) LblMapDiagonal.Text = Localizer.T("tablet.mapping.diagonal");
+        if (LblMapAspect != null) LblMapAspect.Text = Localizer.T("tablet.mapping.aspect");
+        if (BtnDisplaySettings != null) BtnDisplaySettings.Content = Localizer.T("tablet.mapping.display_settings");
+
+        if (LblEnableWheels != null) LblEnableWheels.Text = Localizer.T("tablet.ring.enable");
+        if (LblAboutTouchRing != null) LblAboutTouchRing.Text = Localizer.T("tablet.ring.about");
+        if (LblAboutExpressKeys != null) LblAboutExpressKeys.Text = Localizer.T("tablet.expresskeys.about");
+        if (LblPerAppBindingsNote != null) LblPerAppBindingsNote.Text = Localizer.T("tablet.app.bindings_only_note");
+        if (BtnOptions != null) BtnOptions.Content = Localizer.T("tablet.options");
+
+        if (LblModel != null) LblModel.Text = Localizer.T("tablet.about.model");
+        if (LblFeatures != null) LblFeatures.Text = Localizer.T("tablet.about.features");
+
+        if (LblScreenArea != null) LblScreenArea.Text = Localizer.T("tablet.mapping.screen_area");
+        if (BtnAllDisplays != null) BtnAllDisplays.Content = Localizer.T("tablet.mapping.all_displays");
+        if (LblInUse != null) LblInUse.Text = Localizer.T("tablet.mapping.in_use");
+        if (LblOrClickOne != null) LblOrClickOne.Text = Localizer.T("tablet.mapping.or_click_one");
+        if (ChkForceProportions != null) ChkForceProportions.Content = Localizer.T("tablet.mapping.force_proportions");
+
+        if (LblEnableButtons != null) LblEnableButtons.Text = Localizer.T("tablet.expresskeys.enable");
+        if (LblExpressKeysBody != null) LblExpressKeysBody.Text = Localizer.T("tablet.expresskeys.body");
+        if (LblExpressKeysPress != null) LblExpressKeysPress.Text = Localizer.T("tablet.expresskeys.press_hint");
+        if (LblExpressKeysEnableNote != null) LblExpressKeysEnableNote.Text = Localizer.T("tablet.expresskeys.enable_note");
+        if (KeysDefaultButton != null) KeysDefaultButton.Content = Localizer.T("tablet.pen.default");
+
+        if (LblPenCurrentPressure != null) LblPenCurrentPressure.Text = Localizer.T("tablet.pen.current_pressure");
+        if (LblPenClick != null) LblPenClick.Text = Localizer.T("tablet.pen.click");
+        if (LblPenFull != null) LblPenFull.Text = Localizer.T("tablet.pen.full");
+
+        if (LblEraserTiltShared != null) LblEraserTiltShared.Text = Localizer.T("tablet.pen.shared");
+        if (LblEraserCurrentPressure != null) LblEraserCurrentPressure.Text = Localizer.T("tablet.pen.current_pressure");
+        if (LblEraserClick != null) LblEraserClick.Text = Localizer.T("tablet.pen.click");
+        if (LblEraserFull != null) LblEraserFull.Text = Localizer.T("tablet.pen.full");
+        if (LblEraserSharedCurve != null) LblEraserSharedCurve.Text = Localizer.T("tablet.pen.shared_curve");
+        if (LblEraserManualNote != null) LblEraserManualNote.Text = Localizer.T("tablet.eraser.manual_note");
+
+        if (AppAddButton != null) ToolTip.SetTip(AppAddButton, Localizer.T("tablet.app.add_tip"));
+        if (AppRemoveButton != null) ToolTip.SetTip(AppRemoveButton, Localizer.T("tablet.app.remove_tip"));
+
+
+        Vm?.RefreshLocalizedLabels();
     }
 
     internal void SyncToolChips()
@@ -76,6 +174,32 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     private void OnCustomizeEraserFeel(object? s, RoutedEventArgs e) =>
         EraserFeelDetails.IsVisible = !EraserFeelDetails.IsVisible;
 
+
+    private void OnAppAllTile(object? s, RoutedEventArgs e) => Vm?.SelectAllAppCommand.Execute(null);
+
+    private void OnAppProfileTile(object? s, RoutedEventArgs e)
+    {
+        if (s is Control { Tag: string bundleId })
+            Vm?.SelectAppProfileCommand.Execute(bundleId);
+    }
+
+    private async void OnAppAdd(object? s, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var owner = TopLevel.GetTopLevel(this) as Window ?? Helpers.Dialogs.GetMainWindow();
+        if (owner is null) return;
+        var chosen = await AddApplicationDialog.ShowAsync(owner);
+        if (chosen is null) return;
+        await Vm.AddApplicationAsync(chosen);
+        ApplyLanguage();
+    }
+
+    private async void OnAppRemove(object? s, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        await Vm.RemoveSelectedAppCommand.ExecuteAsync(null);
+        ApplyLanguage();
+    }
 
     private void OnBottomOptions(object? s, RoutedEventArgs e)
     {
@@ -133,6 +257,10 @@ public partial class TabletDetailView : UserControl, ITabbedContent
 
         _screens = TopLevel.GetTopLevel(this)?.Screens;
         if (_screens != null) _screens.Changed += OnScreensChanged;
+        // Quiet login / early DataLoaded may have built this VM with an empty display list (MainWindow
+        // unset). Re-enumerate now that we are in a live visual tree with Screens.
+        Vm?.RefreshDisplaysCommand.Execute(null);
+        MappingTab.IsCheckedChanged += OnMappingTabChanged;
         // Live device-report stream feeds the aux-button highlight (Buttons tab) and the wheel gauge
         // (Wheels tab), so watch those tabs.
         ButtonsTab.IsCheckedChanged += OnLiveTabChanged;
@@ -150,6 +278,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (_screens != null) { _screens.Changed -= OnScreensChanged; _screens = null; }
         ButtonsTab.IsCheckedChanged -= OnLiveTabChanged;
         WheelsTab.IsCheckedChanged -= OnLiveTabChanged;
+        MappingTab.IsCheckedChanged -= OnMappingTabChanged;
         ActiveAreaDiagramControl.AreaCommitted -= OnActiveAreaCommitted;
         Vm?.StopLiveInput();
     }
@@ -241,6 +370,12 @@ public partial class TabletDetailView : UserControl, ITabbedContent
 
     private void OnScreensChanged(object? sender, EventArgs e) =>
         Vm?.RefreshDisplaysCommand.Execute(null);
+
+    private void OnMappingTabChanged(object? sender, RoutedEventArgs e)
+    {
+        if (MappingTab.IsChecked == true)
+            Vm?.RefreshDisplaysCommand.Execute(null);
+    }
 
     // A deep-link arriving while the page is already shown — clear the pending flag (we're handling it
     // live) and switch tabs.
