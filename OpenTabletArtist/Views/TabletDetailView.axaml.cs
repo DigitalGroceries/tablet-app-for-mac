@@ -189,8 +189,10 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         var owner = TopLevel.GetTopLevel(this) as Window ?? Helpers.Dialogs.GetMainWindow();
         if (owner is null) return;
         var chosen = await AddApplicationDialog.ShowAsync(owner);
-        if (chosen is null) return;
-        await Vm.AddApplicationAsync(chosen);
+        if (chosen.Count == 0) return;
+        // Version 14: several apps at once (Command-click). The last one added ends up selected.
+        foreach (var app in chosen)
+            await Vm.AddApplicationAsync(app);
         ApplyLanguage();
     }
 

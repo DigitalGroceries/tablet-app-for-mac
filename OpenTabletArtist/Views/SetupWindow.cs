@@ -58,10 +58,15 @@ public sealed class SetupWindow : Window
         RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
         _penAtStart = MacAccessibility.CanReadPen();
         _pointerAtStart = MacAccessibility.IsTrusted();
-        _steps = Plan(WacomDriverCheck.FindOnThisMac().Count > 0, _penAtStart, _pointerAtStart, false);
+        _steps = Plan(WacomBlocksSetup(), _penAtStart, _pointerAtStart, false);
         _steps.Remove(Step.Done);
         // Ask macOS first, so the app is already in each list and the user only flips one switch.
-        if (!_penAtStart) MacAccessibility.RequestReadPen();
+        if (!_penAtStart && !_askedReadPenThisRun)
+        {
+            _askedReadPenThisRun = true;
+            AppLog.Info("Permission: asked macOS for Input Monitoring (once per run).");
+            MacAccessibility.RequestReadPen();
+        }
         Content = new Border { Padding = new Thickness(32), Child = _body };
         Refresh();
         _poll.Tick += (_, _) => Refresh();
@@ -79,7 +84,7 @@ public sealed class SetupWindow : Window
     void Refresh()
     {
         bool pen = MacAccessibility.CanReadPen(), pointer = MacAccessibility.IsTrusted();
-        var plan = Plan(WacomDriverCheck.FindOnThisMac().Count > 0, pen, pointer, (pen && !_penAtStart) || (pointer && !_pointerAtStart));
+        var plan = Plan(WacomBlocksSetup(), pen, pointer, (pen && !_penAtStart) || (pointer && !_pointerAtStart));
         var step = plan[0];
         if (step != _shown) { _shown = step; _openedAt = null; Show(step, plan.Count - 1); }
         else if (_openedAt is { } t && DateTime.Now - t > StaleAfter && _staleHint is { IsVisible: false }) _staleHint.IsVisible = true;
@@ -251,13 +256,27 @@ public sealed class SetupWindow : Window
 
     static bool _wacomDismissedThisSession;
 
+    /// <summary>Version 14: macOS's own Input Monitoring box is asked for once per run, even when setup is
+    /// closed and opened again (each new setup window used to ask again).</summary>
+    static bool _askedReadPenThisRun;
+
+    /// <summary>Version 14: only a live Wacom driver opens setup (Utility app, preference pane, kexts, launch
+    /// files, running processes). An empty /Applications/Wacom Tablet(.localized) folder is a harmless leftover
+    /// that the app usually can't delete (it belongs to the system), and it used to bring setup back at every
+    /// start.</summary>
+    public static bool WacomBlocksSetup() => WacomDriverCheck.LiveOnThisMac().Count > 0;
+
+    /// <summary>Pure form of <see cref="WacomBlocksSetup()"/> for tests.</summary>
+    public static bool WacomBlocksSetup(Func<string, bool> exists, Func<string, IEnumerable<string>> list, IEnumerable<string> running)
+        => WacomDriverCheck.ClassifyLive(exists, list, running).Count > 0;
+
     /// <summary>Shows setup when a permission is missing or the Wacom driver is found (first launch, or later).
     /// Closing with permissions already OK suppresses Wacom-only reopens for this session.</summary>
     public static void ShowIfNeeded()
     {
         if (!OperatingSystem.IsMacOS() || _open != null) return;
         bool penOk = MacAccessibility.CanReadPen(), pointerOk = MacAccessibility.IsTrusted();
-        bool wacom = WacomDriverCheck.FindOnThisMac().Count > 0;
+        bool wacom = WacomBlocksSetup();
         if (!wacom && penOk && pointerOk) _wacomDismissedThisSession = false;
         if (!ShouldShow(penOk, pointerOk, wacom, _wacomDismissedThisSession)) return;
         _open = new SetupWindow();

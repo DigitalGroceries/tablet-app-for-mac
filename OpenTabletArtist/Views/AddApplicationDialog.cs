@@ -13,16 +13,19 @@ using OpenTabletArtist.Services;
 
 namespace OpenTabletArtist.Views;
 
-/// <summary>Pick a running app or browse for a .app to add an Application-row profile.</summary>
+/// <summary>Pick running apps or browse for .app bundles to add Application-row profiles.
+/// Version 14: several at once — hold Command to select more than one, in the list and in the Finder browser.</summary>
 internal static class AddApplicationDialog
 {
-    public static async Task<MacAppCandidate?> ShowAsync(Window owner)
+    public static async Task<IReadOnlyList<MacAppCandidate>> ShowAsync(Window owner)
     {
-        MacAppCandidate? chosen = null;
+        var chosen = new List<MacAppCandidate>();
         var list = new ListBox
         {
             Height = 280,
             MinWidth = 420,
+            // Command-click (Shift-click for a range) picks several apps; macOS's usual list behaviour.
+            SelectionMode = SelectionMode.Multiple,
         };
         void Reload()
         {
@@ -79,32 +82,43 @@ internal static class AddApplicationDialog
             var folders = await storage.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = Localizer.T("tablet.app.browse_title"),
-                AllowMultiple = false,
+                AllowMultiple = true,
             });
-            var path = folders.FirstOrDefault()?.TryGetLocalPath();
-            if (string.IsNullOrWhiteSpace(path)) return;
+            var paths = folders.Select(f => f.TryGetLocalPath()).Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p!).ToList();
+            if (paths.Count == 0) return;
             // Users often pick the .app itself (treated as a folder on macOS).
-            var candidate = MacFrontmostApp.FromAppPath(path);
-            if (candidate is null)
+            var picked = Pick(paths, MacFrontmostApp.FromAppPath);
+            if (picked.Count == 0)
             {
                 await Dialogs.ShowMessageAsync(Localizer.T("tablet.app.add_title"),
                     Localizer.T("tablet.app.browse_invalid"), dialog);
                 return;
             }
-            chosen = candidate;
+            chosen.AddRange(picked);
             dialog.Close();
         };
         cancel.Click += (_, _) => dialog.Close();
         add.Click += (_, _) =>
         {
-            if (list.SelectedItem is ListBoxItem { Tag: MacAppCandidate c })
-            {
-                chosen = c;
-                dialog.Close();
-            }
+            var selected = (list.SelectedItems?.OfType<ListBoxItem>() ?? Enumerable.Empty<ListBoxItem>())
+                .Select(i => i.Tag).OfType<MacAppCandidate>().ToList();
+            if (selected.Count == 0) return;
+            chosen.AddRange(Distinct(selected));
+            dialog.Close();
         };
 
         await dialog.ShowDialog(owner);
         return chosen;
     }
+
+    /// <summary>Turns picked .app paths into candidates, skipping anything that isn't an app and duplicates.
+    /// Pure apart from <paramref name="fromPath"/>; unit-tested.</summary>
+    internal static IReadOnlyList<MacAppCandidate> Pick(IEnumerable<string> paths, Func<string, MacAppCandidate?> fromPath)
+        => Distinct(paths.Select(fromPath).OfType<MacAppCandidate>());
+
+    /// <summary>One entry per bundle id, first one wins (case-insensitive, like the profile store).</summary>
+    internal static IReadOnlyList<MacAppCandidate> Distinct(IEnumerable<MacAppCandidate> candidates)
+        => candidates.Where(c => !string.IsNullOrWhiteSpace(c.BundleId))
+            .GroupBy(c => c.BundleId, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First()).ToList();
 }
