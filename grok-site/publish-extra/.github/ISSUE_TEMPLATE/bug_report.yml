@@ -1,0 +1,29 @@
+name: Bug report
+description: Something doesn't work as described.
+labels: [bug]
+body:
+  - type: markdown
+    attributes: {value: "Feedback is read once a week."}
+  - type: input
+    id: app
+    attributes: {label: App version, description: "From About (for example 0.91.17-R18).", placeholder: 0.91.17-R18}
+    validations: {required: true}
+  - type: input
+    id: macos
+    attributes: {label: macOS version, placeholder: "27.0.1"}
+    validations: {required: true}
+  - type: input
+    id: tablet
+    attributes: {label: Tablet model, placeholder: "Wacom Intuos4 Small (PTK-440)"}
+    validations: {required: true}
+  - type: textarea
+    id: steps
+    attributes: {label: Steps to reproduce, placeholder: "1. Open Tablet › Pen\n2. …"}
+    validations: {required: true}
+  - type: textarea
+    id: expected
+    attributes: {label: Expected and actual result}
+    validations: {required: true}
+  - type: textarea
+    id: extra
+    attributes: {label: Screenshots or log, description: "Advanced › Console › Copy as Markdown helps."}

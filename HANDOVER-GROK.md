@@ -25,6 +25,8 @@ Written when Claude asked for branch `grok-handover` after Grok hit a usage stop
 
 ## How to build, package and publish
 
+**Clone path note:** scripts hard-code `/workspace/otaE/site/` (tools + `docs/assets/icon-256.png`), `/workspace/otaE/sweep/` (app + `Assets/manual/`), `/workspace/otaE/V7/` (pack out), `/workspace/otaE/R18/for-claude/` (build-history / licences), `/workspace/otaE/V5/shots-used/` (Home shots), and `/workspace/tam` (live `gh-pages`); on a clone replace those with this repo’s `grok-site/` (mirrors `site/`), your app checkout, `grok-scripts/`, and your Pages checkout.
+
 Copy-paste commands as run on Grok Bot’s Linux computer. Paths below are absolute on that machine. Repo: `DigitalGroceries/tablet-app-for-mac`. Scripts in this branch: `grok-scripts/`.
 
 ### (1) Tools and versions
