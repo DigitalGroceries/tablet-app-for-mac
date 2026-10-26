@@ -59,3 +59,6 @@ section.chap{scroll-margin-top:16px}section.chap h2{scroll-margin-top:16px}
 .langpop ul{list-style:none;margin:0;padding:0}.langpop a{display:block;padding:5px 10px;color:#CFCFCF;text-decoration:none;border-radius:4px}.langpop a:hover,.langpop a:focus-visible{background:#2A2A2A;color:#E4E4E4}
 .langpop .muted{margin:6px 10px 2px;font-size:12px}
 .btn .sub{display:block;font-size:.8em;font-weight:500;opacity:.85;text-align:center}
+
+/* V14 era: links to the two previous versions under the Download button */
+.dl .older{margin:10px 0 0}
