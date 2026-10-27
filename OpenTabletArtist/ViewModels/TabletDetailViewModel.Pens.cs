@@ -89,7 +89,7 @@ public partial class TabletDetailViewModel
         var ok = await OpenTabletArtist.Helpers.Dialogs.ShowConfirmAsync(
             Localizer.Te("tablet.device.add_title", "Add a tablet"),
             Localizer.Te("tablet.device.add_body",
-                "Connect the tablet with its cable. It appears here by itself. If it doesn't, this app may not know the model yet: open Tablet configs to check for one."),
+                "Connect the tablet to your Mac. It appears here by itself. If it doesn't, this app may not know the model yet: open Tablet configs to check for one."),
             Localizer.Te("tablet.device.add_configs", "Tablet configs"),
             Localizer.Te("app.close", "Close"));
         if (ok) _openConfigsPage?.Invoke();
