@@ -2,7 +2,7 @@ blank_issues_enabled: false
 contact_links:
   - name: Questions and help
     url: https://github.com/DigitalGroceries/tablet-app-for-mac/discussions
-    about: Ask how something works. Feedback is read once a week.
+    about: Ask how something works.
   - name: User manual
     url: https://digitalgroceries.github.io/tablet-app-for-mac/help/
     about: Every page and control, with defaults.

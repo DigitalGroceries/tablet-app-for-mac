@@ -2,8 +2,6 @@ name: Feature request
 description: Suggest a change or a new function.
 labels: [enhancement]
 body:
-  - type: markdown
-    attributes: {value: "Feedback is read once a week."}
   - type: textarea
     id: what
     attributes: {label: What you want to do, description: "The task, the app (Photoshop, Affinity, …) and where in Tablet App for Mac it belongs."}
@@ -14,3 +12,11 @@ body:
   - type: input
     id: tablet
     attributes: {label: Tablet model}
+  - type: upload
+    id: screenshots
+    attributes:
+      label: Screenshots or pictures (optional)
+      description: "Drag them here, or click to choose. Everything posted here is public, so leave out personal details."
+    validations:
+      required: false
+      accept: ".png,.jpg,.jpeg,.gif,.webp,.mov,.mp4"
