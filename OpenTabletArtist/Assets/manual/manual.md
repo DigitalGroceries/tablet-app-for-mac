@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-Version 7. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
+Version 15. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
 
 ## Before you start
 
@@ -29,11 +29,11 @@ Tested only on an Apple silicon Mac with macOS 27.0.1 and a Wacom Intuos4 Small 
 
 ## Introduction and requirements
 
-Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, ExpressKeys and Touch Ring modes, with per-app settings. Tablet input comes from the OpenTabletDriver daemon, which the app starts.
+Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, ExpressKeys and Touch Ring modes, with per-app settings. Tablet input comes from the tablet driver, built on OpenTabletDriver, which the app starts.
 
-- A Mac with Apple silicon (tested) or Intel (untested).
+- A Mac with Apple silicon.
 - macOS 15 or later (the versions .NET 10 supports: 15, 26 and 27).
-- The OpenTabletDriver daemon (included in the app).
+- The tablet driver, built on OpenTabletDriver (included in the app).
 - Input Monitoring and Accessibility permissions (Accessibility is called Device Control and Data Access on macOS 27).
 - Uninstall the Wacom driver first, as both can't run at once.
 
@@ -59,9 +59,10 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 ![The Touch ID prompt for Privacy & Security, with Use Password… and Cancel](img/install-04-touch-id.png)
 
 - macOS asks for **Input Monitoring** (to read the tablet) and **Accessibility** (to send keys and clicks). Allow both in System Settings › Privacy & Security, then relaunch the app.
-- The app starts its OpenTabletDriver daemon. The menu bar icon stays while it runs.
+- The app starts its tablet driver. The pen icon stays in the menu bar while it runs.
 - To start the app when you log in, switch on **Start automatically when I log in** in **Settings › System** (or add it in System Settings › General › Login Items). At login the app starts silently: only the pen icon in the menu bar shows. Click it to open the window.
 - Only one copy runs. Opening the app again brings the running copy to the front.
+- To change the language, choose it under **Settings › System › Language**. **Match system** follows your Mac's language.
 
 ## Home
 
@@ -70,14 +71,15 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 - **Your tablets**: one card per connected or remembered tablet. Click a card to open its settings.
 - Card **⋯** menu: **Open tablet settings**, **Forget this tablet**.
 - Health rows: problems found, each with **Fix** or a specific action where one exists. **Fix** works with the pen even while the pen tip or eraser is disabled.
-- **Open daemon page**: shown when the daemon is not reachable.
+- **Open driver page**: shown when the driver is not reachable.
+- **Check for updates now** and **Earlier versions…**: see Updating.
 
 ## Tablet page layout
 
-- **Device**: the selected tablet. The switcher lists connected and remembered tablets.
-- **Tool**: **Functions** (ExpressKeys, Touch ring), **Pen** (pen, eraser, mapping), **More** (about, calibration, hover, filters, json).
-- **Application**: **All**, or a specific app. **+** adds an app with its own settings; **−** removes it.
-- **Refresh** reloads the tablet's settings from the daemon.
+- **Device**: the selected tablet. The switcher lists connected and remembered tablets. **+** explains how to add a tablet: connect it to your Mac and it appears by itself. **−** forgets the selected tablet and its settings (it asks first).
+- **Tool**: **Functions** (ExpressKeys, Touch ring), **Pen** (pen, eraser, mapping), a tile for each extra pen, and **More** (about, calibration, hover, filters, json). **+** explains how to add a pen: bring it close to the tablet and it gets its own tile. **−** removes the selected extra pen's settings; the main pen can't be removed.
+- **Application**: **All**, or a specific app. **+** adds apps (Command-click to choose several at once). Each added app keeps its own ExpressKeys, Touch Ring and pen tip and button actions, which switch when that app comes to the front; a switch waits until the pen tip is lifted, so a stroke is not interrupted. Mapping and pressure stay the same for every app. **−** removes the selected app's settings; it then uses **All** again.
+- **Refresh** reloads the tablet's settings from the driver.
 - Footer: **Options…** (Settings), **?** (this manual).
 
 ## Tablet › Pen
@@ -97,6 +99,8 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 | Disable pen tip | Off | The tip makes no strokes; the bar reads 0%. |
 | Disable pressure sensitivity | Off | Every stroke uses the Manual Pen Tip Pressure while pressed, in every app. |
 | Manual Pen Tip Pressure | 30% | Own frame under Tip Feel. The pressure used while pressure sensitivity is off (0 to 100%). |
+
+**Extra pens:** each pen you use on the tablet gets its own tile in the Tool row, with its own tip, eraser and side-button settings (a copy of the main pen's to start with). Tip Feel, pressure, tilt and mapping are shared by all pens.
 
 ## Tablet › Eraser
 
@@ -159,7 +163,7 @@ Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held 
 - **calibration**: **Start** shows full-screen targets; tap each, then **Apply**. **More calibration actions**: **View report…**, **Export calibration…**, **Import calibration…**, **Clear calibration**. The on/off switch compares with and without the correction. Calibrate only if the pointer sits away from the nib.
 - **hover** (below): hover limit, off by default; 127 when first switched on (0 to 255). Stops cursor tracking past this distance.
 - **filters**: the OpenTabletDriver filters on this tablet.
-- **json**: the profile as the daemon stores it.
+- **json**: the profile as the driver stores it.
 
 ![More › Hover](img/49-hover-limit.png)
 
@@ -180,13 +184,13 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 
 ## Advanced
 
-![Advanced › Daemon](img/78-daemon-page.png)
+![Advanced › Driver](img/78-daemon-page.png)
 
-- **Daemon**: status; **Start**, **Restart**, **Stop**, **Open OpenTabletDriver's interface**, **Open the folder holding this daemon**.
+- **Driver**: the **Driver process** card, with **Start**, **Restart** and **Stop** in its **⋯** menu; **Open OpenTabletDriver's own window**; **Open the folder holding this driver**.
 - **Plugins**: **Rescan plugin folder**, **Open plugin folder**.
-- **Tablet configs**: **Check for more configs**, **Install**, **View**.
+- **Configs** (tablet configs): **Check for more configs**, **Install**, **View**.
 - **Console**: severity filter, text filter, **Auto-scroll** (on), copy as text, Markdown or HTML, **Clear**.
-- **Diagnostics**: **Start** and **Stop** live reports.
+- **Diagnostics** (shown when **Settings › Dev** turns it on): **Start** and **Stop** live reports.
 
 ## About and Options
 
@@ -205,24 +209,25 @@ The pen icon in the menu bar at the top of the screen shows that Tablet App for 
 
 ![The pen icon in the menu bar with its menu open](img/86-pen-menu.png)
 
-The **daemon** is the background part of the app that reads the pen and moves the pointer. It keeps working while the window is closed.
+The **driver** is the background part of the app that reads the pen and moves the pointer. It keeps working while the window is closed.
 
 - **Show Tablet App for Mac** opens the app's window.
 - **Switch Display** chooses which screen the tablet draws on, when you have more than one screen.
-- **Restart Daemon** stops the background part and starts it again. Try this first if the pen stops responding.
-- **Stop Daemon** stops the background part, so the pen stops working until you start it again. While it is stopped, the menu shows **Start Daemon** instead.
+- **Restart Driver** stops the background part and starts it again. Try this first if the pen stops responding.
+- **Stop Driver** stops the background part, so the pen stops working until you start it again. While it is stopped, the menu shows **Start Driver** instead.
+- **Check for updates now** checks for a new version (see Updating).
 - **Quit** closes the app and removes the pen icon. The background part keeps running, so the pen still works with the settings you saved.
-- **Quit and stop the daemon** closes the app and stops the background part too, so the pen stops working until you open the app again.
+- **Quit and stop the driver** closes the app and stops the background part too, so the pen stops working until you open the app again.
 
 ## Quitting
 
 - **Cmd+Q** closes the window. The app stays in the menu bar and the tablet keeps working.
-- **Quit** in the pen menu closes the app; **Quit and stop the daemon** also stops the pen (see The pen menu). With unsaved changes it asks "Save changes before quitting?": **Cancel** keeps the app open, **Don't Save** quits without saving, **Save** saves and quits.
+- **Quit** in the pen menu closes the app; **Quit and stop the driver** also stops the pen (see The pen menu). With unsaved changes it asks "Save changes before quitting?": **Cancel** keeps the app open, **Don't Save** quits without saving, **Save** saves and quits.
 - Quitting also happens at shutdown and logout; unsaved changes are then kept and offered at the next launch.
 
 ## Tested system and tablet
 
-macOS 27.0.1 on Apple silicon, Wacom Intuos4 Small (PTK-440). Nothing else has been tested; the Intel version is untested.
+macOS 27.0.1 on Apple silicon, Wacom Intuos4 Small (PTK-440). Nothing else has been tested.
 
 ## Wacom driver conflict
 
@@ -230,12 +235,12 @@ The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninst
 
 ## Updating
 
-- From Version 7, the app checks for updates once a month. When there is a new version, it asks **Update now?** Click **Update now** and the app downloads it, checks it, installs it and opens again by itself.
-- To check any time, click **Check for updates now** on **Home** (top right, under the About links).
-- **Update automatically** is an optional setting just below it. It is off unless you turn it on.
+- The app checks for updates once a week when it starts. When there is a new stable version, it asks **Update now?** Click **Update now** and the app downloads it, checks it, installs it and opens again by itself.
+- To check any time, click **Check for updates now** on **Home** (top right, under the About links). When there is a choice, Home shows **Install Version N** (the newest stable version) and **Try Version N BETA M** (a BETA: new features, not tested yet). While you use a BETA, **Go back to Version N** returns you to the stable version.
+- **Update automatically** is an optional setting just below it. It is off unless you turn it on. When it is on, the app downloads a new stable version by itself, then asks for OK before installing. It never installs a BETA by itself.
 - To go back to an earlier version, click **Earlier versions…** on **Home** and choose one of the two stable versions before yours. This works from a stable version and from a BETA. Your settings stay.
 
-![Home with Check for updates now, the message You have the latest version, and the Update automatically setting](img/85-home-updates.png)
+![Home with Check for updates now, Earlier versions…, the message You have the latest version, and the Update automatically setting](img/85-home-updates.png)
 
 - After an update, macOS may ask for the two permissions again (Input Monitoring and Device Control and Data Access). The setup window opens and walks you through it.
 - **Coming from Version 6:** install Version 7 by hand once (see Install and first launch), then redo both permissions once. In System Settings › Privacy & Security, open **Input Monitoring** and **Device Control and Data Access** (called **Accessibility** on older macOS). In each, select Tablet App for Mac, remove it with **−**, add it again with **+**, and switch it on. The setup window walks you through this.
@@ -243,7 +248,7 @@ The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninst
 
 ## Going back to an earlier build
 
-Download the earlier build from Releases and replace the app. Settings are kept. Re-add the permissions as under Updating if needed.
+Click **Earlier versions…** on **Home** (Version 15 and later), or download an earlier build from Releases and replace the app. Settings are kept. Re-add the permissions as under Updating if needed.
 
 ## Uninstalling
 
@@ -264,6 +269,8 @@ Tablet App for Mac is a modified version of OpenTabletArtist by TheSevenPens (GP
 - **Preset**: a named copy of the whole configuration.
 - **Application row**: per-app settings; **All** applies everywhere else.
 - **Shared with Pen**: an Eraser setting that is the same setting as on the Pen tab.
+- **Driver**: the background part of the app that reads the pen and moves the pointer, built on OpenTabletDriver.
+- **BETA**: a new version that is not tested yet. You can go back to the stable version at any time.
 
 ## Not written here
 
