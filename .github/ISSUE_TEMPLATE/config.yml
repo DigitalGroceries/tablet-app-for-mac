@@ -6,3 +6,6 @@ contact_links:
   - name: User manual
     url: https://digitalgroceries.github.io/tablet-app-for-mac/help/
     about: Every page and control, with defaults.
+  - name: Feedback without a GitHub account
+    url: https://digitalgroceries.github.io/tablet-app-for-mac/#feedback
+    about: Send feedback and screenshots by email instead.
