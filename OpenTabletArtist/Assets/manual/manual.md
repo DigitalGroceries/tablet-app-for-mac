@@ -190,7 +190,7 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 
 ## About and Options
 
-**About** shows the version and links: **Get help** (this manual), **Supported tablets**, **Source code**, **Releases**, **User manual**, **Credits and licences**, **Feedback**. Feedback is read once a week. **Options…** opens Settings.
+**About** shows the version and links: **Get help** (this manual), **Supported tablets**, **Source code**, **Releases**, **User manual**, **Credits and licences**, **Feedback**. **Options…** opens Settings.
 
 ## Presets and saving
 

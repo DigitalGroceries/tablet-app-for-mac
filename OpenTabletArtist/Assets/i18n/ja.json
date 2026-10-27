@@ -70,7 +70,6 @@
   "home.feedback": "フィードバック",
   "home.user_manual": "ユーザーマニュアル",
   "home.credits": "クレジットとライセンス",
-  "home.feedback_note": "フィードバックは週に一度確認されます。",
   "home.about_blurb": "Tablet App for Mac は無料の、アーティスト向けタブレットアプリです。",
   "home.licence_blurb": "Tablet App for Mac は OpenTabletArtist と OpenTabletDriver を基にした改変版です。OpenTabletArtist は GNU General Public License v3.0 (GPL-3.0)、OpenTabletDriver は GNU Lesser General Public License v3.0 (LGPL-3.0) の下でライセンスされています。本プログラムは無保証です。ライセンス全文はダウンロード内の LICENSES フォルダと NOTICE にあり、ソースコードは「ソースコード」リンクから入手できます。",
   "home.not_detected": "未検出",

@@ -70,7 +70,6 @@
   "home.feedback": "Обратна връзка",
   "home.user_manual": "Ръководство\nза потребителя",
   "home.credits": "Благодарности\nи лицензи",
-  "home.feedback_note": "Обратната връзка се преглежда веднъж седмично.",
   "home.about_blurb": "Tablet App for Mac е безплатно и лесно за използване приложение за таблет.",
   "home.licence_blurb": "Tablet App for Mac е модифицирана версия на базата на OpenTabletArtist и OpenTabletDriver. OpenTabletArtist е лицензиран под GNU General Public License v3.0 (GPL-3.0); OpenTabletDriver — под GNU Lesser General Public License v3.0 (LGPL-3.0). Програмата се предоставя БЕЗ НИКАКВА ГАРАНЦИЯ. Пълните текстове на лицензите са в папката LICENSES и файла NOTICE от изтеглянето, а изходният код е достъпен от връзката „Изходен код“.",
   "home.not_detected": "Не е открит",

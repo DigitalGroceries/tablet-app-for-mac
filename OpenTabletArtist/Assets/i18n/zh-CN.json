@@ -70,7 +70,6 @@
   "home.feedback": "反馈",
   "home.user_manual": "用户手册",
   "home.credits": "致谢与许可",
-  "home.feedback_note": "反馈每周阅读一次。",
   "home.about_blurb": "Tablet App for Mac 是一款免费、面向艺术家的数位板应用。",
   "home.licence_blurb": "Tablet App for Mac 是基于 OpenTabletArtist 与 OpenTabletDriver 的修改版。OpenTabletArtist 采用 GNU General Public License v3.0 (GPL-3.0)；OpenTabletDriver 采用 GNU Lesser General Public License v3.0 (LGPL-3.0)。本程序不提供任何担保。完整许可文本在下载包的 LICENSES 文件夹与 NOTICE 文件中；源代码可通过“源代码”链接获取。",
   "home.not_detected": "未检测到",

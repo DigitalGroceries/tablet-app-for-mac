@@ -70,7 +70,6 @@
   "home.feedback": "Comentarios",
   "home.user_manual": "Manual de usuario",
   "home.credits": "Créditos y licencias",
-  "home.feedback_note": "Los comentarios se leen una vez a la semana.",
   "home.about_blurb": "Tablet App for Mac es una app de tableta gratuita y pensada para artistas.",
   "home.licence_blurb": "Tablet App for Mac es una versión modificada basada en OpenTabletArtist y OpenTabletDriver. OpenTabletArtist está bajo la GNU General Public License v3.0 (GPL-3.0); OpenTabletDriver bajo la GNU Lesser General Public License v3.0 (LGPL-3.0). Este programa se ofrece SIN NINGUNA GARANTÍA. Los textos completos de las licencias están en la carpeta LICENSES y el archivo NOTICE de la descarga, y el código fuente está disponible desde el enlace Código fuente.",
   "home.not_detected": "No detectada",
