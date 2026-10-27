@@ -133,8 +133,6 @@ Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held 
 
 ## Tablet › Functions › Touch ring
 
-![Touch ring](img/33-ring-page.png)
-
 - **Enable wheels**: On. Pauses all ring actions without deleting them.
 - **Touch Ring modes**: On. "4 modes. Press the ring's centre button to switch."
 - **Show touch ring setting (on-screen mode display)**: On. Shows the mode name when you switch.
