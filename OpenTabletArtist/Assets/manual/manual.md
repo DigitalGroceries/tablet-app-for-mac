@@ -125,7 +125,7 @@ The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable 
 - The enable switch turns all ExpressKey actions off or on; actions are kept.
 - **Default**: clears every ExpressKey action, after asking.
 
-Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left, Right, Middle click, Back and Forward button), **Scroll** (up, down, left, right), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). **Save**, **Cancel**, **Clear**.
+Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left, Right, Middle click, Back and Forward button), **Scroll** (up, down, left, right, or **Move pen to scroll**: hold the button and move the pen to scroll like a mouse wheel; the cursor stays still and the tip does not click), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). **Save**, **Cancel**, **Clear**.
 
 ## Tablet › Functions › Touch ring
 

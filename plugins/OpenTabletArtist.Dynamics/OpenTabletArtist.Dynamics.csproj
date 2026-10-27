@@ -23,6 +23,7 @@
     <Compile Include="..\..\OpenTabletArtist\Domain\PenDynamicsProcessor.cs" Link="PenDynamicsProcessor.cs" />
     <Compile Include="..\..\OpenTabletArtist\Domain\CalibrationMath.cs" Link="CalibrationMath.cs" />
     <Compile Include="..\..\OpenTabletArtist\Domain\PenToolSignal.cs" Link="PenToolSignal.cs" />
+    <Compile Include="..\..\OpenTabletArtist\Domain\PenScrollMath.cs" Link="PenScrollMath.cs" />
   </ItemGroup>
 
 </Project>

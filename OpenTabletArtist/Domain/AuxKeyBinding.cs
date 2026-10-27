@@ -181,6 +181,7 @@ public static class AuxKeyBinding
     /// not a scroll binding.</summary>
     public static string ReadScroll(PluginSettingStore? store)
     {
+        if (PenScrollBinding.Is(store)) return PenScrollBinding.ScrollValue;
         if (store?.Path != MouseScrollBindingPath) return None;
         var direction = store.Settings?.FirstOrDefault(s => s.Property == "Direction")?.Value?.ToString();
         var amount = store.Settings?.FirstOrDefault(s => s.Property == "Amount") is { HasValue: true } s
@@ -193,6 +194,7 @@ public static class AuxKeyBinding
     public static PluginSettingStore? MakeScrollBinding(string? scroll)
     {
         if (string.IsNullOrEmpty(scroll) || scroll == None) return null;
+        if (scroll == PenScrollBinding.ScrollValue) return PenScrollBinding.Make();
         var horizontal = scroll is Left or Right;
         var amount = scroll is Up or Left ? -ScrollTick : ScrollTick;
         var store = NewStore(MouseScrollBindingPath);
@@ -214,7 +216,7 @@ public static class AuxKeyBinding
             return button == None ? AuxBinding.Unbound
                 : new AuxBinding(AuxKind.Mouse, AuxCombo.Unbound, button, None);
         }
-        if (store.Path == MouseScrollBindingPath)
+        if (store.Path == MouseScrollBindingPath || PenScrollBinding.Is(store))
             return new AuxBinding(AuxKind.Scroll, AuxCombo.Unbound, None, ReadScroll(store));
         var combo = ReadCombo(store);
         if (combo == null) return null;                       // a binding the editor can't model
@@ -237,7 +239,8 @@ public static class AuxKeyBinding
     {
         AuxKind.Keyboard => binding.Combo.IsBound ? DescribeCombo(binding.Combo) : "Do nothing",
         AuxKind.Mouse => IsBoundValue(binding.MouseButton) ? DescribeMouse(binding.MouseButton) : "Do nothing",
-        AuxKind.Scroll => IsBoundValue(binding.Scroll) ? $"Scroll {binding.Scroll.ToLowerInvariant()}" : "Do nothing",
+        AuxKind.Scroll => binding.Scroll == PenScrollBinding.ScrollValue ? "Move pen to scroll"
+            : IsBoundValue(binding.Scroll) ? $"Scroll {binding.Scroll.ToLowerInvariant()}" : "Do nothing",
         _ => "Do nothing",
     };
 
@@ -287,6 +290,7 @@ public static class AuxKeyBinding
         new("Down", Down),
         new("Left", Left),
         new("Right", Right),
+        new("Move pen to scroll", PenScrollBinding.ScrollValue),
     };
 
     /// <summary>Mouse buttons offered in the picker (OTD's MouseButton enum names; "Back" reads nicer

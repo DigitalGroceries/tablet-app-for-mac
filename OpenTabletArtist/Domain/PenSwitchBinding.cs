@@ -45,6 +45,7 @@ public static class PenSwitchBinding
         [WindowsInkButtonHandlerPath] = "Windows Ink",
         [MouseBindingPath] = "Mouse Button Binding",
         [OwnWindowBindingPath] = "Off (clicks in this app only)",
+        [PenScrollBinding.BindingTypeName] = "Pen scroll",
     };
 
     public static PenSwitchBindingMode DetectMode(PluginSettingStore? store, PenSwitchKind kind, int penButtonIndex = 1)
@@ -104,6 +105,7 @@ public static class PenSwitchBinding
         if (path == MouseBindingPath) return "Mouse button";
         if (path == OwnWindowBindingPath) return "Off (clicks in this app only)";
         if (path.EndsWith("MouseScrollBinding", StringComparison.Ordinal)) return "Mouse scroll";
+        if (path == PenScrollBinding.BindingTypeName) return "Move pen to scroll";
         if (path.EndsWith("MultiKeyBinding", StringComparison.Ordinal)
             || path.EndsWith("KeyBinding", StringComparison.Ordinal)) return "Keyboard key";
         if (path.EndsWith("PresetBinding", StringComparison.Ordinal)) return "Preset";
