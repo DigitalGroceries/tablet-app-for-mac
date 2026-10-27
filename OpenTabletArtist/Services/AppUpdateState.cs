@@ -32,6 +32,8 @@ public sealed class AppUpdateState : INotifyPropertyChanged
     public Updater.Release? BetaOffer => _choices.Beta;
     /// <summary>For a BETA build: the stable version to go back to.</summary>
     public Updater.Release? GoBackOffer => _choices.GoBack;
+    /// <summary>Version 15: the earlier stable versions anyone can go back to (newest first, at most two).</summary>
+    public System.Collections.Generic.IReadOnlyList<Updater.Release> EarlierOffers => _choices.EarlierVersions;
 
     /// <summary>What the weekly check offers by itself: a newer stable version; for someone already running a
     /// BETA, also a newer BETA. Never a BETA for someone on a stable version (they choose it on Home).</summary>
@@ -66,6 +68,9 @@ public sealed class AppUpdateState : INotifyPropertyChanged
             Notify(nameof(IsBusy));
         }
     }
+
+    /// <summary>Version 15: say that no earlier version could be found (offline, or GitHub didn't answer).</summary>
+    public void ReportNoEarlier() => SetLocalizedStatus("update.earlier_none");
 
     /// <summary>Status line for the current choices. Pure apart from the localiser.</summary>
     void SetChoiceStatus()
@@ -162,6 +167,7 @@ public sealed class AppUpdateState : INotifyPropertyChanged
         Notify(nameof(HasStableOffer));
         Notify(nameof(HasBetaOffer));
         Notify(nameof(HasGoBackOffer));
+        Notify(nameof(EarlierOffers));
     }
 
     void SetLocalizedStatus(string key, params (string Name, object? Value)[] args)

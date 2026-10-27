@@ -47,6 +47,7 @@ public partial class AboutViewModel : ObservableObject
             OnPropertyChanged(nameof(UpdateNowLabel));
             OnPropertyChanged(nameof(TryBetaLabel));
             OnPropertyChanged(nameof(GoBackLabel));
+            OnPropertyChanged(nameof(EarlierLabel));
         };
         // Keep Home's update UI in sync with the pen-menu tray (shared AppUpdateState).
         Services.AppUpdateState.Shared.PropertyChanged += (_, e) =>
@@ -81,6 +82,8 @@ public partial class AboutViewModel : ObservableObject
     /// <summary>Version 14: "Go back to Version 13" (shown while running a BETA).</summary>
     public string GoBackLabel => Services.AppUpdateState.Shared.GoBackOffer is { } g
         ? Services.Localizer.Tf("update.go_back", ("version", g.Label)) : "";
+    /// <summary>Version 15: "Earlier versions…" (always shown, stable or BETA).</summary>
+    public string EarlierLabel => Services.Localizer.T("update.earlier");
     public string UpdateAutomaticallyLabel => Services.Localizer.T("update.automatic");
 
     // R18: targets live in Services.AppLinks (TODO placeholders until the user's pages exist).
@@ -127,16 +130,12 @@ public partial class AboutViewModel : ObservableObject
     /// <summary>Version 14: running a BETA; the stable version to go back to.</summary>
     [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty] private bool _goBackReady;
 
-    /// <summary>Version 14: the second update row (Try BETA / Go back) is shown only when it has a button.</summary>
-    public bool ShowUpdateChoices => BetaOfferReady || GoBackReady;
-
     void SyncUpdateOffers()
     {
         var u = Services.AppUpdateState.Shared;
         UpdateReady = u.HasStableOffer;
         BetaOfferReady = u.HasBetaOffer;
         GoBackReady = u.HasGoBackOffer;
-        OnPropertyChanged(nameof(ShowUpdateChoices));
         OnPropertyChanged(nameof(UpdateNowLabel));
         OnPropertyChanged(nameof(TryBetaLabel));
         OnPropertyChanged(nameof(GoBackLabel));
@@ -166,6 +165,18 @@ public partial class AboutViewModel : ObservableObject
     {
         if (Services.AppUpdateState.Shared.GoBackOffer is not { } g) return;
         if (await Views.UpdatePromptWindow.AskGoBackAsync(g.Label)) await Services.AppUpdateState.Shared.InstallAsync(g);
+    }
+
+    /// <summary>Version 15 (Zak, 27 Oct 2026: "All versions stable or beta should allow the users to downgrade to
+    /// an earlier version"): checks GitHub if needed, then offers the earlier stable versions.</summary>
+    [RelayCommand]
+    private async Task ChooseEarlier()
+    {
+        var u = Services.AppUpdateState.Shared;
+        if (u.IsBusy) return;
+        if (u.EarlierOffers.Count == 0) await u.CheckAsync();
+        if (u.EarlierOffers.Count == 0) { u.ReportNoEarlier(); return; }
+        if (await Views.UpdatePromptWindow.ChooseEarlierAsync(u.EarlierOffers) is { } r) await u.InstallAsync(r);
     }
 
     /// <summary>Called on launch: the weekly check. With "Update automatically" on, downloads then asks

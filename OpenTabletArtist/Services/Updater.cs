@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -38,14 +39,23 @@ public static class Updater
 
     /// <summary>Version 14: what the user can choose from. <see cref="Stable"/> is a newer stable version, or —
     /// when <see cref="StableIsGoBack"/> — the stable version a BETA user can go back to. <see cref="Beta"/> is a
-    /// BETA newer than both the running app and the newest stable version.</summary>
-    public sealed record UpdateChoices(Release? Stable, Release? Beta, bool StableIsGoBack)
+    /// BETA newer than both the running app and the newest stable version.
+    /// Version 15 (Zak, 27 Oct 2026: "All versions stable or beta should allow the users to downgrade to an
+    /// earlier version"): <see cref="Earlier"/> holds the stable versions older than the running app, newest
+    /// first, at most <see cref="EarlierCount"/> (the same two the website links to). Not counted in
+    /// <see cref="Any"/>: an earlier version is never announced as an update.</summary>
+    public sealed record UpdateChoices(Release? Stable, Release? Beta, bool StableIsGoBack, IReadOnlyList<Release>? Earlier = null)
     {
         public static readonly UpdateChoices None = new(null, null, false);
         public bool Any => Stable != null || Beta != null;
         public Release? StableUpgrade => StableIsGoBack ? null : Stable;
         public Release? GoBack => StableIsGoBack ? Stable : null;
+        public IReadOnlyList<Release> EarlierVersions => Earlier ?? Array.Empty<Release>();
+        public bool HasEarlier => EarlierVersions.Count > 0;
     }
+
+    /// <summary>Version 15: how many earlier stable versions the app offers to go back to.</summary>
+    public const int EarlierCount = 2;
 
     /// <summary>Order of versions: 14 BETA 1 &lt; 14 BETA 2 &lt; 14 (stable) &lt; 15 BETA 1. Pure, unit-tested.</summary>
     public static int RankOf(int version, int beta) => version * 1000 + (beta > 0 ? Math.Min(beta, 998) : 999);
@@ -138,7 +148,12 @@ public static class Updater
         if (stable != null && stable.Rank > cur) s = stable;
         else if (stable != null && beta > 0 && stable.Rank < cur) { s = stable; goBack = true; }
         var b = newestBeta != null && newestBeta.Rank > cur && (stable == null || newestBeta.Rank > stable.Rank) ? newestBeta : null;
-        return new UpdateChoices(s, b, goBack);
+        // Version 15: the earlier stable versions anyone (stable or BETA) can go back to. BETAs are never offered
+        // here: going back is for something tested.
+        var earlier = releases.Where(r => !r.IsBeta && r.Rank < cur)
+            .GroupBy(r => r.Rank).Select(g => g.First())
+            .OrderByDescending(r => r.Rank).Take(EarlierCount).ToList();
+        return new UpdateChoices(s, b, goBack, earlier);
     }
 
     /// <summary>The hash for a file in SHA256SUMS ("hash  name" lines). Pure, unit-tested.</summary>
@@ -215,17 +230,31 @@ public static class Updater
         try
         {
             // After this app quits normally: move the old app aside, put the new one in place, reopen it.
+            // Version 15: also stop this app's own driver once the app has quit ($3 = its process ids, each
+            // re-checked by name first), so the installed version — newer or earlier, which may not have
+            // StaleDriverGuard — starts with its own driver instead of finding this one still running.
+            var driverPids = string.Join(' ', StaleDriverGuard.DriverPidsOf(p.CurrentApp));
             var psi = new ProcessStartInfo("/bin/sh") { UseShellExecute = false };
             psi.ArgumentList.Add("-c");
-            psi.ArgumentList.Add($"while kill -0 {Environment.ProcessId} 2>/dev/null; do sleep 0.5; done; " +
-                "mv \"$0\" \"$2/old.app\" && mv \"$1\" \"$0\" && open \"$0\" || { [ -d \"$0\" ] || mv \"$2/old.app\" \"$0\"; open \"$0\"; }");
+            psi.ArgumentList.Add(SwapScript(Environment.ProcessId));
             psi.ArgumentList.Add(p.CurrentApp); psi.ArgumentList.Add(p.FreshApp); psi.ArgumentList.Add(p.StagingDir);
+            psi.ArgumentList.Add(driverPids);
+            AppLog.Info($"Update: installing Version {p.Label}; the driver to stop after quitting: {(driverPids.Length > 0 ? driverPids : "none")}.");
             Process.Start(psi);
             (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.Shutdown();
             return null;
         }
         catch (Exception ex) { AppLog.Warn("Update apply failed.", ex); return "The update couldn't be installed. Try again later."; }
     }
+
+    /// <summary>The swap script run by /bin/sh -c after the app with process id <paramref name="appPid"/> quits.
+    /// $0 = the installed app, $1 = the new app, $2 = the staging folder, $3 = driver process ids to stop.
+    /// Pure (text only), unit-tested and run in a test against a fake app.</summary>
+    public static string SwapScript(int appPid) =>
+        $"while kill -0 {appPid} 2>/dev/null; do sleep 0.5; done; " +
+        "for d in $3; do case \"$(ps -p \"$d\" -o command= 2>/dev/null)\" in *OpenTabletDriver*) kill \"$d\" 2>/dev/null;; esac; done; " +
+        "[ -n \"$3\" ] && sleep 1; " +
+        "mv \"$0\" \"$2/old.app\" && mv \"$1\" \"$0\" && open \"$0\" || { [ -d \"$0\" ] || mv \"$2/old.app\" \"$0\"; open \"$0\"; }";
 
     /// <summary>Downloads, checks, then quits and installs. Returns an error to show, or null.</summary>
     public static async Task<string?> InstallAsync(Release r)

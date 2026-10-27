@@ -37,6 +37,35 @@ internal static class StaleDriverGuard
         return processStartUtc < bundledWriteUtc - TimeSpan.FromSeconds(2);
     }
 
+    /// <summary>Version 15: is the process at <paramref name="processPath"/> the driver shipped inside the app at
+    /// <paramref name="appPath"/>? Pure, unit-tested.</summary>
+    public static bool IsDriverOf(string? processPath, string? appPath)
+    {
+        if (string.IsNullOrEmpty(processPath) || string.IsNullOrEmpty(appPath)) return false;
+        return processPath.StartsWith(appPath.TrimEnd('/') + BundleDriverFolder, StringComparison.Ordinal)
+            && string.Equals(Path.GetFileName(processPath), DaemonExePaths.DaemonExeName, StringComparison.Ordinal);
+    }
+
+    /// <summary>Version 15: process ids of the driver running from inside the app at <paramref name="appPath"/>
+    /// (macOS only). The updater stops these once the app has quit, so the version it installs — newer or
+    /// earlier — starts with its own driver instead of finding the old one still running.</summary>
+    public static int[] DriverPidsOf(string appPath)
+    {
+        if (!OperatingSystem.IsMacOS()) return Array.Empty<int>();
+        var pids = new System.Collections.Generic.List<int>();
+        try
+        {
+            foreach (var p in Process.GetProcesses())
+            {
+                try { if (p.Id != Environment.ProcessId && IsDriverOf(PathOf(p.Id), appPath)) pids.Add(p.Id); }
+                catch { }
+                finally { p.Dispose(); }
+            }
+        }
+        catch (Exception ex) { AppLog.Debug("Driver: couldn't list the running driver.", ex); }
+        return pids.ToArray();
+    }
+
     [DllImport("/usr/lib/libSystem.dylib")]
     static extern int proc_pidpath(int pid, byte[] buffer, uint size);
 

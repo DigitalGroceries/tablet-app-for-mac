@@ -76,6 +76,34 @@ public static class UpdatePromptWindow
         return done.Task;
     }
 
+    /// <summary>Version 15 (Zak: "All versions stable or beta should allow the users to downgrade to an earlier
+    /// version"): one "Go back to Version N" button per earlier stable version, plus Not now.
+    /// Returns the chosen release, or null.</summary>
+    public static Task<Updater.Release?> ChooseEarlierAsync(System.Collections.Generic.IReadOnlyList<Updater.Release> earlier)
+    {
+        var done = new TaskCompletionSource<Updater.Release?>();
+        var w = NewWindow(Localizer.T("update.earlier_title"));
+        var buttons = new StackPanel { Spacing = 8 };
+        foreach (var r in earlier)
+        {
+            var b = new Button { Content = Localizer.Tf("update.go_back", ("version", r.Label)), Padding = new Thickness(16, 8),
+                HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Center };
+            b.Click += (_, _) => { done.TrySetResult(r); w.Close(); };
+            buttons.Children.Add(b);
+        }
+        var no = new Button { Content = Localizer.T("update.not_now"), Padding = new Thickness(16, 8), HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Center };
+        no.Click += (_, _) => { done.TrySetResult(null); w.Close(); };
+        buttons.Children.Add(no);
+        w.Closed += (_, _) => done.TrySetResult(null);
+        w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
+            Heading(Localizer.T("update.earlier_heading")),
+            new TextBlock { Text = Localizer.T("update.earlier_body"), TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.Parse("#C8C8C8")) },
+            buttons } };
+        w.Show();
+        return done.Task;
+    }
+
     static Window NewWindow(string title) => new()
     {
         Title = title, Width = 480, SizeToContent = SizeToContent.Height, CanResize = false,
