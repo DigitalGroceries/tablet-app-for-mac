@@ -1,6 +1,6 @@
 # Handover: Tablet App for Mac (for Devin)
 
-Written by Claude on 27 Oct 2026 for Devin, the project's new AI colleague. The owner (Zak) has asked Claude to
+Written by Claude on 27 Oct 2026 for Devin, the project's new AI colleague. The owner has asked Claude to
 hand the project to you. Read this first, then `AGENTS.md` (repo layout, build, signing, lessons learned).
 
 ## What the project is
@@ -12,7 +12,7 @@ hand the project to you. Read this first, then `AGENTS.md` (repo layout, build, 
 - Website (branch `gh-pages`): https://digitalgroceries.github.io/tablet-app-for-mac/ (Home, Releases, Help,
   Tablets, Source code, Credits, Support). Machine summary: `/llms.txt`. Wiki: GitHub wiki `Home.md`.
 - Only real test hardware: Wacom Intuos4 Small **PTK-440** (touch ring + 8 ExpressKeys) on macOS 27 (Apple
-  silicon). Apps Zak tests in: Photoshop, Affinity (the new single Canva "Affinity" app), PhotoCraft.
+  silicon). Apps the owner tests in: Photoshop, Affinity (the new single Canva "Affinity" app), PhotoCraft.
 
 ## Branches and releases (27 Oct 2026)
 
@@ -51,7 +51,7 @@ it offers the newest stable, newer BETAs, "Go back to Version 15" and "Earlier v
   (PTH-460/660/860 ring mirrored; Intuos3, Cintiq 21UX/12WX/22HD touch strips as wheels with attribute
   `WheelsAreTouchStrips`; Cintiq 13HD centre button = ExpressKey 9; Bamboo Fun ring; CTK-4120); Supported
   tablets list without Windows notes, status Questionable; translations; Pen tabs fix (e8dbf5e).
-- BETA 2 (Zak's ring test): ring **direction** fixed (Clockwise = OTD `ClockwiseRotation`; old bindings have no
+- BETA 2 (the owner's ring test): ring **direction** fixed (Clockwise = OTD `ClockwiseRotation`; old bindings have no
   `DirectionVersion` and are read the old way and rewritten, also per-app tables); ring-mode edits go to the
   **selected app's table** (they snapped back before); smooth **zoom** stores a Speed and sends one wheel line per
   `DegreesOfSpeed(speed)`; smooth actions write their Speed as the step so fallback keys follow it;
@@ -63,7 +63,7 @@ it offers the newest stable, newer BETAs, "Go back to Version 15" and "Earlier v
 
 ## Open items (next work)
 
-1. Wait for Zak's test of **BETA 2** (ring in Photoshop and Affinity; after updating he clicks Save once).
+1. Wait for the owner's test of **BETA 2** (ring in Photoshop and Affinity; after updating he clicks Save once).
    When he confirms, release **Version 16 stable** (BETA first, stable only after his test).
 2. Known risks from the BETA 2 code review, not fixed yet:
    - Going back to Version 15, editing the ring there, then updating again can reverse those rings.
@@ -71,13 +71,13 @@ it offers the newest stable, newer BETAs, "Go back to Version 15" and "Earlier v
      wheel, only the PTK-440 absolute ring was tested (see `WheelEditor.OnRelativeDelta` comment).
    - Wheel activation thresholds still write to All when an app tile is selected, and skip the All stash.
    - Affinity rotate direction (⌘+scroll up = clockwise?) is untested.
-3. Zak proofreads the Bulgarian texts (V14/V15 update texts + touch strip texts).
+3. the owner proofreads the Bulgarian texts (V14/V15 update texts + touch strip texts).
 4. User feedback on the improved tablets -> move confirmed ones to Supported in
    `external/OpenTabletDriver/TABLETS.md` and regenerate the Tablets page.
 5. PhotoCraft draws fast curves as straight segments: PhotoCraft's own bug (storytold/photocraft #2138, their
    PR #9587), nothing to fix here.
 
-## Zak's standing rules for this project (follow them)
+## the owner's standing rules for this project (follow them)
 
 - **Plain, short language.** One physical step per message when he has to do something, then wait for his
   Y/N. He has memory issues: keep track of things for him, don't expect him to remember technical steps.
@@ -87,7 +87,7 @@ it offers the newest stable, newer BETAs, "Go back to Version 15" and "Earlier v
 - **Every new version:** update the manual (in-app + PDF attached to the release) and **retake every screenshot
   that no longer shows the newest GUI** (website Home + Help, in-app manual, PDF, wiki).
 - **Check pull requests twice a day** (start of a session and ~1 h before its end). Outside contributors' code
-  runs only after Zak approves it.
+  runs only after the owner approves it.
 - Translations: if unsure of a word and no AI can help, keep it in English. bg/ru/ja keep the word "service"
   for the driver; the other languages say "driver" (never "daemon").
 - Only spelling fixes to text he wrote himself.
@@ -97,6 +97,6 @@ it offers the newest stable, newer BETAs, "Go back to Version 15" and "Earlier v
 
 ## Other helpers
 
-- **Grok Bot** (another AI on Zak's Mac) has done builds before; it is away until about 29 Oct. Its notes live
-  in `/Users/Zak/Grok` on Zak's Mac.
-- Claude's own detailed notes are in Zak's "Claude Memory Bank" on his T7 drive (not online).
+- **Grok Bot** (another AI on the owner's Mac) has done builds before; it is away until about 29 Oct. Its notes live
+  in `its own folder on the owner's Mac` on the owner's Mac.
+- Claude's own detailed notes are in the owner's "Claude Memory Bank" on his T7 drive (not online).
