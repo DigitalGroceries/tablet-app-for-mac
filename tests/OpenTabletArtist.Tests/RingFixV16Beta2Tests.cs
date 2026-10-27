@@ -230,4 +230,33 @@ public class RingFixV16Beta2Tests
         Assert.False(RingModeBinding.IsLegacy(w));
         Assert.Equal("RightBracket", Setting(w.ClockwiseRotation, "Mode1Keys"));
     }
+
+    // ---- wheel thresholds go to the table on screen too ----
+
+    [Fact]
+    public async Task WithAnAppSelected_AThresholdChange_LandsInThatAppsTable_AndAllIsUntouched()
+    {
+        var (vm, settings, tablet) = PageWithApp(out var bundle);
+        vm.SelectAppProfileCommand.Execute(bundle);
+        vm.Wheels[0].ClockwiseThreshold = 30;
+        await vm.FlushPendingEditsAsync();
+
+        Assert.Equal(30f, PerAppBindingStore.Find(tablet, bundle)!.Bindings.WheelBindings[0].ClockwiseActivationThreshold);
+        Assert.Equal(5f, settings.Profiles[0].BindingSettings.WheelBindings[0].ClockwiseActivationThreshold);
+        Assert.Equal(30, vm.Wheels[0].ClockwiseThreshold);   // the rebuilt page shows the app's value
+    }
+
+    [Fact]
+    public async Task WithAllSelected_AThresholdChange_UpdatesAll_AndTheAllStash()
+    {
+        var (vm, settings, tablet) = PageWithApp(out var bundle);
+        vm.Wheels[0].CounterClockwiseThreshold = 40;
+        await vm.FlushPendingEditsAsync();
+
+        Assert.Equal(40f, settings.Profiles[0].BindingSettings.WheelBindings[0].CounterClockwiseActivationThreshold);
+        var stash = Newtonsoft.Json.JsonConvert.DeserializeObject<BindingSettings>(
+            AppSettings.Get(PerAppBindingRuntime.AllBindingsKey(tablet))!)!;
+        Assert.Equal(40f, stash.WheelBindings[0].CounterClockwiseActivationThreshold);
+        Assert.Equal(5f, PerAppBindingStore.Find(tablet, bundle)!.Bindings.WheelBindings[0].CounterClockwiseActivationThreshold);
+    }
 }

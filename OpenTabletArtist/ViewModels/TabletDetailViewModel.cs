@@ -2002,9 +2002,10 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var pending = new Dictionary<(int Wheel, bool Clockwise), double>(_pendingThresholds);
         _pendingThresholds.Clear();
         bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.Tablets, TabletName)?.WheelsAreTouchStrips == true;
-        await ApplySettingsChange(p =>
+        // Version 16: written to the table on screen (All, or the selected app's/pen's), like the ring modes.
+        await ApplyBindingMutationAsync(b =>
         {
-            var wheels = p.BindingSettings.WheelBindings;
+            var wheels = b.WheelBindings;
             foreach (var (key, deg) in pending)
             {
                 if (key.Wheel < 0 || key.Wheel >= wheels.Count) continue;
