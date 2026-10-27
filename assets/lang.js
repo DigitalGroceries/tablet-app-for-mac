@@ -25,3 +25,19 @@
   }, true);
   fix(); if (onProxy) { setInterval(fix, 1000); }
 })();
+// If an image fails to load (a dropped connection), try once more, using the plain PNG/JPEG copy.
+(function () {
+  function retryImage(img) {
+    if (img.dataset.retried || !img.getAttribute('src')) return;
+    img.dataset.retried = '1';
+    var p = img.parentElement;
+    if (p && p.tagName === 'PICTURE') [].slice.call(p.querySelectorAll('source')).forEach(function (s) { s.remove(); });
+    var u = img.getAttribute('src');
+    img.removeAttribute('srcset');
+    img.src = u + (u.indexOf('?') < 0 ? '?' : '&') + 'retry=' + Date.now();
+  }
+  [].forEach.call(document.querySelectorAll('img'), function (img) {
+    img.addEventListener('error', function () { retryImage(img); });
+    if (img.complete && img.naturalWidth === 0) retryImage(img);
+  });
+})();
