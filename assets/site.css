@@ -70,3 +70,11 @@ section.chap{scroll-margin-top:16px}section.chap h2{scroll-margin-top:16px}
 
 button.btn{font:inherit;font-weight:600;cursor:pointer}
 #mailfb-out a{color:var(--head)}
+
+/* Supported tablets list (27 Oct 2026) */
+table.tablets td.n,table.tablets th.n{text-align:right;white-space:nowrap}
+table.tablets caption{caption-side:top;text-align:left;padding:0 0 6px}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;white-space:nowrap;background:#2A2A2A;border:1px solid #3A3A3A;color:#E4E4E4}
+.pill.quirk,.pill.miss{background:#1F1F1F;border-style:dashed}
+#tq{background:#1A1A1A;color:#E4E4E4;border:1px solid #3A3A3A;border-radius:6px;padding:6px 10px;font:inherit;width:min(320px,100%)}
+table.tablets td:nth-child(2){min-width:15em}

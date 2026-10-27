@@ -13,6 +13,7 @@ Tested only with macOS 27.0.1 and a Wacom Intuos4 Small (PTK-440).
 
 - [User manual (PDF)](https://digitalgroceries.github.io/tablet-app-for-mac/help/tablet-app-for-mac-manual.pdf)
 - [Help](https://digitalgroceries.github.io/tablet-app-for-mac/help/)
+- [Supported Wacom tablets](https://digitalgroceries.github.io/tablet-app-for-mac/tablets/): all 94 Wacom tablets in OpenTabletDriver 0.6.8-rc1 with their support level
 - [Release notes](https://digitalgroceries.github.io/tablet-app-for-mac/releases/)
 
 ## Source
