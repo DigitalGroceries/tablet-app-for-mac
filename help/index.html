@@ -15,17 +15,17 @@
 <li>Click <strong>Save</strong> in the footer. Unsaved changes are kept and offered again after a shutdown.</li>
 <li>Test in <strong>Scribble</strong>.</li>
 </ul><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
-<section class="chap" id="introduction-and-requirements" aria-labelledby="introduction-and-requirements-h"><h2 id="introduction-and-requirements-h">Introduction and requirements</h2><p>Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, ExpressKeys and Touch Ring modes, with per-app settings. Tablet input comes from the OpenTabletDriver daemon, which the app starts.</p>
+<section class="chap" id="introduction-and-requirements" aria-labelledby="introduction-and-requirements-h"><h2 id="introduction-and-requirements-h">Introduction and requirements</h2><p>Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, ExpressKeys and Touch Ring modes, with per-app settings. Tablet input comes from the tablet driver (built on OpenTabletDriver), which the app starts.</p>
 <ul>
 <li>A Mac with Apple silicon.</li>
-<li>The OpenTabletDriver daemon (included in the app).</li>
+<li>The tablet driver, built on OpenTabletDriver (included in the app).</li>
 <li>Input Monitoring and Accessibility permissions (Accessibility is called Device Control and Data Access on macOS 27).</li>
 <li>Uninstall the Wacom driver first, as both can't run at once.</li>
 </ul><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
 <section class="chap" id="install-and-first-launch" aria-labelledby="install-and-first-launch-h"><h2 id="install-and-first-launch-h">Install and first launch</h2><ul>
 <li>Copy <strong>Tablet App for Mac</strong> to Applications and open it.</li>
 <li>macOS asks for <strong>Input Monitoring</strong> (to read the tablet) and <strong>Accessibility</strong> (to send keys and clicks). Allow both in System Settings › Privacy &amp; Security, then relaunch the app.</li>
-<li>The app starts its OpenTabletDriver daemon. The menu bar icon stays while it runs.</li>
+<li>The app starts its tablet driver. The menu bar icon stays while it runs.</li>
 <li>At login the app starts silently: only the pen icon in the menu bar shows. Click it to open the window.</li>
 <li>Only one copy runs. Opening the app again brings the running copy to the front.</li>
 </ul><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
@@ -34,13 +34,13 @@
 <li><strong>Your tablets</strong>: one card per connected or remembered tablet. Click a card to open its settings.</li>
 <li>Card <strong>⋯</strong> menu: <strong>Open tablet settings</strong>, <strong>Forget this tablet</strong>.</li>
 <li>Health rows: problems found, each with <strong>Fix</strong> or a specific action where one exists. <strong>Fix</strong> works with the pen even while the pen tip or eraser is disabled.</li>
-<li><strong>Open daemon page</strong>: shown when the daemon is not reachable.</li>
+<li><strong>Open driver page</strong>: shown when the driver is not reachable.</li>
 </ul><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
 <section class="chap" id="tablet-page-layout" aria-labelledby="tablet-page-layout-h"><h2 id="tablet-page-layout-h">Tablet page layout</h2><ul>
 <li><strong>Device</strong>: the selected tablet. The switcher lists connected and remembered tablets.</li>
 <li><strong>Tool</strong>: <strong>Functions</strong> (ExpressKeys, Touch ring), <strong>Pen</strong> (pen, eraser, mapping), <strong>More</strong> (about, calibration, hover, filters, json).</li>
 <li><strong>Application</strong>: <strong>All</strong>, or a specific app. <strong>+</strong> adds an app with its own settings; <strong>−</strong> removes it.</li>
-<li><strong>Refresh</strong> reloads the tablet's settings from the daemon.</li>
+<li><strong>Refresh</strong> reloads the tablet's settings from the driver.</li>
 <li>Footer: <strong>Options…</strong> (Settings), <strong>?</strong> (this manual).</li>
 </ul><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
 <section class="chap" id="tablet-pen" aria-labelledby="tablet-pen-h"><h2 id="tablet-pen-h">Tablet › Pen</h2><figure><picture><source type="image/webp" srcset="/tablet-app-for-mac/assets/manual/05-pen-applications.webp"><source type="image/png" srcset="/tablet-app-for-mac/assets/manual/05-pen-applications.png"><img src="/tablet-app-for-mac/assets/manual/05-pen-applications.webp" alt="Pen, with several apps in the Application row" width="960" height="1148" loading="lazy" decoding="async"></picture><figcaption>Pen</figcaption></figure>
@@ -103,7 +103,7 @@
 <li><strong>calibration</strong>: <strong>Start</strong> shows full-screen targets; tap each, then <strong>Apply</strong>. <strong>More calibration actions</strong>: <strong>View report…</strong>, <strong>Export calibration…</strong>, <strong>Import calibration…</strong>, <strong>Clear calibration</strong>. The on/off switch compares with and without the correction. Calibrate only if the pointer sits away from the nib.</li>
 <li><strong>hover</strong> (below): hover limit, off by default; 127 when first switched on (0 to 255). Stops cursor tracking past this distance.</li>
 <li><strong>filters</strong>: the OpenTabletDriver filters on this tablet.</li>
-<li><strong>json</strong>: the profile as the daemon stores it.</li>
+<li><strong>json</strong>: the profile as the driver stores it.</li>
 </ul>
 <figure><picture><source type="image/webp" srcset="/tablet-app-for-mac/assets/manual/49-hover-limit.webp"><source type="image/png" srcset="/tablet-app-for-mac/assets/manual/49-hover-limit.png"><img src="/tablet-app-for-mac/assets/manual/49-hover-limit.webp" alt="More › Hover" width="960" height="852" loading="lazy" decoding="async"></picture><figcaption>More › Hover</figcaption></figure><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
 <section class="chap" id="scribble" aria-labelledby="scribble-h"><h2 id="scribble-h">Scribble</h2><p>A test canvas with a precise crosshair cursor. Draws with the processed pressure, so the curve, Disable pen tip and the Manual Pressure are visible.</p>
@@ -115,9 +115,9 @@
 <li><strong>Presets</strong>: see Presets and saving.</li>
 <li><strong>System</strong>: <strong>Open Login Items…</strong> to start the app at login.</li>
 </ul><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
-<section class="chap" id="advanced" aria-labelledby="advanced-h"><h2 id="advanced-h">Advanced</h2><figure><picture><source type="image/webp" srcset="/tablet-app-for-mac/assets/manual/78-daemon-page.webp"><source type="image/png" srcset="/tablet-app-for-mac/assets/manual/78-daemon-page.png"><img src="/tablet-app-for-mac/assets/manual/78-daemon-page.webp" alt="Advanced › Daemon" width="960" height="638" loading="lazy" decoding="async"></picture><figcaption>Advanced › Daemon</figcaption></figure>
+<section class="chap" id="advanced" aria-labelledby="advanced-h"><h2 id="advanced-h">Advanced</h2><figure><picture><source type="image/webp" srcset="/tablet-app-for-mac/assets/manual/78-daemon-page.webp"><source type="image/png" srcset="/tablet-app-for-mac/assets/manual/78-daemon-page.png"><img src="/tablet-app-for-mac/assets/manual/78-daemon-page.webp" alt="Advanced › Driver" width="960" height="638" loading="lazy" decoding="async"></picture><figcaption>Advanced › Driver</figcaption></figure>
 <ul>
-<li><strong>Daemon</strong>: status; <strong>Start</strong>, <strong>Restart</strong>, <strong>Stop</strong>, <strong>Open OpenTabletDriver's interface</strong>, <strong>Open the folder holding this daemon</strong>.</li>
+<li><strong>Driver</strong>: status; <strong>Start</strong>, <strong>Restart</strong>, <strong>Stop</strong>, <strong>Open OpenTabletDriver's interface</strong>, <strong>Open the folder holding this driver</strong>.</li>
 <li><strong>Plugins</strong>: <strong>Rescan plugin folder</strong>, <strong>Open plugin folder</strong>.</li>
 <li><strong>Tablet configs</strong>: <strong>Check for more configs</strong>, <strong>Install</strong>, <strong>View</strong>.</li>
 <li><strong>Console</strong>: severity filter, text filter, <strong>Auto-scroll</strong> (on), copy as text, Markdown or HTML, <strong>Clear</strong>.</li>
@@ -132,7 +132,7 @@
 </ul><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
 <section class="chap" id="quitting" aria-labelledby="quitting-h"><h2 id="quitting-h">Quitting</h2><ul>
 <li><strong>Cmd+Q</strong> closes the window. The app stays in the menu bar and the tablet keeps working.</li>
-<li><strong>Quit</strong> in the menu bar menu stops the app and its daemon. With unsaved changes it asks "Save changes before quitting?": <strong>Cancel</strong> keeps the app open, <strong>Don't Save</strong> quits without saving, <strong>Save</strong> saves and quits.</li>
+<li><strong>Quit</strong> in the menu bar menu stops the app and its driver. With unsaved changes it asks "Save changes before quitting?": <strong>Cancel</strong> keeps the app open, <strong>Don't Save</strong> quits without saving, <strong>Save</strong> saves and quits.</li>
 <li>Quitting also happens at shutdown and logout; unsaved changes are then kept and offered at the next launch.</li>
 </ul><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
 <section class="chap" id="tested-system-and-tablet" aria-labelledby="tested-system-and-tablet-h"><h2 id="tested-system-and-tablet-h">Tested system and tablet</h2><p>macOS 27.0.1 on Apple silicon, Wacom Intuos4 Small (PTK-440). Nothing else has been tested.</p><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
