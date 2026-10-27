@@ -288,7 +288,7 @@
                                    Foreground="{DynamicResource TextInverseBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <Button x:Name="RefreshBtn" Content="Refresh" Command="{Binding RefreshCommand}"
-                            ToolTip.Tip="Reload settings from daemon"
+                            ToolTip.Tip="Reload settings from driver"
                             Theme="{StaticResource GhostButton}" Padding="12,6" />
                 </StackPanel>
             </ctrl:ComplexHeader>
@@ -1345,7 +1345,7 @@
                                                        TextWrapping="Wrap" VerticalAlignment="Center" />
                                             <!-- Stale leftover from an older app/plugin name: inert, should be cleaned. -->
                                             <ctrl:Chip Text="Legacy" Kind="Warning" IsVisible="{Binding IsLegacy}"
-                                                       ToolTip.Tip="Left over from an older version. The OTD daemon has no plugin for it, so it has no effect and is removed automatically." />
+                                                       ToolTip.Tip="Left over from an older version. The driver has no plugin for it, so it has no effect and is removed automatically." />
                                         </StackPanel>
                                         <TextBlock Text="{Binding FullPath}"
                                                    Foreground="{DynamicResource TextMutedBrush}"

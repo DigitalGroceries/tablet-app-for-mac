@@ -194,7 +194,7 @@ public class SettingsFooterTests
         var (w1, state, buttons) = Footer(canEdit: true, unsaved: false);
         var save = Named(buttons, "Save");
 
-        Assert.Equal("Save settings so they survive an OTD daemon restart (Cmd+S).", ToolTip.GetTip(save));
+        Assert.Equal("Save settings so they survive a driver restart (Cmd+S).", ToolTip.GetTip(save));
         Assert.True(string.IsNullOrEmpty(Avalonia.Automation.AutomationProperties.GetName(save)));
 
         state.SettingsSession.HasUnsavedChanges = true;
@@ -205,7 +205,7 @@ public class SettingsFooterTests
 
         state.SettingsSession.HasUnsavedChanges = false;      // and it goes back
         Settle();
-        Assert.Equal("Save settings so they survive an OTD daemon restart (Cmd+S).", ToolTip.GetTip(save));
+        Assert.Equal("Save settings so they survive a driver restart (Cmd+S).", ToolTip.GetTip(save));
         w1.Close();
     }
 

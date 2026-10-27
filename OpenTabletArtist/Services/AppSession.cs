@@ -249,11 +249,11 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
 
     /// <summary>The discarded-change notice while the daemon is gone and unsaved changes were open.</summary>
     internal const string DisconnectedWithUnsavedChangesMessage =
-        "The OTD daemon disconnected. Reconnecting reloads its current settings; unsaved changes may be lost.";
+        "The driver disconnected. Reconnecting reloads its current settings; unsaved changes may be lost.";
 
     /// <summary>What replaces <see cref="DisconnectedWithUnsavedChangesMessage"/> once the daemon is back.</summary>
     internal const string ReconnectedReplacedUnsavedChangesMessage =
-        "Reconnected to the OTD daemon. Its current settings replaced the previous unsaved workspace.";
+        "Reconnected to the driver. Its current settings replaced the previous unsaved workspace.";
 
     /// <summary>Message shown when <see cref="IsDaemonExeMissing"/> — the most common cause of a
     /// dead connection (building only the app, or only running the test suite, never produces the
@@ -274,10 +274,10 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             // Not "build the solution": the daemon left it in #786/#790, so that advice now cannot work.
             // And not "point OTA at one" either: since #daemon-bundled-only OTA starts only the copy it
             // ships, so the two routes that work are repairing that copy or starting another yourself.
-            : $"{Domain.DaemonExePaths.DaemonExeName} wasn't found and no daemon is running. The copy "
+            : $"{Domain.DaemonExePaths.DaemonExeName} wasn't found and no driver is running. The copy "
               + "Tablet App for Mac ships is missing, so reinstall or repair Tablet App for Mac, or "
               + "start any OpenTabletDriver yourself and Tablet App for Mac will connect to it. From a dev tree, build "
-              + "the daemon from the submodule (scripts/build.ps1, or dotnet build "
+              + "the driver from the submodule (scripts/build.ps1, or dotnet build "
               + "external/OpenTabletDriver/OpenTabletDriver.Daemon/OpenTabletDriver.Daemon.csproj).";
 
     // --- Lifecycle-operation feedback (Start/Stop/Restart) ---
@@ -765,7 +765,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
     /// <summary>Recompute the daemon status text + activity indicators from the connect/op state.</summary>
     private void UpdateDaemonActivity()
     {
-        DaemonStatusText = IsConnected ? "Daemon running" : IsConnecting ? "Connecting…" : "Not connected";
+        DaemonStatusText = IsConnected ? "Driver running" : IsConnecting ? "Connecting…" : "Not connected";
         OnPropertyChanged(nameof(IsConnecting));
         OnPropertyChanged(nameof(ShowDaemonActivity));
         OnPropertyChanged(nameof(DaemonActivityText));
@@ -833,18 +833,18 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         {
             // No flat delay: the pipe connect below already waits for the daemon's pipe to come up,
             // so a fixed sleep only adds latency (and risks eating the connect timeout). (#246)
-            ConnectPhase = "Starting the daemon…";
+            ConnectPhase = "Starting the driver…";
             if (_daemonLifecycle.Launch(_daemonPath) is { } launchProblem)
             {
                 DaemonOperationError = launchProblem;
                 ConnectionStatus = "Disconnected";
                 return;
             }
-            ConnectPhase = "Waiting for the daemon to respond…";
+            ConnectPhase = "Waiting for the driver to respond…";
         }
         else
         {
-            ConnectPhase = "Connecting to the daemon…";
+            ConnectPhase = "Connecting to the driver…";
         }
 
         ConnectionStatus = "Connecting...";
@@ -885,7 +885,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
 
         IsDaemonExeMissing = false;
         ConnectStalled = false;
-        ConnectPhase = "Connecting to the daemon…";
+        ConnectPhase = "Connecting to the driver…";
         ConnectionStatus = "Connecting...";
         var connect = _session.ConnectAsync(_cts.Token);
         _ = MonitorConnectAttemptAsync(++_connectAttempt);
@@ -957,7 +957,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
     /// <summary>Said instead of waiting. Names Start because that is the action that works from here,
     /// and it is in the same menu.</summary>
     public static readonly string NoDaemonToReachMessage =
-        "No OpenTabletDriver daemon is running, so there is nothing to reconnect to. Use Start.";
+        "No tablet driver is running, so there is nothing to reconnect to. Use Start.";
 
     public Task ReloadAsync()
     {
@@ -1084,7 +1084,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
                         // two events, and the first is the one that carries the loss.
                         if (DiscardedChangeNotice != ReconnectedReplacedUnsavedChangesMessage)
                             SettingsRefreshedNotice =
-                                "OTD daemon settings refreshed. It changed them and you had nothing unsaved "
+                                "Driver settings refreshed. It changed them and you had nothing unsaved "
                                 + "in progress, so this page now shows what it holds.";
                         SettingsReplaced?.Invoke();
                         PublishSettings();
@@ -1461,11 +1461,11 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             var attachingToExisting = _daemonLifecycle.IsRunning();
             if (attachingToExisting)
             {
-                DaemonOperationStatus = "Connecting to the running daemon…";
+                DaemonOperationStatus = "Connecting to the running driver…";
             }
             else
             {
-                DaemonOperationStatus = "Starting daemon…";
+                DaemonOperationStatus = "Starting driver…";
                 if (_daemonLifecycle.Launch(_daemonPath) is { } launchProblem)
                 {
                     // It died on the spot. Waiting out the 30s connect timeout would replace a precise
@@ -1487,7 +1487,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
 
             if (!await WaitForConnectionStateAsync(connected: true, DaemonOperationTimeout))
             {
-                DaemonOperationError = "The daemon didn't come online within 30 seconds.";
+                DaemonOperationError = "The driver didn't come online within 30 seconds.";
                 ConnectionStatus = "Disconnected"; // clear the Connecting… indicator on failure
             }
         }
@@ -1647,14 +1647,14 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         DaemonOperationError = "";
         try
         {
-            DaemonOperationStatus = "Stopping daemon…";
+            DaemonOperationStatus = "Stopping driver…";
             // User-initiated stop: suppress auto-reconnect so the client doesn't immediately spin
             // trying to reconnect to the daemon we're about to kill (which races a later Start).
             _session.AutoReconnect = false;
             await StopDaemonProcessAsync();
 
             if (!await WaitForConnectionStateAsync(connected: false, DaemonOperationTimeout))
-                DaemonOperationError = "The daemon didn't stop within 30 seconds.";
+                DaemonOperationError = "The driver didn't stop within 30 seconds.";
         }
         finally
         {
@@ -1670,7 +1670,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         if (_daemonPath is not null && _session.ConnectedExecutablePath is { } actual
             && !PathEquality.Same(_daemonPath, actual))
         {
-            DaemonOperationError = "A different OTD daemon is running. Restart Tablet App for Mac to use it.";
+            DaemonOperationError = "A different driver is running. Restart Tablet App for Mac to use it.";
             return;
         }
         if (ResolveUnsavedChanges is { } resolve && !await resolve()) return;
@@ -1686,13 +1686,13 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             IsDaemonExeMissing = false;
 
             // Stop phase: suppress auto-reconnect while the old process dies, wait for the drop.
-            DaemonOperationStatus = "Stopping daemon…";
+            DaemonOperationStatus = "Stopping driver…";
             _session.AutoReconnect = false;
             await StopDaemonProcessAsync();
             await WaitForConnectionStateAsync(connected: false, DaemonOperationTimeout);
 
             // Start phase: relaunch and connect to the fresh instance.
-            DaemonOperationStatus = "Starting daemon…";
+            DaemonOperationStatus = "Starting driver…";
             _session.AutoReconnect = true;
             if (_daemonLifecycle.Launch(_daemonPath) is { } launchProblem)
             {
@@ -1710,7 +1710,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
 
             if (!await WaitForConnectionStateAsync(connected: true, DaemonOperationTimeout))
             {
-                DaemonOperationError = "The daemon didn't come online within 30 seconds.";
+                DaemonOperationError = "The driver didn't come online within 30 seconds.";
                 ConnectionStatus = "Disconnected"; // clear the Connecting… indicator on failure
             }
         }

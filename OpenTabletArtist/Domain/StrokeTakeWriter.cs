@@ -73,7 +73,7 @@ public static class StrokeTakeWriter
     public const string Clocks =
         "'arrived' is this application's clock, in microseconds from the take's first reading in contact (or, if "
         + "the pen never touched down, from the first reading in the airborne record), stamped when each report "
-        + "reached Tablet App for Mac from the OpenTabletDriver daemon. It records when the application received a "
+        + "reached Tablet App for Mac from the tablet driver. It records when the application received a "
         + "report, not when the hardware measured it. Each report is stamped separately, though two stamps can be "
         + "equal once rounded to a microsecond. There is no pen timestamp in this recording: the driver does not "
         + "provide one. Readings before the first contact (an approach) are negative.";

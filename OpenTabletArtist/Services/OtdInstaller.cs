@@ -87,7 +87,7 @@ public sealed class OtdInstaller
 
             var daemon = OtdRelease.InstalledDaemonPath;
             if (!File.Exists(daemon))
-                return new Result(null, $"Installed, but no daemon at {daemon}.");
+                return new Result(null, $"Installed, but no driver at {daemon}.");
 
             // tar carries the mode bits, but a stray umask or a re-packed archive can land them without
             // the execute bit — and a daemon that can't be exec'd fails in a way that reads like a

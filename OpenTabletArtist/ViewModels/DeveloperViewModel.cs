@@ -69,7 +69,7 @@ public sealed partial class DeveloperViewModel : ObservableObject
     private async Task AddForcedTablet()
     {
         var settings = _settings?.CurrentSettings;
-        if (settings == null) { ForceTabletStatus = "No settings loaded yet. Connect the daemon first."; return; }
+        if (settings == null) { ForceTabletStatus = "No settings loaded yet. Connect the driver first."; return; }
 
         var name = SelectedForcedTablet;
         if (string.IsNullOrWhiteSpace(name)) { ForceTabletStatus = "Pick a tablet first."; return; }
@@ -182,7 +182,7 @@ public sealed partial class DeveloperViewModel : ObservableObject
     private async Task PushMappingOffScreen()
     {
         var settings = _settings?.CurrentSettings;
-        if (settings == null) { ConfigErrorStatus = "No settings loaded yet. Connect the daemon first."; return; }
+        if (settings == null) { ConfigErrorStatus = "No settings loaded yet. Connect the driver first."; return; }
 
         // The mapping is per-tablet, so act on the active/detected tablet (as the monitor-cycle hotkey does).
         var tabletName = _device?.ActiveTabletName ?? _device?.DetectedTablets.FirstOrDefault()?.Name;
@@ -221,7 +221,7 @@ public sealed partial class DeveloperViewModel : ObservableObject
     private async Task PushMappingRotation()
     {
         var settings = _settings?.CurrentSettings;
-        if (settings == null) { ConfigErrorStatus = "No settings loaded yet. Connect the daemon first."; return; }
+        if (settings == null) { ConfigErrorStatus = "No settings loaded yet. Connect the driver first."; return; }
 
         var tabletName = _device?.ActiveTabletName ?? _device?.DetectedTablets.FirstOrDefault()?.Name;
         if (string.IsNullOrEmpty(tabletName)) { ConfigErrorStatus = "No active tablet to rotate."; return; }
@@ -246,7 +246,7 @@ public sealed partial class DeveloperViewModel : ObservableObject
     private async Task BreakPenForDrawing()
     {
         var settings = _settings?.CurrentSettings;
-        if (settings == null) { ConfigErrorStatus = "No settings loaded yet. Connect the daemon first."; return; }
+        if (settings == null) { ConfigErrorStatus = "No settings loaded yet. Connect the driver first."; return; }
 
         var tabletName = _device?.ActiveTabletName ?? _device?.DetectedTablets.FirstOrDefault()?.Name;
         if (string.IsNullOrEmpty(tabletName)) { ConfigErrorStatus = "No active tablet."; return; }
@@ -354,7 +354,7 @@ public sealed partial class DeveloperViewModel : ObservableObject
     {
         ctx = default;
         var settings = _settings?.CurrentSettings;
-        if (settings == null) { error = "No settings loaded yet. Connect the daemon first."; return false; }
+        if (settings == null) { error = "No settings loaded yet. Connect the driver first."; return false; }
 
         var tabletName = _device?.ActiveTabletName ?? _device?.DetectedTablets.FirstOrDefault()?.Name;
         if (string.IsNullOrEmpty(tabletName)) { error = "No active tablet."; return false; }

@@ -214,7 +214,7 @@ public partial class WindowsInkViewModel : ObservableObject, IDisposable
         if (!_session.IsConnected)
         {
             await _dialogs.ShowMessageAsync("Windows Ink Plugin",
-                "The OpenTabletDriver daemon isn't connected. Start it first, then try again.");
+                "The tablet driver isn't connected. Start it first, then try again.");
             return;
         }
 
@@ -343,7 +343,7 @@ public partial class WindowsInkViewModel : ObservableObject, IDisposable
             await _dialogs.ShowMessageAsync("Windows Ink Plugin",
                 ok && !WinInkInstalled
                     ? "The Windows Ink plugin has been uninstalled."
-                    : "The plugin could not be fully removed. Check the daemon log for details.");
+                    : "The plugin could not be fully removed. Check the driver log for details.");
         }
         catch (Exception ex)
         {

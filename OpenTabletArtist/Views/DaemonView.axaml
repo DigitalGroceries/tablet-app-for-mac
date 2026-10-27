@@ -227,13 +227,13 @@
                                          them for the same reason: it acts on this daemon, and a whole card for
                                          one button said otherwise. -->
                                     <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Grid.Column="0" Classes="nodeRole" Text="Daemon process"
+                                        <TextBlock Grid.Column="0" Classes="nodeRole" Text="Driver process"
                                                    VerticalAlignment="Center" />
                                         <c:IconButton Grid.Column="1" VerticalAlignment="Top"
                                                       Margin="0,-4,-6,0"
                                                       Icon="{StaticResource IconDotsHorizontal}"
-                                                      ToolTip.Tip="Daemon process actions"
-                                                      AutomationProperties.Name="Daemon process actions">
+                                                      ToolTip.Tip="Driver process actions"
+                                                      AutomationProperties.Name="Driver process actions">
                                             <c:IconButton.Flyout>
                                                 <MenuFlyout>
                                                     <!-- The header follows what pressing it will do:
@@ -303,7 +303,7 @@
                                             CommandParameter="{Binding Status.DaemonSourcePath}"
                                             ToolTip.Tip="{Binding Status.DaemonSourcePath}"
                                             IsVisible="{Binding Status.HasDaemonSourcePath}"
-                                            AutomationProperties.Name="Open the folder holding this daemon">
+                                            AutomationProperties.Name="Open the folder holding this driver">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <PathIcon Data="{StaticResource IconFolderOutline}" Width="13" Height="13"
                                                       VerticalAlignment="Top" Margin="0,3,0,0"
@@ -321,7 +321,7 @@
                           IsVisible="{Binding Status.ConnectStalled}">
                         <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap"
                                    Foreground="{DynamicResource TextSecondaryBrush}"
-                                   Text="Couldn't reach the daemon. Still retrying in the background." />
+                                   Text="Couldn't reach the driver. Still retrying in the background." />
                         <Button Grid.Column="1" Content="Retry" Command="{Binding Status.RefreshCommand}"
                                 Theme="{StaticResource AccentButton}" Padding="12,6"
                                 VerticalAlignment="Center" />
@@ -464,7 +464,7 @@
                     <c:Section MaxWidth="440" HorizontalAlignment="Left" VerticalAlignment="Top"
                                IsVisible="{Binding ShowDriverCard}">
                         <StackPanel>
-                            <TextBlock Classes="Display section" Text="OTD daemon" TextWrapping="Wrap" Margin="0,0,0,0" />
+                            <TextBlock Classes="Display section" Text="Driver" TextWrapping="Wrap" Margin="0,0,0,0" />
 
                             <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,10,0,0">
                                 <Button Content="{Binding InstallVersion, StringFormat='Install v{0}'}"
@@ -524,7 +524,7 @@
                         <StackPanel>
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                                 <StackPanel Grid.Column="0" MinWidth="0">
-                                    <TextBlock Classes="Display section" Text="System-installed daemon" TextWrapping="Wrap" Margin="0,0,0,0" />
+                                    <TextBlock Classes="Display section" Text="System-installed driver" TextWrapping="Wrap" Margin="0,0,0,0" />
 
                                     <!-- property: value list -->
                                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14"
@@ -556,7 +556,7 @@
                                                       Command="{Binding OpenContainingFolderCommand}"
                                                       CommandParameter="{Binding OtdDaemonPath}"
                                                       ToolTip.Tip="{Binding OtdDaemonPath}"
-                                                      AutomationProperties.Name="Open the folder holding this daemon"
+                                                      AutomationProperties.Name="Open the folder holding this driver"
                                                       IsVisible="{Binding HasOtdDaemonPath}" />
 
                                         <!-- Service running -->

@@ -24,7 +24,7 @@ public sealed record DetectedDriver(
         ? "These are the packages OpenTabletDriver matched on the word \"Wacom\". Removing them is optional, " +
           "and a connected Wacom tablet may be using one of them."
         : "No Wacom packages are in the driver store now. They may have been removed since OpenTabletDriver " +
-          "last scanned; restart the daemon to refresh this warning.";
+          "last scanned; restart the driver to refresh this warning.";
 
     /// <summary>One-line plain-English impact, worst-first.</summary>
     public string Impact =>

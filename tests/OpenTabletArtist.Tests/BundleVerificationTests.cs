@@ -65,7 +65,7 @@ public class BundleVerificationTests : IDisposable
     {
         var checks = BundleVerification.Run(_dir);
 
-        Assert.Contains(checks, c => !c.Ok && c.Name.Contains("daemon", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(checks, c => !c.Ok && c.Name.Contains("Bundled driver", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(checks, c => !c.Ok && c.Name.Contains("Dynamics", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(checks, c => !c.Ok && c.Name.Contains("Windows Ink", StringComparison.Ordinal));
         Assert.Contains(checks, c => !c.Ok && c.Name.Contains("VMulti", StringComparison.Ordinal));
@@ -77,7 +77,7 @@ public class BundleVerificationTests : IDisposable
         WriteCompleteBundle();
         File.Delete(Path.Combine(_dir, "Daemon", DaemonExePaths.DaemonExeName));
 
-        var daemon = BundleVerification.Run(_dir).Single(c => c.Name.Contains("daemon", StringComparison.OrdinalIgnoreCase));
+        var daemon = BundleVerification.Run(_dir).Single(c => c.Name.Contains("Bundled driver", StringComparison.OrdinalIgnoreCase));
 
         Assert.False(daemon.Ok);
         Assert.NotNull(daemon.Detail);
@@ -139,7 +139,7 @@ public class BundleVerificationTests : IDisposable
         var report = BundleVerification.Report(BundleVerification.Run(_dir));
 
         Assert.Contains("MISSING", report, StringComparison.Ordinal);
-        Assert.Contains("Bundled daemon", report, StringComparison.Ordinal);
+        Assert.Contains("Bundled driver", report, StringComparison.Ordinal);
         Assert.Contains("Pen Dynamics plugin", report, StringComparison.Ordinal);
         Assert.Contains("missing or inconsistent", report, StringComparison.Ordinal);
     }

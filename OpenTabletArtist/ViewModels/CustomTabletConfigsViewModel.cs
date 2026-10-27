@@ -170,7 +170,7 @@ public partial class CustomTabletConfigsViewModel : ObservableObject
         // Drop it from the available list and re-scan the installed folder.
         AvailableConfigs = AvailableConfigs.Where(c => c.Path != config.Path).ToList();
         HasAvailableConfigs = AvailableConfigs.Count > 0;
-        AvailableStatus = $"Installed {config.DisplayName}. Reconnect the tablet (or restart the daemon) to use it.";
+        AvailableStatus = $"Installed {config.DisplayName}. Reconnect the tablet (or restart the driver) to use it.";
         LoadConfigurations();
     }
 }

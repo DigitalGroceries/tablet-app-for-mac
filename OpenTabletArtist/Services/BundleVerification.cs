@@ -32,7 +32,7 @@ public static class BundleVerification
 
         // The daemon, found the way the app finds it at startup.
         var daemon = DaemonExePaths.BundledPath(baseDir);
-        checks.Add(new Check("Bundled daemon", daemon, File.Exists(daemon),
+        checks.Add(new Check("Bundled driver", daemon, File.Exists(daemon),
             File.Exists(daemon) ? null : "the app would fall back to an installed OTD, or none at all"));
 
         // The pen-dynamics plugin: the app's own, and the reason pressure curves work at all.

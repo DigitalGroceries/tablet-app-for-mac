@@ -158,7 +158,7 @@
         <!-- Not connected warning -->
         <c:Section
                 IsVisible="{Binding !IsConnected}">
-            <TextBlock Text="Daemon not connected. Connect first from Home."
+            <TextBlock Text="Driver not connected. Connect first from Home."
                        Foreground="{DynamicResource TextMutedBrush}"
                        HorizontalAlignment="Center" />
         </c:Section>

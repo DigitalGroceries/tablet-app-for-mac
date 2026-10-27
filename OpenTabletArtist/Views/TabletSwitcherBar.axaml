@@ -34,8 +34,8 @@
         </ComboBox>
         <c:IconButton Icon="{StaticResource IconRefresh}"
                       Command="{Binding #Root.RefreshCommand}"
-                      ToolTip.Tip="Reload settings from daemon"
-                      AutomationProperties.Name="Reload settings from daemon"
+                      ToolTip.Tip="Reload settings from driver"
+                      AutomationProperties.Name="Reload settings from driver"
                       IsVisible="{Binding #Root.ShowRefresh}" />
     </StackPanel>
 </UserControl>

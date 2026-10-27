@@ -35,7 +35,7 @@ public sealed class StrokeRecordingSession
     /// What the numbers in a recording made here are, in the words the file carries in <c>device.conventions</c>.
     /// </summary>
     public const string Conventions =
-        "Reports as OpenTabletDriver's tablet reader delivers them over the daemon's DeviceReport debug stream, "
+        "Reports as OpenTabletDriver's tablet reader delivers them over the driver's DeviceReport debug stream, "
         + "before any output-mode filter, so a pressure curve or smoothing set in Tablet App for Mac does not apply. "
         + "Only reports from this tablet that carry a position and a pressure are recorded; reports from other "
         + "devices and mouse-type reports are ignored, and the notes say how many. A channel is written only if every "

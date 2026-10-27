@@ -140,7 +140,7 @@ public class ConnectWaitDisclosureTests
 
         var start = session.StartDaemonCommand.ExecuteAsync(null);
 
-        Assert.Equal("Connecting to the running daemon…", session.DaemonOperationStatus);
+        Assert.Equal("Connecting to the running driver…", session.DaemonOperationStatus);
         Assert.Null(lifecycle.Launched);
 
         session.Dispose();

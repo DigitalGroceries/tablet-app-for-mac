@@ -10,12 +10,12 @@
              value set directly on the button would beat these style setters. -->
         <Style Selector="Button.save">
             <Setter Property="ToolTip.Tip"
-                    Value="Save settings so they survive an OTD daemon restart (Cmd+S)." />
+                    Value="Save settings so they survive a driver restart (Cmd+S)." />
         </Style>
         <Style Selector="Button.save.unsaved">
             <Setter Property="c:ButtonIcon.Data" Value="{StaticResource IconAlertCircle}" />
             <Setter Property="ToolTip.Tip"
-                    Value="You have unsaved changes. Save settings so they survive an OTD daemon restart (Cmd+S)." />
+                    Value="You have unsaved changes. Save settings so they survive a driver restart (Cmd+S)." />
             <Setter Property="AutomationProperties.Name" Value="Save, unsaved changes" />
         </Style>
     </UserControl.Styles>
@@ -80,7 +80,7 @@
                 <Button x:Name="RevertButton" Content="Revert to saved" Command="{Binding RevertSettingsCommand}"
                         Theme="{StaticResource GhostButton}" Padding="16,5"
                         IsEnabled="{Binding SettingsSession.CanEditSettings}"
-                        ToolTip.Tip="Replace live settings with the OTD daemon’s saved file, discarding unsaved changes." />
+                        ToolTip.Tip="Replace live settings with the driver’s saved file, discarding unsaved changes." />
             </StackPanel>
         </Grid>
     </Border>

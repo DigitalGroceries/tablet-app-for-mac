@@ -26,7 +26,7 @@
                     <TextBlock Text="{Binding FilterSummary}"
                                Foreground="{DynamicResource TextMutedBrush}"
                                IsVisible="{Binding ShowFilterSummary}" />
-                    <TextBlock Text="Daemon not connected."
+                    <TextBlock Text="Driver not connected."
                                Foreground="{DynamicResource TextMutedBrush}"
                                IsVisible="{Binding !IsConnected}" />
                 </StackPanel>

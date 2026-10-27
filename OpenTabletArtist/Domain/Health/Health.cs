@@ -272,13 +272,13 @@ public static class HealthEvaluator
                 // "When no daemon is running" rather than a bare "it starts": this row can be on screen
                 // while some other OpenTabletDriver is answering, and the policy being described is about
                 // what OTA launches, not about what is running now (#946).
-                "When no OpenTabletDriver daemon is running, Tablet App for Mac starts the copy it ships. "
+                "When no tablet driver is running, Tablet App for Mac starts the copy it ships. "
                 + "It has not moved or deleted your previous OpenTabletDriver files: "
                 + $"{i.IgnoredDaemonPath} and its settings are untouched. If that installation is still "
                 + "there and you would rather use it, quit Tablet App for Mac from its tray menu: choose "
-                + "\"Quit and stop the daemon\" if it is offered, otherwise choose \"Quit\" and stop any "
+                + "\"Quit and stop the driver\" if it is offered, otherwise choose \"Quit\" and stop any "
                 + "running OpenTabletDriver yourself. Then start the one you want and launch "
-                + "Tablet App for Mac again. Only one daemon can run at a time, so yours cannot start "
+                + "Tablet App for Mac again. Only one driver can run at a time, so yours cannot start "
                 + "while another is up. A portable OpenTabletDriver keeps its settings and plugins beside "
                 + "itself, so those may look different until you do.",
                 new Remediation("Got it", RemediationArea.AcknowledgeLegacyDaemonPath)));

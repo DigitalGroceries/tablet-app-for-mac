@@ -203,11 +203,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
             // Off Windows there's no pipe-to-process lookup, so Stop can only stop them all.
             var breadth = !OperatingSystem.IsWindows() && verb == "stop"
-                ? "\n\nThis stops every OpenTabletDriver daemon running, not just one."
+                ? "\n\nThis stops every tablet driver running, not just one."
                 : "";
 
             return dialogs.ShowConfirmAsync(
-                verb == "restart" ? "Restart the OTD daemon?" : "Stop this daemon?",
+                verb == "restart" ? "Restart the driver?" : "Stop this driver?",
                 $"{subject}\n\n{consequence}{breadth}");
         };
         TabletsOverview = new TabletsOverviewViewModel();
@@ -613,7 +613,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             if (!await _dialogs.ShowConfirmAsync("Revert to saved settings?",
-                "This replaces the OTD daemon's live settings with its saved file and discards unsaved edits. Nothing is saved."))
+                "This replaces the driver's live settings with its saved file and discards unsaved edits. Nothing is saved."))
                 return false;
             ResetEditorInput();
             return true;
@@ -626,13 +626,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         if (_session.SettingsBusy) return;
         if ((HasPendingInput || _session.SettingsPaused) && !await _dialogs.ShowConfirmAsync(
-            "Reload current OTD daemon settings?",
+            "Reload current Driver settings?",
             // "your applied changes survive this" was a promise this cannot keep: another editor, the
             // daemon's own recovery, or a write nobody waited for may have replaced them already. Reload
             // shows what is there; it cannot vouch for how it got there.
-            "Pending local edits will be discarded. Reload reads the OTD daemon's current live "
+            "Pending local edits will be discarded. Reload reads the driver's current live "
             + "settings. It does not restore the saved file or save anything. Applied changes are "
-            + "retained only if they are still present in the OTD daemon."))
+            + "retained only if they are still present in the driver."))
             return;
         _session.SettingsBusy = true;
         try

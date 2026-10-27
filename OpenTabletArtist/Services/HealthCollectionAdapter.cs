@@ -34,7 +34,7 @@ internal static class HealthCollectionAdapter
             Connect = ct => connected ? live.Connect(ct) : Task.FromResult(false),
             Version = _ => Task.FromResult(version),
             Profiles = _ => dataLoaded || profiles.Count > 0 ? Task.FromResult(profiles)
-                : throw new ProbeUnavailableException("Tablet App for Mac has not loaded daemon data yet."),
+                : throw new ProbeUnavailableException("Tablet App for Mac has not loaded driver data yet."),
             PluginDirectory = _ => Task.FromResult(pluginDir),
             ConfigurationDirectory = _ => Task.FromResult(configDir),
             Displays = _ => displayFailure != null ? throw displayFailure : Task.FromResult(displays!),

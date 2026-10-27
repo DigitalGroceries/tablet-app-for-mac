@@ -118,10 +118,10 @@ public class DaemonLifecycleService : IDaemonLifecycleService
         catch (Exception ex)
         {
             AppLog.Warn($"Couldn't start the daemon at {daemonPath}.", ex);
-            return $"The daemon at {daemonPath} couldn't be started: {ex.Message}";
+            return $"The driver at {daemonPath} couldn't be started: {ex.Message}";
         }
 
-        if (proc == null) return $"The daemon at {daemonPath} couldn't be started.";
+        if (proc == null) return $"The driver at {daemonPath} couldn't be started.";
 
         // Deliberately no stdout/stderr redirection: the pipes would outlive this call for a healthy
         // daemon, and tearing them down when OTA quits can break a daemon that was working fine. The exit
@@ -138,14 +138,14 @@ public class DaemonLifecycleService : IDaemonLifecycleService
             // is right even when a directory listing suggests otherwise.
             if (Domain.DotnetRuntime.IsMissingRuntimeExit(proc.ExitCode))
             {
-                return $"The daemon at {daemonPath} needs the .NET {Domain.DotnetRuntime.DaemonMajor} "
+                return $"The driver at {daemonPath} needs the .NET {Domain.DotnetRuntime.DaemonMajor} "
                      + "runtime, and this machine doesn't have it. Install \".NET Runtime "
                      + $"{Domain.DotnetRuntime.DaemonMajor}.0\" (x64) from Microsoft and try again. If "
                      + "you have another OpenTabletDriver that runs, start it yourself and Tablet App for Mac will "
                      + "connect to it.";
             }
 
-            return $"The daemon at {daemonPath} started and exited immediately (exit code {proc.ExitCode}). "
+            return $"The driver at {daemonPath} started and exited immediately (exit code {proc.ExitCode}). "
                  + "It may be an incomplete install. Reinstall or repair Tablet App for Mac, or start an "
                  + "OpenTabletDriver yourself and Tablet App for Mac will connect to it.";
         }

@@ -27,6 +27,8 @@ public partial class App : Application
         ThemeService.ApplySaved();
         // Version 8: load UI language before any window/tray strings are built.
         Localizer.EnsureLoaded();
+        // Version 15: an update leaves the old driver running; stop it before the session connects.
+        Services.StaleDriverGuard.StopIfStale();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {

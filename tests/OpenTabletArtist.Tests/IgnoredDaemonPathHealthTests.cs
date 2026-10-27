@@ -61,7 +61,7 @@ public class IgnoredDaemonPathHealthTests
         // The policy is about what OTA launches, not about what is answering: this row can be on screen
         // while a third OpenTabletDriver holds the pipe, and "it starts the copy it ships" read as a
         // claim about the present would be wrong there (#946).
-        Assert.StartsWith("When no OpenTabletDriver daemon is running", row.Detail);
+        Assert.StartsWith("When no tablet driver is running", row.Detail);
 
         // And why their settings may look different, which is the symptom that sends them looking.
         Assert.Contains("plugins", row.Detail);
@@ -85,7 +85,7 @@ public class IgnoredDaemonPathHealthTests
         // session this needs (#941, #72).
         Assert.Contains("quit Tablet App for Mac from its tray menu", row!.Detail);
         Assert.Contains("launch Tablet App for Mac again", row.Detail);
-        Assert.Contains("Only one daemon can run at a time", row.Detail);
+        Assert.Contains("Only one driver can run at a time", row.Detail);
 
         // And it cannot only name "Quit and stop the daemon": AppTray hides that item while
         // disconnected, which is one of the states this row appears in (#946). The plain Quit route has

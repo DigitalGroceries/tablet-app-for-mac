@@ -103,8 +103,8 @@ public sealed partial class DaemonStatusViewModel : ObservableObject, IDisposabl
         get
         {
             if (IsConnected) return DaemonStatusText;
-            if (ConnectStalled) return "Still trying to reach the daemon…";
-            return "Not connected to daemon";
+            if (ConnectStalled) return "Still trying to reach the driver…";
+            return "Not connected to driver";
         }
     }
 

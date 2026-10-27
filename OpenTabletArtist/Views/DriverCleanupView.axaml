@@ -56,7 +56,7 @@
 
         <!-- "Reported", not "none exist": conflicts are parsed out of the daemon's log, so with the
              daemon down nothing has been reported rather than the machine being clean. -->
-        <TextBlock Text="No conflicting tablet drivers reported by the daemon."
+        <TextBlock Text="No conflicting tablet drivers reported by the driver."
                    FontStyle="Italic" TextWrapping="Wrap"
                    Foreground="{DynamicResource TextMutedBrush}"
                    IsVisible="{Binding !Conflicts.HasConflicts}" />

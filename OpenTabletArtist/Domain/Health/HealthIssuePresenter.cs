@@ -133,7 +133,7 @@ internal static class HealthIssuePresenter
         var foreign = findings.FirstOrDefault(f => f.Code == HealthCheckCodes.ForeignDaemon);
         if (foreign is not null)
             rows.Add(new HealthLink(foreign.Evidence!.ManagedButNotSelected == true
-                ? "Another copy of the OTD daemon this app ships"
+                ? "Another copy of the driver this app ships"
                 : "An OpenTabletDriver you installed, not the bundled copy", "", RemediationArea.Daemon));
         if (findings.Any(f => f.Code == HealthCheckCodes.DaemonSourceUnknown))
             rows.Add(new HealthLink("Location couldn't be read", "", RemediationArea.Daemon));
@@ -144,7 +144,7 @@ internal static class HealthIssuePresenter
                 + $"{version.Evidence.ExpectedVersion}", "", RemediationArea.Daemon));
 
         return new HealthIssue("otd.driver", Severity(findings.Max(f => f.Severity)),
-            "User-supplied OTD Daemon", "Tablet App for Mac is using a user-supplied OTD daemon",
+            "User-supplied driver", "Tablet App for Mac is using a user-supplied driver",
             new Remediation("Review", RemediationArea.Daemon), Links: rows);
     }
 

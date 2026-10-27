@@ -145,7 +145,7 @@
                                Text="{Binding Daemon.HomeProblemText}" />
                     <Button Content="Fix" Command="{Binding Daemon.FixCommand}" IsVisible="{Binding Daemon.CanStartDaemon}"
                             IsEnabled="{Binding !Daemon.IsDaemonBusy}" Theme="{StaticResource LinkButton}" Padding="0" FontSize="12" />
-                    <Button Content="Open daemon page" Command="{Binding Daemon.OpenDaemonPageCommand}"
+                    <Button Content="Open driver page" Command="{Binding Daemon.OpenDaemonPageCommand}"
                             Theme="{StaticResource LinkButton}" Padding="0" FontSize="12" />
                 </StackPanel>
             </StackPanel>
