@@ -115,6 +115,32 @@ public class RingFixV16Beta2Tests
         }
     }
 
+    [Theory]
+    [InlineData("bg-BG")]
+    [InlineData("de-DE")]
+    [InlineData("ru-RU")]
+    public void CommaDecimalLanguages_ReadStepsAndZoomSpeedBack(string culture)
+    {
+        var was = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo(culture);
+            var w = Wheel();
+            var modes = new[]
+            {
+                new RingMode("Z", K("Equal", cmd: true), K("Minus", cmd: true), ScrollAmount: 50),
+                new RingMode("B", K("RightBracket"), K("LeftBracket"), StepDegrees: 7.5f),
+            };
+            RingModeBinding.Apply(w, modes);
+            var back = RingModeBinding.Read(w);
+            Assert.Equal(50, back[0].ScrollAmount);
+            Assert.Equal(7.5f, back[1].StepDegrees);
+            Assert.True(RingModeBinding.SameKeys(modes, back));
+            Assert.True(RingModeBinding.SameSteps(modes, back));
+        }
+        finally { System.Globalization.CultureInfo.CurrentCulture = was; }
+    }
+
     [Fact]
     public void KeysModes_KeepTheirOwnStep()
     {

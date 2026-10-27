@@ -458,7 +458,7 @@ public static class RingModeBinding
         if (store?.Path != TurnTypeName) return result;
         for (int i = 0; i < MaxModes; i++)
         {
-            var v = store.Settings?.FirstOrDefault(s => s.Property == property(i))?.Value?.ToString();
+            var v = Invariant(store.Settings?.FirstOrDefault(s => s.Property == property(i))?.Value);
             result[i] = v != null && int.TryParse(v, System.Globalization.NumberStyles.Integer,
                 System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : 0;
         }
@@ -501,12 +501,17 @@ public static class RingModeBinding
         if (store?.Path != TurnTypeName) return result;
         for (int i = 0; i < MaxModes; i++)
         {
-            var v = store.Settings?.FirstOrDefault(s => s.Property == ModeScrollProperty(i))?.Value?.ToString();
+            var v = Invariant(store.Settings?.FirstOrDefault(s => s.Property == ModeScrollProperty(i))?.Value);
             result[i] = v != null && int.TryParse(v, System.Globalization.NumberStyles.Integer,
                 System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : 0;
         }
         return result;
     }
+
+    /// <summary>Version 16 BETA 2: a setting's number as text in the invariant culture. JValue.ToString() follows
+    /// the current culture, so in Bulgarian, German or Russian 30.5 became "30,5" and read back as 0.</summary>
+    private static string? Invariant(object? value) =>
+        value == null ? null : Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
 
     private static float[]? ReadSteps(PluginSettingStore? store)
     {
@@ -515,7 +520,7 @@ public static class RingModeBinding
         var result = new float[MaxModes];
         for (int i = 0; i < MaxModes; i++)
         {
-            var v = store.Settings?.FirstOrDefault(s => s.Property == ModeStepProperty(i))?.Value?.ToString();
+            var v = Invariant(store.Settings?.FirstOrDefault(s => s.Property == ModeStepProperty(i))?.Value);
             result[i] = v != null && float.TryParse(v, System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out var f) ? f : 0f;
         }
@@ -545,8 +550,9 @@ public static class RingModeBinding
 
     private static int ReadModeCount(PluginSettingStore store)
     {
-        var v = store.Settings?.FirstOrDefault(s => s.Property == ModeCountProperty)?.Value;
-        return v != null && int.TryParse(v.ToString(), out var n) ? Math.Clamp(n, 1, MaxModes) : MaxModes;
+        var v = Invariant(store.Settings?.FirstOrDefault(s => s.Property == ModeCountProperty)?.Value);
+        return v != null && int.TryParse(v, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var n)
+            ? Math.Clamp(n, 1, MaxModes) : MaxModes;
     }
 
     private static PluginSettingStore NewStore(string path) => AuxKeyBinding.NewStore(path);

@@ -1784,12 +1784,14 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 changed: canEdit ? m => RingModesChangedAsync(wi, m) : null);
             // Build H: a ring set up by an earlier build has no per-mode steps in the profile yet; write them
             // once so the steps shown are the ones in effect (latched, so it can't loop).
-            // Version 16 BETA 2: bindings from BETA 1 or earlier (reversed directions) are rewritten the same way.
-            if (canEdit && RingModeBinding.IsActive(ws)
+            // Version 16 BETA 2: bindings from BETA 1 or earlier (reversed directions) are rewritten too, every time
+            // they show up (e.g. after Revert to saved before Save); a rewritten wheel is no longer legacy, so this
+            // can't loop. Not for an extra pen's table (its wheels are an unused copy).
+            if (canEdit && RingModeBinding.IsActive(ws) && string.IsNullOrEmpty(SelectedPenKey)
                 && (RingModeBinding.IsLegacy(ws)
-                    || !RingModeBinding.SameSteps(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws))
-                    || !RingModeBinding.SameKeys(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws)))   // build K migration
-                && _ringStepSyncTried.Add($"{_profile.Tablet}:{SelectedAppBundleId}:{wi}"))
+                    || ((!RingModeBinding.SameSteps(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws))
+                         || !RingModeBinding.SameKeys(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws)))   // build K migration
+                        && _ringStepSyncTried.Add($"{_profile.Tablet}:{SelectedAppBundleId}:{wi}"))))
                 stepSync.Add((wi, modes));
             list.Add(new WheelEditor(
                 wheelIndex: wi,
@@ -1896,6 +1898,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (on && !RingModeBinding.CanApply(current[wheelIndex], modes)) return false;
         var backupKey = RingModesBackupKey(wheelIndex);
         var backupJson = AppSettings.Get(backupKey);
+        // An app's table copied from All while modes were on has no backup of its own: All's plain keys are its.
+        if (string.IsNullOrEmpty(backupJson) && !string.IsNullOrEmpty(SelectedAppBundleId))
+            backupJson = AppSettings.Get($"RingModesBackup:{_profile.Tablet}:{wheelIndex}");
         bool changed = false;
         await ApplyRingBindingsAsync(b =>
         {
