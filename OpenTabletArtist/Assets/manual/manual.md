@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-Version 15. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
+App version 15. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
 
 ## Before you start
 
@@ -58,7 +58,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 ![The Touch ID prompt for Privacy & Security, with Use Password… and Cancel](img/install-04-touch-id.png)
 
-- macOS asks for **Input Monitoring** (to read the tablet) and **Accessibility** (to send keys and clicks). Allow both in System Settings › Privacy & Security, then relaunch the app.
+- macOS asks for **Input Monitoring** (to read the pen) and **Accessibility** (to move the pointer and send keys and clicks). Allow both in System Settings › Privacy & Security, then relaunch the app.
 - The app starts its tablet driver. The pen icon stays in the menu bar while it runs.
 - To start the app when you log in, switch on **Start automatically when I log in** in **Settings › System** (or add it in System Settings › General › Login Items). At login the app starts silently: only the pen icon in the menu bar shows. Click it to open the window.
 - Only one copy runs. Opening the app again brings the running copy to the front.
@@ -76,9 +76,9 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 ## Tablet page layout
 
-- **Device**: the selected tablet. The switcher lists connected and remembered tablets. **+** explains how to add a tablet: connect it to your Mac and it appears by itself. **−** forgets the selected tablet and its settings (it asks first).
-- **Tool**: **Functions** (ExpressKeys, Touch ring), **Pen** (pen, eraser, mapping), a tile for each extra pen, and **More** (about, calibration, hover, filters, json). **+** explains how to add a pen: bring it close to the tablet and it gets its own tile. **−** removes the selected extra pen's settings; the main pen can't be removed.
-- **Application**: **All**, or a specific app. **+** adds apps (Command-click to choose several at once). Each added app keeps its own ExpressKeys, Touch Ring and pen tip and button actions, which switch when that app comes to the front; a switch waits until the pen tip is lifted, so a stroke is not interrupted. Mapping and pressure stay the same for every app. **−** removes the selected app's settings; it then uses **All** again.
+- **Device**: the selected tablet. The switcher lists connected and remembered tablets. **+** explains how to add a tablet: connect it to your Mac and it appears in the Device row by itself. **−** forgets the selected tablet and its settings (it asks first).
+- **Tool**: **Functions** (ExpressKeys, Touch ring), **Pen** (pen, eraser, mapping), a tile for each extra pen, and **More** (about, calibration, hover, filters, json). **+** explains how to add a pen: bring the new pen close to the tablet and the app adds a tile for it. **−** removes the selected extra pen's settings; the main pen can't be removed.
+- **Application**: **All**, or a specific app. **+** adds apps (Command-click to choose several at once). Each added app has its own ExpressKeys, Touch Ring, pen tip and pen button actions. They switch when that app comes to the front, but only once the pen tip is lifted, so a stroke is not interrupted. Mapping and pressure stay the same for every app. **−** removes the selected app's settings; it then uses **All** again.
 - **Refresh** reloads the tablet's settings from the driver.
 - Footer: **Options…** (Settings), **?** (this manual).
 
@@ -115,7 +115,7 @@ The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable 
 | Control | Default | Function |
 |---|---|---|
 | Active area | Whole tablet | Drag the area or its corners. |
-| Rotation | 0° | 180° puts the ExpressKeys on the other side; 90° and 270° are portrait. Recalibrate after rotating. |
+| Rotation | 0° | 180° puts the ExpressKeys on the other side; 90° and 270° are portrait. After rotating, recalibrate (More › calibration) if the pointer no longer sits under the nib. |
 | Display / All displays | Main display | The display the area maps to. |
 | Force proportions | On | Keeps the area at the display's aspect ratio. |
 | Display Settings | – | Opens macOS Displays settings. |
@@ -143,7 +143,7 @@ Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held 
 
 ![Touch ring in use](img/34-ring-turn.png)
 
-- On-screen centre button: moves the highlight to the next mode. The tablet's centre button switches the driver's mode.
+- On-screen centre button: moves the highlight to the next mode so you can edit it; it doesn't change the mode the tablet uses. Only the tablet's own centre button switches the mode.
 - Per mode: name, **On**, **Function** (Keystroke…, or the experimental drag actions, Photoshop only), **Speed** (Slow to Fast, slider or typed), and the **Clockwise** and **Anticlockwise** keys.
 - **Default** restores the four modes:
 
@@ -160,8 +160,8 @@ Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held 
 
 ![More › About](img/44-more-about.png)
 
-- **calibration**: **Start** shows full-screen targets; tap each, then **Apply**. **More calibration actions**: **View report…**, **Export calibration…**, **Import calibration…**, **Clear calibration**. The on/off switch compares with and without the correction. Calibrate only if the pointer sits away from the nib.
-- **hover** (below): hover limit, off by default; 127 when first switched on (0 to 255). Stops cursor tracking past this distance.
+- **calibration**: **Start** shows full-screen targets; tap each, then **Apply**. **More calibration actions**: **View report…**, **Export calibration…**, **Import calibration…**, **Clear calibration**. The on/off switch turns the calibration correction off and on, so you can compare. Calibrate only if the pointer sits away from the nib.
+- **hover** (below): hover limit, off by default; 127 when first switched on (0 to 255). The pen stops moving the cursor when it is higher above the tablet than this limit.
 - **filters**: the OpenTabletDriver filters on this tablet.
 - **json**: the profile as the driver stores it.
 
@@ -173,7 +173,7 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 
 ![Scribble](img/63-scribble-draw.png)
 
- **Mark positions** dots each report. **Clear**, **Copy**. **Record** and **Stop** save a stroke recording.
+**Mark positions** draws a dot for each position the tablet reports. **Clear**, **Copy**. **Record** and **Stop** save a stroke recording.
 
 ## Settings
 
@@ -221,7 +221,8 @@ The **driver** is the background part of the app that reads the pen and moves th
 
 ## Quitting
 
-- **Cmd+Q** closes the window. The app stays in the menu bar and the tablet keeps working.
+- **Cmd+Q** quits the app straight away, without asking. Unsaved changes are kept and offered at the next launch. If the app started the driver, the driver stops too, so the pen stops working until you open the app again.
+- To close only the window, click its red close button. The app stays in the menu bar and the tablet keeps working.
 - **Quit** in the pen menu closes the app; **Quit and stop the driver** also stops the pen (see The pen menu). With unsaved changes it asks "Save changes before quitting?": **Cancel** keeps the app open, **Don't Save** quits without saving, **Save** saves and quits.
 - Quitting also happens at shutdown and logout; unsaved changes are then kept and offered at the next launch.
 
@@ -238,7 +239,7 @@ The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninst
 - The app checks for updates once a week when it starts. When there is a new stable version, it asks **Update now?** Click **Update now** and the app downloads it, checks it, installs it and opens again by itself.
 - To check any time, click **Check for updates now** on **Home** (top right, under the About links). When there is a choice, Home shows **Install Version N** (the newest stable version) and **Try Version N BETA M** (a BETA: new features, not tested yet). While you use a BETA, **Go back to Version N** returns you to the stable version.
 - **Update automatically** is an optional setting just below it. It is off unless you turn it on. When it is on, the app downloads a new stable version by itself, then asks for OK before installing. It never installs a BETA by itself.
-- To go back to an earlier version, click **Earlier versions…** on **Home** and choose one of the two stable versions before yours. This works from a stable version and from a BETA. Your settings stay.
+- To go back to an earlier version, click **Earlier versions…** on **Home** and choose one of the two most recent stable versions older than the one you have. This works from a stable version and from a BETA. Your settings stay.
 
 ![Home with Check for updates now, Earlier versions…, the message You have the latest version, and the Update automatically setting](img/85-home-updates.png)
 
@@ -256,7 +257,7 @@ Click **Earlier versions…** on **Home** (Version 15 and later), or download an
 - Delete the app from Applications.
 - Remove its entries from **Input Monitoring** and **Accessibility** (on macOS 27: **Device Control and Data Access**) with **−**.
 - Remove its Login Item if you added one (System Settings › General › Login Items).
-- Optional: delete its settings folder in ~/Library/Application Support.
+- Optional: delete its settings folder, ~/Library/Application Support/Tablet App for Mac.
 
 ## Credits and licences
 
