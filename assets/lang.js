@@ -41,3 +41,15 @@
     if (img.complete && img.naturalWidth === 0) retryImage(img);
   });
 })();
+// Feedback without a GitHub account: the address is put together only when the button is clicked.
+(function () {
+  var b = document.getElementById('mailfb'), out = document.getElementById('mailfb-out');
+  if (!b || !out) return;
+  b.addEventListener('click', function () {
+    var a = ['organicmachine', 'protonmail.com'].join('@');
+    var href = 'mailto:' + a + '?subject=' + encodeURIComponent('Tablet App for Mac feedback');
+    out.innerHTML = 'Email <a href="' + href + '">' + a + '</a> and attach your screenshots. ' +
+      'Please say which app version you have (it is on Home) and your tablet model.';
+    out.hidden = false;
+  });
+})();
