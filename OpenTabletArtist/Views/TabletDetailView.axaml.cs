@@ -303,6 +303,11 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         // off-screen mapping) instead of the default About tab. Also handle a request that arrives while
         // the page is already shown (re-navigation wouldn't re-attach the view).
         if (Vm != null) Vm.TabRequested += OnTabRequested;
+        // Version 16: the page re-opens on the Pen tile (its XAML default), but PenToolActive lives on the view
+        // model and still held the last visit's Functions or More choice, so the Pen / Eraser / Mapping tabs
+        // stayed hidden until the Pen tile was clicked again. Bring them back with the tile.
+        if (Vm != null && (ToolPenButton.IsChecked == true || !string.IsNullOrEmpty(Vm.SelectedPenKey)))
+            Vm.PenToolActive = true;
         if (Vm?.ConsumePendingTab() is { } pending) SelectTab(pending);
         // Version 14: a new pen that comes near gets its tile while the page is open.
         if (PerAppBindingRuntime.Shared is { } runtime) runtime.PenSeen += OnPenSeen;
