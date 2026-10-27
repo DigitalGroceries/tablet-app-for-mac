@@ -110,7 +110,8 @@ public class SupportedTabletsTests
         // Most tablets have a support status.
         Assert.True(all.Count(t => t.Status.Length > 0) > all.Count / 2);
         // Statuses come from the known TABLETS.md set.
-        string[] known = { "Supported", "Has Quirks", "Missing Features" };
+        // Version 16: "Questionable" comes from OpenTabletDriver's newer list (Cintiq 21UX DTK-2100).
+        string[] known = { "Supported", "Has Quirks", "Questionable", "Missing Features" };
         Assert.All(all.Where(t => t.Status.Length > 0), t => Assert.Contains(t.Status, known));
         // At least some tablets carry a note.
         Assert.Contains(all, t => t.Notes.Length > 0);
@@ -125,7 +126,7 @@ public class SupportedTabletsTests
         var ranks = vm.Rows.Where(r => r.Status.Length > 0)
             .Select(r => r.Status switch
             {
-                "Supported" => 0, "Has Quirks" => 1, "Missing Features" => 2, _ => 3
+                "Supported" => 0, "Has Quirks" or "Questionable" => 1, "Missing Features" => 2, _ => 3
             }).ToList();
         Assert.Equal(ranks.OrderBy(x => x), ranks); // ascending by support rank
     }

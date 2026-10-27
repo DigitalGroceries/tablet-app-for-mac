@@ -16,7 +16,13 @@
     },
     "MouseButtons": {
       "ButtonCount": 3
-    }
+    },
+    "Wheels": [
+      {
+        "AbsoluteWheelMax": 71,
+        "ButtonCount": 0
+      }
+    ]
   },
   "DigitizerIdentifiers": [
     {

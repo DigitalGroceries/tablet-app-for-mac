@@ -18,7 +18,13 @@
     },
     "MouseButtons": {
       "ButtonCount": 5
-    }
+    },
+    "Wheels": [
+      {
+        "AbsoluteWheelMax": 12,
+        "ButtonCount": 0
+      }
+    ]
   },
   "DigitizerIdentifiers": [
     {
@@ -43,6 +49,7 @@
     }
   ],
   "Attributes": {
-    "FeatureInitDelayMs": "150"
+    "FeatureInitDelayMs": "150",
+    "WheelsAreTouchStrips": "true"
   }
 }

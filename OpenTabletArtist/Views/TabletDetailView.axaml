@@ -1095,7 +1095,14 @@
                                     <Grid x:Name="WheelTopBand" ColumnDefinitions="Auto,*" ColumnSpacing="16" Margin="0,0,364,0">
                                         <!-- Live gauge: marker + fading trail + current angle. -->
                                         <!-- Build N.1: hidden while ring modes are on — the big ring picture below lights the position instead. -->
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" IsVisible="{Binding !RingModes.IsOn, FallbackValue=True}">
+                                        <!-- Version 16: no ring picture for a touch strip (IsRing false). -->
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                            <StackPanel.IsVisible>
+                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                    <Binding Path="IsRing" />
+                                                    <Binding Path="!RingModes.IsOn" FallbackValue="True" />
+                                                </MultiBinding>
+                                            </StackPanel.IsVisible>
                                             <ctrl:WheelGauge Position="{Binding LivePosition}"
                                                              TurningClockwise="{Binding TurningClockwise}"
                                                              TurningCounterClockwise="{Binding TurningCounterClockwise}"
@@ -1156,8 +1163,9 @@
 
                                     <!-- Wacom-style Touch Ring modes: the ring button steps through up to four
                                          modes, each sending its own keys per direction (brush size, zoom, …). -->
-                                    <Border Classes="wheelRowDivider" Margin="0,10,0,0" />
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,8,364,8">
+                                    <!-- Version 16: touch strips have no ring modes (no centre button). -->
+                                    <Border Classes="wheelRowDivider" Margin="0,10,0,0" IsVisible="{Binding IsRing}" />
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,8,364,8" IsVisible="{Binding IsRing}">
                                         <StackPanel Spacing="2" VerticalAlignment="Center">
                                             <TextBlock x:Name="LblTouchRingModes" Text="Touch Ring modes" FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextPrimaryBrush}" />

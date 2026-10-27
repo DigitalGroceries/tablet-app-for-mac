@@ -13,7 +13,17 @@
     },
     "AuxiliaryButtons": {
       "ButtonCount": 20
-    }
+    },
+    "Wheels": [
+      {
+        "AbsoluteWheelMax": 12,
+        "ButtonCount": 0
+      },
+      {
+        "AbsoluteWheelMax": 12,
+        "ButtonCount": 0
+      }
+    ]
   },
   "DigitizerIdentifiers": [
     {
@@ -21,7 +31,7 @@
       "ProductID": 249,
       "InputReportLength": 5,
       "OutputReportLength": 0,
-      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.CintiqV1.CintiqV1ReportParser",
+      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.CintiqV1.CintiqV1TouchStripReportParser",
       "FeatureInitReport": [
         "AgI="
       ]
@@ -31,10 +41,13 @@
       "ProductID": 250,
       "InputReportLength": 10,
       "OutputReportLength": 0,
-      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.CintiqV1.CintiqV1ReportParser",
+      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.CintiqV1.CintiqV1TouchStripReportParser",
       "FeatureInitReport": [
         "AgI="
       ]
     }
-  ]
+  ],
+  "Attributes": {
+    "WheelsAreTouchStrips": "true"
+  }
 }

@@ -18,7 +18,10 @@ namespace OpenTabletDriver.Configurations.Parsers.Wacom.Bamboo
                 auxByte.IsBitSet(6),
             ];
 
-            AnalogPositions = [report[8].IsBitSet(7) ? (uint)(report[8] & 0x7f) : null];
+            // Tablet App for Mac (Version 16): the Bamboo Fun touch ring (CTE-450, CTE-650). The Linux
+            // Wacom driver reads it as (byte 8 & 0x7F), touched whenever byte 8 isn't 0 (wacom_wac.c,
+            // WACOM_MO), so don't rely on bit 7 alone.
+            AnalogPositions = [report[8] != 0 ? (uint)(report[8] & 0x7f) : null];
         }
 
         public byte[] Raw { set; get; }

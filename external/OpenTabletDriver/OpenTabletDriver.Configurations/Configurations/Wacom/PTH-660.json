@@ -19,7 +19,7 @@
     "Wheels": [
       {
         "AbsoluteWheelMax": 71,
-        "AngleOfZeroReading": 90.0,
+        "AngleOfZeroReading": 180.0,
         "ButtonCount": 1
       }
     ]
@@ -29,7 +29,7 @@
       "VendorID": 1386,
       "ProductID": 855,
       "InputReportLength": 192,
-      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.IntuosV2.IntuosV2ReportParser"
+      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.IntuosV2.IntuosV2ReversedRingReportParser"
     },
     {
       "VendorID": 1386,

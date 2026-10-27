@@ -950,6 +950,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         // area too. This self-heals "Active-area details aren't available" on reconnect — no restart.
         RefreshTabletArea();
         RefreshAbout(); // the ABOUT facts come from the same specs, so recover them on reconnect too
+        // Version 16: whether the wheels are touch strips also comes from the specs; relabel once they arrive.
+        bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.Tablets, TabletName)?.WheelsAreTouchStrips == true;
+        if (Wheels.Count > 0 && Wheels[0].IsStrip != strips) RefreshWheels();
         // The tablet's size may only now be known: finish an All displays choice made before detection.
         MaybeRefitAllDisplays();
     }
@@ -1737,6 +1740,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var list = new List<WheelEditor>();
         var stepSync = new List<(int Wheel, List<RingMode> Modes)>();
         bool multi = wheels.Count > 1;
+        // Version 16: Intuos3 and the older Cintiqs report their touch strips as wheels; label them Up / Down.
+        bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.Tablets, TabletName)?.WheelsAreTouchStrips == true;
         for (int w = 0; w < wheels.Count; w++)
         {
             var ws = wheels[w];
@@ -1745,9 +1750,11 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             // Intuos Pro ring's position increments counter-clockwise), so our "Clockwise" maps to
             // OTD's CounterClockwiseRotation and vice versa. WheelEditor's live flash is inverted to
             // match, and PersistThresholdsAsync swaps the threshold fields the same way.
-            var cw = MakeWheelRow(wi, "Clockwise", ws.CounterClockwiseRotation, canEdit,
+            // A strip's position counts from the top down, so finger-up is a falling position, the same OTD
+            // store as the ring's Clockwise row (see WheelEditor.IsStrip).
+            var cw = MakeWheelRow(wi, strips ? Localizer.Te("tablet.strip.up", "Up") : "Clockwise", ws.CounterClockwiseRotation, canEdit,
                 (_, b) => ApplyWheelRotationAsync(wi, false, b));
-            var ccw = MakeWheelRow(wi, "Anticlockwise", ws.ClockwiseRotation, canEdit,
+            var ccw = MakeWheelRow(wi, strips ? Localizer.Te("tablet.strip.down", "Down") : "Anticlockwise", ws.ClockwiseRotation, canEdit,
                 (_, b) => ApplyWheelRotationAsync(wi, true, b));
             var buttons = new List<ButtonBinding>();
             for (int b = 0; b < ws.WheelButtons.Count; b++)
@@ -1774,13 +1781,13 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 stepSync.Add((wi, modes));
             list.Add(new WheelEditor(
                 wheelIndex: wi,
-                title: multi ? $"Wheel {w + 1}" : "Wheel",
-                showTitle: multi,
+                title: strips ? StripTitle(w, wheels.Count) : multi ? $"Wheel {w + 1}" : "Wheel",
+                showTitle: multi || strips,
                 clockwise: cw, counterClockwise: ccw, buttons: buttons,
                 clockwiseThreshold: ws.CounterClockwiseActivationThreshold,       // physical CW ↔ OTD CCW
                 counterClockwiseThreshold: ws.ClockwiseActivationThreshold,
                 stepSizeDegrees: ws.StepSize,
-                applyThreshold: canEdit ? ApplyWheelThresholdAsync : null) { RingModes = ringModes });
+                applyThreshold: canEdit ? ApplyWheelThresholdAsync : null, isStrip: strips) { RingModes = ringModes });
                 ringModes?.RefreshFromStateFile();
         }
         Wheels = list;
@@ -1788,6 +1795,14 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     }
 
     private readonly HashSet<string> _ringStepSyncTried = new();
+
+    /// <summary>Version 16: "Touch strip" for a tablet with one, "Left touch strip" / "Right touch strip" for
+    /// two (strip 1 is the left one in the Wacom pad report).</summary>
+    internal static string StripTitle(int index, int count) =>
+        count <= 1 ? Localizer.Te("tablet.strip.one", "Touch strip")
+        : index == 0 ? Localizer.Te("tablet.strip.left", "Left touch strip")
+        : index == 1 ? Localizer.Te("tablet.strip.right", "Right touch strip")
+        : Localizer.Te("tablet.strip.n", "Touch strip {number}").Replace("{number}", (index + 1).ToString());
 
     private ButtonBinding MakeWheelRow(int wheelIndex, string label, PluginSettingStore? store,
         bool canEdit, Func<int, AuxBinding, Task> apply)
