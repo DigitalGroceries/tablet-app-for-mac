@@ -194,8 +194,9 @@ public class BuildJTests
         var w = p.BindingSettings.WheelBindings[0];
         string? Get(OpenTabletDriver.Desktop.Reflection.PluginSettingStore s) =>
             s.Settings.First(x => x.Property == "Mode1Rotate").Value?.ToString();
-        Assert.Equal(3f, Convert.ToSingle(Get(w.CounterClockwiseRotation!), System.Globalization.CultureInfo.InvariantCulture));   // build K: speed 15 → gain 3   // physical clockwise
-        Assert.Equal(-3f, Convert.ToSingle(Get(w.ClockwiseRotation!), System.Globalization.CultureInfo.InvariantCulture));
+        // build K: speed 15 → gain 3. Version 16 BETA 2: physical clockwise is OTD's ClockwiseRotation.
+        Assert.Equal(3f, Convert.ToSingle(Get(w.ClockwiseRotation!), System.Globalization.CultureInfo.InvariantCulture));
+        Assert.Equal(-3f, Convert.ToSingle(Get(w.CounterClockwiseRotation!), System.Globalization.CultureInfo.InvariantCulture));
         Assert.Equal(15, RingModeBinding.Read(w)[0].RotateSensitivity);
         var back = RingModeBinding.Deserialize(RingModeBinding.Serialize(RingModeBinding.Read(w)))!;
         Assert.Equal(15, back[0].RotateSensitivity);

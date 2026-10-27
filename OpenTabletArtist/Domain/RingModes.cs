@@ -36,8 +36,13 @@ public sealed record RingMode(string Name, AuxCombo Clockwise, AuxCombo CounterC
     public static float GainOf(int speed) => speed / SpeedToGain;
     public static int SpeedOfGain(double gain) => gain == 0 ? 0
         : Math.Sign(gain) * Math.Clamp((int)Math.Round(Math.Abs(gain) * SpeedToGain), MinSpeed, MaxSpeed);
-    public static int ScrollOfSpeed(int speed) => Math.Max(1, (int)Math.Round(Math.Clamp(speed, MinSpeed, MaxSpeed) * 0.4));
-    public static int SpeedOfScroll(int scroll) => Math.Clamp((int)Math.Round(Math.Abs(scroll) / 0.4), MinSpeed, MaxSpeed);
+    // Builds I–16 BETA 1 stored smooth zoom as scroll "pixels" per ring step (Speed × 0.4, 10 px = one wheel line):
+    // even Speed 1 sent a line every 10° of ring, far too fast, and Speeds 1–3 all became 1 px (shown as 2).
+    // Version 16 BETA 2: ScrollAmount holds the Speed itself (sign = direction) and the zoom sends one wheel line
+    // per DegreesOfSpeed(Speed) of ring, the same scale as keys. These two convert saved pixel values.
+    public static int LegacyScrollOfSpeed(int speed) => Math.Max(1, (int)Math.Round(Math.Clamp(speed, MinSpeed, MaxSpeed) * 0.4));
+    public static int SpeedOfLegacyScroll(int pixels) => pixels == 0 ? 0
+        : Math.Sign(pixels) * Math.Clamp((int)Math.Round(Math.Abs(pixels) / 0.4), MinSpeed, MaxSpeed);
 
     private const double FastDeg = 5, SlowDeg = 180;
     public static float DegreesOfSpeed(double speed)
@@ -53,10 +58,11 @@ public sealed record RingMode(string Name, AuxCombo Clockwise, AuxCombo CounterC
     }
     [JsonIgnore] public bool UsesDragRotate => RotateSensitivity != 0;
 
-    /// <summary>Build I: when not 0, this mode sends Option+scroll (Photoshop's smooth zoom) instead of keys —
-    /// this many pixels per step, clockwise positive. Negative reverses the direction.</summary>
-    public const int MaxScrollAmount = 500;
-    public const int DefaultScrollAmount = 20;
+    /// <summary>Build I: when not 0, this mode sends Option+scroll (smooth zoom in Photoshop and Affinity) instead of
+    /// keys. Version 16 BETA 2: the value is the zoom's Speed (1–100; one wheel line per DegreesOfSpeed of ring),
+    /// clockwise positive. Negative reverses the direction.</summary>
+    public const int MaxScrollAmount = MaxSpeed;
+    public const int DefaultScrollAmount = DefaultSpeed;
     [JsonIgnore] public bool UsesScroll => ScrollAmount != 0;
 
     /// <summary>Build H: degrees of ring travel per key press for this mode (0 = every ring step). The ring
@@ -65,6 +71,15 @@ public sealed record RingMode(string Name, AuxCombo Clockwise, AuxCombo CounterC
 
     /// <summary>Has at least one direction mapped.</summary>
     [JsonIgnore] public bool IsMapped => UsesDragGesture || UsesScroll || Clockwise.IsBound || CounterClockwise.IsBound;
+
+    /// <summary>Version 16 BETA 2: the Speed of a smooth action (rotate, size, hardness or zoom); 0 for keys.</summary>
+    [JsonIgnore] public int SmoothSpeed => Math.Abs(UsesDragRotate ? RotateSensitivity : UsesDragSize ? SizeSensitivity
+        : UsesDragHardness ? HardnessSensitivity : ScrollAmount);
+
+    /// <summary>Version 16 BETA 2: degrees of ring per action that the ring plugin gets. Keys: the mode's own step.
+    /// Smooth actions: their Speed on the keys scale, used for the zoom's wheel lines, Affinity's rotate lines and
+    /// the keys sent when the smooth action can't run (another app in front), so the Speed works everywhere.</summary>
+    [JsonIgnore] public float WrittenStepDegrees => SmoothSpeed != 0 ? DegreesOfSpeed(SmoothSpeed) : StepDegrees;
 }
 
 /// <summary>
@@ -86,6 +101,17 @@ public static class RingModeBinding
     public const string RingStepProperty = "RingStep";
     /// <summary>The PTK-440 ring reports 72 positions per turn: 5° is the finest step there is.</summary>
     public const float HardwareRingStepDegrees = 5f;
+
+    /// <summary>Version 16 BETA 2: written into both turn bindings. 2 = physical clockwise is OpenTabletDriver's
+    /// ClockwiseRotation (OTD fires it for a rising ring position, which is a clockwise turn on Wacom rings; the
+    /// Intuos Pro 2017 ring is mirrored by its report parser) and smooth zoom's value is a Speed. Missing = written
+    /// by Version 16 BETA 1 or earlier: clockwise was stored in CounterClockwiseRotation (so every mode ran
+    /// backwards on the PTK-440) and zoom held scroll pixels. Such bindings are read the old way and rewritten.</summary>
+    public const string DirectionVersionProperty = "DirectionVersion";
+    public const int CurrentDirectionVersion = 2;
+
+    /// <summary>Wheel-line units of the plugin's Option+scroll (MacScroll.PixelsPerLine): one line per action.</summary>
+    public const int ScrollPixelsPerLine = 10;
     public static string ModeStepProperty(int index) => $"Mode{index + 1}Step";
 
     public static string ModeKeysProperty(int index) => $"Mode{index + 1}Keys";
@@ -124,42 +150,50 @@ public static class RingModeBinding
     public static IReadOnlyList<RingMode> ActiveModes(IEnumerable<RingMode> modes) =>
         modes.Where(m => m.Enabled && m.IsMapped).Take(MaxModes).ToList();
 
+    /// <summary>True when this wheel's ring-mode bindings were written by Version 16 BETA 1 or earlier (reversed
+    /// directions, zoom in pixels): <see cref="Read"/> reads them the old way and the host rewrites them.</summary>
+    public static bool IsLegacy(WheelBindingSettings? wheel) =>
+        IsActive(wheel) && DirectionVersionOf(wheel!) < CurrentDirectionVersion;
+
+    private static int DirectionVersionOf(WheelBindingSettings wheel)
+    {
+        foreach (var store in new[] { wheel.ClockwiseRotation, wheel.CounterClockwiseRotation })
+        {
+            if (store?.Path != TurnTypeName) continue;
+            var v = store.Settings?.FirstOrDefault(s => s.Property == DirectionVersionProperty)?.Value;
+            if (v != null && int.TryParse(Convert.ToString(v, System.Globalization.CultureInfo.InvariantCulture),
+                    System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var n))
+                return n;
+        }
+        return 0;
+    }
+
     /// <summary>
     /// Write <paramref name="modes"/> into the wheel: the ring button (button 0) steps the modes, and each
-    /// direction sends the active mode's keys. <paramref name="physicalClockwiseIsOtdCounterClockwise"/>
-    /// matches the app's CW/CCW inversion (see TabletDetailViewModel.RefreshWheels). Returns false (and
-    /// changes nothing) when the wheel has no button to switch modes with or no mode is mapped.
+    /// direction sends the active mode's keys. Physical clockwise is OTD's ClockwiseRotation (Version 16 BETA 2;
+    /// see <see cref="DirectionVersionProperty"/>). Returns false (and changes nothing) when the wheel has no
+    /// button to switch modes with or no mode is mapped.
     /// </summary>
-    public static bool Apply(WheelBindingSettings wheel, IEnumerable<RingMode> modes,
-        bool physicalClockwiseIsOtdCounterClockwise = true)
+    public static bool Apply(WheelBindingSettings wheel, IEnumerable<RingMode> modes)
     {
         var active = ActiveModes(modes);
         if (active.Count == 0 || wheel.WheelButtons.Count == 0) return false;
 
         // Each direction's "ring step" is the wheel's own activation threshold for that OTD direction: how far
-        // the ring turns per call the plugin gets. The plugin then sends keys once per mode step (build H).
+        // the ring turns per call the plugin gets. The plugin then acts once per mode step (build H); smooth
+        // actions get their Speed as a step (Version 16 BETA 2, RingMode.WrittenStepDegrees).
         float otdCwTick = wheel.ClockwiseActivationThreshold, otdCcwTick = wheel.CounterClockwiseActivationThreshold;
-        var steps = active.Select(m => m.StepDegrees).ToList();
-        var scrolls = active.Select(m => Math.Clamp(m.ScrollAmount, -RingMode.MaxScrollAmount, RingMode.MaxScrollAmount)).ToList();
+        var steps = active.Select(m => m.WrittenStepDegrees).ToList();
+        // Smooth zoom: one wheel line per step; only the sign (direction) travels in the scroll value.
+        var scrolls = active.Select(m => Math.Sign(m.ScrollAmount) * ScrollPixelsPerLine).ToList();
         var rotates = active.Select(m => m.UsesDragRotate ? RingMode.GainOf(ClampBrush(m.RotateSensitivity)) : 0f).ToList();
         // Build K: one smooth action per mode — rotate wins, then size, then hardness.
         var sizes = active.Select(m => m.UsesDragRotate ? 0f : RingMode.GainOf(ClampBrush(m.SizeSensitivity))).ToList();
         var hards = active.Select(m => m.UsesDragRotate || m.UsesDragSize ? 0f : RingMode.GainOf(ClampBrush(m.HardnessSensitivity))).ToList();
-        var physCw = MakeTurn(active.Select(m => m.Clockwise), steps,
-            physicalClockwiseIsOtdCounterClockwise ? otdCcwTick : otdCwTick, scrolls, rotates, sizes, hards);
-        var physCcw = MakeTurn(active.Select(m => m.CounterClockwise), steps,
-            physicalClockwiseIsOtdCounterClockwise ? otdCwTick : otdCcwTick, scrolls.Select(v => -v).ToList(),
-            rotates.Select(v => -v).ToList(), sizes.Select(v => -v).ToList(), hards.Select(v => -v).ToList());
-        if (physicalClockwiseIsOtdCounterClockwise)
-        {
-            wheel.CounterClockwiseRotation = physCw;
-            wheel.ClockwiseRotation = physCcw;
-        }
-        else
-        {
-            wheel.ClockwiseRotation = physCw;
-            wheel.CounterClockwiseRotation = physCcw;
-        }
+        wheel.ClockwiseRotation = MakeTurn(active.Select(m => m.Clockwise), steps, otdCwTick, scrolls, rotates, sizes, hards);
+        wheel.CounterClockwiseRotation = MakeTurn(active.Select(m => m.CounterClockwise), steps, otdCcwTick,
+            scrolls.Select(v => -v).ToList(), rotates.Select(v => -v).ToList(), sizes.Select(v => -v).ToList(),
+            hards.Select(v => -v).ToList());
         wheel.WheelButtons[0] = MakeNext(active.Count, active.Select(m => m.Name));
         return true;
     }
@@ -191,8 +225,12 @@ public static class RingModeBinding
 
     /// <summary>Read the modes back from a wheel written by <see cref="Apply"/> (or set up by hand in
     /// OpenTabletDriver). Names come from the ring button's binding, else "Mode N".</summary>
-    public static IReadOnlyList<RingMode> Read(WheelBindingSettings wheel, bool physicalClockwiseIsOtdCounterClockwise = true)
+    public static IReadOnlyList<RingMode> Read(WheelBindingSettings wheel)
     {
+        // Version 16 BETA 2: bindings written by older versions kept physical clockwise in OTD's
+        // CounterClockwiseRotation and zoom as scroll pixels; read those the way they were written.
+        bool legacy = DirectionVersionOf(wheel) < CurrentDirectionVersion;
+        bool physicalClockwiseIsOtdCounterClockwise = legacy;
         var otdCw = ReadTurn(wheel.ClockwiseRotation);
         var otdCcw = ReadTurn(wheel.CounterClockwiseRotation);
         // Steps are written identically to both directions; take whichever turn binding is there.
@@ -200,6 +238,10 @@ public static class RingModeBinding
                     ?? ReadSteps(physicalClockwiseIsOtdCounterClockwise ? wheel.ClockwiseRotation : wheel.CounterClockwiseRotation);
         var physCwStore = physicalClockwiseIsOtdCounterClockwise ? wheel.CounterClockwiseRotation : wheel.ClockwiseRotation;
         var scroll = ReadScrolls(physCwStore);
+        for (int i = 0; i < scroll.Length; i++)
+            scroll[i] = scroll[i] == 0 ? 0
+                : legacy ? RingMode.SpeedOfLegacyScroll(scroll[i])
+                : Math.Sign(scroll[i]) * RingMode.SpeedOfDegrees(steps?[i] ?? RingMode.DegreesOfSpeed(RingMode.DefaultSpeed));
         var rotate = ReadFloats(physCwStore, ModeRotateProperty).Select(RingMode.SpeedOfGain).ToArray();
         var size = ReadFloats(physCwStore, ModeSizeProperty).Select(RingMode.SpeedOfGain).ToArray();
         var hard = ReadFloats(physCwStore, ModeHardnessProperty).Select(RingMode.SpeedOfGain).ToArray();
@@ -271,9 +313,10 @@ public static class RingModeBinding
     public static float DefaultStepFor(AuxCombo cw, AuxCombo ccw) =>
         (cw.IsBound || ccw.IsBound) && Defaults.FirstOrDefault(d => SendsTheSame(d, cw, ccw)) is { } d ? d.StepDegrees : 0;
 
-    /// <summary>True when the profile's ring-mode bindings already carry these modes' step sizes.</summary>
+    /// <summary>True when the profile's ring-mode bindings <paramref name="b"/> (as <see cref="Read"/> gives them)
+    /// already carry the step sizes that <paramref name="a"/> would write.</summary>
     public static bool SameSteps(IReadOnlyList<RingMode> a, IReadOnlyList<RingMode> b) =>
-        a.Count == b.Count && a.Zip(b).All(p => Math.Abs(p.First.StepDegrees - p.Second.StepDegrees) < 0.01f);
+        a.Count == b.Count && a.Zip(b).All(p => Math.Abs(p.First.WrittenStepDegrees - p.Second.StepDegrees) < 0.01f);
 
     public static string Serialize(IEnumerable<RingMode> modes) =>
         JsonConvert.SerializeObject(modes.Select(m => new SavedMode
@@ -283,7 +326,9 @@ public static class RingModeBinding
             CounterClockwise = AuxKeyBinding.FormatKeys(m.CounterClockwise),
             Enabled = m.Enabled,
             Step = m.StepDegrees,
-            Scroll = m.ScrollAmount == 0 ? null : m.ScrollAmount,
+            // Version 16 BETA 2: the zoom Speed; Scroll keeps the old pixel value for versions before it.
+            ScrollSpeed = m.ScrollAmount == 0 ? null : m.ScrollAmount,
+            Scroll = m.ScrollAmount == 0 ? null : Math.Sign(m.ScrollAmount) * RingMode.LegacyScrollOfSpeed(Math.Abs(m.ScrollAmount)),
             RotateSpeed = m.RotateSensitivity == 0 ? null : m.RotateSensitivity,
             SizeSpeed = m.SizeSensitivity == 0 ? null : m.SizeSensitivity,
             HardnessSpeed = m.HardnessSensitivity == 0 ? null : m.HardnessSensitivity,
@@ -322,7 +367,8 @@ public static class RingModeBinding
                 var ccw = AuxKeyBinding.ParseKeys(s.CounterClockwise) ?? AuxCombo.Unbound;
                 // A list saved before build H has no step: use the matching default's (Zoom 30°, …).
                 var step = s.Step is { } v ? Math.Clamp(v, 0, RingMode.MaxStepDegrees) : DefaultStepFor(cw, ccw);
-                var scroll = Math.Clamp(s.Scroll ?? 0, -RingMode.MaxScrollAmount, RingMode.MaxScrollAmount);
+                var scroll = s.ScrollSpeed is { } zs ? Math.Sign(zs) * Math.Clamp(Math.Abs(zs), RingMode.MinSpeed, RingMode.MaxSpeed)
+                    : RingMode.SpeedOfLegacyScroll(s.Scroll ?? 0);   // saved before Version 16 BETA 2: pixels
                 // Build K: J saved "Rotate" as its gain (10 = J's minimum) → Speed = gain × 5 (10 → 50, the middle).
                 var rotate = s.RotateSpeed is { } rs ? ClampBrush(rs) : s.Rotate is { } r && r != 0 ? RingMode.SpeedOfGain(r) : 0;
                 int size = rotate != 0 ? 0 : ClampBrush(s.SizeSpeed ?? 0);
@@ -345,6 +391,7 @@ public static class RingModeBinding
         public bool Enabled { get; set; } = true;
         public float? Step { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] public int? Scroll { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] public int? ScrollSpeed { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] public int? Rotate { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] public int? RotateSpeed { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] public int? SizeSpeed { get; set; }
@@ -388,6 +435,7 @@ public static class RingModeBinding
             store.Settings.Add(new PluginSetting(ModeSizeProperty(i), i < sizes.Count ? sizes[i] : 0f));
         for (i = 0; i < MaxModes; i++)
             store.Settings.Add(new PluginSetting(ModeHardnessProperty(i), i < hards.Count ? hards[i] : 0f));
+        store.Settings.Add(new PluginSetting(DirectionVersionProperty, CurrentDirectionVersion));
         return store;
     }
 
@@ -418,19 +466,23 @@ public static class RingModeBinding
     }
 
     /// <summary>True when any ring-mode wheel of the profile has a smooth-rotate mode written.</summary>
-    public static bool UsesSmoothRotate(Profile profile) =>
-        profile.BindingSettings?.WheelBindings?.Any(ws => ws != null && IsActive(ws)
+    public static bool UsesSmoothRotate(Profile profile) => UsesSmoothRotate(profile.BindingSettings);
+
+    public static bool UsesSmoothRotate(BindingSettings? bindings) =>
+        bindings?.WheelBindings?.Any(ws => ws != null && IsActive(ws)
             && new Func<int, string>[] { ModeRotateProperty, ModeSizeProperty, ModeHardnessProperty }.Any(prop =>
                 ReadFloats(ws.ClockwiseRotation, prop).Any(v => v != 0)
                 || ReadFloats(ws.CounterClockwiseRotation, prop).Any(v => v != 0))) == true;
 
     /// <summary>Build J: the pen gate filter is in the profile (enabled) exactly when a smooth-rotate mode is
-    /// written; otherwise our gate store is removed. Never touches other filters.</summary>
-    public static void SyncGate(Profile profile)
+    /// written; otherwise our gate store is removed. Never touches other filters. Version 16 BETA 2:
+    /// <paramref name="alsoUsedBy"/> are the tablet's per-app tables, which the app puts on the driver while
+    /// their app is in front with the profile's filters unchanged, so a smooth mode there needs the gate too.</summary>
+    public static void SyncGate(Profile profile, IEnumerable<BindingSettings>? alsoUsedBy = null)
     {
         if (profile.Filters == null) return;
         var existing = profile.Filters.Where(f => f?.Path == GateTypeName).ToList();
-        if (UsesSmoothRotate(profile))
+        if (UsesSmoothRotate(profile) || alsoUsedBy?.Any(UsesSmoothRotate) == true)
         {
             if (existing.Count == 0) { var gate = NewStore(GateTypeName); gate.Enable = true; profile.Filters.Add(gate); }
             foreach (var f in existing) f.Enable = true;

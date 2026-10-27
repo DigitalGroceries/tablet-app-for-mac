@@ -25,7 +25,8 @@ public class BuildRRingTests : IDisposable
     }
 
     private readonly Func<GestureKind, double, bool> _g = RingModeTurnBinding.Gesture;
-    private readonly Func<bool> _f = RingModeTurnBinding.PhotoshopFront;
+    private readonly Func<FrontApp> _f = RingModeTurnBinding.FrontApp;
+    private readonly Action<int> _c = RingModeTurnBinding.CommandScroll;
     private readonly Action<int> _s = RingModeTurnBinding.Scroll;
     private readonly string _path = RingModeState.StateFilePath;
     public BuildRRingTests()
@@ -35,7 +36,7 @@ public class BuildRRingTests : IDisposable
     }
     public void Dispose()
     {
-        RingModeTurnBinding.Gesture = _g; RingModeTurnBinding.PhotoshopFront = _f; RingModeTurnBinding.Scroll = _s;
+        RingModeTurnBinding.Gesture = _g; RingModeTurnBinding.FrontApp = _f; RingModeTurnBinding.Scroll = _s; RingModeTurnBinding.CommandScroll = _c;
         RingModeState.Reset(); RingModeState.StateFilePath = _path;
     }
 
@@ -82,13 +83,68 @@ public class BuildRRingTests : IDisposable
         int scrolled = 0;
         RingModeTurnBinding.Scroll = _ => scrolled++;
         var (b, kb) = UserRing(); ToMode(1);
-        RingModeTurnBinding.PhotoshopFront = () => true;
+        RingModeTurnBinding.FrontApp = () => FrontApp.Photoshop;
         b.Press(null!, null!);
         Assert.Equal(1, scrolled); Assert.Empty(kb.Snap());
-        RingModeTurnBinding.PhotoshopFront = () => false;
+        RingModeTurnBinding.FrontApp = () => FrontApp.Other;
         b.Press(null!, null!);
         Assert.Equal(1, scrolled);
         Assert.Equal("+Application,+Minus,-Minus,-Application", string.Join(",", kb.Snap()));   // Cmd up last
+    }
+
+    // ---- Version 16 BETA 2: Affinity, and one zoom line per step ----
+
+    [Fact]
+    public void Zoom_WorksInAffinityToo_OneLinePerStep_WithTheDirectionsSign()
+    {
+        var lines = new List<int>();
+        RingModeTurnBinding.Scroll = lines.Add;
+        RingModeTurnBinding.FrontApp = () => FrontApp.Affinity;
+        var (b, kb) = UserRing(); ToMode(1);
+        b.RingStep = 5; b.Mode2Step = 30;   // Speed ≈ 50: one wheel line per 30° of ring
+        for (int i = 0; i < 12; i++) b.Press(null!, null!);   // 60° of ring
+        Assert.Equal(new[] { -10, -10 }, lines);   // Mode2Scroll is -5 here: only its sign counts, one line each
+        Assert.Empty(kb.Snap());
+    }
+
+    [Fact]
+    public void Rotate_InAffinity_SendsCommandScroll_PerStep_NotTheKeys()
+    {
+        var lines = new List<int>();
+        RingModeTurnBinding.Gesture = (_, _) => false;   // not Photoshop: the drag gesture is refused
+        RingModeTurnBinding.CommandScroll = lines.Add;
+        RingModeTurnBinding.FrontApp = () => FrontApp.Affinity;
+        var (b, kb) = UserRing(); ToMode(0);
+        b.RingStep = 5; b.Mode1Step = 10;
+        for (int i = 0; i < 4; i++) b.Press(null!, null!);
+        Assert.Equal(new[] { -10, -10 }, lines);   // Mode1Rotate is -10: anticlockwise store
+        Assert.Empty(kb.Snap());
+    }
+
+    [Fact]
+    public void Rotate_InAnotherApp_StillSendsTheModesKeys_AtTheStep()
+    {
+        int lines = 0;
+        RingModeTurnBinding.Gesture = (_, _) => false;
+        RingModeTurnBinding.CommandScroll = _ => lines++;
+        RingModeTurnBinding.FrontApp = () => FrontApp.Other;
+        var (b, kb) = UserRing(); ToMode(0);
+        b.RingStep = 5; b.Mode1Step = 10;
+        for (int i = 0; i < 4; i++) b.Press(null!, null!);
+        Assert.Equal(0, lines);
+        Assert.Equal(2, kb.Snap().Count(e => e == "+F14"));   // a key every 10°, not every ring step
+    }
+
+    [Theory]
+    [InlineData("com.adobe.Photoshop", "Adobe Photoshop 2026", FrontApp.Photoshop)]
+    [InlineData("com.seriflabs.affinityphoto2", "Affinity Photo 2", FrontApp.Affinity)]
+    [InlineData("com.example.unknown", "Affinity", FrontApp.Affinity)]
+    [InlineData(null, "Affinity", FrontApp.Affinity)]
+    [InlineData("com.photocraft.app", "PhotoCraft", FrontApp.Other)]
+    [InlineData(null, null, FrontApp.Other)]
+    public void FrontApp_IsRecognised_ByBundleIdOrWindowOwner(string? bundle, string? owner, FrontApp expected)
+    {
+        Assert.Equal(expected, MacGestureIo.Classify(bundle, owner));
     }
 
     [Fact]

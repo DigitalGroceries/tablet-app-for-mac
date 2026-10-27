@@ -142,7 +142,11 @@ Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held 
 ![Touch ring in use](img/34-ring-turn.png)
 
 - On-screen centre button: moves the highlight to the next mode so you can edit it; it doesn't change the mode the tablet uses. Only the tablet's own centre button switches the mode.
-- Per mode: name, **On**, **Function** (Keystroke…, or the experimental drag actions, Photoshop only), **Speed** (Slow to Fast, slider or typed), and the **Clockwise** and **Anticlockwise** keys.
+- Per mode: name, **On**, **Function** (Keystroke…, or the experimental smooth actions), **Speed** (Slow to Fast, slider or typed), and the **Clockwise** and **Anticlockwise** keys.
+- **Speed**, the same scale for every function: 1 acts once every 180° of ring, 50 about every 30°, 100 on every ring step. For **Smooth rotate**, **Smooth brush size** and **Smooth hardness** in Photoshop, the Speed sets how far the canvas turns or the brush changes.
+- Where the smooth actions work: **Smooth rotate**, **Smooth brush size** and **Smooth hardness** in Photoshop; **Smooth zoom** (Option + scroll wheel) in Photoshop and Affinity; **Smooth rotate** in Affinity uses ⌘ + scroll wheel, so first turn on **Enable canvas rotation with ⌘+scroll wheel** in Affinity's **Settings › Tools**. In any other app, a smooth mode sends its **Clockwise** and **Anticlockwise** keys at its Speed.
+- With an app selected in the **Application** row, the ring settings you change are that app's. Select **All** to change them for every other app.
+- Coming from Version 16 BETA 1 or earlier: the ring modes ran backwards there (a clockwise turn zoomed out). The app turns them the right way round when it opens; click **Save** once to keep it.
 - **Default** restores the four modes:
 
 | Mode | Clockwise | Anticlockwise | Every |

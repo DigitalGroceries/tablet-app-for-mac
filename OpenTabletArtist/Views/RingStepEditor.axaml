@@ -10,7 +10,7 @@
             <ComboBox x:Name="ActionBox" HorizontalAlignment="Left" Width="{Binding ActionWidth}"
                       ItemsSource="{Binding ActionChoices}" SelectedIndex="{Binding ActionIndex}"
                       IsEnabled="{Binding CanEdit}" AutomationProperties.Name="Function"
-                      ToolTip.Tip="Smooth actions work only over the Photoshop window. They let go 0.3 s after the ring stops (3 s at most)." />
+                      ToolTip.Tip="Smooth actions work over the Photoshop window (zoom and rotate also over Affinity). In other apps the mode sends its keys. Held keys let go 0.3 s after the ring stops (3 s at most)." />
             <TextBlock Text="{Binding Name}" FontSize="12" Margin="4,0,0,0" TextTrimming="CharacterEllipsis"
                        Foreground="{DynamicResource TextSecondaryBrush}" />
         </StackPanel>
@@ -29,7 +29,7 @@
         </Grid>
         <TextBlock Grid.Row="1" Grid.ColumnSpan="3" TextWrapping="Wrap" FontSize="12" Margin="0,4,0,0"
                    Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding !UsesKeys}"
-                   Text="Photoshop only (experimental). Held keys are released automatically if input stops." />
+                   Text="Experimental. Photoshop (zoom and rotate also Affinity); other apps get the mode's keys at this Speed. Held keys are released automatically if input stops." />
         <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding SpeedHint}" FontSize="12" TextWrapping="Wrap"
                    Foreground="{DynamicResource TextMutedBrush}" />
     </Grid>

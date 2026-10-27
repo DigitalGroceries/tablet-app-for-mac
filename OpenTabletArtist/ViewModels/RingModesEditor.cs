@@ -222,7 +222,7 @@ public partial class RingModeRow : ObservableObject
         RotateSensitivity = _rotate != 0 ? Math.Abs(_rotate) : RingMode.DefaultRotateSensitivity;
         SizeSensitivity = _size != 0 ? Math.Abs(_size) : RingMode.DefaultBrushSensitivity;
         HardnessSensitivity = _hard != 0 ? Math.Abs(_hard) : RingMode.DefaultBrushSensitivity;
-        ScrollSensitivity = Math.Abs(_scroll) > 0 ? RingMode.SpeedOfScroll(_scroll) : RingMode.DefaultSpeed;   // build K: a Speed
+        ScrollSensitivity = Math.Abs(_scroll) > 0 ? Math.Abs(_scroll) : RingMode.DefaultSpeed;   // Version 16 BETA 2: the Speed itself
         RefreshSpeed();
         _suppress = false;
         Clockwise = MakeDirection("Clockwise", mode.Clockwise, editBinding);
@@ -264,7 +264,7 @@ public partial class RingModeRow : ObservableObject
             if (_action == value) return;
             _action = value;
             _rotate = value == RingAction.SmoothRotate ? Sens(RotateSensitivity, RingMode.MinRotateSensitivity, RingMode.MaxRotateSensitivity) : 0;
-            _scroll = value == RingAction.SmoothZoom ? RingMode.ScrollOfSpeed((int)Math.Round(ScrollSensitivity)) : 0;
+            _scroll = value == RingAction.SmoothZoom ? Sens(ScrollSensitivity, RingMode.MinSpeed, RingMode.MaxSpeed) : 0;
             _size = value == RingAction.SmoothSize ? Sens(SizeSensitivity, RingMode.MinBrushSensitivity, RingMode.MaxBrushSensitivity) : 0;
             _hard = value == RingAction.SmoothHardness ? Sens(HardnessSensitivity, RingMode.MinBrushSensitivity, RingMode.MaxBrushSensitivity) : 0;
             foreach (var n in new[] { nameof(Action), nameof(ActionIndex), nameof(ActionShort), nameof(UseKeys), nameof(UseRotate), nameof(UseScroll), nameof(UseSize),
@@ -290,16 +290,16 @@ public partial class RingModeRow : ObservableObject
         RingAction.SmoothRotate => Math.Abs(_rotate),
         RingAction.SmoothSize => Math.Abs(_size),
         RingAction.SmoothHardness => Math.Abs(_hard),
-        RingAction.SmoothZoom => RingMode.SpeedOfScroll(_scroll),
+        RingAction.SmoothZoom => Math.Abs(_scroll),
         _ => RingMode.SpeedOfDegrees(_step),
     };
 
     public string SpeedHint => Action switch
     {
-        RingAction.SmoothHardness => "Control + Option + vertical drag. Needs Preferences › Tools › \"Vary Round Brush Hardness based on HUD vertical movement\"; without it the drag changes opacity. Round brushes only.",
-        RingAction.SmoothSize => "Control + Option + horizontal drag. Needs a brush tool and Use Graphics Processor.",
-        RingAction.SmoothRotate => "Rotate View: holds R and drags.",
-        RingAction.SmoothZoom => "Option + scroll wheel. If Photoshop pans instead, use Keys with ⌘= / ⌘−.",
+        RingAction.SmoothHardness => "Photoshop: Control + Option + vertical drag. Needs Preferences › Tools › \"Vary Round Brush Hardness based on HUD vertical movement\"; without it the drag changes opacity. Round brushes only.",
+        RingAction.SmoothSize => "Photoshop: Control + Option + horizontal drag. Needs a brush tool and Use Graphics Processor.",
+        RingAction.SmoothRotate => "Photoshop: holds R and drags (Rotate View). Affinity: ⌘ + scroll wheel; turn on \"Enable canvas rotation with ⌘+scroll wheel\" in Affinity's Settings › Tools.",
+        RingAction.SmoothZoom => "Photoshop and Affinity: Option + scroll wheel. If Photoshop pans instead, use Keys with ⌘= / ⌘−.",
         RingAction.Keys => $"Sends the keys below once every {FormatDegrees(_step < 5 ? 5 : _step)}° of turn.",
         _ => "",
     };
@@ -348,7 +348,7 @@ public partial class RingModeRow : ObservableObject
             case RingAction.SmoothSize: changed = _size != speed; _size = speed; SetQuietly(() => SizeSensitivity = speed); break;
             case RingAction.SmoothHardness: changed = _hard != speed; _hard = speed; SetQuietly(() => HardnessSensitivity = speed); break;
             case RingAction.SmoothZoom:
-                var px = RingMode.ScrollOfSpeed(speed); changed = _scroll != px; _scroll = px; SetQuietly(() => ScrollSensitivity = speed); break;
+                changed = Math.Abs(_scroll) != speed; _scroll = (_scroll < 0 ? -1 : 1) * speed; SetQuietly(() => ScrollSensitivity = speed); break;
             default:
                 var deg = RingMode.DegreesOfSpeed(speed);
                 changed = Math.Abs(deg - _step) > 0.01f; _step = deg;
@@ -454,7 +454,7 @@ public partial class RingModeRow : ObservableObject
     /// <summary>The slider's live position (5–180°); shown in the box while dragging, committed on release.</summary>
     [ObservableProperty] private double _sliderDegrees = MinSlider;
 
-    /// <summary>Scroll pixels per ring position (5°) — higher zooms faster. 1–100 on the slider.</summary>
+    /// <summary>Smooth zoom's Speed (1–100): one wheel line per DegreesOfSpeed of ring — higher zooms faster.</summary>
     [ObservableProperty] private double _scrollSensitivity = RingMode.DefaultScrollAmount;
     public const double MaxScrollSensitivity = 100;
 
@@ -510,7 +510,7 @@ public partial class RingModeRow : ObservableObject
     public void CommitScrollSensitivity()
     {
         if (!UseScroll) return;
-        var v = RingMode.ScrollOfSpeed((int)Math.Round(ScrollSensitivity));
+        var v = Sens(ScrollSensitivity, RingMode.MinSpeed, RingMode.MaxSpeed);
         if (v == Math.Abs(_scroll)) return;
         _scroll = Math.Sign(_scroll == 0 ? 1 : _scroll) * v;
         _ = _changed();

@@ -1748,16 +1748,25 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         {
             var ws = wheels[w];
             int wi = w;
-            // Physical rotation runs opposite to OTD's reported direction on tested rings (the Wacom
-            // Intuos Pro ring's position increments counter-clockwise), so our "Clockwise" maps to
-            // OTD's CounterClockwiseRotation and vice versa. WheelEditor's live flash is inverted to
-            // match, and PersistThresholdsAsync swaps the threshold fields the same way.
-            // A strip's position counts from the top down, so finger-up is a falling position, the same OTD
-            // store as the ring's Clockwise row (see WheelEditor.IsStrip).
-            var cw = MakeWheelRow(wi, strips ? Localizer.Te("tablet.strip.up", "Up") : "Clockwise", ws.CounterClockwiseRotation, canEdit,
-                (_, b) => ApplyWheelRotationAsync(wi, false, b));
-            var ccw = MakeWheelRow(wi, strips ? Localizer.Te("tablet.strip.down", "Down") : "Anticlockwise", ws.ClockwiseRotation, canEdit,
-                (_, b) => ApplyWheelRotationAsync(wi, true, b));
+            // Version 16 BETA 2: "Clockwise" is OTD's ClockwiseRotation. OTD fires it for a rising ring position,
+            // which is a clockwise turn on Wacom rings (Zak's PTK-440: the readout and every ring mode in
+            // Photoshop, Affinity and PhotoCraft showed it; the Intuos Pro 2017 ring, which counts the other way,
+            // is mirrored by its report parser since Version 16). Up to Version 16 BETA 1 the rows were swapped,
+            // after upstream OpenTabletArtist's Intuos Pro, so every ring mode ran backwards. Plain keys set
+            // then stay where they were in the driver (they keep doing what they did) and now show under the
+            // direction they really fire on; ring modes are rewritten (RingModeBinding.IsLegacy).
+            // A strip's position counts from the top down, so finger-up is a falling position: OTD's
+            // CounterClockwiseRotation (see WheelEditor.IsStrip).
+            var cw = strips
+                ? MakeWheelRow(wi, Localizer.Te("tablet.strip.up", "Up"), ws.CounterClockwiseRotation, canEdit,
+                    (_, b) => ApplyWheelRotationAsync(wi, false, b))
+                : MakeWheelRow(wi, "Clockwise", ws.ClockwiseRotation, canEdit,
+                    (_, b) => ApplyWheelRotationAsync(wi, true, b));
+            var ccw = strips
+                ? MakeWheelRow(wi, Localizer.Te("tablet.strip.down", "Down"), ws.ClockwiseRotation, canEdit,
+                    (_, b) => ApplyWheelRotationAsync(wi, true, b))
+                : MakeWheelRow(wi, "Anticlockwise", ws.CounterClockwiseRotation, canEdit,
+                    (_, b) => ApplyWheelRotationAsync(wi, false, b));
             var buttons = new List<ButtonBinding>();
             for (int b = 0; b < ws.WheelButtons.Count; b++)
             {
@@ -1767,27 +1776,28 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                     (_, bind) => ApplyWheelButtonAsync(wi, bi, bind)));
             }
             // Wacom-style ring modes (needs the ring button to switch them).
-            var modes = RingModeBinding.Load(ws, AppSettings.Get(RingModesKey(wi)),
-                AuxKeyBinding.ReadCombo(ws.CounterClockwiseRotation),   // physical CW ↔ OTD CCW
-                AuxKeyBinding.ReadCombo(ws.ClockwiseRotation));
+            var modes = RingModeBinding.Load(ws, SavedRingModes(wi),
+                AuxKeyBinding.ReadCombo(ws.ClockwiseRotation), AuxKeyBinding.ReadCombo(ws.CounterClockwiseRotation));
             var ringModes = new RingModesEditor(wi, modes, RingModeBinding.IsActive(ws),
                 hasRingButton: ws.WheelButtons.Count > 0, canEdit: canEdit, editBinding: _editBinding,
                 setOn: canEdit ? (on, m) => SetRingModesAsync(wi, on, m) : null,
                 changed: canEdit ? m => RingModesChangedAsync(wi, m) : null);
             // Build H: a ring set up by an earlier build has no per-mode steps in the profile yet; write them
             // once so the steps shown are the ones in effect (latched, so it can't loop).
+            // Version 16 BETA 2: bindings from BETA 1 or earlier (reversed directions) are rewritten the same way.
             if (canEdit && RingModeBinding.IsActive(ws)
-                && (!RingModeBinding.SameSteps(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws))
+                && (RingModeBinding.IsLegacy(ws)
+                    || !RingModeBinding.SameSteps(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws))
                     || !RingModeBinding.SameKeys(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws)))   // build K migration
-                && _ringStepSyncTried.Add($"{_profile.Tablet}:{wi}"))
+                && _ringStepSyncTried.Add($"{_profile.Tablet}:{SelectedAppBundleId}:{wi}"))
                 stepSync.Add((wi, modes));
             list.Add(new WheelEditor(
                 wheelIndex: wi,
                 title: strips ? StripTitle(w, wheels.Count) : multi ? $"Wheel {w + 1}" : "Wheel",
                 showTitle: multi || strips,
                 clockwise: cw, counterClockwise: ccw, buttons: buttons,
-                clockwiseThreshold: ws.CounterClockwiseActivationThreshold,       // physical CW ↔ OTD CCW
-                counterClockwiseThreshold: ws.ClockwiseActivationThreshold,
+                clockwiseThreshold: strips ? ws.CounterClockwiseActivationThreshold : ws.ClockwiseActivationThreshold,
+                counterClockwiseThreshold: strips ? ws.ClockwiseActivationThreshold : ws.CounterClockwiseActivationThreshold,
                 stepSizeDegrees: ws.StepSize,
                 applyThreshold: canEdit ? ApplyWheelThresholdAsync : null, isStrip: strips) { RingModes = ringModes });
                 ringModes?.RefreshFromStateFile();
@@ -1848,8 +1858,22 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     }
 
     // ── Ring modes (Wacom-style): the full list lives in AppSettings; the profile holds the bindings ──
-    private string RingModesKey(int wheelIndex) => $"RingModes:{_profile.Tablet}:{wheelIndex}";
-    private string RingModesBackupKey(int wheelIndex) => $"RingModesBackup:{_profile.Tablet}:{wheelIndex}";
+    // Version 16 BETA 2: with an app selected in the Application row, the list and the bindings are that app's
+    // (they used to be written to All while the page showed the app's table, so every change snapped back).
+    private string RingModesKey(int wheelIndex) => string.IsNullOrEmpty(SelectedAppBundleId)
+        ? $"RingModes:{_profile.Tablet}:{wheelIndex}"
+        : $"RingModes:{_profile.Tablet}:{wheelIndex}:app:{SelectedAppBundleId}";
+    private string RingModesBackupKey(int wheelIndex) => string.IsNullOrEmpty(SelectedAppBundleId)
+        ? $"RingModesBackup:{_profile.Tablet}:{wheelIndex}"
+        : $"RingModesBackup:{_profile.Tablet}:{wheelIndex}:app:{SelectedAppBundleId}";
+
+    /// <summary>The saved mode list for the selected table; an app without its own list yet starts from All's.</summary>
+    private string? SavedRingModes(int wheelIndex)
+    {
+        var own = AppSettings.Get(RingModesKey(wheelIndex));
+        if (!string.IsNullOrEmpty(own) || string.IsNullOrEmpty(SelectedAppBundleId)) return own;
+        return AppSettings.Get($"RingModes:{_profile.Tablet}:{wheelIndex}");
+    }
 
     /// <summary>The plain bindings a wheel had before ring modes took it over, so turning modes off
     /// gives them back.</summary>
@@ -1860,21 +1884,22 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         public PluginSettingStore? Button { get; set; }
     }
 
-    /// <summary>Turn ring modes on/off for a wheel. Returns whether the profile really changed, so the switch
+    /// <summary>Turn ring modes on/off for a wheel. Returns whether the bindings really changed, so the switch
     /// can flip back when nothing could be applied (Build F, review item 2).</summary>
     private async Task<bool> SetRingModesAsync(int wheelIndex, bool on, IReadOnlyList<RingMode> modes)
     {
         if (!WheelEnabled) return false;
         AppSettings.Set(RingModesKey(wheelIndex), RingModeBinding.Serialize(modes));
-        var current = _profile.BindingSettings.WheelBindings;
+        var current = WorkingBindings().WheelBindings;
         if (wheelIndex < 0 || wheelIndex >= current.Count) return false;
         // Nothing to write (no ring button, or no mode that is on and has a key): don't pretend modes are on.
         if (on && !RingModeBinding.CanApply(current[wheelIndex], modes)) return false;
-        var backupJson = AppSettings.Get(RingModesBackupKey(wheelIndex));
+        var backupKey = RingModesBackupKey(wheelIndex);
+        var backupJson = AppSettings.Get(backupKey);
         bool changed = false;
-        await ApplySettingsChange(p =>
+        await ApplyRingBindingsAsync(b =>
         {
-            var wheels = p.BindingSettings.WheelBindings;
+            var wheels = b.WheelBindings;
             if (wheelIndex < 0 || wheelIndex >= wheels.Count) return;
             var ws = wheels[wheelIndex];
             if (on)
@@ -1888,7 +1913,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 };
                 changed = RingModeBinding.Apply(ws, modes);
                 if (changed)
-                    AppSettings.Set(RingModesBackupKey(wheelIndex), JsonConvert.SerializeObject(backup));
+                    AppSettings.Set(backupKey, JsonConvert.SerializeObject(backup));
             }
             else
             {
@@ -1898,10 +1923,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 // No backup (modes set up by hand in OTD, or the stash was lost): only the ring-mode slots are
                 // cleared, instead of also unbinding whatever else the ring button had.
                 RingModeBinding.Remove(ws, backup != null, backup?.Clockwise, backup?.CounterClockwise, backup?.Button);
-                AppSettings.Set(RingModesBackupKey(wheelIndex), "");
+                AppSettings.Set(backupKey, "");
                 changed = true;
             }
-            RingModeBinding.SyncGate(p);   // build J: pen gate only while a smooth-rotate mode exists
         });
         return changed;
     }
@@ -1930,15 +1954,27 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     private Task RingModesChangedAsync(int wheelIndex, IReadOnlyList<RingMode> modes)
     {
         AppSettings.Set(RingModesKey(wheelIndex), RingModeBinding.Serialize(modes));
-        var wheels = _profile.BindingSettings.WheelBindings;
+        var wheels = WorkingBindings().WheelBindings;
         if (!WheelEnabled || wheelIndex < 0 || wheelIndex >= wheels.Count || !RingModeBinding.IsActive(wheels[wheelIndex]))
             return Task.CompletedTask;   // modes off: just remember the list
-        return ApplySettingsChange(p =>
+        return ApplyRingBindingsAsync(b =>
         {
-            var w = p.BindingSettings.WheelBindings;
+            var w = b.WheelBindings;
             if (wheelIndex < w.Count) RingModeBinding.Apply(w[wheelIndex], modes);
-            RingModeBinding.SyncGate(p);
         });
+    }
+
+    /// <summary>Version 16 BETA 2: write a ring-mode change to the table on screen (All, or the selected app's,
+    /// like every other binding), then keep the pen gate filter in step with every table of this tablet.</summary>
+    private async Task ApplyRingBindingsAsync(Action<BindingSettings> mutate)
+    {
+        await ApplyBindingMutationAsync(mutate);
+        var tablet = _profile.Tablet ?? "";
+        var appTables = PerAppBindingStore.List(tablet).Select(a => a.Bindings).ToList();
+        bool gateNeeded = RingModeBinding.UsesSmoothRotate(_profile.BindingSettings) || appTables.Any(RingModeBinding.UsesSmoothRotate);
+        bool gateThere = _profile.Filters?.Any(f => f?.Path == RingModeBinding.GateTypeName && f.Enable) == true;
+        if (gateNeeded != gateThere)
+            await ApplySettingsChange(p => RingModeBinding.SyncGate(p, appTables));
     }
 
     // Thresholds change rapidly while a slider is dragged — debounce into one apply (and one rebuild)
@@ -1960,15 +1996,17 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (_pendingThresholds.Count == 0 || !WheelEnabled) return;
         var pending = new Dictionary<(int Wheel, bool Clockwise), double>(_pendingThresholds);
         _pendingThresholds.Clear();
+        bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.Tablets, TabletName)?.WheelsAreTouchStrips == true;
         await ApplySettingsChange(p =>
         {
             var wheels = p.BindingSettings.WheelBindings;
             foreach (var (key, deg) in pending)
             {
                 if (key.Wheel < 0 || key.Wheel >= wheels.Count) continue;
-                // physical clockwise ↔ OTD CounterClockwise (see RefreshWheels)
-                if (key.Clockwise) wheels[key.Wheel].CounterClockwiseActivationThreshold = (float)deg;
-                else wheels[key.Wheel].ClockwiseActivationThreshold = (float)deg;
+                // Version 16 BETA 2: the Clockwise row is OTD's Clockwise; a strip's Up row is OTD's
+                // CounterClockwise (see RefreshWheels).
+                if (key.Clockwise != strips) wheels[key.Wheel].ClockwiseActivationThreshold = (float)deg;
+                else wheels[key.Wheel].CounterClockwiseActivationThreshold = (float)deg;
             }
         });
     }

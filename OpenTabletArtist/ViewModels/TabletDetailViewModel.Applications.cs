@@ -62,8 +62,35 @@ public partial class TabletDetailViewModel
             AppProfiles.Add(AppProfileTile.From(p));
         OnPropertyChanged(nameof(HasAppProfiles));
         OnPropertyChanged(nameof(AllAppLabel));
+        MigrateLegacyAppRingModes();
         // Keep All bindings stash fresh on first open.
         PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);
+    }
+
+    /// <summary>Version 16 BETA 2: an app's table with ring modes written by Version 16 BETA 1 or earlier runs
+    /// them backwards (see RingModeBinding.IsLegacy). Rewrite them from the app's mode list (or All's, which
+    /// the app's table was copied from) so the app is right even before its tile is opened. Idempotent: a
+    /// rewritten table is no longer legacy.</summary>
+    internal void MigrateLegacyAppRingModes()
+    {
+        var tablet = _profile.Tablet ?? "";
+        foreach (var app in PerAppBindingStore.List(tablet))
+        {
+            var copy = PerAppBindingStore.CloneBindings(app.Bindings);
+            bool changed = false;
+            for (int wi = 0; wi < copy.WheelBindings.Count; wi++)
+            {
+                var ws = copy.WheelBindings[wi];
+                if (!RingModeBinding.IsLegacy(ws)) continue;
+                var saved = AppSettings.Get($"RingModes:{tablet}:{wi}:app:{app.BundleId}");
+                if (string.IsNullOrEmpty(saved)) saved = AppSettings.Get($"RingModes:{tablet}:{wi}");
+                var modes = RingModeBinding.Load(ws, saved, null, null);
+                changed |= RingModeBinding.Apply(ws, modes);
+            }
+            if (!changed) continue;
+            PerAppBindingStore.SaveBindings(tablet, app.BundleId, copy);
+            AppLog.Info($"Ring modes: {app.BundleId}'s table rewritten for Version 16 BETA 2 (ring directions).");
+        }
     }
 
     private void RefreshBindingEditorsFromSelection()

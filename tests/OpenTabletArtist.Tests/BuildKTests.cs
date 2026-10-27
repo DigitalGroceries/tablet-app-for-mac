@@ -147,7 +147,7 @@ public class BuildKTests
         Assert.Equal(new[] { 0, 20, 0, 0 }, back.Select(m => m.ScrollAmount));
         Assert.Equal(new[] { 0, 0, 12, 0 }, back.Select(m => m.SizeSensitivity));
         Assert.Equal(new[] { 0, 0, 0, 6 }, back.Select(m => m.HardnessSensitivity));
-        Assert.Equal(-2.4f, Convert.ToSingle(w.ClockwiseRotation!.Settings.First(s => s.Property == "Mode3Size").Value, System.Globalization.CultureInfo.InvariantCulture), 3);
+        Assert.Equal(-2.4f, Convert.ToSingle(w.CounterClockwiseRotation!.Settings.First(s => s.Property == "Mode3Size").Value, System.Globalization.CultureInfo.InvariantCulture), 3);   // Version 16 BETA 2: anticlockwise = OTD CCW
         var json = RingModeBinding.Deserialize(RingModeBinding.Serialize(modes))!;
         Assert.Equal(new[] { 10, 0, 0, 0 }, json.Select(m => m.RotateSensitivity));
         Assert.Equal(new[] { 0, 0, 0, 6 }, json.Select(m => m.HardnessSensitivity));
@@ -247,8 +247,7 @@ public class BuildKTests
         Assert.Equal(5f, RingMode.DegreesOfSpeed(100));
         Assert.Equal(100, RingMode.SpeedOfDegrees(0));
         foreach (var deg in new[] { 8f, 10f, 30f, 60f }) Assert.InRange(RingMode.DegreesOfSpeed(RingMode.SpeedOfDegrees(deg)), deg * 0.94f, deg * 1.06f);
-        Assert.True(RingMode.ScrollOfSpeed(80) > RingMode.ScrollOfSpeed(20));
-        Assert.Equal(20, RingMode.ScrollOfSpeed(50));
+        for (int sp = 1; sp <= 100; sp++) Assert.Equal(sp, RingMode.SpeedOfDegrees(RingMode.DegreesOfSpeed(sp)));   // zoom reads back exactly
         Assert.True(RingMode.SpeedOfDegrees(RingModeBinding.Defaults[3].StepDegrees) < 40);   // hardness keys: slow
     }
 
@@ -267,7 +266,7 @@ public class BuildKTests
         Assert.Equal(70, row.ToMode().RotateSensitivity);
         row.UseScroll = true;
         row.CommitSpeed(50);
-        Assert.Equal(20, row.ToMode().ScrollAmount);
+        Assert.Equal(50, row.ToMode().ScrollAmount);   // Version 16 BETA 2: zoom stores its Speed
     }
 
     [Fact]

@@ -48,28 +48,38 @@ internal static class MacScroll
     /// pixel (trackpad-style) scrolls with only the Option flag on the event, which Photoshop treated as a
     /// pan. Now: Option key down, discrete line-based wheel events carrying the Option flag, Option key up
     /// (always, in finally). Positive = up = zoom in.</summary>
-    public static void PostWithOption(int pixels)
+    public static void PostWithOption(int pixels) => PostWithModifier(pixels, KeyCodeOption, OptionFlag, ref _remainder);
+
+    private const ushort KeyCodeCommand = 55;     // kVK_Command
+    private const ulong CommandFlag = 0x00100000; // kCGEventFlagMaskCommand
+    private static int _commandRemainder;
+
+    /// <summary>Version 16 BETA 2: the same discrete wheel with ⌘ held — Affinity rotates its view with
+    /// ⌘ + scroll wheel when "Enable canvas rotation with ⌘+scroll wheel" is on in its Settings › Tools.</summary>
+    public static void PostWithCommand(int pixels) => PostWithModifier(pixels, KeyCodeCommand, CommandFlag, ref _commandRemainder);
+
+    private static void PostWithModifier(int pixels, ushort keyCode, ulong flag, ref int remainder)
     {
         if (pixels == 0 || !OperatingSystem.IsMacOS()) return;
         int lines;
-        lock (Gate) lines = TakeLines(pixels, ref _remainder);
+        lock (Gate) lines = TakeLines(pixels, ref remainder);
         if (lines == 0) return;
         try
         {
-            PostKey(KeyCodeOption, true, OptionFlag);
+            PostKey(keyCode, true, flag);
             try
             {
-                System.Threading.Thread.Sleep(ModifierSettleMs);   // Option registered before the wheel
+                System.Threading.Thread.Sleep(ModifierSettleMs);   // modifier registered before the wheel
                 var e = CGEventCreateScrollWheelEvent2(Src.Value, LineUnits, 1, Math.Clamp(lines, -10, 10), 0, 0);
                 if (e == IntPtr.Zero) return;
                 try
                 {
-                    CGEventSetFlags(e, OptionFlag);
+                    CGEventSetFlags(e, flag);
                     CGEventPost(HidEventTap, e);
                 }
                 finally { CFRelease(e); }
             }
-            finally { System.Threading.Thread.Sleep(5); PostKey(KeyCodeOption, false, 0); }
+            finally { System.Threading.Thread.Sleep(5); PostKey(keyCode, false, 0); }
         }
         catch (Exception) { /* no CoreGraphics: nothing to do */ }
     }

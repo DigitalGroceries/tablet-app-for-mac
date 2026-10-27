@@ -260,11 +260,19 @@ public class RingModeTurnBinding : IStateBinding
         return ParseKeys(_modeKeys[mode], Keyboard);
     }
 
-    // Build R: test seams. Gesture = smooth Photoshop gesture (false = refused); PhotoshopFront gates the
-    // Option+scroll zoom; Scroll posts it. When a gesture is refused or another app is in front, the mode's keys are sent.
+    // Build R: test seams. Gesture = smooth Photoshop gesture (false = refused); FrontApp says which app's window is
+    // under the cursor (Version 16 BETA 2: Photoshop or Affinity); Scroll posts Option+scroll (zoom in both),
+    // CommandScroll posts ⌘+scroll (Affinity's canvas rotation). When a gesture is refused or another app is in
+    // front, the mode's keys are sent.
     public static Func<GestureKind, double, bool> Gesture { get; set; } = DragRotate.Turn;
-    public static Func<bool> PhotoshopFront { get; set; } = DragRotate.PhotoshopInFront;
+    public static Func<FrontApp> FrontApp { get; set; } = DragRotate.FrontAppUnderCursor;
     public static Action<int> Scroll { get; set; } = MacScroll.PostWithOption;
+    public static Action<int> CommandScroll { get; set; } = MacScroll.PostWithCommand;
+
+    /// <summary>Version 16 BETA 2: written by the app (2 = physical clockwise is OTD's clockwise binding, zoom
+    /// value is a direction only). Not used here; the app reads it back to tell old bindings apart.</summary>
+    [Property("Direction version"), DefaultPropertyValue(0)]
+    public int DirectionVersion { get; set; }
 
     private readonly KeyPulse _pulse = new();
     /// <summary>Build R: how long a ring key is held before it is let go (OTD releases instantly otherwise).</summary>
@@ -278,8 +286,15 @@ public class RingModeTurnBinding : IStateBinding
         double ring = RingStep > 0 ? RingStep : 5;
         if (valid && _modeRotate[mode] != 0)
         {
-            // Smooth rotate (Photoshop only): every ring position turns the canvas by (ring degrees × sensitivity %).
+            // Smooth rotate in Photoshop: every ring position turns the canvas by (ring degrees × sensitivity %).
             if (Gesture(GestureKind.Rotate, ring * _modeRotate[mode] / 100.0)) return;
+            // Version 16 BETA 2: Affinity rotates its view with ⌘ + scroll wheel (when "Enable canvas rotation with
+            // ⌘+scroll wheel" is on in its Settings › Tools): one wheel line per mode step.
+            if (FrontApp() == Dynamics.FrontApp.Affinity)
+            {
+                if (CountStep(mode)) CommandScroll(Math.Sign(_modeRotate[mode]) * MacScroll.PixelsPerLine);
+                return;
+            }
         }
         else if (valid && (_modeSize[mode] != 0 || _modeHardness[mode] != 0))
         {
@@ -289,10 +304,11 @@ public class RingModeTurnBinding : IStateBinding
                 : Gesture(GestureKind.BrushHardness, ring * _modeHardness[mode] / 10.0);
             if (acted) return;
         }
-        else if (valid && _modeScroll[mode] != 0 && PhotoshopFront())
+        else if (valid && _modeScroll[mode] != 0 && FrontApp() is Dynamics.FrontApp.Photoshop or Dynamics.FrontApp.Affinity)
         {
-            // Smooth Option+scroll zoom, Photoshop only; other apps get the mode's keys.
-            Scroll(_modeScroll[mode]);
+            // Smooth Option+scroll zoom in Photoshop and Affinity (Version 16 BETA 2: one wheel line per mode step,
+            // so the app's Speed sets it; before, every ring step sent lines); other apps get the mode's keys.
+            if (CountStep(mode)) Scroll(Math.Sign(_modeScroll[mode]) * MacScroll.PixelsPerLine);
             return;
         }
         var keys = KeysForMode(mode);

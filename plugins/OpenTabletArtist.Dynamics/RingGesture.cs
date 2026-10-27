@@ -86,10 +86,13 @@ public static class DragRotate
     }
 
     /// <summary>Build R: true only when Photoshop's front window is under the cursor (same test the gesture uses).</summary>
-    public static bool PhotoshopInFront()
+    public static bool PhotoshopInFront() => FrontAppUnderCursor() == FrontApp.Photoshop;
+
+    /// <summary>Version 16 BETA 2: whose front window is under the cursor — Photoshop, Affinity or another app.</summary>
+    public static FrontApp FrontAppUnderCursor()
     {
-        if (!OperatingSystem.IsMacOS()) return false;
-        try { return new MacGestureIo().PhotoshopWindowUnderCursor() != null; } catch (Exception) { return false; }
+        if (!OperatingSystem.IsMacOS()) return FrontApp.Other;
+        try { return new MacGestureIo().FrontAppUnderCursor(); } catch (Exception) { return FrontApp.Other; }
     }
 
     private static DragRotateCore Core()
@@ -176,10 +179,27 @@ internal sealed class MacGestureIo : IGestureIo
         finally { CFRelease(e); }
     }
 
-    public (double X, double Y, double W, double H)? PhotoshopWindowUnderCursor()
+    public (double X, double Y, double W, double H)? PhotoshopWindowUnderCursor() =>
+        FrontWindowUnderCursor() is { App: FrontApp.Photoshop } w ? w.Bounds : null;
+
+    public FrontApp FrontAppUnderCursor() => FrontWindowUnderCursor()?.App ?? FrontApp.Other;
+
+    /// <summary>Version 16 BETA 2: Affinity by its bundle id (Affinity Photo/Designer/Publisher 2:
+    /// com.seriflabs.affinity…) or, for the newer single Affinity app, its window owner's name.</summary>
+    internal static FrontApp Classify(string? bundleId, string? ownerName)
+    {
+        if (bundleId == PhotoshopBundleId) return FrontApp.Photoshop;
+        if ((bundleId?.Contains("affinity", StringComparison.OrdinalIgnoreCase) ?? false)
+            || (ownerName?.StartsWith("Affinity", StringComparison.OrdinalIgnoreCase) ?? false))
+            return FrontApp.Affinity;
+        return FrontApp.Other;
+    }
+
+    /// <summary>The frontmost normal window, if it contains the cursor and is a usable size: its app and bounds.</summary>
+    private (FrontApp App, (double X, double Y, double W, double H) Bounds)? FrontWindowUnderCursor()
     {
         if (Cursor() is not { } c) return null;
-        IntPtr list = IntPtr.Zero, kLayer = IntPtr.Zero, kBounds = IntPtr.Zero, kPid = IntPtr.Zero;
+        IntPtr list = IntPtr.Zero, kLayer = IntPtr.Zero, kBounds = IntPtr.Zero, kPid = IntPtr.Zero, kOwner = IntPtr.Zero;
         try
         {
             list = CGWindowListCopyWindowInfo(1 | 16, 0);   // on-screen only, no desktop elements
@@ -187,29 +207,43 @@ internal sealed class MacGestureIo : IGestureIo
             kLayer = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowLayer", 0x08000100);
             kBounds = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowBounds", 0x08000100);
             kPid = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowOwnerPID", 0x08000100);
+            kOwner = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowOwnerName", 0x08000100);
             nint n = CFArrayGetCount(list);
             for (nint i = 0; i < n; i++)
             {
                 var d = CFArrayGetValueAtIndex(list, i);
                 var layerRef = CFDictionaryGetValue(d, kLayer);
                 if (layerRef == IntPtr.Zero || !CFNumberGetValue(layerRef, 3, out var layer) || layer != 0) continue;
-                // The frontmost normal window decides: it must be Photoshop's and contain the cursor.
+                // The frontmost normal window decides: it must contain the cursor.
                 var pidRef = CFDictionaryGetValue(d, kPid);
                 var b = CFDictionaryGetValue(d, kBounds);
                 if (pidRef == IntPtr.Zero || !CFNumberGetValue(pidRef, 3, out var pid)) return null;
                 if (b == IntPtr.Zero || !CGRectMakeWithDictionaryRepresentation(b, out var r)) return null;
-                if (BundleId(pid) != PhotoshopBundleId) return null;
                 if (c.X < r.X || c.Y < r.Y || c.X > r.X + r.W || c.Y > r.Y + r.H) return null;
                 if (r.W < 200 || r.H < 200) return null;
-                return (r.X, r.Y, r.W, r.H);
+                var app = Classify(BundleId(pid), CFString(CFDictionaryGetValue(d, kOwner)));
+                return app == FrontApp.Other ? null : (app, (r.X, r.Y, r.W, r.H));
             }
             return null;
         }
         finally
         {
-            foreach (var cf in new[] { list, kLayer, kBounds, kPid })
+            foreach (var cf in new[] { list, kLayer, kBounds, kPid, kOwner })
                 if (cf != IntPtr.Zero) CFRelease(cf);
         }
+    }
+
+    [DllImport(CF)] [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool CFStringGetCString(IntPtr s, byte[] buffer, nint size, uint encoding);
+
+    /// <summary>A CFString's text (UTF-8), or null. The string is borrowed from its dictionary (not released).</summary>
+    private static string? CFString(IntPtr s)
+    {
+        if (s == IntPtr.Zero) return null;
+        var buf = new byte[512];
+        return CFStringGetCString(s, buf, buf.Length, 0x08000100)
+            ? System.Text.Encoding.UTF8.GetString(buf, 0, Math.Max(0, Array.IndexOf(buf, (byte)0)))
+            : null;
     }
 
     private static string? BundleId(int pid)
