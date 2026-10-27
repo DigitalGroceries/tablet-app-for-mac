@@ -37,7 +37,6 @@ public partial class AboutViewModel : ObservableObject
             OnPropertyChanged(nameof(UserManualLabel));
             OnPropertyChanged(nameof(CreditsLabel));
             OnPropertyChanged(nameof(CreditsBlurb));
-            OnPropertyChanged(nameof(FeedbackNote));
             OnPropertyChanged(nameof(AboutBlurb));
             OnPropertyChanged(nameof(AppVersion));
             OnPropertyChanged(nameof(AppVersionSentence));
@@ -71,7 +70,6 @@ public partial class AboutViewModel : ObservableObject
     public string UserManualLabel => Services.Localizer.T("home.user_manual");
     public string CreditsLabel => Services.Localizer.T("home.credits");
     public string CreditsBlurb => Services.Localizer.T("home.licence_blurb");
-    public string FeedbackNote => Services.Localizer.T("home.feedback_note");
     public string AboutBlurb => Services.Localizer.T("home.about_blurb");
     public string AboutLineText => AboutBlurb.TrimEnd() + " " + AppVersionSentence;
     public string CheckUpdatesLabel => Services.Localizer.T("update.check_now");
