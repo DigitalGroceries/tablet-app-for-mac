@@ -183,6 +183,9 @@
                                  IsChecked="{Binding SelectedScroll, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=Left}" />
                     <RadioButton Content="Scroll right" GroupName="sc"
                                  IsChecked="{Binding SelectedScroll, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=Right}" />
+                    <RadioButton Content="Move pen to scroll" GroupName="sc"
+                                 ToolTip.Tip="Hold the button and move the pen to scroll, like a mouse wheel. The cursor stays still."
+                                 IsChecked="{Binding SelectedScroll, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=Pen}" />
                 </StackPanel>
             </StackPanel>
 

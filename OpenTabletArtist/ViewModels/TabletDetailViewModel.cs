@@ -1514,6 +1514,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         "HoverFilter" => "Hover Limit",
         "CalibrationFilter" => "Calibration",
         "RingGestureGate" => "Ring Gesture Gate",
+        "PenScrollFilter" => "Pen scroll",
         _ => typeName,
     };
 
@@ -1608,6 +1609,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var initial = AuxKeyBinding.ReadBinding(row.Store) ?? AuxBinding.Unbound;
         var result = await _editBinding(initial, $"Pen button {row.PenButtonIndex}");
         if (result == null) return;   // cancelled
+        if (initial.IsBound && result == initial) return;   // no change: keeps extra settings (e.g. pen scroll speed)
         // Clear (Unbound) makes no store: an empty slot is how OTD stores "this button does nothing".
         PluginSettingStore? store = result.IsBound ? AuxKeyBinding.MakeBinding(result) : null;
         await ApplyPenSwitchBindingAsync(row.Kind, row.PenButtonIndex, store);
