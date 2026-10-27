@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-App version 15. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
+App version 16 (BETA). British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
 
 ## Before you start
 
@@ -152,6 +152,8 @@ Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held 
 | Brush size | ] | [ | 8° |
 | Brush hardness | Shift+] | Shift+[ | 60° |
 
+**Touch strips** (Intuos3, Cintiq 21UX, Cintiq 12WX and Cintiq 22HD; new in Version 16, not yet tested on these tablets): the page shows each strip, **Touch strip** or **Left touch strip** and **Right touch strip**, with an **Up** and a **Down** row instead of the ring. Slide your finger up or down the strip to send that row's keys. Strips have no centre button, so they have no ring modes.
+
 ## Tablet › More
 
 - **about**: the tablet's model and features: digitiser resolution, pressure levels, pen buttons, **Tablet buttons** and wheels.
@@ -228,6 +230,18 @@ The **driver** is the background part of the app that reads the pen and moves th
 
 macOS 27.0.1 on Apple silicon, Wacom Intuos4 Small (PTK-440). Nothing else has been tested.
 
+## Supported tablets
+
+**Supported tablets** (in **About**) lists every tablet the driver knows, with its support level (**Supported**, **Has Quirks**, **Questionable** or **Missing Features**) and notes. The Wacom tablets are also listed on the website: https://digitalgroceries.github.io/tablet-app-for-mac/tablets/
+
+Version 16 adds the following. None of it has been tested on these tablets yet, so please tell us how it works (**Feedback** on **Home**):
+
+- Intuos Pro (PTH-460, PTH-660, PTH-860): the Touch Ring turns the right way and its zero is at the left, like other Wacom rings.
+- Intuos3 (PTZ-430, PTZ-431W, PTZ-630, PTZ-631W, PTZ-930, PTZ-1230, PTZ-1231W), Cintiq 21UX (DTZ-2100 and DTK-2100), Cintiq 12WX (DTZ-1200W) and Cintiq 22HD (DTK-2200, DTH-2200): touch strips (see Touch ring).
+- Cintiq 13HD (DTK-1300, DTH-1300): the centre button of the Rocker Ring, as ExpressKey 9.
+- Bamboo Fun (CTE-450, CTE-650): the Touch Ring.
+- Wacom CTK-4120: newly listed.
+
 ## Wacom driver conflict
 
 The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninstall the Wacom driver before using this app. Home shows a warning while it is running.
@@ -265,6 +279,7 @@ Tablet App for Mac is a modified version of OpenTabletArtist by TheSevenPens (GP
 
 - **Tip Feel**: the pressure curve, from Soft to Firm.
 - **Touch Ring modes**: up to four sets of ring actions, switched with the centre button.
+- **Touch strip**: the finger strip on Intuos3 and older Cintiqs. It works like the ring, with Up and Down.
 - **Preset**: a named copy of the whole configuration.
 - **Application row**: per-app settings; **All** applies everywhere else.
 - **Shared with Pen**: an Eraser setting that is the same setting as on the Pen tab.
