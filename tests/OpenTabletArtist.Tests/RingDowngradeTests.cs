@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using OpenTabletDriver.Desktop;
 using OpenTabletDriver.Desktop.Profiles;
 using OpenTabletDriver.Desktop.Reflection;
 using OpenTabletArtist.Domain;
 using OpenTabletArtist.Services;
+using OpenTabletArtist.ViewModels;
 using OtdInterop;
 using Xunit;
 
@@ -102,5 +104,30 @@ public class RingDowngradeTests
             AppSettings.Get(PerAppBindingRuntime.AllBindingsKey(tablet))!)!;
         Assert.True(RingModeBinding.IsLegacy(stash.WheelBindings[0]));
         Assert.False(RingDowngrade.Convert(settings));
+    }
+
+    /// <summary>Version 17 BETA 2: Zak's test (28 Oct 2026). With Photoshop's tile open, going back converted
+    /// every table, then the page rewrote Photoshop's (now Version 15 layout, so "legacy") back to Version 16's.</summary>
+    [Fact]
+    public async Task GoingBack_WithAnAppOnScreen_LeavesEveryTableInTheVersion15Layout()
+    {
+        var tablet = "TestTablet-RingDowngrade-" + Guid.NewGuid().ToString("N")[..8];
+        var bundle = "com.example.Paint";
+        var profile = new Profile { Tablet = tablet, OutputMode = null! };
+        profile.BindingSettings.WheelBindings.Add(Version16Wheel());
+        var settings = new Settings { Profiles = new ProfileCollection { profile } };
+        PerAppBindingStore.Add(tablet, bundle, "Paint", "", profile.BindingSettings);
+        var vm = new TabletDetailViewModel(profile, settings, applyAction: _ => Task.FromResult(SettingsApplyOutcome.Live));
+        vm.LoadAppProfiles();
+        vm.SelectAppProfileCommand.Execute(bundle);
+
+        Assert.True(RingDowngrade.Convert(settings));
+        vm.LoadAppProfiles();
+        vm.SelectAppProfileCommand.Execute(null);
+        vm.SelectAppProfileCommand.Execute(bundle);
+        await Task.Delay(50);
+
+        Assert.True(RingModeBinding.IsLegacy(PerAppBindingStore.Find(tablet, bundle)!.Bindings.WheelBindings[0]));
+        Assert.True(RingModeBinding.IsLegacy(profile.BindingSettings.WheelBindings[0]));
     }
 }

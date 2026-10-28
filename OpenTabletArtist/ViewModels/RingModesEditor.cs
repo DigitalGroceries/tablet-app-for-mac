@@ -299,7 +299,7 @@ public partial class RingModeRow : ObservableObject
         RingAction.SmoothHardness => "Photoshop: Control + Option + vertical drag. Needs Preferences › Tools › \"Vary Round Brush Hardness based on HUD vertical movement\"; without it the drag changes opacity. Round brushes only.",
         RingAction.SmoothSize => "Photoshop: Control + Option + horizontal drag. Needs a brush tool and Use Graphics Processor.",
         RingAction.SmoothRotate => "Photoshop: holds R and drags (Rotate View). Affinity: ⌘ + scroll wheel; turn on \"Enable canvas rotation with ⌘+scroll wheel\" in Affinity's Settings › Tools.",
-        RingAction.SmoothZoom => "Photoshop and Affinity: Option + scroll wheel. If Photoshop pans instead, use Keys with ⌘= / ⌘−.",
+        RingAction.SmoothZoom => "Photoshop and Affinity: Option + scroll wheel. If Photoshop pans instead, untick \"Zoom with Scroll Wheel\" in Photoshop's Settings › Tools, or use Keystroke… with ⌘= / ⌘−.",
         RingAction.Keys => $"Sends the keys below once every {FormatDegrees(_step < 5 ? 5 : _step)}° of turn.",
         _ => "",
     };
