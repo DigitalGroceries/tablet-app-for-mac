@@ -6,11 +6,13 @@ A free tablet app for Mac: settings for your Wacom drawing tablet (tested with a
 
 ## [⬇ Download for Mac](https://github.com/DigitalGroceries/tablet-app-for-mac/releases/latest/download/Tablet-App-for-Mac.dmg)
 
+![Attention: every app update is treated as a new app. Remove the old app with − from Input Monitoring and Device Control and Data Access (Accessibility on older macOS), then add the new one with + and switch it on in both places.](docs/readme/attention-update-permissions.png)
+
 1. Open the downloaded file, **Tablet-App-for-Mac.dmg**.
 2. Drag **Tablet App for Mac** onto the **Applications** folder.
 3. Open the app from Applications. If your Mac warns you, right-click the app and choose **Open**. If there is no Open button, go to **System Settings › Privacy & Security**, scroll down and click **Open Anyway**.
 
-When the app asks, allow **Input Monitoring** and **Accessibility** so it can read your pen.
+When the app asks, allow **Input Monitoring** and **Device Control and Data Access** (called **Accessibility** before macOS 27) so it can read your pen.
 
 Help and the user manual: https://digitalgroceries.github.io/tablet-app-for-mac/
 
