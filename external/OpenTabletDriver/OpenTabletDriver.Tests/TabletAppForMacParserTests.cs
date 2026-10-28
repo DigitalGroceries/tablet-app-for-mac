@@ -176,6 +176,32 @@ namespace OpenTabletDriver.Tests
             Assert.False(aux.AuxButtons[8]);
         }
 
+        // ---- Bamboo MTE-450 (Linux type WACOM_MO, like the Bamboo Fun CTE-450/650): real reports ----
+        // From an owner's recordings attached to OpenTabletDriver PR 4758: byte 8 is 0 when the ring
+        // isn't touched, otherwise 0x80 | position (0-71), in aux reports and in pen reports alike.
+
+        [Theory]
+        [InlineData("02 00 00 00 00 00 00 00 AD", 45u)]
+        [InlineData("02 00 00 00 00 00 00 00 C7", 71u)]
+        [InlineData("02 00 00 00 00 00 00 00 80", 0u)]
+        [InlineData("02 00 00 00 00 00 00 00 00", null)]
+        public void Bamboo_Real_Aux_Reports_Give_The_Ring_Position(string hex, uint? expected)
+        {
+            var raw = hex.Split(' ').Select(b => System.Convert.ToByte(b, 16)).ToArray();
+            var aux = Assert.IsType<BambooAuxReport>(new BambooReportParser().Parse(raw));
+            Assert.Equal(expected, aux.AnalogPositions[0]);
+        }
+
+        [Theory]
+        [InlineData("02 90 72 20 EB 16 00 00 C3", 67u)]
+        [InlineData("02 10 7C 1F D3 17 00 00 00", null)]
+        public void Bamboo_Real_Pen_Reports_Also_Carry_The_Ring(string hex, uint? expected)
+        {
+            var raw = hex.Split(' ').Select(b => System.Convert.ToByte(b, 16)).ToArray();
+            var pen = Assert.IsType<BambooTabletReport>(new BambooReportParser().Parse(raw));
+            Assert.Equal(expected, pen.AnalogPositions[0]);
+        }
+
         // ---- Bamboo Fun CTE-450/650: touch ring ----
 
         [Theory]
