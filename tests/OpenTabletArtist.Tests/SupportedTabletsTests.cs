@@ -45,7 +45,7 @@ public class SupportedTabletsTests
     public void DialogVm_ProgressNote_SaysTheListGrowsOneTabletAtATime()
     {
         var vm = new SupportedTabletsDialogViewModel(null);
-        Assert.Equal("This list is updated on a daily basis as we work on it one tablet at a time. Do check at a later time if your tablet becomes fully supported.",
+        Assert.Equal("Tablet support improves once a week, in that week's app update, so check back once a week to see if your tablet has become fully supported. Each tablet gets worked on, but not every one will end up fully supported. Some can only be improved, but this can be confirmed and improved only with real user feedback for the specific Wacom tablet models. Each weekly update says exactly what changed for which tablet. How often updates come, and how good they are, depends on the voluntary tips we get from happy users who support the project.",
             vm.ProgressNoteText);
     }
 
