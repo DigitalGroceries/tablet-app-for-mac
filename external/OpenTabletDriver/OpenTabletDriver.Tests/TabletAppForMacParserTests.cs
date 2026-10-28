@@ -2,6 +2,7 @@ using System.Linq;
 using OpenTabletDriver.Configurations.Parsers.Wacom.Bamboo;
 using OpenTabletDriver.Configurations.Parsers.Wacom.CintiqV1;
 using OpenTabletDriver.Configurations.Parsers.Wacom.Intuos3;
+using OpenTabletDriver.Configurations.Parsers.Wacom.IntuosBluetooth;
 using OpenTabletDriver.Configurations.Parsers.Wacom.IntuosV1;
 using OpenTabletDriver.Configurations.Parsers.Wacom.IntuosV2;
 using OpenTabletDriver.Plugin.Tablet;
@@ -190,6 +191,60 @@ namespace OpenTabletDriver.Tests
             raw[8] = b8;
             var aux = Assert.IsType<BambooAuxReport>(new BambooReportParser().Parse(raw));
             Assert.Equal(expected, aux.AnalogPositions[0]);
+        }
+
+        // ---- Intuos BT CTL-4100WL over Bluetooth: report 0x81, 4 pen frames of 8 bytes, keys in byte 44 ----
+
+        private static byte[] IntuosBt(byte keys, params (byte flags, ushort x, ushort y, ushort p, byte d)[] frames)
+        {
+            var r = new byte[361];
+            r[0] = 0x81;
+            for (int i = 0; i < frames.Length; i++)
+            {
+                int o = 1 + i * 8;
+                r[o] = frames[i].flags;
+                r[o + 1] = (byte)frames[i].x; r[o + 2] = (byte)(frames[i].x >> 8);
+                r[o + 3] = (byte)frames[i].y; r[o + 4] = (byte)(frames[i].y >> 8);
+                r[o + 5] = (byte)frames[i].p; r[o + 6] = (byte)(frames[i].p >> 8);
+                r[o + 7] = frames[i].d;
+            }
+            r[44] = keys;
+            return r;
+        }
+
+        [Fact]
+        public void IntuosBt_Reads_The_Newest_Valid_Pen_Frame()
+        {
+            var raw = IntuosBt(0x05, (0xE0, 100, 200, 10, 5), (0xE2, 15000, 9000, 2047, 0), (0x00, 1, 1, 1, 1));
+            var report = Assert.IsType<IntuosBluetoothReport>(new IntuosBluetoothReportParser().Parse(raw));
+            Assert.Equal(15000f, report.Position.X);
+            Assert.Equal(9000f, report.Position.Y);
+            Assert.Equal(2047u, report.Pressure);
+            Assert.Equal(new[] { true, false }, report.PenButtons);
+            Assert.False(report.Eraser);
+            Assert.True(report.NearProximity);
+            Assert.Equal(new[] { true, false, true, false }, report.AuxButtons);
+        }
+
+        [Fact]
+        public void IntuosBt_Pen_Away_Gives_Keys_Only_No_Jump_To_Corner()
+        {
+            var parser = new IntuosBluetoothReportParser();
+            Assert.IsType<IntuosBluetoothAuxReport>(parser.Parse(IntuosBt(0x08)));
+            var leaving = Assert.IsType<IntuosBluetoothAuxReport>(parser.Parse(IntuosBt(0x08, (0x80, 0, 0, 0, 0))));
+            Assert.Equal(new[] { false, false, false, true }, leaving.AuxButtons);
+        }
+
+        [Fact]
+        public void IntuosBt_Eraser_And_Other_Reports()
+        {
+            var parser = new IntuosBluetoothReportParser();
+            var eraser = Assert.IsType<IntuosBluetoothReport>(parser.Parse(IntuosBt(0, (0xF0, 5, 5, 300, 0))));
+            Assert.True(eraser.Eraser);
+            var other = IntuosBt(0, (0xE0, 5, 5, 0, 0));
+            other[0] = 0x10;
+            Assert.IsType<DeviceReport>(parser.Parse(other));
+            Assert.IsType<DeviceReport>(parser.Parse(new byte[] { 0x81, 0xE0 }));
         }
     }
 }
