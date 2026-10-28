@@ -127,6 +127,9 @@ namespace OpenTabletDriver.Desktop.Binding
 
         private void HandleOutOfRangeReport(TabletReference tablet, IDeviceReport report)
         {
+            // Tablet App for Mac: a pen that leaves while touching must not keep the tip latched for re-entry.
+            Tip?.Invoke(tablet, report, false);
+            Eraser?.Invoke(tablet, report, false);
             for (var i = 0; i < PenButtons.Count; i++)
             {
                 if (PenButtons.TryGetValue(i, out var binding))
