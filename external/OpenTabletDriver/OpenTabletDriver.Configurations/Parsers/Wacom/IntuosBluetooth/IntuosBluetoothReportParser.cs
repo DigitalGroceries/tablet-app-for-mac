@@ -25,10 +25,15 @@ namespace OpenTabletDriver.Configurations.Parsers.Wacom.IntuosBluetooth
                 if ((data[1 + i * FrameLength] & 0x80) != 0)
                     newest = i;
 
-            if (newest >= 0 && (data[1 + newest * FrameLength] & 0x40) != 0)
-                return new IntuosBluetoothReport(data, 1 + newest * FrameLength);
+            if (newest < 0)
+                return new IntuosBluetoothAuxReport(data);
 
-            return new IntuosBluetoothAuxReport(data);
+            // A valid frame without the proximity bit is the pen leaving (Linux: wacom_exit_report).
+            // OutOfRangeReport releases held tip and pen-button bindings; the pad keys come again in the next report.
+            if ((data[1 + newest * FrameLength] & 0x40) == 0)
+                return new OutOfRangeReport(data);
+
+            return new IntuosBluetoothReport(data, 1 + newest * FrameLength);
         }
     }
 }

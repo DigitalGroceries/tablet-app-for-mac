@@ -230,9 +230,18 @@ namespace OpenTabletDriver.Tests
         public void IntuosBt_Pen_Away_Gives_Keys_Only_No_Jump_To_Corner()
         {
             var parser = new IntuosBluetoothReportParser();
-            Assert.IsType<IntuosBluetoothAuxReport>(parser.Parse(IntuosBt(0x08)));
-            var leaving = Assert.IsType<IntuosBluetoothAuxReport>(parser.Parse(IntuosBt(0x08, (0x80, 0, 0, 0, 0))));
-            Assert.Equal(new[] { false, false, false, true }, leaving.AuxButtons);
+            var keys = Assert.IsType<IntuosBluetoothAuxReport>(parser.Parse(IntuosBt(0x08)));
+            Assert.Equal(new[] { false, false, false, true }, keys.AuxButtons);
+        }
+
+        [Fact]
+        public void IntuosBt_Pen_Leaving_Releases_Tip_And_Pen_Buttons()
+        {
+            var parser = new IntuosBluetoothReportParser();
+            var down = Assert.IsType<IntuosBluetoothReport>(parser.Parse(IntuosBt(0, (0xE2, 500, 500, 100, 0))));
+            Assert.True(down.PenButtons[0]);
+            Assert.IsType<OutOfRangeReport>(parser.Parse(IntuosBt(0, (0xE2, 500, 500, 100, 0), (0x80, 0, 0, 0, 0))));
+            Assert.IsType<IntuosBluetoothReport>(parser.Parse(IntuosBt(0, (0x80, 0, 0, 0, 0), (0xE0, 600, 600, 0, 3))));
         }
 
         [Fact]
