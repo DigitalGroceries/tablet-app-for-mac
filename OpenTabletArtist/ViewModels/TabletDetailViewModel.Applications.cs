@@ -74,6 +74,7 @@ public partial class TabletDetailViewModel
     internal void MigrateLegacyAppRingModes()
     {
         var tablet = _profile.Tablet ?? "";
+        if (RingDowngrade.IsPrepared(tablet)) return;
         foreach (var app in PerAppBindingStore.List(tablet))
         {
             var copy = PerAppBindingStore.CloneBindings(app.Bindings);

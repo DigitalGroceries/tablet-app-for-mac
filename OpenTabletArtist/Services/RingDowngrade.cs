@@ -13,6 +13,22 @@ public static class RingDowngrade
     public static bool IsNeededFor(int targetVersion) =>
         targetVersion < RingModeBinding.FirstAppVersionWithDirectionVersion;
 
+    private static readonly HashSet<string> PreparedTablets = new(StringComparer.Ordinal);
+
+    /// <summary>Version 17 BETA 2: true once this tablet's tables are in the Version 15 layout and the app is about
+    /// to be replaced. Nothing may rewrite them as legacy then (the page did, for the app tile on screen).</summary>
+    public static bool IsPrepared(string? tablet)
+    {
+        lock (PreparedTablets) return PreparedTablets.Contains(tablet ?? "");
+    }
+
+    /// <summary>The install failed after converting: this version keeps running, so its own migration may put the
+    /// tables back in its layout.</summary>
+    public static void Cancel()
+    {
+        lock (PreparedTablets) PreparedTablets.Clear();
+    }
+
     /// <summary>Converts the app's own tables (saved here) for the tablets in <paramref name="settings"/>, and the
     /// profiles inside <paramref name="settings"/>, which the caller applies and saves. Returns true when a
     /// profile changed.</summary>
@@ -22,6 +38,7 @@ public static class RingDowngrade
         foreach (var profile in settings.Profiles)
         {
             var tablet = profile.Tablet ?? "";
+            lock (PreparedTablets) PreparedTablets.Add(tablet);
             profilesChanged |= Convert(profile.BindingSettings);
 
             var stash = AppSettings.Get(PerAppBindingRuntime.AllBindingsKey(tablet));

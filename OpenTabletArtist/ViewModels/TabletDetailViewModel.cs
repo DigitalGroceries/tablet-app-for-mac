@@ -1788,6 +1788,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             // they show up (e.g. after Revert to saved before Save); a rewritten wheel is no longer legacy, so this
             // can't loop. Not for an extra pen's table (its wheels are an unused copy).
             if (canEdit && RingModeBinding.IsActive(ws) && string.IsNullOrEmpty(SelectedPenKey)
+                && !RingDowngrade.IsPrepared(_profile.Tablet)
                 && (RingModeBinding.IsLegacy(ws)
                     || ((!RingModeBinding.SameSteps(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws))
                          || !RingModeBinding.SameKeys(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws)))   // build K migration

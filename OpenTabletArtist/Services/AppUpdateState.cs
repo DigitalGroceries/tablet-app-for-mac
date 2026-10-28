@@ -156,6 +156,7 @@ public sealed class AppUpdateState : INotifyPropertyChanged
                 catch (System.Exception ex) { AppLog.Warn("Ring modes: converting them for an earlier version failed.", ex); }
             }
             err ??= Updater.ApplyPrepared();
+            if (err != null) RingDowngrade.Cancel();
             if (err != null) SetRawStatus(err);
             else SetLocalizedStatus("update.installing");
         }
