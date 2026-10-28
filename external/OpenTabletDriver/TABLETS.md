@@ -327,7 +327,7 @@
 | Wacom CTE-650                      |  Missing Features | Touch ring added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom CTH-300                      |  Missing Features | Touch is not yet supported.
 | Wacom CTH-301                      |  Missing Features | Touch is not yet supported.
-| Wacom CTH-461                      |  Missing Features | Tablet buttons and touch are not yet supported.
+| Wacom CTH-461                      |  Missing Features | Touch is not yet supported. The 4 tablet buttons work (OpenTabletDriver PR 3694).
 | Wacom CTL-4100WL                   |  Missing Features | Wireless is not yet supported, center button reports as 5th aux button.
 | Wacom CTL-6100WL                   |  Missing Features | Wireless is not yet supported, center button reports as 5th aux button.
 | Wacom DTH-1320                     |  Missing Features | Touch is not yet supported.
@@ -341,7 +341,7 @@
 | Wacom Cintiq 13HD (DTK-1300)       |  Missing Features | Centre button added in Tablet App for Mac 16 BETA (ExpressKey 9), not yet tested on this tablet.
 | Wacom Cintiq 21UX (DTZ-2100)       |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom Cintiq 22HD (DTK-2200)       |  Missing Features | Aux functionality has not been verified (OpenTabletDriver issue 5206). Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
-| Wacom Cintiq 12WX (DTZ-1200W)      |  Missing Features | Top side buttons are not yet supported. Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom Cintiq 12WX (DTZ-1200W)      |  Missing Features | All 10 ExpressKeys work, including the top ones (OpenTabletDriver backport PR 3372). Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom PTZ-1230                     |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom PTZ-1231W                    |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom PTZ-431W                     |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
