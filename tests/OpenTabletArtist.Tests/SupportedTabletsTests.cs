@@ -42,6 +42,14 @@ public class SupportedTabletsTests
     }
 
     [Fact]
+    public void DialogVm_ProgressNote_SaysTheListGrowsOneTabletAtATime()
+    {
+        var vm = new SupportedTabletsDialogViewModel(null);
+        Assert.Equal("This list is updated on a daily basis as we work on it one tablet at a time. Do check at a later time if your tablet becomes fully supported.",
+            vm.ProgressNoteText);
+    }
+
+    [Fact]
     public void DialogVm_Search_Filters_AndCountsXofTotal()
     {
         var all = SupportedTabletsCatalog.All;

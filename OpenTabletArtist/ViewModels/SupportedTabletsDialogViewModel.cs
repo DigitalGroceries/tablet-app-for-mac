@@ -40,6 +40,11 @@ public sealed partial class SupportedTabletsDialogViewModel : ObservableObject
     /// <summary>The dialog heading. Names the OpenTabletDriver release, because the list is that release's
     /// built-in catalog (<see cref="SupportedTabletsCatalog"/>) — what "supported" means depends on it.
     /// Read from <see cref="OtdRelease"/> rather than the linked assembly: see the note on that class.</summary>
+    public const string ProgressNote =
+        "This list is updated on a daily basis as we work on it one tablet at a time. Do check at a later time if your tablet becomes fully supported.";
+
+    public string ProgressNoteText => ProgressNote;
+
     public string Title { get; } = $"OpenTabletDriver {OtdRelease.AssetVersion} supports these tablets";
 
     /// <summary>Filter options for the brand dropdown: "All brands" plus each distinct brand.</summary>
