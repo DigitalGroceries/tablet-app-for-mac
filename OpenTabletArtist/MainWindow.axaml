@@ -147,6 +147,9 @@
                          rather than in the footer alone (#920). Hidden the rest of the time. -->
                     <views:SettingsPausedView DockPanel.Dock="Top" />
 
+                    <!-- What an update changed for a connected tablet, until dismissed. -->
+                    <views:TabletNoticesView DockPanel.Dock="Top" DataContext="{Binding TabletNotices}" />
+
                     <!-- Top-level page switches snap (no transition). A crossfade here superimposed the two
                          pages for ~180ms, which read as a glitch when their content differed a lot (worst
                          Settings → Scribble, whose big flat canvas ghosted over Settings' cards). Sub-page

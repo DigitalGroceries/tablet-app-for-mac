@@ -1,0 +1,40 @@
+<UserControl x:Class="OpenTabletArtist.Views.TabletNoticesView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenTabletArtist.ViewModels"
+             xmlns:domain="using:OpenTabletArtist.Domain"
+             x:DataType="vm:TabletNoticesViewModel">
+
+    <!-- Update notices for a connected tablet: what an update changed and what to do. In the main window,
+         above the page, until the user clicks Dismissed. Never a popup window: on a desk with several
+         screens a separate window is easily missed. -->
+    <ItemsControl ItemsSource="{Binding Items}" IsVisible="{Binding HasNotices}">
+        <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="domain:TabletNoticeItem">
+                <Border Background="{DynamicResource WarningMutedBrush}"
+                        BorderBrush="{DynamicResource WarningBrush}"
+                        BorderThickness="1" CornerRadius="6"
+                        Padding="20,16" Margin="0,0,0,16">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{Binding Title}" FontSize="{DynamicResource TypeTitleSize}" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <ItemsControl ItemsSource="{Binding Paragraphs}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button Content="Dismissed" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                Command="{Binding $parent[UserControl].DataContext.DismissCommand}"
+                                CommandParameter="{Binding}"
+                                Theme="{StaticResource AccentButton}" Padding="22,8" />
+                    </StackPanel>
+                </Border>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>

@@ -162,6 +162,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// for a horizontal wordmark bar without special-casing any node.</summary>
     public ObservableCollection<NavLeafViewModel> NavSections { get; } = new();
 
+    public TabletNoticesViewModel TabletNotices { get; } = new(AppSettings.Get, AppSettings.Set);
+
+    private void RefreshTabletNotices() => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        TabletNotices.Refresh(_session.DetectedTablets.Select(t => t.Name)));
+
     public MainViewModel()
     {
         var daemonLifecycle = new DaemonLifecycleService();
@@ -338,6 +343,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // Then reconcile any open tablet page with the freshly-loaded settings so an external edit
         // (e.g. via the OTD UX) is picked up. Subscribed after RebuildTablets so it runs on survivors.
         _session.DataLoaded += ReconcileOpenTabletDetails;
+        // Update notices for the connected tablets (shown in the window until dismissed).
+        _session.DataLoaded += RefreshTabletNotices;
+        _session.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(IDeviceData.DetectedTablets)) RefreshTabletNotices();
+        };
         // R11: bring back unsaved changes kept at the last system quit, once, as unsaved.
         _session.DataLoaded += () => Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
         {
@@ -756,6 +767,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _disposed = true;
         _session.DataLoaded -= RebuildTablets;
         _session.DataLoaded -= ReconcileOpenTabletDetails;
+        _session.DataLoaded -= RefreshTabletNotices;
         _session.SettingsReplaced -= ResetEditorInput;
         _perAppBindings?.Dispose();
         if (ReferenceEquals(PerAppBindingRuntime.Shared, _perAppBindings))
