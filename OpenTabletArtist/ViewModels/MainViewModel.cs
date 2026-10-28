@@ -171,6 +171,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var dialogs = new DialogService(_session);
         _dialogs = dialogs;
         _session.ResolveUnsavedChanges = ResolveUnsavedSettingsAsync;
+        AppUpdateState.Shared.PrepareForOlderVersion = PrepareRingsForOlderVersionAsync;
 
         // Stopping or restarting a daemon this app didn't start asks first (#613, option 2). Wired here
         // rather than injected because DialogService is built FROM the session, so it cannot be a
@@ -644,6 +645,17 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private bool _prompting;
+
+    /// <summary>Version 16 BETA 3: before going back to Version 15 or earlier, put every ring-mode table in the
+    /// layout that version reads (see <see cref="RingDowngrade"/>) and save it.</summary>
+    private async Task PrepareRingsForOlderVersionAsync()
+    {
+        if (PerAppBindingRuntime.Shared?.AppliedBundleId != null) await PerAppBindingRuntime.Shared.EnsureAllOnDaemonAsync();
+        if (_session.CurrentSettings is not { } settings) return;
+        if (!RingDowngrade.Convert(settings)) return;
+        await _session.ApplySettingsAsync(settings);
+        await _session.SaveSettingsAsync();
+    }
 
     public async Task<bool> ResolveUnsavedSettingsAsync()
     {

@@ -168,6 +168,38 @@ public static class RingModeBinding
         return 0;
     }
 
+    /// <summary>Version 16 BETA 3: the first app version whose ring-mode bindings carry DirectionVersion 2.</summary>
+    public const int FirstAppVersionWithDirectionVersion = 16;
+
+    /// <summary>Version 16 BETA 3: put a wheel written the Version 16 BETA 2 way back into the layout Version 15
+    /// and earlier read (physical clockwise in OTD's CounterClockwiseRotation, smooth zoom as scroll pixels, no
+    /// DirectionVersion), before the app goes back to such a version. Version 15 then shows the directions right,
+    /// and when it rewrites the ring, the legacy migration here turns it round again, so going back and forward
+    /// never flips a ring. Returns false (and changes nothing) when the wheel has no ring modes or is already
+    /// in the old layout.</summary>
+    public static bool ToLegacyLayout(WheelBindingSettings? wheel)
+    {
+        if (!IsActive(wheel) || IsLegacy(wheel)) return false;
+        var steps = ReadSteps(wheel!.ClockwiseRotation) ?? ReadSteps(wheel.CounterClockwiseRotation);
+        (wheel.ClockwiseRotation, wheel.CounterClockwiseRotation) = (wheel.CounterClockwiseRotation, wheel.ClockwiseRotation);
+        foreach (var store in new[] { wheel.ClockwiseRotation, wheel.CounterClockwiseRotation })
+        {
+            if (store?.Path != TurnTypeName) continue;
+            foreach (var version in store.Settings.Where(s => s.Property == DirectionVersionProperty).ToList())
+                store.Settings.Remove(version);
+            var scrolls = ReadScrolls(store);
+            for (int i = 0; i < scrolls.Length; i++)
+            {
+                if (scrolls[i] == 0) continue;
+                var degrees = steps != null && i < steps.Length ? steps[i] : RingMode.DegreesOfSpeed(RingMode.DefaultSpeed);
+                var setting = store.Settings.FirstOrDefault(s => s.Property == ModeScrollProperty(i));
+                if (setting != null)
+                    setting.Value = Math.Sign(scrolls[i]) * RingMode.LegacyScrollOfSpeed(RingMode.SpeedOfDegrees(degrees));
+            }
+        }
+        return true;
+    }
+
     /// <summary>
     /// Write <paramref name="modes"/> into the wheel: the ring button (button 0) steps the modes, and each
     /// direction sends the active mode's keys. Physical clockwise is OTD's ClockwiseRotation (Version 16 BETA 2;
