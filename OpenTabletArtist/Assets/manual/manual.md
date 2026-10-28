@@ -58,7 +58,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 ![The Touch ID prompt for Privacy & Security, with Use Password… and Cancel](img/install-04-touch-id.png)
 
-- macOS asks for **Input Monitoring** (to read the pen) and **Accessibility** (to move the pointer and send keys and clicks). Allow both in System Settings › Privacy & Security, then relaunch the app.
+- macOS asks for **Input Monitoring** (to read the pen) and **Device Control and Data Access** (called **Accessibility** on older macOS; to move the pointer and send keys and clicks). Allow both in System Settings › Privacy & Security, then relaunch the app.
 - The app starts its tablet driver. The pen icon stays in the menu bar while it runs.
 - To start the app when you log in, switch on **Start automatically when I log in** in **Settings › System** (or add it in System Settings › General › Login Items). At login the app starts silently: only the pen icon in the menu bar shows. Click it to open the window.
 - Only one copy runs. Opening the app again brings the running copy to the front.
