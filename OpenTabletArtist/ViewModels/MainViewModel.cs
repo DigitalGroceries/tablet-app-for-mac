@@ -164,8 +164,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public TabletNoticesViewModel TabletNotices { get; } = new(AppSettings.Get, AppSettings.Set);
 
+    // Notices describe changes in the bundled driver, so only the app's own driver may trigger them:
+    // a separately installed OpenTabletDriver can report the same tablets with its old behaviour.
     private void RefreshTabletNotices() => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        TabletNotices.Refresh(_session.DetectedTablets.Select(t => t.Name)));
+        TabletNotices.Refresh(_session.IsAppOwnedDaemon ? _session.DetectedTablets.Select(t => t.Name) : []));
 
     public MainViewModel()
     {
@@ -347,7 +349,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _session.DataLoaded += RefreshTabletNotices;
         _session.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(IDeviceData.DetectedTablets)) RefreshTabletNotices();
+            if (e.PropertyName is nameof(IDeviceData.DetectedTablets) or nameof(AppSession.Ownership)) RefreshTabletNotices();
         };
         // R11: bring back unsaved changes kept at the last system quit, once, as unsaved.
         _session.DataLoaded += () => Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
