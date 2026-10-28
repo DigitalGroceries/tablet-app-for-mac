@@ -328,7 +328,7 @@
 | Wacom CTH-300                      |  Missing Features | Touch is not yet supported.
 | Wacom CTH-301                      |  Missing Features | Touch is not yet supported.
 | Wacom CTH-461                      |  Missing Features | Touch is not yet supported. The 4 tablet buttons work (OpenTabletDriver PR 3694).
-| Wacom CTL-4100WL                   |  Missing Features | Wireless is not yet supported, center button reports as 5th aux button.
+| Wacom CTL-4100WL                   |  Missing Features | Bluetooth added in Tablet App for Mac (pen and 4 buttons, layout from the Linux Wacom driver), not yet tested on this tablet. Center button reports as 5th aux button.
 | Wacom CTL-6100WL                   |  Missing Features | Wireless is not yet supported, center button reports as 5th aux button.
 | Wacom DTH-1320                     |  Missing Features | Touch is not yet supported.
 | Wacom Movink 13 (DTH-135)          |  Missing Features | Touch is not yet supported.
