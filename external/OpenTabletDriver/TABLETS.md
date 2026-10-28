@@ -323,8 +323,8 @@
 | VEIKK Voila (VO1060)               |  Missing Features | Wheel is not yet supported.
 | VEIKK VK1060PRO                    |  Missing Features | Wheels not yet supported.
 | VEIKK VK2200PRO                    |  Missing Features | Wheels not yet supported, tablet buttons may be mapped incorrectly.
-| Wacom CTE-450                      |  Missing Features | Touch ring added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
-| Wacom CTE-650                      |  Missing Features | Touch ring added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom CTE-450                      |  Missing Features | Touch ring added in Tablet App for Mac 16 BETA. It reads the ring like the Wacom MTE-450 (same Linux type), which matches an owner's recordings (OpenTabletDriver PR 4758). Not yet tested on this tablet.
+| Wacom CTE-650                      |  Missing Features | Touch ring added in Tablet App for Mac 16 BETA. It reads the ring like the Wacom MTE-450 (same Linux type), which matches an owner's recordings (OpenTabletDriver PR 4758). Not yet tested on this tablet.
 | Wacom CTH-300                      |  Missing Features | Touch is not yet supported.
 | Wacom CTH-301                      |  Missing Features | Touch is not yet supported.
 | Wacom CTH-461                      |  Missing Features | Tablet buttons and touch are not yet supported.
