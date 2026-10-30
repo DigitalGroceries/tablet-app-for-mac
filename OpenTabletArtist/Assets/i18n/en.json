@@ -357,5 +357,15 @@
   "conflict.process.detail": "This program is running now and may grab the tablet at the same time. Quit it or uninstall that driver.",
   "statusled.section": "Status light",
   "statusled.toggle": "Light up the status light when the pen touches",
-  "statusled.description": "Intuos4 only. The light stays dim and gets bright while the pen touches the tablet, as with the Wacom driver. Off: one steady brightness."
+  "statusled.description": "Intuos4 only. The light stays dim and gets bright while the pen touches the tablet, as with the Wacom driver. Off: one steady brightness.",
+  "appmenu.about": "About Tablet App for Mac",
+  "appmenu.export": "Export settings…",
+  "appmenu.import": "Import settings…",
+  "backup.area.tablet.driver": "Driver settings (buttons, mapping, filters)",
+  "backup.area.pen.settings": "Pen settings",
+  "backup.area.mainpen": "Main pen",
+  "backup.area.app.settings": "Per-application settings",
+  "backup.area.appbuttons": "Per-application buttons",
+  "backup.area.ring.modes": "Touch Ring modes",
+  "backup.area.ringbackup": "Touch Ring modes (saved copy)"
 }

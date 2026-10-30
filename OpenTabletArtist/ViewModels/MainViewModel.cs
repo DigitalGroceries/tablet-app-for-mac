@@ -411,6 +411,22 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>Open the SETTINGS tabbed page on a specific tab (the command-palette deep-link target).</summary>
+    /// <summary>App menu › About: Home shows the version, credits and links (no popup).</summary>
+    public void ShowAbout() => CurrentPage = Dashboard;
+
+    /// <summary>Settings › System, where the backup card shows previews and results.</summary>
+    public void ShowSettingsBackup() => OpenSettingsTab(SettingsTab.System);
+
+    /// <summary>The backup card (Settings › System).</summary>
+    public BackupViewModel? Backup => Startup.Backup;
+
+    /// <summary>A .tabletsettings file opened from Finder: go to Settings › System and show its preview.</summary>
+    public void OpenSettingsFile(string path)
+    {
+        ShowSettingsBackup();
+        Startup.Backup?.PreviewFile(path);
+    }
+
     private void OpenSettingsTab(SettingsTab tab)
     {
         Settings.SelectedTab = tab;

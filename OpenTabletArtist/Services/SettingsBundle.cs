@@ -12,7 +12,9 @@ using Newtonsoft.Json.Linq;
 namespace OpenTabletArtist.Services;
 
 /// <summary>One line of an import preview: what an imported file would do to this Mac.</summary>
-public sealed record SettingsChange(string Area, string Item, string Kind);
+/// <summary>One line of an import preview. <paramref name="Detail"/> is an extra, non-translated qualifier
+/// (ring number, app bundle id) or null.</summary>
+public sealed record SettingsChange(string Area, string Item, string Kind, string? Detail = null);
 
 /// <summary>What a settings file holds compared with this Mac, shown before anything is applied.</summary>
 public sealed record SettingsPreview(string SourceVersion, DateTime Created, IReadOnlyList<SettingsChange> Changes)
@@ -32,6 +34,8 @@ public sealed record SettingsPreview(string SourceVersion, DateTime Created, IRe
 public static class SettingsBundle
 {
     public const string Extension = "tabletsettings";
+    /// <summary>The document type declared in Info.plist (UTExportedTypeDeclarations).</summary>
+    public const string TypeIdentifier = "com.freetabletapp.mac.tabletsettings";
     public const int FormatVersion = 1;
     public const int KeepAutoBackups = 5;
     public const string LastVersionKey = "backup.lastVersion";
@@ -255,7 +259,8 @@ public static class SettingsBundle
                 if (IsMachineKey(p.Name)) continue;
                 var val = Rewrite(p.Value, s => FromPortablePath(s, home));
                 var kind = cur[p.Name] == null ? "new" : JToken.DeepEquals(cur[p.Name], val) ? "same" : "changed";
-                changes.Add(new SettingsChange(AreaOfAppKey(p.Name), Describe(p.Name), kind));
+                var (area, item, detail) = DescribeAppKey(p.Name);
+                changes.Add(new SettingsChange(area, item, kind, detail));
             }
         }
         if (b.Files.TryGetValue("otd-settings.json", out var otdText))
@@ -292,16 +297,36 @@ public static class SettingsBundle
         return c;
     }
 
-    static string AreaOfAppKey(string key) =>
-        key.StartsWith("PerPen") || key.StartsWith("MainPen") ? "pen"
-        : key.StartsWith("PerApp") ? "app"
-        : key.StartsWith("RingModes") ? "ring"
-        : "pref";
-
-    static string Describe(string key)
+    /// <summary>Splits an app-settings key into a distinct preview line: area code, tablet (or setting)
+    /// name and an optional qualifier. Keys look like "RingModes:{tablet}:{ring}[:app:{bundle}]",
+    /// "PerPenTables:{tablet}", "MainPen:{tablet}", "PerAppTables:{tablet}", "PerAppAllBindings:{tablet}".</summary>
+    internal static (string Area, string Item, string? Detail) DescribeAppKey(string key)
     {
         var i = key.IndexOf(':');
-        return i > 0 ? key.Substring(i + 1) : key;
+        if (i <= 0) return ("pref", key, null);
+        var prefix = key.Substring(0, i);
+        var rest = key.Substring(i + 1);
+        switch (prefix)
+        {
+            case "RingModes":
+            case "RingModesBackup":
+            {
+                var area = prefix == "RingModes" ? "ring" : "ringbackup";
+                string? app = null;
+                var a = rest.IndexOf(":app:", StringComparison.Ordinal);
+                if (a >= 0) { app = rest.Substring(a + 5); rest = rest.Substring(0, a); }
+                string? ring = null;
+                var m = Regex.Match(rest, ":(\\d+)$");
+                if (m.Success) { rest = rest.Substring(0, m.Index); if (m.Groups[1].Value != "0") ring = "#" + (int.Parse(m.Groups[1].Value) + 1); }
+                var detail = string.Join(", ", new[] { ring, app }.Where(x => x != null));
+                return (area, rest, detail.Length == 0 ? null : detail);
+            }
+            case "PerPenTables": return ("pen", rest, null);
+            case "MainPen": return ("mainpen", rest, null);
+            case "PerAppTables": return ("app", rest, null);
+            case "PerAppAllBindings": return ("appbuttons", rest, null);
+            default: return ("pref", key, null);
+        }
     }
 
     /// <summary>Applies an imported file. Makes an automatic backup first so the import can be undone.

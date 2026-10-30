@@ -77,6 +77,8 @@ public sealed class AppTray : IDisposable
     private readonly NativeMenuItem _checkUpdatesItem;
     private readonly NativeMenuItem _updateAvailableItem;
     private readonly NativeMenuItem _quitItem;
+    private readonly NativeMenuItem _exportItem;   // Version 20: settings export/import in the pen menu
+    private readonly NativeMenuItem _importItem;
 
     // Signatures of the last-built submenus (so the 3s data poll doesn't churn an open menu): the
     // display submenu (active tablet + monitor geometry + mapped display) and the active-tablet
@@ -126,6 +128,12 @@ public sealed class AppTray : IDisposable
         _updateAvailableItem = new NativeMenuItem(Localizer.T("update.prompt_title")) { IsVisible = false };
         _updateAvailableItem.Click += (_, _) => _ = InstallUpdateFromTrayAsync();
 
+        // Version 20: Export / Import settings open the window at Settings › System (preview/results there).
+        _exportItem = new NativeMenuItem(Localizer.Te("appmenu.export", "Export settings…"));
+        _exportItem.Click += (_, _) => { if (_window.DataContext is ViewModels.MainViewModel m) _ = AppMenu.ExportAsync(_window, m, "pen menu"); };
+        _importItem = new NativeMenuItem(Localizer.Te("appmenu.import", "Import settings…"));
+        _importItem.Click += (_, _) => { if (_window.DataContext is ViewModels.MainViewModel m) _ = AppMenu.ImportAsync(_window, m, "pen menu"); };
+
         // Quit leaves the daemon running (it's a separate process); "Quit and stop the daemon" also
         // stops it (#596), shown only when there's a running daemon to stop.
         _quitItem = new NativeMenuItem(Localizer.T("tray.quit"));
@@ -145,6 +153,9 @@ public sealed class AppTray : IDisposable
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(_checkUpdatesItem);
         menu.Items.Add(_updateAvailableItem);
+        menu.Items.Add(new NativeMenuItemSeparator());
+        menu.Items.Add(_exportItem);
+        menu.Items.Add(_importItem);
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(_quitItem);
         menu.Items.Add(_quitStopItem);
@@ -211,6 +222,8 @@ public sealed class AppTray : IDisposable
         _stopItem.Header = Localizer.T("tray.stop_daemon");
         _checkUpdatesItem.Header = Localizer.T("update.check_now");
         _updateAvailableItem.Header = Localizer.T("update.prompt_title");
+        _exportItem.Header = Localizer.Te("appmenu.export", "Export settings…");
+        _importItem.Header = Localizer.Te("appmenu.import", "Import settings…");
         _quitItem.Header = Localizer.T("tray.quit");
         _quitStopItem.Header = Localizer.T("tray.quit_stop");
     }

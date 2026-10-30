@@ -104,7 +104,7 @@ public partial class BackupViewModel : ObservableObject
                 .Replace("{date}", p.Created == default ? "?" : p.Created.ToString("d MMM yyyy HH:mm"));
             PreviewRows = p.Changes
                 .OrderBy(c => c.Kind == "same").ThenBy(c => c.Area).ThenBy(c => c.Item)
-                .Select(c => new SettingsChangeRow($"{KindText(c.Kind)}  {AreaText(c.Area)}: {c.Item}", c.Kind != "same"))
+                .Select(c => new SettingsChangeRow(RowText(c), c.Kind != "same"))
                 .ToList();
             PreviewHasChanges = p.HasChanges;
             HasPreview = true;
@@ -127,12 +127,26 @@ public partial class BackupViewModel : ObservableObject
         _ => L("backup.kind.same", "Same"),
     };
 
+    /// <summary>"Changed  Wacom PTK-440 - Touch Ring modes (#2, com.adobe.Photoshop)"; presets, configs and
+    /// plain app settings keep "Changed  Preset: name".</summary>
+    internal static string RowText(SettingsChange c)
+    {
+        var kind = KindText(c.Kind);
+        if (c.Area is "preset" or "config" or "pref")
+            return $"{kind}  {AreaText(c.Area)}: {c.Item}";
+        var text = $"{kind}  {c.Item} - {AreaText(c.Area)}";
+        return c.Detail == null ? text : $"{text} ({c.Detail})";
+    }
+
     static string AreaText(string area) => area switch
     {
-        "tablet" => L("backup.area.tablet", "Tablet"),
-        "pen" => L("backup.area.pen", "Pens"),
-        "app" => L("backup.area.app", "Applications"),
-        "ring" => L("backup.area.ring", "Touch Ring"),
+        "tablet" => L("backup.area.tablet.driver", "Driver settings (buttons, mapping, filters)"),
+        "pen" => L("backup.area.pen.settings", "Pen settings"),
+        "mainpen" => L("backup.area.mainpen", "Main pen"),
+        "app" => L("backup.area.app.settings", "Per-application settings"),
+        "appbuttons" => L("backup.area.appbuttons", "Per-application buttons"),
+        "ring" => L("backup.area.ring.modes", "Touch Ring modes"),
+        "ringbackup" => L("backup.area.ringbackup", "Touch Ring modes (saved copy)"),
         "preset" => L("backup.area.preset", "Preset"),
         "config" => L("backup.area.config", "Tablet configuration"),
         _ => L("backup.area.pref", "App setting"),
