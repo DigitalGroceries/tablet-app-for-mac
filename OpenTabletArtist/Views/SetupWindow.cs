@@ -281,6 +281,6 @@ public sealed class SetupWindow : Window
         if (!wacom && penOk && pointerOk) _wacomDismissedThisSession = false;
         if (!ShouldShow(penOk, pointerOk, wacom, _wacomDismissedThisSession)) return;
         _open = new SetupWindow();
-        _open.Show();
+        OpenTabletArtist.Helpers.InWindowSheet.Show(_open);
     }
 }

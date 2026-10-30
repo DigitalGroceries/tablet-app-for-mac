@@ -32,6 +32,6 @@ public partial class CalibrationReportDialog : AppWindow
     public static Task ShowAsync(Window owner, TabletDetailViewModel vm)
     {
         var dialog = new CalibrationReportDialog { DataContext = vm };
-        return dialog.ShowDialog(owner);
+        return OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, owner);
     }
 }

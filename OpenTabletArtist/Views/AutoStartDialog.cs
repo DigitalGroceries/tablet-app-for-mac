@@ -87,8 +87,7 @@ public sealed class AutoStartDialog : AppWindow
     {
         if (!coordinator.ShouldPrompt) return;
         var dlg = new AutoStartDialog();
-        if (owner != null && owner.IsVisible) await dlg.ShowDialog(owner);
-        else { var tcs = new TaskCompletionSource(); dlg.Closed += (_, _) => tcs.TrySetResult(); dlg.Show(); await tcs.Task; }
+        await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dlg, owner);
         if (dlg.Result is not { } automatic) return;   // closed without answering: ask again next launch
         if (coordinator.Choose(automatic) is { } message)
         {

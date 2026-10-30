@@ -254,6 +254,6 @@ public class DialogService : IDialogService
             Content = grid,
         };
         closeBtn.Click += (_, _) => dialog.Close();
-        await dialog.ShowDialog(parent);
+        await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, parent);
     }
 }

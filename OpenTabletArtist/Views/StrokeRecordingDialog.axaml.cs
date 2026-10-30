@@ -132,6 +132,6 @@ public partial class StrokeRecordingDialog : Window
     public static async Task ShowAsync(Window owner, StrokeRecordingViewModel recording, Func<Task<bool>>? confirmDiscard = null)
     {
         var dialog = new StrokeRecordingDialog(recording, confirmDiscard);
-        await dialog.ShowDialog(owner);
+        await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, owner);
     }
 }

@@ -25,7 +25,7 @@ public sealed class ManualWindow : Window
         if (_open is { } w) { w.Activate(); return; }
         _open = new ManualWindow();
         _open.Closed += (_, _) => _open = null;
-        _open.Show();
+        OpenTabletArtist.Helpers.InWindowSheet.Show(_open);
     }
 
     public ManualWindow()
