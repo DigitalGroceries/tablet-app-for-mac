@@ -357,5 +357,8 @@
   "conflict.process.detail": "This program is running now and may grab the tablet at the same time. Quit it or uninstall that driver.",
   "statusled.section": "Status light",
   "statusled.toggle": "Light up the status light when the pen touches",
-  "statusled.description": "Intuos4 only. The light stays dim and gets bright while the pen touches the tablet, as with the Wacom driver. Off: one steady brightness."
+  "statusled.description": "Intuos4 only. The light stays dim and gets bright while the pen touches the tablet, as with the Wacom driver. Off: one steady brightness.",
+  "appmenu.about": "About Tablet App for Mac",
+  "appmenu.export": "Export settings…",
+  "appmenu.import": "Import settings…"
 }

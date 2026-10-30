@@ -32,6 +32,8 @@ public sealed record SettingsPreview(string SourceVersion, DateTime Created, IRe
 public static class SettingsBundle
 {
     public const string Extension = "tabletsettings";
+    /// <summary>The document type declared in Info.plist (UTExportedTypeDeclarations).</summary>
+    public const string TypeIdentifier = "com.freetabletapp.mac.tabletsettings";
     public const int FormatVersion = 1;
     public const int KeepAutoBackups = 5;
     public const string LastVersionKey = "backup.lastVersion";

@@ -131,7 +131,32 @@ public partial class App : Application
                 {
                     if (e.Kind == Avalonia.Controls.ApplicationLifetimes.ActivationKind.Reopen)
                         Avalonia.Threading.Dispatcher.UIThread.Post(() => window.BringToFront("macOS reopen event", byUser: false));
+                    // A .tabletsettings file double-clicked in Finder: show its Import preview in the window.
+                    if (e is Avalonia.Controls.ApplicationLifetimes.FileActivatedEventArgs files)
+                        foreach (var f in files.Files)
+                            if (Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(f) is { } path && path.EndsWith("." + Services.SettingsBundle.Extension, System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                                {
+                                    window.BringToFront("settings file opened", byUser: true);
+                                    (window.DataContext as ViewModels.MainViewModel)?.OpenSettingsFile(path);
+                                });
+                                break;
+                            }
                 };
+
+            // macOS app menu: About Tablet App for Mac (instead of About Avalonia), Export / Import settings.
+            if (System.OperatingSystem.IsMacOS() && window.DataContext is ViewModels.MainViewModel mvm)
+                Avalonia.Controls.NativeMenu.SetMenu(this, AppMenu.Build(window, mvm));
+
+            // A settings file passed on the command line (e.g. `open -a … file.tabletsettings` on a cold start).
+            foreach (var arg in System.Environment.GetCommandLineArgs())
+                if (arg.EndsWith("." + Services.SettingsBundle.Extension, System.StringComparison.OrdinalIgnoreCase)
+                    && System.IO.File.Exists(arg) && window.DataContext is ViewModels.MainViewModel avm)
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => avm.OpenSettingsFile(arg));
+                    break;
+                }
         }
 
         base.OnFrameworkInitializationCompleted();

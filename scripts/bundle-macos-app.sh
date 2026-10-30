@@ -20,8 +20,10 @@ chmod +x "$APP/Contents/MacOS/OpenTabletArtist"
 # R17: prefer the prebuilt icon-v2 AppIcon.icns (all sizes rendered from appicon.svg);
 # fall back to building one from the 1024 px appicon.png.
 PREBUILT_ICNS="$HERE/../OpenTabletArtist/Assets/macos/AppIcon.icns"
+DOC_ICNS="$HERE/../OpenTabletArtist/Assets/macos/SettingsDocument.icns"
 if [[ -f "$PREBUILT_ICNS" ]]; then
   cp "$PREBUILT_ICNS" "$APP/Contents/Resources/AppIcon.icns"
+  [ -f "$DOC_ICNS" ] && cp "$DOC_ICNS" "$APP/Contents/Resources/SettingsDocument.icns"
 else
   ICONSET="$(mktemp -d)/OpenTabletArtist.iconset"; mkdir -p "$ICONSET"
   for s in 16 32 128 256 512; do
@@ -43,6 +45,27 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
   <key>CFBundleExecutable</key><string>OpenTabletArtist</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeName</key><string>Tablet App settings</string>
+      <key>CFBundleTypeRole</key><string>Editor</string>
+      <key>LSHandlerRank</key><string>Owner</string>
+      <key>CFBundleTypeIconFile</key><string>SettingsDocument</string>
+      <key>LSItemContentTypes</key><array><string>com.freetabletapp.mac.tabletsettings</string></array>
+    </dict>
+  </array>
+  <key>UTExportedTypeDeclarations</key>
+  <array>
+    <dict>
+      <key>UTTypeIdentifier</key><string>com.freetabletapp.mac.tabletsettings</string>
+      <key>UTTypeDescription</key><string>Tablet App settings</string>
+      <key>UTTypeIconFile</key><string>SettingsDocument</string>
+      <key>UTTypeConformsTo</key><array><string>public.zip-archive</string><string>public.data</string></array>
+      <key>UTTypeTagSpecification</key>
+      <dict><key>public.filename-extension</key><array><string>tabletsettings</string></array></dict>
+    </dict>
+  </array>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>LSMinimumSystemVersion</key><string>15.0</string>
   <key>NSHighResolutionCapable</key><true/>
