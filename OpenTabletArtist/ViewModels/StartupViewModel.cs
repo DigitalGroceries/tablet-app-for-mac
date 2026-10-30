@@ -161,6 +161,9 @@ public partial class StartupViewModel : ObservableObject
         Localizer.SetPreference(value.Code);
     }
 
+    /// <summary>Settings backup card shown on this page (set by the shell).</summary>
+    public BackupViewModel? Backup { get; set; }
+
     public string LanguageSectionTitle => Localizer.T("app.language.section");
     public string LanguageNote => Localizer.T("app.language.note");
     public string StartAtLoginSectionTitle => Localizer.T("startup.section");

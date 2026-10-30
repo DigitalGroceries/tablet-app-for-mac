@@ -309,6 +309,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // The SETTINGS page holds OTA's own preferences as tabs, sharing the same VM instances,
         // under its own page-menu entry in front of ADVANCED. Presets (#571) and Developer
         // (#572) are folded in as tabs.
+        Startup.Backup = new BackupViewModel(() => _session.ActiveTabletName,
+            async () => { if (_session.IsConnected) await _session.RestartDaemonCommand.ExecuteAsync(null); });
+        Diagnostics.ConflictLabels = () => _conflicts.Drivers.Select(d => d.Name).ToList();
+        Diagnostics.DaemonVersion = () => _session.DaemonVersion;
+        Startup.Backup.Diagnostics = Diagnostics;
         Settings = new SettingsViewModel(Startup, Hotkeys, Theme, Shortcut, DesktopEntry, DriverCleanup,
             VMulti, Presets, Developer);
 

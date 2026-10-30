@@ -36,7 +36,8 @@ public partial class DriverConflictMonitor : ObservableObject, IDisposable
 
     /// <param name="packageSource">Every package in the Windows driver store; the real registry by default.</param>
     public DriverConflictMonitor(IDaemonLogSource? log = null, IConnectionState? connection = null,
-        Func<IReadOnlyList<DriverStorePackage>>? packageSource = null)
+        Func<IReadOnlyList<DriverStorePackage>>? packageSource = null,
+        Func<IEnumerable<string?>>? processNames = null)
     {
         _log = log;
         _connection = connection;
@@ -47,6 +48,67 @@ public partial class DriverConflictMonitor : ObservableObject, IDisposable
             _connection.PropertyChanged += OnConnectionChanged;
             if (_connection.IsConnected) _ = SeedAsync();
         }
+        // MockTab idea: also look at what is actually running (macOS only; the daemon log covers the rest).
+        if (processNames != null || (OperatingSystem.IsMacOS() && log != null))
+        {
+            _processNames = processNames ?? RunningProcessNames;
+            _processTimer = new System.Threading.Timer(_ => ScanProcesses(), null, TimeSpan.FromSeconds(2), ProcessScanInterval);
+        }
+    }
+
+    /// <summary>How often running processes are checked for another tablet driver.</summary>
+    public static readonly TimeSpan ProcessScanInterval = TimeSpan.FromSeconds(15);
+    private readonly Func<IEnumerable<string?>>? _processNames;
+    private readonly System.Threading.Timer? _processTimer;
+    private readonly HashSet<string> _processFound = new(StringComparer.Ordinal);
+
+    /// <summary>Labels of other tablet drivers found running by the last process scan.</summary>
+    public IReadOnlyList<string> RunningProcessLabels => _processFound.ToList();
+
+    private static IEnumerable<string?> RunningProcessNames()
+    {
+        var list = new List<string?>();
+        foreach (var p in System.Diagnostics.Process.GetProcesses())
+        {
+            try { list.Add(p.ProcessName); } catch { /* exited */ }
+            finally { p.Dispose(); }
+        }
+        return list;
+    }
+
+    /// <summary>One running-process scan; adds or removes "running" detections. Public for tests.</summary>
+    public void ScanProcesses()
+    {
+        IReadOnlyList<string> labels, names;
+        try
+        {
+            var live = (_processNames ?? RunningProcessNames)().ToList();
+            labels = ConflictProcessMatcher.MatchedLabels(live);
+            names = ConflictProcessMatcher.MatchedNames(live);
+        }
+        catch (Exception ex) { AppLog.Debug("Running-process conflict scan failed.", ex); return; }
+        void Apply()
+        {
+            var now = new HashSet<string>(labels, StringComparer.Ordinal);
+            foreach (var gone in _processFound.Where(l => !now.Contains(l)).ToList())
+            {
+                _processFound.Remove(gone);
+                var d = Drivers.FirstOrDefault(x => x.Name == gone);
+                if (d != null) Drivers.Remove(d);
+            }
+            for (int i = 0; i < labels.Count; i++)
+            {
+                var label = labels[i];
+                if (_processFound.Contains(label) || Drivers.Any(d => d.Name == label)) continue;
+                _processFound.Add(label);
+                Drivers.Add(new DetectedDriver(label, Blocking: false, Flaky: true, Uncertain: false,
+                    Processes: names.Count > i ? names[i] : label, WikiUrl: "",
+                    Detail: Localizer.Te("conflict.process.detail",
+                        "This program is running now and may grab the tablet at the same time. Quit it or uninstall that driver.")));
+            }
+            HasConflicts = Drivers.Count > 0;
+        }
+        if (Dispatcher.UIThread.CheckAccess()) Apply(); else Dispatcher.UIThread.Post(Apply);
     }
 
     private void OnConnectionChanged(object? sender, PropertyChangedEventArgs e)
@@ -61,7 +123,7 @@ public partial class DriverConflictMonitor : ObservableObject, IDisposable
         var log = await _log.GetCurrentLogAsync();
         Dispatcher.UIThread.Post(() =>
         {
-            Drivers.Clear();
+            foreach (var d in Drivers.Where(d => !_processFound.Contains(d.Name)).ToList()) Drivers.Remove(d);
             foreach (var m in log) Add(ConflictingDriverParser.TryParse(m));
             HasConflicts = Drivers.Count > 0;
         });
@@ -101,6 +163,7 @@ public partial class DriverConflictMonitor : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _processTimer?.Dispose();
         if (_log != null) _log.LogReceived -= OnLogReceived;
         if (_connection != null) _connection.PropertyChanged -= OnConnectionChanged;
     }

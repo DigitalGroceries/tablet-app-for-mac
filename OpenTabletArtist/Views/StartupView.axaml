@@ -1,7 +1,8 @@
 <UserControl x:Class="OpenTabletArtist.Views.StartupView"
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:c="using:OpenTabletArtist.Controls">
+             xmlns:c="using:OpenTabletArtist.Controls"
+             xmlns:v="using:OpenTabletArtist.Views">
 
     <!-- DataContext is the StartupViewModel, supplied by the typed-nav DataTemplate (#15). -->
     <StackPanel MaxWidth="900" HorizontalAlignment="Left">
@@ -16,6 +17,9 @@
                            Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" />
             </StackPanel>
         </c:Section>
+
+        <!-- Settings backup: export / import (preview first) and automatic backups. -->
+        <v:BackupView DataContext="{Binding Backup}" IsVisible="{Binding Backup, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
         <!-- Startup (#360): launch with Windows so hotkeys are ready at login. -->
         <c:Section Title="Auto-run" IsVisible="{Binding StartupSupported}">
