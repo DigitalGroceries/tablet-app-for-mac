@@ -136,7 +136,7 @@
 | Wacom DTC-121                      |     Supported     |
 | Wacom DTC-133                      |     Supported     |
 | Wacom Cintiq 16 (DTK-1660)         |     Supported     |
-| Wacom Cintiq 21UX (DTK-2100)       |    Questionable   | Aux functionality has not been verified (OpenTabletDriver issue 5206). Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom Cintiq 21UX (DTK-2100)       |    Questionable   | ExpressKeys now read the way the Linux Wacom driver reads them (fixed in Tablet App for Mac, OpenTabletDriver issue 5206), not yet tested on this tablet. Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom ET-0405-U                    |     Supported     |
 | Wacom ET-0405A-U                   |     Supported     |
 | Wacom FT-0405-U                    |     Supported     |
@@ -332,7 +332,7 @@
 | Wacom CTL-6100WL                   |  Missing Features | Wireless is not yet supported, center button reports as 5th aux button.
 | Wacom DTH-1320                     |  Missing Features | Touch is not yet supported.
 | Wacom Movink 13 (DTH-135)          |  Missing Features | Touch is not yet supported.
-| Wacom Cintiq 22HD Touch (DTH-2200) |  Missing Features | Touch is not yet supported. Aux functionality has not been verified (OpenTabletDriver issue 5206). Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom Cintiq 22HD Touch (DTH-2200) |  Missing Features | Touch is not yet supported. ExpressKeys now read the way the Linux Wacom driver reads them (fixed in Tablet App for Mac, OpenTabletDriver issue 5206), not yet tested on this tablet. Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom Cintiq Pro 22 (DTH-227)      |  Missing Features | Touch is not yet supported.
 | Wacom Cintiq 27QHD (DTH-2700)      |  Missing Features | Touch is not yet supported.
 | Wacom Cintiq Pro 27 (DTH-271)      |  Missing Features | Aux buttons are not yet supported.
@@ -340,7 +340,7 @@
 | Wacom Cintiq 13HD Touch (DTH-1300) |  Missing Features | Centre button added in Tablet App for Mac 16 BETA (ExpressKey 9), not yet tested on this tablet.
 | Wacom Cintiq 13HD (DTK-1300)       |  Missing Features | Centre button added in Tablet App for Mac 16 BETA (ExpressKey 9), not yet tested on this tablet.
 | Wacom Cintiq 21UX (DTZ-2100)       |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
-| Wacom Cintiq 22HD (DTK-2200)       |  Missing Features | Aux functionality has not been verified (OpenTabletDriver issue 5206). Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom Cintiq 22HD (DTK-2200)       |  Missing Features | ExpressKeys now read the way the Linux Wacom driver reads them (fixed in Tablet App for Mac, OpenTabletDriver issue 5206), not yet tested on this tablet. Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom Cintiq 12WX (DTZ-1200W)      |  Missing Features | All 10 ExpressKeys work, including the top ones (OpenTabletDriver backport PR 3372). Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom PTZ-1230                     |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom PTZ-1231W                    |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.

@@ -28,6 +28,8 @@
     <DockPanel Margin="16">
         <!-- Header: title + count, search, column labels -->
         <StackPanel DockPanel.Dock="Top" Spacing="10">
+            <TextBlock x:Name="ProgressNote" Text="{Binding ProgressNoteText}" TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextSecondaryBrush}" />
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="{DynamicResource TypeTitleSize}" FontWeight="SemiBold"
                            VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />

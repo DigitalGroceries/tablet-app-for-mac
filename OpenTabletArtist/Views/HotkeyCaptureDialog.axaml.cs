@@ -67,7 +67,7 @@ public partial class HotkeyCaptureDialog : Window
     {
         var vm = new HotkeyCaptureViewModel(initial);
         var dialog = new HotkeyCaptureDialog(vm);
-        await dialog.ShowDialog(owner);
+        await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, owner);
         return await dialog._resultTcs.Task;
     }
 }

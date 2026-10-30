@@ -56,7 +56,7 @@ public partial class BindingEditorDialog : Window
     {
         var vm = new BindingEditorViewModel(initial, title);
         var dialog = new BindingEditorDialog(vm);
-        await dialog.ShowDialog(owner);
+        await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, owner);
         return await dialog._resultTcs.Task;
     }
 }

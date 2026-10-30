@@ -147,6 +147,9 @@
                          rather than in the footer alone (#920). Hidden the rest of the time. -->
                     <views:SettingsPausedView DockPanel.Dock="Top" />
 
+                    <!-- What an update changed for a connected tablet, until dismissed. -->
+                    <views:TabletNoticesView DockPanel.Dock="Top" DataContext="{Binding TabletNotices}" />
+
                     <!-- Top-level page switches snap (no transition). A crossfade here superimposed the two
                          pages for ~180ms, which read as a glitch when their content differed a lot (worst
                          Settings → Scribble, whose big flat canvas ghosted over Settings' cards). Sub-page
@@ -165,5 +168,7 @@
          the native caption buttons still receive their clicks. -->
     <Border VerticalAlignment="Top" HorizontalAlignment="Stretch" Height="32" Margin="0,0,150,0"
             Background="Transparent" PointerPressed="OnTitleBarPressed" DoubleTapped="OnTitleBarDoubleTapped" />
+        <!-- Version 19 (no popup windows): dialogs and messages open here, inside the main window. -->
+        <Panel x:Name="SheetHost" IsVisible="False" ZIndex="1000" Background="#99000000" />
     </Panel>
 </Window>

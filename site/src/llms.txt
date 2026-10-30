@@ -1,0 +1,29 @@
+# Tablet App for Mac
+
+> Free, open-source (GPL-3.0) settings app for drawing tablets on macOS 15 or later (Apple silicon), built on OpenTabletDriver. Current version: Version {{V}}.
+
+Tested only with macOS 27.0.1 and a Wacom Intuos4 Small (PTK-440).
+
+## Download and install
+
+- [Download for Mac (silicon) (Tablet-App-for-Mac.dmg)](https://github.com/DigitalGroceries/tablet-app-for-mac/releases/latest/download/Tablet-App-for-Mac.dmg): latest, tested.
+- [Install steps](https://digitalgroceries.github.io/tablet-app-for-mac/#get): open the .dmg, drag Tablet App for Mac to Applications, open it (if macOS warns: right-click › Open, or System Settings › Privacy & Security › Open Anyway). Allow Input Monitoring and Accessibility.
+
+## Documentation
+
+- [User manual (PDF)](https://digitalgroceries.github.io/tablet-app-for-mac/help/tablet-app-for-mac-manual.pdf)
+- [Help](https://digitalgroceries.github.io/tablet-app-for-mac/help/)
+- [Supported Wacom tablets](https://digitalgroceries.github.io/tablet-app-for-mac/tablets/): all 94 Wacom tablets in OpenTabletDriver 0.6.8-rc1 with their support level
+- [Release notes](https://digitalgroceries.github.io/tablet-app-for-mac/releases/)
+
+## Source
+
+- [Source code repository](https://github.com/DigitalGroceries/tablet-app-for-mac)
+- [Build steps](https://digitalgroceries.github.io/tablet-app-for-mac/source/): .NET 10 SDK; `dotnet publish OpenTabletArtist/OpenTabletArtist.csproj -c Release -r osx-arm64 --self-contained true`
+- [Repository layout (AGENTS.md)](https://github.com/DigitalGroceries/tablet-app-for-mac/blob/main/AGENTS.md)
+- [Licence: GNU GPL v3.0](https://github.com/DigitalGroceries/tablet-app-for-mac/blob/main/LICENSE); the bundled OpenTabletDriver is LGPL-3.0.
+
+## Optional
+
+- [Credits and licences](https://digitalgroceries.github.io/tablet-app-for-mac/credits/)
+- [Report a problem](https://github.com/DigitalGroceries/tablet-app-for-mac/issues/new/choose)

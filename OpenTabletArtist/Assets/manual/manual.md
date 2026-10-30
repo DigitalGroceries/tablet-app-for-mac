@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-App version 18. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
+App version 19. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
 
 ## Before you start
 
@@ -39,7 +39,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 ## Install and first launch
 
-**Already on Version 6? Install Version 7 by hand once, then redo both permissions once (the setup window guides you). After that, updates install from inside the app; if macOS asks for the permissions again, the setup window guides you.**
+**The two permissions (Input Monitoring and Accessibility) are needed only at the first installation.** The setup window guides you. From Version 18 on, updates keep them: there is nothing to do.
 
 1. Open **Tablet-App-for-Mac.dmg** and drag **Tablet App for Mac** onto the **Applications** folder.
 2. Open the app from Applications. The first time, your Mac may say the app was not opened. Click **Done**. Do not click **Move to Bin**.
@@ -58,7 +58,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 ![The Touch ID prompt for Privacy & Security, with Use Password… and Cancel](img/install-04-touch-id.png)
 
-- macOS asks for **Input Monitoring** (to read the pen) and **Accessibility** (to move the pointer and send keys and clicks). Allow both in System Settings › Privacy & Security, then relaunch the app.
+- macOS asks for **Input Monitoring** (to read the pen) and **Device Control and Data Access** (called **Accessibility** on older macOS; to move the pointer and send keys and clicks). Allow both in System Settings › Privacy & Security, then relaunch the app.
 - The app starts its tablet driver. The pen icon stays in the menu bar while it runs.
 - To start the app when you log in, switch on **Start automatically when I log in** in **Settings › System** (or add it in System Settings › General › Login Items). At login the app starts silently: only the pen icon in the menu bar shows. Click it to open the window.
 - Only one copy runs. Opening the app again brings the running copy to the front.
@@ -246,13 +246,17 @@ Version 16 adds the following. None of it has been tested on these tablets yet, 
 - Bamboo Fun (CTE-450, CTE-650): the Touch Ring.
 - Wacom CTK-4120: newly listed.
 
+Version 19 adds: Cintiq 21UX (DTK-2100) and Cintiq 22HD (DTK-2200, DTH-2200): the ExpressKeys are read the way the Linux Wacom driver reads them, so each key sends its own setting. If you set up these keys in an earlier version, check them once on **Tablet › Functions › ExpressKeys**; the app shows a note in the main window. Not yet tested on these tablets.
+
 ## Wacom driver conflict
 
 The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninstall the Wacom driver before using this app. Home shows a warning while it is running.
 
 ## Updating
 
-**Version 18:** the app is now signed with a stable certificate, so macOS can keep your permissions when you update. Install Version 18 once, then redo both permissions once: remove the old Tablet App for Mac entries with **−** and add Version 18 with **+**. If the switches turn themselves off, use **Reset permissions** on **Home**.
+**Version 19:** messages and dialogs now open inside the main window, not as separate windows.
+
+**Permissions:** from Version 18 on, updates keep both permissions; there is nothing to do. **Updating from Version 17 or older:** once, in System Settings › Privacy & Security › **Input Monitoring** and **Device Control and Data Access** (called **Accessibility** on older macOS), remove the old Tablet App for Mac entries with **−**, add the app with **+** and switch it on.
 
 - The app checks for updates once a week when it starts. When there is a new stable version, it asks **Update now?** Click **Update now** and the app downloads it, checks it, installs it and opens again by itself.
 - To check any time, click **Check for updates now** on **Home** (top right, under the About links). When there is a choice, Home shows **Install Version N** (the newest stable version) and **Try Version N BETA M** (a BETA: new features, not tested yet). While you use a BETA, **Go back to Version N** returns you to the stable version.
@@ -261,14 +265,14 @@ The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninst
 
 ![Home while using a BETA, with Check for updates now, Earlier versions…, Go back to Version 15, and the Update automatically setting](img/85-home-updates.png)
 
-- After an update, macOS may ask for the two permissions again (Input Monitoring and Device Control and Data Access). The setup window opens and walks you through it.
-- **Coming from Version 6:** install Version 7 by hand once (see Install and first launch), then redo both permissions once. In System Settings › Privacy & Security, open **Input Monitoring** and **Device Control and Data Access** (called **Accessibility** on older macOS). In each, select Tablet App for Mac, remove it with **−**, add it again with **+**, and switch it on. The setup window walks you through this.
-- **Permission switches turn themselves off?** macOS treats each new version as a different app and keeps the old entries. Make sure the app is in **Applications** (not opened from the disk image or Downloads). On **Home**, click **Reset permissions**. Then in System Settings › Privacy & Security › **Input Monitoring** and **Device Control and Data Access** (called **Accessibility** on older macOS): select every old Tablet App for Mac entry and remove it with **−**, then click **+**, add Tablet App for Mac from Applications, switch it on, and restart the app. In Terminal the same reset is `tccutil reset ListenEvent com.freetabletapp.mac` and `tccutil reset Accessibility com.freetabletapp.mac`.
-- **By hand, if you prefer:** quit the app, replace it in Applications with the new version, and open it. If the pen stops working afterwards, redo the two permissions as above.
+- The two permissions are asked for only at the first installation. Updates from Version 18 on keep them.
+- **Coming from Version 6:** install Version 7 or later by hand once (see Install and first launch). Then do the one-time step for Version 17 or older above.
+- **Permission switches turn themselves off?** macOS is still holding the entries of Version 17 or older. Make sure the app is in **Applications** (not opened from the disk image or Downloads). On **Home**, click **Reset permissions**. Then in System Settings › Privacy & Security › **Input Monitoring** and **Device Control and Data Access** (called **Accessibility** on older macOS): select every old Tablet App for Mac entry and remove it with **−**, then click **+**, add Tablet App for Mac from Applications, switch it on, and restart the app. In Terminal the same reset is `tccutil reset ListenEvent com.freetabletapp.mac` and `tccutil reset Accessibility com.freetabletapp.mac`.
+- **By hand, if you prefer:** quit the app, replace it in Applications with the new version, and open it.
 
 ## Going back to an earlier build
 
-Click **Earlier versions…** on **Home** (Version 15 and later), or download an earlier build from Releases and replace the app. Settings are kept. Re-add the permissions as under Updating if needed.
+Click **Earlier versions…** on **Home** (Version 15 and later), or download an earlier build from Releases and replace the app. Settings are kept. Going back to Version 17 or older needs the one-time − then + step under Updating.
 
 ## Uninstalling
 

@@ -11,6 +11,8 @@ using Avalonia.Threading;
 using OpenTabletArtist.Domain;
 using OpenTabletArtist.Services;
 
+using OpenTabletArtist.Helpers;
+
 namespace OpenTabletArtist.Views;
 
 /// <summary>Version 7: hand-held first-launch setup. One big numbered step at a time, each with a picture of
@@ -54,8 +56,6 @@ public sealed class SetupWindow : Window
         Title = Localizer.T("setup.title");
         Width = 640; SizeToContent = SizeToContent.Height; CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        Background = B("#1E1E1E");
-        RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
         _penAtStart = MacAccessibility.CanReadPen();
         _pointerAtStart = MacAccessibility.IsTrusted();
         _steps = Plan(WacomBlocksSetup(), _penAtStart, _pointerAtStart, false);
@@ -106,14 +106,14 @@ public sealed class SetupWindow : Window
         _body.Children.Clear();
         _staleHint = null;
         int number = StepNumber(_steps, step);
-        TextBlock Big(string t) => new() { Text = t, FontSize = 26, FontWeight = FontWeight.SemiBold, Foreground = B("#E4E4E4"), TextWrapping = TextWrapping.Wrap };
-        TextBlock Plain(string t) => new() { Text = t, FontSize = 16, Foreground = B("#D0D0D0"), TextWrapping = TextWrapping.Wrap, LineHeight = 24 };
+        TextBlock Big(string t) => new TextBlock { Text = t, FontSize = 26, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }.Fg("TextPrimaryBrush");
+        TextBlock Plain(string t) => new TextBlock { Text = t, FontSize = 16, TextWrapping = TextWrapping.Wrap, LineHeight = 24 }.Fg("TextSecondaryBrush");
         Button Main(string t, Action a) { var b = new Button { Content = t, FontSize = 16, Padding = new Thickness(18, 10), Background = B("#3D6BE0"), Foreground = B("#E4E4E4") }; b.Click += (_, _) => a(); return b; }
         Button Second(string t, Action a) { var b = new Button { Content = t, FontSize = 14, Padding = new Thickness(14, 8) }; b.Click += (_, _) => a(); return b; }
         void Header(string title)
         {
             if (step != Step.Done && _total > 1)
-                _body.Children.Add(new TextBlock { Text = Localizer.Tf("setup.step_of", ("number", number), ("total", _total)), FontSize = 14, Foreground = B("#8FB0FF") });
+                _body.Children.Add(new TextBlock { Text = Localizer.Tf("setup.step_of", ("number", number), ("total", _total)), FontSize = 14 }.Fg("TextMutedBrush"));
             _body.Children.Add(Big(title));
         }
         void Picture(string asset)
@@ -126,7 +126,7 @@ public sealed class SetupWindow : Window
             catch (Exception) { /* picture missing: the words still say what to do */ }
         }
         void Row(params Control[] c) { var r = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 }; r.Children.AddRange(c); _body.Children.Add(r); }
-        void Stale(string text) { _staleHint = new TextBlock { Text = text, IsVisible = false, FontSize = 15, Foreground = B("#FFC266"), TextWrapping = TextWrapping.Wrap }; _body.Children.Add(_staleHint); }
+        void Stale(string text) { _staleHint = new TextBlock { Text = text, IsVisible = false, FontSize = 15, TextWrapping = TextWrapping.Wrap }.Fg("WarningBrush"); _body.Children.Add(_staleHint); }
 
         switch (step)
         {
@@ -136,7 +136,7 @@ public sealed class SetupWindow : Window
                 bool hasUtility = WacomDriverCheck.HasUtilityOnThisMac();
                 var removable = WacomDriverCheck.RemovableOnThisMac();
                 _body.Children.Add(Plain(Localizer.T(hasUtility ? "setup.wacom.howto" : "setup.wacom.howto_no_utility")));
-                var wnote = new TextBlock { FontSize = 14, Foreground = B("#FFC266"), TextWrapping = TextWrapping.Wrap, IsVisible = false };
+                var wnote = new TextBlock { FontSize = 14, TextWrapping = TextWrapping.Wrap, IsVisible = false }.Fg("WarningBrush");
                 void DoRemoveLeftovers()
                 {
                     var result = WacomDriverCheck.RemoveRemovableOnThisMac();
@@ -193,7 +193,7 @@ public sealed class SetupWindow : Window
                 _body.Children.Add(Plain(Localizer.T("setup.done.body")));
                 if (WacomDriverCheck.LeftoversOnThisMac().Count > 0)
                 {
-                    _body.Children.Add(new TextBlock { Text = Localizer.T("setup.wacom.leftover"), FontSize = 14, Foreground = B("#9A9A9A"), TextWrapping = TextWrapping.Wrap });
+                    _body.Children.Add(new TextBlock { Text = Localizer.T("setup.wacom.leftover"), FontSize = 14, TextWrapping = TextWrapping.Wrap }.Fg("TextMutedBrush"));
                     Row(Second(Localizer.T("setup.wacom.open_guide"), () => PlatformShell.OpenUrl(WacomDriverCheck.RemovalHelp)));
                 }
                 Row(Main(Localizer.T("app.close"), Close));
@@ -281,6 +281,6 @@ public sealed class SetupWindow : Window
         if (!wacom && penOk && pointerOk) _wacomDismissedThisSession = false;
         if (!ShouldShow(penOk, pointerOk, wacom, _wacomDismissedThisSession)) return;
         _open = new SetupWindow();
-        _open.Show();
+        OpenTabletArtist.Helpers.InWindowSheet.Show(_open);
     }
 }

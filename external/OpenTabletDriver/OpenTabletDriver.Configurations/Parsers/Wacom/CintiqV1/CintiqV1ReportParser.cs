@@ -15,7 +15,8 @@ namespace OpenTabletDriver.Configurations.Parsers.Wacom.CintiqV1
             {
                 0x02 => GetToolReport(report),
                 0x10 => GetToolReport(report),
-                0x0C => new CintiqV1AuxReport(report),
+                // Tablet App for Mac: a short 0x0C packet (e.g. DTK-2200's 5-byte interface) has no button bytes.
+                0x0C when report.Length >= 10 => new CintiqV1AuxReport(report),
                 _ => new DeviceReport(report)
             };
         }

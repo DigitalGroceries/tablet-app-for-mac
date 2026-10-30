@@ -17,7 +17,7 @@ namespace OpenTabletDriver.Configurations.Parsers.Wacom.CintiqV1
     {
         public override IDeviceReport Parse(byte[] report)
         {
-            return report[0] == 0x0C ? new CintiqV1TouchStripAuxReport(report) : base.Parse(report);
+            return report[0] == 0x0C && report.Length >= 10 ? new CintiqV1TouchStripAuxReport(report) : base.Parse(report);
         }
     }
 

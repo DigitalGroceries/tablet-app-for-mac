@@ -6,7 +6,7 @@ A free tablet app for Mac: settings for your Wacom drawing tablet (tested with a
 
 ## [⬇ Download for Mac](https://github.com/DigitalGroceries/tablet-app-for-mac/releases/latest/download/Tablet-App-for-Mac.dmg)
 
-![Attention: every app update is treated as a new app. Remove the old app with − from Input Monitoring and Device Control and Data Access (Accessibility on older macOS), then add the new one with + and switch it on in both places.](docs/readme/attention-update-permissions.png)
+**Permissions:** the two macOS permissions (Input Monitoring and Accessibility, called Device Control and Data Access on macOS 27) are asked for only at the first installation. From Version 18 on, updates keep them. Updating from Version 17 or older: once, remove the old Tablet App for Mac entries with **−** in both lists, add the app with **+** and switch it on.
 
 1. Open the downloaded file, **Tablet-App-for-Mac.dmg**.
 2. Drag **Tablet App for Mac** onto the **Applications** folder.

@@ -34,7 +34,7 @@ Thumbs.db
 .design/
 
 # Documentation site and local Python environment
-site/
+site/_out/
 .venv-docs/
 __pycache__/
 shots/

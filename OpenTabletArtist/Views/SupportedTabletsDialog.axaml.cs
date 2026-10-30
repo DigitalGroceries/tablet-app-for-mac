@@ -51,6 +51,6 @@ public partial class SupportedTabletsDialog : Window
     public static async Task ShowAsync(Window owner, string? detectedName)
     {
         var dialog = new SupportedTabletsDialog(new SupportedTabletsDialogViewModel(detectedName));
-        await dialog.ShowDialog(owner);
+        await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, owner);
     }
 }

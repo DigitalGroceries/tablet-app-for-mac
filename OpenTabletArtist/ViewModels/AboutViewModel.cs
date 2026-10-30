@@ -96,17 +96,13 @@ public partial class AboutViewModel : ObservableObject
     public string? FeedbackUrl => AppLinks.Feedback;
     public bool HasFeedbackUrl => FeedbackUrl != null;
     public bool HasCreditsUrl => CreditsUrl != null;
-    public string HelpTip => HelpUrl ?? "Open the user manual";
+    public string HelpTip => "Open the user manual";
 
     /// <summary>Raised when Get help (or User manual) should open the in-app manual.</summary>
     public event System.Action? ManualRequested;
 
     [RelayCommand]
-    private void OpenHelp()
-    {
-        if (HelpUrl != null) Services.PlatformShell.OpenUrl(HelpUrl);
-        else ManualRequested?.Invoke();
-    }
+    private void OpenHelp() => ManualRequested?.Invoke();   // Version 19 BETA 2: always the offline manual, in the main window
 
     /// <summary>Bare version token from the assembly (release workflow stamps the tag at build).</summary>
     readonly string _versionNumber = AppVersionInfo.Number(

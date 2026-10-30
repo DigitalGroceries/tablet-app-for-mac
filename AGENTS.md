@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> **New AI colleague (Devin or any other agent)?** Start with `docs/HANDOVER-DEVIN.md`: current state, open work and the owner's rules. Development happens on branch `v16-source`; `main` is the last stable version.
+> **New AI colleague (Devin or any other agent)?** Start with `docs/HANDOVER-DEVIN.md` on branch `v16-source`: current state, open work and the owner's rules. Development happens on `v16-source`; `main` is the last stable version.
 
 Navigation facts for this repository.
 

@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using OpenTabletArtist.Services;
+using OpenTabletArtist.Helpers;
 
 namespace OpenTabletArtist.Views;
 
@@ -57,7 +58,7 @@ public static class UpdatePromptWindow
                 HorizontalContentAlignment = HorizontalAlignment.Center };
             b.Click += (_, _) => { done.TrySetResult(r); w.Close(); };
             buttons.Children.Add(b);
-            lines.Children.Add(new TextBlock { Text = line, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.Parse("#C8C8C8")) });
+            lines.Children.Add(new TextBlock { Text = line, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush"));
         }
         if (c.StableUpgrade is { } stable)
             Offer(stable, Localizer.Tf("update.install_stable", ("version", stable.Label)), Localizer.Tf("update.choose_stable_line", ("version", stable.Label)));
@@ -72,7 +73,7 @@ public static class UpdatePromptWindow
         w.Closed += (_, _) => done.TrySetResult(null);
         w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
             Heading(Localizer.T("update.choose_heading")), lines, buttons } };
-        w.Show();
+        OpenTabletArtist.Helpers.InWindowSheet.Show(w);
         return done.Task;
     }
 
@@ -98,24 +99,23 @@ public static class UpdatePromptWindow
         w.Closed += (_, _) => done.TrySetResult(null);
         w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
             Heading(Localizer.T("update.earlier_heading")),
-            new TextBlock { Text = Localizer.T("update.earlier_body"), TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.Parse("#C8C8C8")) },
+            new TextBlock { Text = Localizer.T("update.earlier_body"), TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush"),
             buttons } };
-        w.Show();
+        OpenTabletArtist.Helpers.InWindowSheet.Show(w);
         return done.Task;
     }
 
     static Window NewWindow(string title) => new()
     {
         Title = title, Width = 480, SizeToContent = SizeToContent.Height, CanResize = false,
-        WindowStartupLocation = WindowStartupLocation.CenterScreen, Background = new SolidColorBrush(Color.Parse("#1E1E1E")),
-        RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark
+        WindowStartupLocation = WindowStartupLocation.CenterScreen
     };
 
-    static TextBlock Heading(string text) => new()
+    static TextBlock Heading(string text) => new TextBlock
     {
-        Text = text, FontSize = 20, FontWeight = FontWeight.SemiBold, Foreground = new SolidColorBrush(Color.Parse("#E4E4E4")),
+        Text = text, FontSize = 20, FontWeight = FontWeight.SemiBold,
         TextWrapping = TextWrapping.Wrap
-    };
+    }.Fg("TextPrimaryBrush");
 
     static Task<bool> ShowAsync(string title, string heading, string body, string yesLabel, string noLabel)
     {
@@ -128,9 +128,9 @@ public static class UpdatePromptWindow
         w.Closed += (_, _) => done.TrySetResult(false);
         w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
             Heading(heading),
-            new TextBlock { Text = body, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.Parse("#C8C8C8")) },
+            new TextBlock { Text = body, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush"),
             new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right, Children = { no, yes } } } };
-        w.Show();
+        OpenTabletArtist.Helpers.InWindowSheet.Show(w);
         return done.Task;
     }
 }
