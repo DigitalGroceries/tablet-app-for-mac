@@ -11,7 +11,7 @@ public sealed record PluginInfo(string Name, string Version, bool IsActive, stri
 {
     /// <summary>Active = referenced by an enabled output mode or filter in some profile; otherwise
     /// it's installed/loaded but not in use.</summary>
-    public string Status => IsActive ? Localizer.T("plugins.status.active") : Localizer.T("plugins.status.installed");
+    public string Status => IsActive ? Localizer.Te("plugins.status.active", "Active") : Localizer.Te("plugins.status.installed", "Installed");
 }
 
 public static class PluginInventory

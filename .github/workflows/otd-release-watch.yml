@@ -12,9 +12,9 @@ name: OTD release watch
 # present and fall back to GITHUB_TOKEN otherwise. Without it, kick CI on the PR by pushing an empty
 # commit or re-running.
 
+# Run by hand only. The weekly schedule is off: our OpenTabletDriver copy carries Mac changes, so a
+# bump needs a person anyway, and the scheduled run failed on the checkout step every week.
 on:
-  schedule:
-    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
   workflow_dispatch: {}     # run on demand from the Actions tab
 
 permissions:
