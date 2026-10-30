@@ -55,8 +55,8 @@
   -->
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
-    <PackageReference Include="MessagePack" Version="2.5.305" />
+    <PackageReference Include="StreamJsonRpc" Version="2.26.150" />
+    <PackageReference Include="MessagePack" Version="2.5.307" />
   </ItemGroup>
 
   <!-- Test-only seams. The production application cannot reach the raw settings writer. -->
