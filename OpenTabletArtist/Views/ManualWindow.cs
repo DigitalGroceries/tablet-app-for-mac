@@ -33,13 +33,44 @@ public sealed class ManualWindow : Window
         Title = "Tablet App for Mac – User Manual";
         Width = 860; Height = 900; MinWidth = 560;
         Background = new SolidColorBrush(Color.Parse("#1E1E1E"));
-        Content = new ScrollViewer { Content = Build(Load()), Padding = new Thickness(36, 28) };
+        Title = Services.Localizer.Te("manual.title", "User manual");
+        var page = Build(Load(Services.Localizer.ResolvedCode));
+        if (Services.AppLinks.GetHelp is { } url)
+        {
+            var online = new Button { Content = Services.Localizer.Te("manual.open_online", "Open online version"), Classes = { "homeLink" },
+                Padding = new Thickness(0), Background = Brushes.Transparent, Foreground = new SolidColorBrush(Color.Parse("#8AB4F8")),
+                HorizontalAlignment = HorizontalAlignment.Left, FontSize = 12 };
+            online.Click += (_, _) => Services.PlatformShell.OpenUrl(url);
+            page.Children.Insert(0, online);
+        }
+        Content = new ScrollViewer { Content = page, Padding = new Thickness(36, 28) };
     }
 
-    internal static string Load()
+    internal static string Load() => Load("en");
+
+    /// <summary>The manual in <paramref name="lang"/> (manual.&lt;code&gt;.md) when there is one, else English.
+    /// Everything is read from the app itself, so no internet connection is needed.</summary>
+    internal static string Load(string? lang)
     {
-        using var s = AssetLoader.Open(new Uri(Root + "manual.md"));
-        return new StreamReader(s).ReadToEnd();
+        foreach (var name in ManualFileNames(lang))
+        {
+            try
+            {
+                var uri = new Uri(Root + name);
+                if (!AssetLoader.Exists(uri)) continue;
+                using var s = AssetLoader.Open(uri);
+                return new StreamReader(s).ReadToEnd();
+            }
+            catch (Exception) { /* try the next */ }
+        }
+        return "# User manual";
+    }
+
+    /// <summary>Pure: the files tried, in order (unit-tested).</summary>
+    internal static IEnumerable<string> ManualFileNames(string? lang)
+    {
+        if (!string.IsNullOrEmpty(lang) && lang != "en" && lang != "system") yield return $"manual.{lang}.md";
+        yield return "manual.md";
     }
 
     private static readonly IBrush Text = new SolidColorBrush(Color.Parse("#D8D8D8"));
@@ -79,6 +110,14 @@ public sealed class ManualWindow : Window
                 var t = Inline(line[2..], 14); Grid.SetColumn(t, 1); g.Children.Add(t);
                 root.Children.Add(g);
             }
+            else if (System.Text.RegularExpressions.Regex.Match(line, @"^(\d+)\. (.*)$") is { Success: true } num)
+            {
+                Flush();
+                var g = new Grid { ColumnDefinitions = new ColumnDefinitions("24,*") };
+                g.Children.Add(new TextBlock { Text = num.Groups[1].Value + ".", Foreground = Text, FontSize = 14 });
+                var t = Inline(num.Groups[2].Value, 14); Grid.SetColumn(t, 1); g.Children.Add(t);
+                root.Children.Add(g);
+            }
             else if (line.StartsWith("|"))
             {
                 Flush();
@@ -112,6 +151,7 @@ public sealed class ManualWindow : Window
     private static TextBlock Inline(string s, double size)
     {
         var tb = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Text, FontSize = size };
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"\[([^\]]+)\]\(([^)]+)\)", "$1");
         var parts = s.Split("**");
         for (int i = 0; i < parts.Length; i++)
             tb.Inlines!.Add(new Run(parts[i].Replace("`", "")) { FontWeight = i % 2 == 1 ? FontWeight.SemiBold : FontWeight.Normal });

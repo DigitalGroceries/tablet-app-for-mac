@@ -316,5 +316,7 @@
   "home.perm_reset.button": "Réinitialiser les autorisations",
   "home.perm_reset.dmg": "Tablet App for Mac s’exécute depuis l’image disque ou Téléchargements. Glissez-la dans Applications et ouvrez-la depuis là, sinon les autorisations ne resteront pas activées.",
   "home.perm_reset.done": "C’est fait. Ouvrez maintenant Réglages Système › Confidentialité et sécurité. Dans Input Monitoring et dans {pane}, sélectionnez chaque ancienne entrée Tablet App for Mac et supprimez-la avec −, puis ajoutez cette version avec + et activez-la. Redémarrez ensuite l’app.",
-  "home.perm_reset.failed": "La réinitialisation n’a pas fonctionné. Supprimez les anciennes entrées à la main avec −, puis ajoutez cette version avec +."
+  "home.perm_reset.failed": "La réinitialisation n’a pas fonctionné. Supprimez les anciennes entrées à la main avec −, puis ajoutez cette version avec +.",
+  "manual.title": "Manuel d’utilisation",
+  "manual.open_online": "Ouvrir la version en ligne"
 }
