@@ -72,7 +72,7 @@ public static class UpdatePromptWindow
         w.Closed += (_, _) => done.TrySetResult(null);
         w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
             Heading(Localizer.T("update.choose_heading")), lines, buttons } };
-        w.Show();
+        OpenTabletArtist.Helpers.InWindowSheet.Show(w);
         return done.Task;
     }
 
@@ -100,7 +100,7 @@ public static class UpdatePromptWindow
             Heading(Localizer.T("update.earlier_heading")),
             new TextBlock { Text = Localizer.T("update.earlier_body"), TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.Parse("#C8C8C8")) },
             buttons } };
-        w.Show();
+        OpenTabletArtist.Helpers.InWindowSheet.Show(w);
         return done.Task;
     }
 
@@ -130,7 +130,7 @@ public static class UpdatePromptWindow
             Heading(heading),
             new TextBlock { Text = body, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Color.Parse("#C8C8C8")) },
             new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right, Children = { no, yes } } } };
-        w.Show();
+        OpenTabletArtist.Helpers.InWindowSheet.Show(w);
         return done.Task;
     }
 }

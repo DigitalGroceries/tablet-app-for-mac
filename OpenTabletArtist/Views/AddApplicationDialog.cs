@@ -107,7 +107,7 @@ internal static class AddApplicationDialog
             dialog.Close();
         };
 
-        await dialog.ShowDialog(owner);
+        await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, owner);
         return chosen;
     }
 

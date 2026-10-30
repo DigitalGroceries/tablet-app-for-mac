@@ -59,7 +59,7 @@ public static class Dialogs
         cancel.Click += (_, _) => dialog.Close();
         discard.Click += (_, _) => { choice = UnsavedSettingsChoice.Continue; dialog.Close(); };
         save.Click += (_, _) => { choice = UnsavedSettingsChoice.Save; dialog.Close(); };
-        await dialog.ShowDialog(parent);
+        await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, parent);
         return choice;
     }
 
@@ -137,7 +137,7 @@ public static class Dialogs
         };
 
         if (parent != null)
-            await dialog.ShowDialog(parent);
+            await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, parent);
     }
 
     public static Task<bool> ShowConfirmAsync(string title, string message, Window? parent = null)
@@ -193,7 +193,7 @@ public static class Dialogs
         yesBtn.Click += (_, _) => { result = true; dialog.Close(); };
 
         if (parent != null)
-            await dialog.ShowDialog(parent);
+            await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, parent);
 
         return result;
     }
@@ -254,7 +254,7 @@ public static class Dialogs
         okBtn.Click += (_, _) => { result = textBox.Text; dialog.Close(); };
 
         if (parent != null)
-            await dialog.ShowDialog(parent);
+            await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, parent);
 
         return result;
     }
