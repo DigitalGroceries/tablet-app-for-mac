@@ -10,6 +10,8 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
+using OpenTabletArtist.Helpers;
+
 namespace OpenTabletArtist.Views;
 
 /// <summary>R18: the in-app user manual. Renders Assets/manual/manual.md (the same source as the PDF) with a
@@ -32,14 +34,14 @@ public sealed class ManualWindow : Window
     {
         Title = "Tablet App for Mac – User Manual";
         Width = 860; Height = 900; MinWidth = 560;
-        Background = new SolidColorBrush(Color.Parse("#1E1E1E"));
         Title = Services.Localizer.Te("manual.title", "User manual");
         var page = Build(Load(Services.Localizer.ResolvedCode));
         if (Services.AppLinks.GetHelp is { } url)
         {
             var online = new Button { Content = Services.Localizer.Te("manual.open_online", "Open online version"), Classes = { "homeLink" },
-                Padding = new Thickness(0), Background = Brushes.Transparent, Foreground = new SolidColorBrush(Color.Parse("#8AB4F8")),
+                Padding = new Thickness(0), Background = Brushes.Transparent,
                 HorizontalAlignment = HorizontalAlignment.Left, FontSize = 12 };
+            online.Fg("TextSecondaryBrush");
             online.Click += (_, _) => Services.PlatformShell.OpenUrl(url);
             page.Children.Insert(0, online);
         }
@@ -73,9 +75,8 @@ public sealed class ManualWindow : Window
         yield return "manual.md";
     }
 
-    private static readonly IBrush Text = new SolidColorBrush(Color.Parse("#D8D8D8"));
-    private static readonly IBrush Head = new SolidColorBrush(Color.Parse("#E4E4E4"));
-    private static readonly IBrush Muted = new SolidColorBrush(Color.Parse("#A8A8A8"));
+    // Theme keys, not fixed colours (Version 19 BETA 3): the manual follows the app's Light/Dark theme.
+    private const string BodyKey = "TextSecondaryBrush", HeadKey = "TextPrimaryBrush", MutedKey = "TextMutedBrush";
 
     internal static StackPanel Build(string md)
     {
@@ -95,18 +96,17 @@ public sealed class ManualWindow : Window
             {
                 Flush();
                 int level = line.TakeWhile(c => c == '#').Count();
-                root.Children.Add(new TextBlock
-                {
-                    Text = line[level..].Trim(), Foreground = Head, TextWrapping = TextWrapping.Wrap,
+                root.Children.Add(new TextBlock {
+                    Text = line[level..].Trim(), TextWrapping = TextWrapping.Wrap,
                     FontSize = level == 1 ? 26 : level == 2 ? 20 : 16, FontWeight = FontWeight.SemiBold,
                     Margin = new Thickness(0, level == 1 ? 4 : 14, 0, 2),
-                });
+                }.Fg(HeadKey));
             }
             else if (line.StartsWith("- "))
             {
                 Flush();
                 var g = new Grid { ColumnDefinitions = new ColumnDefinitions("18,*") };
-                g.Children.Add(new TextBlock { Text = "•", Foreground = Text });
+                g.Children.Add(new TextBlock { Text = "•" }.Fg(BodyKey));
                 var t = Inline(line[2..], 14); Grid.SetColumn(t, 1); g.Children.Add(t);
                 root.Children.Add(g);
             }
@@ -114,7 +114,7 @@ public sealed class ManualWindow : Window
             {
                 Flush();
                 var g = new Grid { ColumnDefinitions = new ColumnDefinitions("24,*") };
-                g.Children.Add(new TextBlock { Text = num.Groups[1].Value + ".", Foreground = Text, FontSize = 14 });
+                g.Children.Add(new TextBlock { Text = num.Groups[1].Value + ".", FontSize = 14 }.Fg(BodyKey));
                 var t = Inline(num.Groups[2].Value, 14); Grid.SetColumn(t, 1); g.Children.Add(t);
                 root.Children.Add(g);
             }
@@ -139,7 +139,7 @@ public sealed class ManualWindow : Window
                     using var s = AssetLoader.Open(new Uri(Root + path));
                     root.Children.Add(new Image { Source = new Bitmap(s), MaxWidth = 760, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 4) });
                 }
-                catch (Exception) { root.Children.Add(new TextBlock { Text = $"[{path}]", Foreground = Muted }); }
+                catch (Exception) { root.Children.Add(new TextBlock { Text = $"[{path}]" }.Fg(MutedKey)); }
             }
             else para.Add(line.Trim());
         }
@@ -150,7 +150,7 @@ public sealed class ManualWindow : Window
     /// <summary>A paragraph with **bold** runs.</summary>
     private static TextBlock Inline(string s, double size)
     {
-        var tb = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Text, FontSize = size };
+        var tb = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = size }.Fg(BodyKey);
         s = System.Text.RegularExpressions.Regex.Replace(s, @"\[([^\]]+)\]\(([^)]+)\)", "$1");
         var parts = s.Split("**");
         for (int i = 0; i < parts.Length; i++)
