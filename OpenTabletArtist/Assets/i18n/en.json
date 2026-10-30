@@ -299,5 +299,10 @@
   "update.earlier_title": "Earlier versions",
   "update.earlier_heading": "Go back to an earlier version",
   "update.earlier_body": "Choose the version to go back to. The app downloads it, checks it, and reopens by itself. Your settings stay. If macOS asks for the permissions again, the setup window walks you through it. The earlier version may offer this one again at its weekly update check; choose Not now to stay on it.",
-  "update.earlier_none": "Couldn't find an earlier version right now. Check the internet connection and try again."
+  "update.earlier_none": "Couldn't find an earlier version right now. Check the internet connection and try again.",
+  "home.perm_reset.body": "If the permission switches turn themselves off, macOS is still holding the entries for an older version. Reset them, then add this version again.",
+  "home.perm_reset.button": "Reset permissions",
+  "home.perm_reset.dmg": "Tablet App for Mac is running from the disk image or Downloads. Drag it into Applications and open it from there, or permissions will not stay on.",
+  "home.perm_reset.done": "Done. Now open System Settings › Privacy & Security. In Input Monitoring and in {pane}, select any old Tablet App for Mac entry and remove it with −, then add this version with + and switch it on. Restart the app afterwards.",
+  "home.perm_reset.failed": "The reset did not work. Remove the old entries by hand with −, then add this version with +."
 }
