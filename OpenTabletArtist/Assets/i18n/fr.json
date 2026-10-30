@@ -299,5 +299,22 @@
   "update.earlier_title": "Versions précédentes",
   "update.earlier_heading": "Revenir à une version précédente",
   "update.earlier_body": "Choisissez la version à laquelle revenir. L'app la télécharge, la vérifie et se rouvre automatiquement. Vos réglages sont conservés. Si macOS vous redemande les autorisations, la fenêtre de configuration vous guide. Lors de sa recherche hebdomadaire de mises à jour, la version précédente peut vous proposer à nouveau cette version ; choisissez « Pas maintenant » pour la conserver.",
-  "update.earlier_none": "Aucune version précédente n'a été trouvée pour le moment. Vérifiez votre connexion Internet et réessayez."
+  "update.earlier_none": "Aucune version précédente n'a été trouvée pour le moment. Vérifiez votre connexion Internet et réessayez.",
+  "tablet.device.add_body": "Branchez la tablette sur votre Mac. Elle apparaît ici d’elle-même. Sinon, l’app ne connaît peut-être pas encore le modèle : ouvrez Configurations de tablettes pour vérifier.",
+  "tablet.device.add_configs": "Configurations de tablettes",
+  "tablet.device.add_tip": "Ajouter une tablette.",
+  "tablet.device.add_title": "Ajouter une tablette",
+  "tablet.device.remove_tip": "Oublier cette tablette et ses réglages.",
+  "tablet.pen.add_body": "Approchez le nouveau stylet de la tablette. Il est ajouté tout seul à la rangée Outil, avec ses propres réglages de pointe, de gomme et de boutons latéraux (une copie de ceux du stylet principal pour commencer).",
+  "tablet.pen.add_tip": "Ajouter un stylet.",
+  "tablet.pen.add_title": "Ajouter un stylet",
+  "tablet.pen.per_pen_note": "Ce stylet a ses propres réglages de pointe, de gomme et de boutons latéraux. Le toucher de pointe, la pression, l’inclinaison et le mappage sont communs à tous les stylets.",
+  "tablet.pen.remove_body": "Supprimer les réglages de « {name} » ? Il reprend les réglages du stylet principal. Si vous l’utilisez à nouveau, il revient ici avec une copie des réglages du stylet principal.",
+  "tablet.pen.remove_tip": "Supprimer les réglages du stylet sélectionné.",
+  "tablet.pen.remove_title": "Supprimer le stylet",
+  "home.perm_reset.body": "Si les interrupteurs d’autorisation se désactivent tout seuls, macOS garde encore les entrées d’une ancienne version. Réinitialisez-les, puis ajoutez à nouveau cette version.",
+  "home.perm_reset.button": "Réinitialiser les autorisations",
+  "home.perm_reset.dmg": "Tablet App for Mac s’exécute depuis l’image disque ou Téléchargements. Glissez-la dans Applications et ouvrez-la depuis là, sinon les autorisations ne resteront pas activées.",
+  "home.perm_reset.done": "C’est fait. Ouvrez maintenant Réglages Système › Confidentialité et sécurité. Dans Input Monitoring et dans {pane}, sélectionnez chaque ancienne entrée Tablet App for Mac et supprimez-la avec −, puis ajoutez cette version avec + et activez-la. Redémarrez ensuite l’app.",
+  "home.perm_reset.failed": "La réinitialisation n’a pas fonctionné. Supprimez les anciennes entrées à la main avec −, puis ajoutez cette version avec +."
 }

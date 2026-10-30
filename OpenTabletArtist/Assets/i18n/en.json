@@ -304,5 +304,17 @@
   "home.perm_reset.button": "Reset permissions",
   "home.perm_reset.dmg": "Tablet App for Mac is running from the disk image or Downloads. Drag it into Applications and open it from there, or permissions will not stay on.",
   "home.perm_reset.done": "Done. Now open System Settings › Privacy & Security. In Input Monitoring and in {pane}, select any old Tablet App for Mac entry and remove it with −, then add this version with + and switch it on. Restart the app afterwards.",
-  "home.perm_reset.failed": "The reset did not work. Remove the old entries by hand with −, then add this version with +."
+  "home.perm_reset.failed": "The reset did not work. Remove the old entries by hand with −, then add this version with +.",
+  "tablet.device.add_body": "Connect the tablet to your Mac. It appears here by itself. If it doesn't, this app may not know the model yet: open Tablet configs to check for one.",
+  "tablet.device.add_configs": "Tablet configs",
+  "tablet.device.add_tip": "Add a tablet.",
+  "tablet.device.add_title": "Add a tablet",
+  "tablet.device.remove_tip": "Forget this tablet and its settings.",
+  "tablet.pen.add_body": "Bring the new pen close to the tablet. It's added to the Tool row by itself, with its own tip, eraser and side-button settings (a copy of the main pen's to start with).",
+  "tablet.pen.add_tip": "Add a pen.",
+  "tablet.pen.add_title": "Add a pen",
+  "tablet.pen.per_pen_note": "This pen has its own tip, eraser and side-button settings. Tip Feel, pressure, tilt and mapping are shared by all pens.",
+  "tablet.pen.remove_body": "Remove the settings for \"{name}\"? It goes back to the main pen's settings. If you use it again, it comes back here with a copy of the main pen's settings.",
+  "tablet.pen.remove_tip": "Remove the selected pen's settings.",
+  "tablet.pen.remove_title": "Remove pen"
 }
