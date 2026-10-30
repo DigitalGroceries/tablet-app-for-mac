@@ -3,9 +3,9 @@ name: release
 # Publishes a self-contained Windows binary (app + bundled OTD daemon) as a GitHub Release.
 # Trigger by pushing a version tag (e.g. `git tag v0.1.0 && git push origin v0.1.0`),
 # or run manually from the Actions tab with a tag input.
+# Run by hand only. This is OpenTabletArtist's Windows release job; Tablet App for Mac releases are
+# built, signed and uploaded separately (dmg, zip and SHA256SUMS), so a `v*` tag must not start it.
 on:
-  push:
-    tags: [ 'v*' ]
   workflow_dispatch:
     inputs:
       tag:

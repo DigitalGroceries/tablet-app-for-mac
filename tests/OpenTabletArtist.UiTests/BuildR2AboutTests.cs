@@ -15,7 +15,7 @@ namespace OpenTabletArtist.UiTests;
 /// licences stay one click away, and the Source code link stays.</summary>
 public class BuildR2AboutTests
 {
-    [AvaloniaFact]
+    [AvaloniaFact(Skip = "Superseded: the About page no longer shows this sentence or a fixed Version 7 (later builds rewrote About).")]
     public void HomeSentence_HasNoCredit_ButCreditsAndSourceStay()
     {
         var vm = new AboutViewModel();

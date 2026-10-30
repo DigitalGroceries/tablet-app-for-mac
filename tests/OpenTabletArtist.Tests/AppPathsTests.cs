@@ -32,7 +32,7 @@ public class AppPathsTests
 
         var resolved = AppPaths.Resolve(root);
 
-        Assert.Equal(Path.Combine(root, "OpenTabletArtist"), resolved);
+        Assert.Equal(Path.Combine(root, AppPaths.FolderName), resolved);
         Assert.NotEqual(AppPaths.Resolve(null), resolved);
     }
 
@@ -42,7 +42,7 @@ public class AppPathsTests
     {
         var expected = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "OpenTabletArtist");
+            AppPaths.FolderName);
 
         Assert.Equal(expected, AppPaths.Resolve(null));
     }
@@ -60,7 +60,7 @@ public class AppPathsTests
         var resolved = AppPaths.Resolve(Path.Combine("sandbox", "data"));
 
         Assert.True(Path.IsPathFullyQualified(resolved), $"not absolute: {resolved}");
-        Assert.EndsWith("OpenTabletArtist", resolved, StringComparison.Ordinal);
+        Assert.EndsWith(AppPaths.FolderName, resolved, StringComparison.Ordinal);
     }
 
     /// <summary>

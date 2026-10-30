@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     # Documentation is checked and published by docs.yml on its own cadence.
     paths-ignore:
       - 'docs/**'
@@ -11,12 +11,20 @@ on:
       - 'scripts/docs/**'
       - '.github/workflows/docs.yml'
   pull_request:
+    branches: [ main, v16-source ]
     paths-ignore:
       - 'docs/**'
       - 'README.md'
       - 'mkdocs.yml'
       - 'scripts/docs/**'
       - '.github/workflows/docs.yml'
+      - 'site/**'
+  workflow_dispatch:
+
+# A newer push to the same pull request cancels the older run, so one change gives one result.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-test:
@@ -26,7 +34,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, ubuntu-latest, macos-latest ]
+        # Tablet App for Mac ships for macOS only, so the Windows lane (kept from OpenTabletArtist) is gone:
+        # it tested Windows behaviour the app never runs. Linux stays as the quick portability guard.
+        os: [ ubuntu-latest, macos-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout (with OpenTabletDriver submodule)

@@ -146,7 +146,7 @@ public class BindingEditorViewModelTests
         vm.SelectedKeyOption = vm.KeyOptions.First(o => o.Value == "E");
         Assert.False(vm.ComboEmpty);
         var chips = vm.ComboParts.Where(p => p.IsChip).Select(p => p.Text).ToList();
-        Assert.Equal(new[] { "Ctrl", "Alt", "E" }, chips);
+        Assert.Equal(new[] { "Ctrl", AuxKeyBinding.AltLabel, "E" }, chips);
     }
 
     // A media key is stored as a keyboard binding but must open on the MEDIA tab, not KEYBOARD.

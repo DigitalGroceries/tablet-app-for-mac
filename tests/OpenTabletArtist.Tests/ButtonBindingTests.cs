@@ -91,7 +91,7 @@ public class ButtonBindingTests
         var binding = new AuxBinding(AuxKind.Keyboard, new AuxCombo(true, false, true, "Z"),
             AuxKeyBinding.None, AuxKeyBinding.None);
         var vm = new ButtonBinding(1, binding, false, "", true, applyBinding: null);
-        Assert.Equal("Ctrl + Alt + Z", vm.Summary);
+        Assert.Equal(OperatingSystem.IsMacOS() ? "⌃⌥Z" : "Ctrl + Alt + Z", vm.Summary);
     }
 
     [Fact]
