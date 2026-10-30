@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-App version 17. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
+App version 18. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
 
 ## Before you start
 
@@ -251,6 +251,8 @@ Version 16 adds the following. None of it has been tested on these tablets yet, 
 The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninstall the Wacom driver before using this app. Home shows a warning while it is running.
 
 ## Updating
+
+**Version 18:** the app is now signed with a stable certificate, so macOS can keep your permissions when you update. Install Version 18 once, then redo both permissions once: remove the old Tablet App for Mac entries with **−** and add Version 18 with **+**. If the switches turn themselves off, use **Reset permissions** on **Home**.
 
 - The app checks for updates once a week when it starts. When there is a new stable version, it asks **Update now?** Click **Update now** and the app downloads it, checks it, installs it and opens again by itself.
 - To check any time, click **Check for updates now** on **Home** (top right, under the About links). When there is a choice, Home shows **Install Version N** (the newest stable version) and **Try Version N BETA M** (a BETA: new features, not tested yet). While you use a BETA, **Go back to Version N** returns you to the stable version.
