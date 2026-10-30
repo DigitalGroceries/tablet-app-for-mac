@@ -70,8 +70,9 @@ public static class InWindowSheet
             HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
         Avalonia.Automation.AutomationProperties.SetName(close, "Close");
         close.Click += (_, _) => dialog.Close();
+        close.Fg("TextSecondaryBrush");
         var title = new TextBlock { Text = dialog.Title ?? "", FontSize = 15, FontWeight = FontWeight.SemiBold,
-            VerticalAlignment = VerticalAlignment.Center, Foreground = new SolidColorBrush(Color.Parse("#E4E4E4")), TextWrapping = TextWrapping.Wrap };
+            VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap }.Fg("TextPrimaryBrush");
         var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(16, 10, 8, 0) };
         header.Children.Add(title); Grid.SetColumn(close, 1); header.Children.Add(close);
 
@@ -85,17 +86,18 @@ public static class InWindowSheet
         var sheet = new Border
         {
             Name = "Sheet",
-            Background = dialog.Background ?? new SolidColorBrush(Color.Parse("#1E1E1E")),
-            BorderBrush = new SolidColorBrush(Color.Parse("#444444")), BorderThickness = new Thickness(1),
+            BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(10), BoxShadow = BoxShadows.Parse("0 8 32 0 #80000000"),
             HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             MaxHeight = hostH, MaxWidth = Math.Max(400, (mw.Bounds.Width > 0 ? mw.Bounds.Width : 1100) - 48),
             Child = body,
         };
+        // Always the app theme (never the dialog window's own background, which follows macOS, not the app).
+        sheet.Use(Border.BackgroundProperty, "BgElevatedBrush").Use(Border.BorderBrushProperty, "GlassBorderBrush");
+        sheet.Use(Avalonia.Controls.Documents.TextElement.ForegroundProperty, "TextPrimaryBrush");
         if (!double.IsNaN(dialog.Width)) sheet.Width = dialog.Width;
         else if (dialog.MinWidth > 0) sheet.MinWidth = dialog.MinWidth;
         if (fixedHeight) sheet.Height = Math.Min(dialog.Height, hostH);
-        if (dialog.RequestedThemeVariant != null) sheet.SetValue(ThemeVariantScope.RequestedThemeVariantProperty, dialog.RequestedThemeVariant);
 
         // Carry the window's own resources, styles and key bindings over to the sheet.
         foreach (var kv in dialog.Resources.ToList()) sheet.Resources[kv.Key] = kv.Value;
