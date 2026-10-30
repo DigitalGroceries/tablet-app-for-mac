@@ -20,7 +20,7 @@ chmod +x "$APP/Contents/MacOS/OpenTabletArtist"
 # R17: prefer the prebuilt icon-v2 AppIcon.icns (all sizes rendered from appicon.svg);
 # fall back to building one from the 1024 px appicon.png.
 PREBUILT_ICNS="$HERE/../OpenTabletArtist/Assets/macos/AppIcon.icns"
-DOC_ICNS="$HERE/../OpenTabletArtist/Assets/macos/SettingsDocument.icns"
+DOC_ICNS="$HERE/../packaging/macos/SettingsDocument.icns"
 if [[ -f "$PREBUILT_ICNS" ]]; then
   cp "$PREBUILT_ICNS" "$APP/Contents/Resources/AppIcon.icns"
   [ -f "$DOC_ICNS" ] && cp "$DOC_ICNS" "$APP/Contents/Resources/SettingsDocument.icns"

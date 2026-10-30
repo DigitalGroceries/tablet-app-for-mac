@@ -19,6 +19,10 @@ public partial class App : Application
         // No effect on Windows/Linux. Set before XAML load so it's in place when the native menu is built.
         Name = "Tablet App for Mac";
         AvaloniaXamlLoader.Load(this);
+        // macOS app menu, set before Avalonia builds its default one: our own About Tablet App for Mac
+        // (shows Home, no popup) replaces "About Avalonia"; Export / Import settings follow.
+        if (System.OperatingSystem.IsMacOS())
+            Avalonia.Controls.NativeMenu.SetMenu(this, AppMenu.Build());
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -145,9 +149,7 @@ public partial class App : Application
                             }
                 };
 
-            // macOS app menu: About Tablet App for Mac (instead of About Avalonia), Export / Import settings.
-            if (System.OperatingSystem.IsMacOS() && window.DataContext is ViewModels.MainViewModel mvm)
-                Avalonia.Controls.NativeMenu.SetMenu(this, AppMenu.Build(window, mvm));
+            AppMenu.Window = window;
 
             // A settings file passed on the command line (e.g. `open -a … file.tabletsettings` on a cold start).
             foreach (var arg in System.Environment.GetCommandLineArgs())

@@ -12,26 +12,30 @@ namespace OpenTabletArtist;
 /// </summary>
 public static class AppMenu
 {
-    public static NativeMenu Build(MainWindow window, MainViewModel vm)
+    /// <summary>The main window, set once it exists (the menu is built earlier, at app start).</summary>
+    public static MainWindow? Window { get; set; }
+
+    static bool Ready(out MainWindow window, out MainViewModel vm)
+    {
+        window = Window!; vm = (Window?.DataContext as MainViewModel)!;
+        return Window != null && vm != null;
+    }
+
+    public static NativeMenu Build()
     {
         var about = new NativeMenuItem(L("appmenu.about", "About Tablet App for Mac"));
-        about.Click += (_, _) => { window.BringToFront("app menu About", byUser: true); vm.ShowAbout(); };
+        about.Click += (_, _) =>
+        {
+            if (!Ready(out var window, out var vm)) return;
+            window.BringToFront("app menu About", byUser: true);
+            vm.ShowAbout();
+        };
 
         var export = new NativeMenuItem(L("appmenu.export", "Export settings…"));
-        export.Click += async (_, _) =>
-        {
-            window.BringToFront("app menu Export", byUser: true);
-            vm.ShowSettingsBackup();
-            if (vm.Backup is { } b) await BackupPickers.ExportAsync(b, window.StorageProvider);
-        };
+        export.Click += (_, _) => { if (Ready(out var w, out var m)) _ = ExportAsync(w, m, "app menu"); };
 
         var import = new NativeMenuItem(L("appmenu.import", "Import settings…"));
-        import.Click += async (_, _) =>
-        {
-            window.BringToFront("app menu Import", byUser: true);
-            vm.ShowSettingsBackup();
-            if (vm.Backup is { } b) await BackupPickers.ImportAsync(b, window.StorageProvider);
-        };
+        import.Click += (_, _) => { if (Ready(out var w, out var m)) _ = ImportAsync(w, m, "app menu"); };
 
         var menu = new NativeMenu();
         menu.Items.Add(about);
@@ -47,6 +51,22 @@ public static class AppMenu
             import.Header = L("appmenu.import", "Import settings…");
         };
         return menu;
+    }
+
+    /// <summary>Shared by the app menu and the pen (tray) menu: show the window at Settings › System,
+    /// then open the save panel; the result shows on that page.</summary>
+    public static async System.Threading.Tasks.Task ExportAsync(MainWindow window, MainViewModel vm, string from)
+    {
+        window.BringToFront(from + " Export settings", byUser: true);
+        vm.ShowSettingsBackup();
+        if (vm.Backup is { } b) await BackupPickers.ExportAsync(b, window.StorageProvider);
+    }
+
+    public static async System.Threading.Tasks.Task ImportAsync(MainWindow window, MainViewModel vm, string from)
+    {
+        window.BringToFront(from + " Import settings", byUser: true);
+        vm.ShowSettingsBackup();
+        if (vm.Backup is { } b) await BackupPickers.ImportAsync(b, window.StorageProvider);
     }
 
     static string L(string key, string en) => Localizer.Te(key, en);

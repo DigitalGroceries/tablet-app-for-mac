@@ -34,7 +34,7 @@ public class SettingsFileTypeTests
     [Fact]
     public void DocumentIcon_IsShippedByThePackScript()
     {
-        Assert.True(File.Exists(Path.Combine(Root, "OpenTabletArtist/Assets/macos/SettingsDocument.icns")));
+        Assert.True(File.Exists(Path.Combine(Root, "packaging/macos/SettingsDocument.icns")));
         Assert.Contains("SettingsDocument.icns", File.ReadAllText(Path.Combine(Root, "scripts/pack-macos-linux.sh")));
     }
 }

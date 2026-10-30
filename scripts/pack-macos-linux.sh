@@ -44,7 +44,7 @@ for a in $ARCHES; do
   cp "$OUT/plugin/OpenTabletArtist.Dynamics.dll" "$APP/Contents/Resources/BundledPlugins/OpenTabletArtistDynamics/"
   [ -f "$P/app/AppIcon.icns" ] && cp "$P/app/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
   # Document icon for .tabletsettings files (CFBundleDocumentTypes in Info.plist).
-  cp "$ROOT/OpenTabletArtist/Assets/macos/SettingsDocument.icns" "$APP/Contents/Resources/SettingsDocument.icns"
+  cp "$ROOT/packaging/macos/SettingsDocument.icns" "$APP/Contents/Resources/SettingsDocument.icns"
   chmod 755 "$M/OpenTabletArtist" "$M/Daemon/$a/OpenTabletDriver.Daemon"
   sed -i "s#<key>CFBundleVersion</key><string>[^<]*</string>#<key>CFBundleVersion</key><string>$VER</string>#; s#<key>CFBundleShortVersionString</key><string>[^<]*</string>#<key>CFBundleShortVersionString</key><string>$VER</string>#" "$APP/Contents/Info.plist"
 
