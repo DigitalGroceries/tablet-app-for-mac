@@ -1,18 +1,24 @@
 # Manual PDF, Grok's make_pdf_v7.py recipe (same HTML, CSS and cover), printed with Playwright's Chromium.
 # Usage: python3 scripts/make-manual-pdf.py <version> <date> <out.pdf>
-# Needs: Grok's site tools (build_site.py, for its md() converter) at $SITE_TOOLS, the site's icon-256.png at $SITE_ICON,
-# and Python Playwright with its Chromium. Zak's rule (27 Oct 2026): make a new PDF for every app version.
+# Needs: Python Playwright with its Chromium (pip install playwright; python -m playwright install chromium).
+# The md() converter and the cover icon come from this repo's site/ folder; override with $SITE_TOOLS (a folder with
+# markdown.py or an older build_site.py) and $SITE_ICON. Zak's rule (27 Oct 2026): make a new PDF for every app version.
 import re, sys, os
 V, DATE, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
-BS=os.path.join(os.environ.get('SITE_TOOLS','/home/claude/grok-ho/grok-site/tools'),'build_site.py')
-code=open(BS).read(); code=code[:code.index("CSS = ")]
+ROOT=os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..'))
+TOOLS=os.environ.get('SITE_TOOLS') or os.path.join(ROOT,'site')
+BS=os.path.join(TOOLS,'markdown.py')
+if not os.path.exists(BS): BS=os.path.join(TOOLS,'build_site.py')
+code=open(BS).read()
+if 'CSS = ' in code: code=code[:code.index("CSS = ")]
 ns={'__file__':BS}; exec(code,ns)
+ICON=os.environ.get('SITE_ICON') or os.path.join(ROOT,'site','icon-256.png')
 MAN=os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','OpenTabletArtist','Assets','manual'); MAN=os.path.abspath(MAN)
 src=open(MAN+'/manual.md',encoding='utf-8').read()
 title,_,rest=src.partition('\n')
 body=ns['md'](re.sub(r'!\[([^\]]*)\]\(([^)]+)\)',r'IMG[\1](\2)',rest))
 body=re.sub(r'<p>IMG\[([^\]]*)\]\(([^)]+)\)</p>',lambda m:f'<figure><img src="file://{MAN}/{m.group(2)}" alt="{m.group(1)}"><figcaption>{m.group(1)}</figcaption></figure>',body)
-cover=f'''<section class="cover"><img class="icon" src="file://{os.environ.get('SITE_ICON','/home/claude/tafm-pages/assets/icon-256.png')}" alt="">
+cover=f'''<section class="cover"><img class="icon" src="file://{ICON}" alt="">
 <h1>Tablet App for Mac</h1><p class="sub">User manual · Version {V}</p><p class="sub2">macOS 15 or later, Apple silicon · {DATE}</p></section>'''
 css='''@page{size:A4;margin:16mm 15mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 html,body{background:#161616}body{font:10.5pt/1.5 -apple-system,"Helvetica Neue",Arial,sans-serif;color:#CFCFCF;margin:0}
