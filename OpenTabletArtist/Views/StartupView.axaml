@@ -18,6 +18,13 @@
             </StackPanel>
         </c:Section>
 
+        <!-- Intuos4 status light: dim, bright while the pen touches (feature report 0x20). -->
+        <c:Section Title="{Binding StatusLedSectionTitle}">
+            <c:ToggleSetting x:Name="StatusLedToggle" Label="{Binding StatusLedLabel}"
+                             Description="{Binding StatusLedDescription}"
+                             IsChecked="{Binding StatusLedBrightOnTouch}" />
+        </c:Section>
+
         <!-- Settings backup: export / import (preview first) and automatic backups. -->
         <v:BackupView DataContext="{Binding Backup}" IsVisible="{Binding Backup, Converter={x:Static ObjectConverters.IsNotNull}}" />
 

@@ -161,6 +161,25 @@ public partial class StartupViewModel : ObservableObject
         Localizer.SetPreference(value.Code);
     }
 
+    // ---- Intuos4 status light (Settings › System)
+    /// <summary>Re-sends the LED setting to the tablet (set by the shell).</summary>
+    public Func<System.Threading.Tasks.Task>? StatusLedChanged { get; set; }
+    public bool StatusLedBrightOnTouch
+    {
+        get => Intuos4StatusLed.BrightOnTouch;
+        set
+        {
+            if (value == Intuos4StatusLed.BrightOnTouch) return;
+            Intuos4StatusLed.BrightOnTouch = value;
+            OnPropertyChanged();
+            _ = StatusLedChanged?.Invoke();
+        }
+    }
+    public string StatusLedSectionTitle => Localizer.Te("statusled.section", "Status light");
+    public string StatusLedLabel => Localizer.Te("statusled.toggle", "Light up the status light when the pen touches");
+    public string StatusLedDescription => Localizer.Te("statusled.description",
+        "Intuos4 only. The light stays dim and gets bright while the pen touches the tablet, as with the Wacom driver. Off: one steady brightness.");
+
     /// <summary>Settings backup card shown on this page (set by the shell).</summary>
     public BackupViewModel? Backup { get; set; }
 

@@ -66,4 +66,15 @@ public interface IDaemonCapabilities : IDaemonDebugSession, IDaemonLogSource, ID
     /// apart from "something is, and the daemon cannot reach it".
     /// </summary>
     Task<JArray> GetDevicesAsync();
+
+    /// <summary>Sends one HID feature report to a device interface through the daemon's
+    /// <c>SendFeatureInit</c> (used for the Intuos4 status LED). False when not connected or it failed.</summary>
+    Task<bool> SendFeatureReportAsync(int vendorId, int productId, string usbInterface, byte[] report) =>
+        Task.FromResult(false);
+}
+
+/// <summary>A transport that can send feature reports through the daemon.</summary>
+public interface IDaemonFeatureReports
+{
+    Task<bool> SendFeatureReportAsync(int vendorId, int productId, string usbInterface, byte[] report);
 }

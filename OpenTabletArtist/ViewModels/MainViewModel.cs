@@ -29,6 +29,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly WindowsInkAutoSetup _winInkAutoSetup;
     private readonly IDialogService _dialogs;
     private readonly DriverConflictMonitor _conflicts;
+    private readonly Intuos4StatusLed _statusLed;
     private readonly HealthService _health;
     private readonly ProfileSwitchService _profileSwitch;
     // One shared hotkey window holds every global hotkey; the managers each register their own ids on it.
@@ -309,6 +310,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // The SETTINGS page holds OTA's own preferences as tabs, sharing the same VM instances,
         // under its own page-menu entry in front of ADVANCED. Presets (#571) and Developer
         // (#572) are folded in as tabs.
+        _statusLed = new Intuos4StatusLed(_session.Daemon, _session);
+        Startup.StatusLedChanged = _statusLed.SettingChangedAsync;
         Startup.Backup = new BackupViewModel(() => _session.ActiveTabletName,
             async () => { if (_session.IsConnected) await _session.RestartDaemonCommand.ExecuteAsync(null); });
         Diagnostics.ConflictLabels = () => _conflicts.Drivers.Select(d => d.Name).ToList();
@@ -787,6 +790,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         foreach (var vm in _tabletDetails.Values) vm.Dispose(); // unsubscribe per-tablet detection
         Diagnostics.Dispose();    // stops debugging + unsubscribes connection sync
         Dashboard.Dispose();      // cancels VMulti install/uninstall token + unsubscribes
+        _statusLed.Dispose();
         Presets.Dispose();        // unsubscribes DataLoaded
         Hotkeys.Dispose();        // unsubscribes DataLoaded
         Test.Dispose();           // stops the daemon debug stream if running

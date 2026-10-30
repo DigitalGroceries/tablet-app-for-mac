@@ -12,3 +12,6 @@ Source: MockTab `Notes/Wacom-LED-and-OLED-Control.md` (Cyzor, GPL-3) and the Lin
 
 ## Decision
 Not implemented in this update: nothing here has been tested on an Intuos4, and a wrong feature report could leave the ring/keys in an odd state until the tablet is replugged (no permanent harm is known). Proposed next step: a Dev-only "Test ring LED" button that sends one `0x20` report for LED 1–4, tried by Zak on his PTK-440; if that works, OLED labels (text rendered to 64×32 grey) follow as a BETA.
+
+## Update (30 Oct 2026, evening): status LED brightness implemented
+Zak's PTK-440 (Intuos4 Small) has one status LED and no OLEDs. The Linux source (`wacom_led_control`, Intuos4 branch) shows the real layout, which corrects the "bits 5–7" line above: report `0x20`, 9 bytes, `[1] = select | 0x04`, `[2] = llv` (idle brightness), `[3] = hlv` (brightness while the pen touches / a button is pressed), `[4] = img_lum` (OLED), levels 0–127. The tablet switches between llv and hlv itself, so `Services/Intuos4StatusLed.cs` sends one report per connection (idle 10, touch 127; setting off: 40/40), at most every 500 ms, only on change, and stops after the first failure.
