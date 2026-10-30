@@ -13,7 +13,17 @@
     },
     "AuxiliaryButtons": {
       "ButtonCount": 8
-    }
+    },
+    "Wheels": [
+      {
+        "AbsoluteWheelMax": 12,
+        "ButtonCount": 0
+      },
+      {
+        "AbsoluteWheelMax": 12,
+        "ButtonCount": 0
+      }
+    ]
   },
   "DigitizerIdentifiers": [
     {
@@ -26,5 +36,8 @@
         "AgI="
       ]
     }
-  ]
+  ],
+  "Attributes": {
+    "WheelsAreTouchStrips": "true"
+  }
 }

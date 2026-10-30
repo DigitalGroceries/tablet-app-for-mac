@@ -89,6 +89,24 @@ public class PluginTypeNameGuardTests
         Assert.NotNull(next.GetProperty(RingModeBinding.ModeNamesProperty));
     }
 
+    [Fact]
+    public void PenScrollTypeNames_ResolveToTheBuiltBindingAndFilter_WithTheSettingsTheAppWrites()
+    {
+        var dll = FindPluginDll();
+        Assert.True(dll != null, "Plugin DLL not found — build the solution (it compiles the plugin).");
+        var asm = Assembly.LoadFrom(dll!);
+
+        var binding = asm.GetType(PenScrollBinding.BindingTypeName);
+        Assert.True(binding != null, $"'{PenScrollBinding.BindingTypeName}' matches no type in the plugin assembly.");
+        Assert.Contains(binding!.GetInterfaces(), i => i.Name == "IStateBinding");
+        foreach (var s in PenScrollBinding.Make().Settings)
+            Assert.NotNull(binding.GetProperty(s.Property));
+
+        var filter = asm.GetType(PenScrollBinding.FilterTypeName);
+        Assert.True(filter != null, $"'{PenScrollBinding.FilterTypeName}' matches no type in the plugin assembly.");
+        Assert.Contains(filter!.GetInterfaces(), i => i.Name.StartsWith("IPositionedPipelineElement"));
+    }
+
     private const string PluginDll = "OpenTabletArtist.Dynamics.dll";
 
     // Walk up from the test output dir and locate the built plugin DLL (the test project doesn't

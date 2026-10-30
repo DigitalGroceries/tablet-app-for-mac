@@ -58,10 +58,22 @@ public partial class WheelEditor : ObservableObject
 
     /// <summary>Version 1: the angle and turn direction, shown under the Touch ring picture
     /// ("350° · Clockwise"); "Touch the ring" before the first touch.</summary>
+    /// <summary>Version 16: this "wheel" is a touch strip (Intuos3, Cintiq 21UX/12WX/22HD). Its position
+    /// counts from the top (0) down, so a falling position is a finger moving up. The Clockwise row is the
+    /// strip's Up row (both are OTD's CounterClockwiseRotation store).</summary>
+    public bool IsStrip { get; }
+
+    /// <summary>The ring picture only makes sense for a ring.</summary>
+    public bool IsRing => !IsStrip;
+
     public string LiveReadout
     {
         get
         {
+            if (IsStrip)   // Version 16: a touch strip has no angle, only up and down
+                return TurningClockwise ? Services.Localizer.Te("tablet.strip.up", "Up")
+                     : TurningCounterClockwise ? Services.Localizer.Te("tablet.strip.down", "Down")
+                     : Services.Localizer.Te("tablet.strip.touch", "Touch the strip");
             string? dir = TurningClockwise ? "Clockwise" : TurningCounterClockwise ? "Anticlockwise" : null;
             if (LivePosition is double n)
             {
@@ -75,9 +87,10 @@ public partial class WheelEditor : ObservableObject
     public WheelEditor(int wheelIndex, string title, bool showTitle,
         ButtonBinding clockwise, ButtonBinding counterClockwise, IReadOnlyList<ButtonBinding> buttons,
         double clockwiseThreshold, double counterClockwiseThreshold, double? stepSizeDegrees,
-        Func<int, bool, double, Task>? applyThreshold)
+        Func<int, bool, double, Task>? applyThreshold, bool isStrip = false)
     {
         WheelIndex = wheelIndex;
+        IsStrip = isStrip;
         Title = title;
         ShowTitle = showTitle;
         Clockwise = clockwise;
@@ -159,6 +172,7 @@ public partial class WheelEditor : ObservableObject
             // rising position (positive delta) is a physical clockwise turn. Readout only: the binding stores
             // (TabletDetailViewModel.RefreshWheels, RingModes.Apply) are unchanged.
             double d = ((pos - (double)last + 1.5 * _wheelSteps) % _wheelSteps) - 0.5 * _wheelSteps;
+            if (IsStrip) d = -d;   // Version 16: a strip's falling position is a finger moving up (the Up row)
             if (d > 0) Flash(clockwise: true);
             else if (d < 0) Flash(clockwise: false);
         }

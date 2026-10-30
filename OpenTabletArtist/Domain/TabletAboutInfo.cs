@@ -25,6 +25,9 @@ public sealed record TabletAboutInfo
     public uint? MouseButtons { get; init; }
     public int WheelCount { get; init; }
     public int StripCount { get; init; }
+    /// <summary>Version 16: the tablet's Wheels are touch strips (config attribute WheelsAreTouchStrips =
+    /// "true", set for Intuos3 and the older Cintiqs), so the app shows Up / Down instead of a ring.</summary>
+    public bool WheelsAreTouchStrips { get; init; }
     public bool HasTouch { get; init; }
     public int? VendorId { get; init; }
     public int? ProductId { get; init; }
@@ -111,6 +114,9 @@ public sealed record TabletAboutInfo
             MouseButtons = specs?["MouseButtons"]?["ButtonCount"]?.Value<uint>(),
             WheelCount = (specs?["Wheels"] as JArray)?.Count ?? 0,
             StripCount = (specs?["Strips"] as JArray)?.Count ?? 0,
+            // Attributes is null (JSON null) for most tablets: only index it when it is an object.
+            WheelsAreTouchStrips = props["Attributes"] is JObject attrs
+                && string.Equals(attrs["WheelsAreTouchStrips"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase),
             HasTouch = specs?["Touch"] is { Type: not JTokenType.Null },
             VendorId = id?["VendorID"]?.Value<int>(),
             ProductId = id?["ProductID"]?.Value<int>(),

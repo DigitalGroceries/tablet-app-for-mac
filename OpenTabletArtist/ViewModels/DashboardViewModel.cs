@@ -212,7 +212,38 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>Re-checks the Accessibility grant (called when Home is shown).</summary>
-    public void RecheckAccessibility() => AccessibilityMissing = !Services.MacAccessibility.IsTrusted();
+    public void RecheckAccessibility()
+    {
+        AccessibilityMissing = !Services.MacAccessibility.IsTrusted();
+        PermissionsMissing = AccessibilityMissing || !Services.MacAccessibility.CanReadPen();
+    }
+
+    /// <summary>Issue #14: either permission is missing, so Home offers "Reset permissions".</summary>
+    [ObservableProperty] private bool _permissionsMissing =
+        !Services.MacAccessibility.IsTrusted() || !Services.MacAccessibility.CanReadPen();
+
+    /// <summary>Running from the disk image or a translocated copy: permissions will not stick.</summary>
+    public bool RunningFromDiskImage { get; } = Services.PermissionReset.IsRunningFromDiskImageOrTranslocated();
+    public bool ShowPermissionsCard => PermissionsMissing || RunningFromDiskImage;
+    partial void OnPermissionsMissingChanged(bool value) => OnPropertyChanged(nameof(ShowPermissionsCard));
+
+    public string PermissionsResetBody => Services.Localizer.Te("home.perm_reset.body",
+        "If the permission switches turn themselves off, macOS is still holding the entries for an older version. Reset them, then add this version again.");
+    public string PermissionsResetButton => Services.Localizer.Te("home.perm_reset.button", "Reset permissions");
+    public string RunningFromDiskImageText => Services.Localizer.Te("home.perm_reset.dmg",
+        "Tablet App for Mac is running from the disk image or Downloads. Drag it into Applications and open it from there, or permissions will not stay on.");
+
+    [ObservableProperty] private string _permissionsResetStatus = "";
+
+    [RelayCommand]
+    private void ResetPermissions()
+    {
+        var ok = Services.PermissionReset.Run();
+        PermissionsResetStatus = ok
+            ? Services.Localizer.Tf("home.perm_reset.done", ("pane", Services.MacAccessibility.PointerPaneName()))
+            : Services.Localizer.Te("home.perm_reset.failed", "The reset did not work. Remove the old entries by hand with −, then add this version with +.");
+        Services.PlatformShell.OpenInputMonitoringSettings();
+    }
 
     /// <summary>True when this column really has nothing to say. The daemon problem card lives outside the
     /// health catalog by design (#317), so "no health issues" was never the same as "nothing is wrong" —

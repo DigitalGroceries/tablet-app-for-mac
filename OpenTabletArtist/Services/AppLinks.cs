@@ -12,6 +12,7 @@ public static class AppLinks
     public const string? GetHelp = Site + "help/";
     public const string? SourceCode = Site + "source/";
     public const string? CreditsAndLicences = Site + "credits/";
-    /// <summary>Report a problem or suggest a feature (GitHub issue chooser; questions go to Discussions).</summary>
-    public const string? Feedback = "https://github.com/DigitalGroceries/tablet-app-for-mac/issues/new/choose";
+    /// <summary>Report a problem or suggest a feature. Next version (Zak, 27 Oct 2026): the website's Feedback
+    /// section, which offers GitHub and, for people without a GitHub account, email with screenshots.</summary>
+    public const string? Feedback = Site + "#feedback";
 }

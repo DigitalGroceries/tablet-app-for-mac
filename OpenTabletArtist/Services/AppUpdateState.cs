@@ -136,6 +136,10 @@ public sealed class AppUpdateState : INotifyPropertyChanged
     public Task InstallPendingAsync() => Pending is { } r ? InstallAsync(r) : Task.CompletedTask;
 
     /// <summary>Version 14: install the chosen release (stable, BETA, or back to stable): download, check, apply.</summary>
+    /// <summary>Version 16 BETA 3: run after a version older than 16 is downloaded and before it is installed, to
+    /// put ring modes in the layout it reads (see <see cref="RingDowngrade"/>). Set by the main window.</summary>
+    public System.Func<Task>? PrepareForOlderVersion { get; set; }
+
     public async Task InstallAsync(Updater.Release r)
     {
         if (_busy) return;
@@ -145,7 +149,14 @@ public sealed class AppUpdateState : INotifyPropertyChanged
         try
         {
             AppLog.Info($"Update: installing Version {r.Label}.");
-            var err = await Updater.InstallAsync(r);
+            var err = await Updater.DownloadAsync(r);
+            if (err == null && RingDowngrade.IsNeededFor(r.Version) && PrepareForOlderVersion is { } prepare)
+            {
+                try { await prepare(); }
+                catch (System.Exception ex) { AppLog.Warn("Ring modes: converting them for an earlier version failed.", ex); }
+            }
+            err ??= Updater.ApplyPrepared();
+            if (err != null) RingDowngrade.Cancel();
             if (err != null) SetRawStatus(err);
             else SetLocalizedStatus("update.installing");
         }

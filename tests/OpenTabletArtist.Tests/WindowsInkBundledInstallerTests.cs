@@ -64,7 +64,7 @@ public class WindowsInkBundledInstallerTests
         var src = Path.Combine(dir, "bundle");
         Directory.CreateDirectory(src);
         File.WriteAllText(Path.Combine(src, "WindowsInk.dll"), "dll");
-        var fields = new List<string> { "\"Name\": \"Windows Ink\"", "\"PluginVersion\": \"1.2.3\"" };
+        var fields = new List<string> { "\"Name\": \"Windows Ink\"", "\"Owner\": \"OpenTabletDriver\"", "\"Description\": \"Windows Ink\"", "\"PluginVersion\": \"1.2.3\"" };
         if (min != null) fields.Add($"\"SupportedDriverVersion\": \"{min}\"");
         if (max != null) fields.Add($"\"MaxSupportedDriverVersion\": \"{max}\"");
         File.WriteAllText(Path.Combine(src, "metadata.json"), "{" + string.Join(",", fields) + "}");

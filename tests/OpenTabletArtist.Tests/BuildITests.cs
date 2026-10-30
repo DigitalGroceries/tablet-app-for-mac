@@ -85,11 +85,14 @@ public class BuildITests
         var zoom = new RingMode("Zoom", AuxCombo.Unbound, AuxCombo.Unbound, ScrollAmount: 20);
         Assert.True(zoom.IsMapped);                  // a scroll mode needs no keys
         Assert.True(RingModeBinding.Apply(w, new[] { zoom }));
-        // physical clockwise ↔ OTD CounterClockwiseRotation: clockwise scrolls up (= zoom in)
-        string? Get(OpenTabletDriver.Desktop.Reflection.PluginSettingStore s) =>
-            s.Settings.First(x => x.Property == "Mode1Scroll").Value?.ToString();
-        Assert.Equal("20", Get(w.CounterClockwiseRotation!));
-        Assert.Equal("-20", Get(w.ClockwiseRotation!));
+        // Version 16 BETA 2: physical clockwise is OTD's ClockwiseRotation; clockwise scrolls up (= zoom in), one
+        // wheel line (10) per step, and the Speed (20) sets the step on the keys scale.
+        string? Get(OpenTabletDriver.Desktop.Reflection.PluginSettingStore s, string p = "Mode1Scroll") =>
+            s.Settings.First(x => x.Property == p).Value?.ToString();
+        Assert.Equal("10", Get(w.ClockwiseRotation!));
+        Assert.Equal("-10", Get(w.CounterClockwiseRotation!));
+        Assert.Equal(RingMode.DegreesOfSpeed(20).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            Get(w.ClockwiseRotation!, "Mode1Step"));
         Assert.Equal(20, RingModeBinding.Read(w)[0].ScrollAmount);
     }
 
@@ -114,10 +117,10 @@ public class BuildITests
         var (row, changes) = Row();
         row.ScrollSensitivity = 12;
         row.UseScroll = true;
-        Assert.Equal(RingMode.ScrollOfSpeed(12), row.ToMode().ScrollAmount);
+        Assert.Equal(12, row.ToMode().ScrollAmount);   // Version 16 BETA 2: the Speed itself
         row.ScrollSensitivity = 40;
         row.CommitScrollSensitivity();
-        Assert.Equal(RingMode.ScrollOfSpeed(40), row.ToMode().ScrollAmount);
+        Assert.Equal(40, row.ToMode().ScrollAmount);
         row.UseScroll = false;
         Assert.Equal(0, row.ToMode().ScrollAmount);
         Assert.Equal(3, changes.Count);

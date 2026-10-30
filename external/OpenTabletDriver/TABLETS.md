@@ -120,6 +120,7 @@
 | Wacom CTH-670                      |     Supported     |
 | Wacom CTH-680                      |     Supported     |
 | Wacom CTH-690                      |     Supported     |
+| Wacom CTK-4120                     |     Supported     |
 | Wacom CTL-4100                     |     Supported     |
 | Wacom CTL-460                      |     Supported     |
 | Wacom CTL-470                      |     Supported     |
@@ -135,7 +136,7 @@
 | Wacom DTC-121                      |     Supported     |
 | Wacom DTC-133                      |     Supported     |
 | Wacom Cintiq 16 (DTK-1660)         |     Supported     |
-| Wacom Cintiq 21UX (DTK-2100)       |     Supported     |
+| Wacom Cintiq 21UX (DTK-2100)       |    Questionable   | Aux functionality has not been verified (OpenTabletDriver issue 5206). Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom ET-0405-U                    |     Supported     |
 | Wacom ET-0405A-U                   |     Supported     |
 | Wacom FT-0405-U                    |     Supported     |
@@ -229,50 +230,50 @@
 | XP-Pen Star G960S Plus             |     Supported     |
 | XP-Pen Deco 03                     |     Supported     |
 | Artisul D16                        |    Has Quirks     | Wheel button reports as 8th aux button.
-| Bosto BT-12HD                      |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0.
-| FlooGoo FMA100                     |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 1. Might also need to change the configuration depending on the tablet used.
-| Gaomon S56K                        |    Has Quirks     | Windows: Might need Zadig's WinUSB to be installed on interface 0 or 1
-| Gaomon S630                        |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
+| Bosto BT-12HD                      |     Supported     |
+| FlooGoo FMA100                     |     Has Quirks    | Might also need to change the configuration depending on the tablet used.
+| Gaomon S56K                        |     Supported     |
+| Gaomon S630                        |     Supported     |
 | Gaomon S830                        |    Has Quirks     | Some variants may require user replugging their tablet until it is detected.
-| Genius G-Pen F509                  |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed
-| Genius i405x                       |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed
-| Genius i608x                       |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed
-| Huion 420                          |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
-| Huion H420                         |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
+| Genius G-Pen F509                  |     Supported     |
+| Genius i405x                       |     Supported     |
+| Genius i608x                       |     Supported     |
+| Huion 420                          |     Supported     |
+| Huion H420                         |     Supported     |
 | Huion H580X                        |    Has Quirks     | User may have to replug their tablet until it is detected.
-| Huion H690                         |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
+| Huion H690                         |     Supported     |
 | Huion H1061P                       |    Has Quirks     | Group keys act like auxiliary buttons.
 | Huion Kamvas 13 (Gen 3)            |    Has Quirks     | Function-switch buttons act as regular auxiliary keys.
-| Huion New 1060 Plus (2048)         |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 1
-| Huion osu! Tablet                  |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0. Uses the same configuration as the Huion 420.
+| Huion New 1060 Plus (2048)         |     Supported     |
+| Huion osu! Tablet                  |     Has Quirks    | Uses the same configuration as the Huion 420.
 | Huion Q630M                        |    Has Quirks     | Aux buttons are not in order.
-| Huion WH1409 V2 (Variant 2)        |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
-| KENTING K5540                      |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed
-| Monoprice 10594                    |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
-| Monoprice 21826                    |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
-| Parblo A610                        |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
+| Huion WH1409 V2 (Variant 2)        |     Supported     |
+| KENTING K5540                      |     Supported     |
+| Monoprice 10594                    |     Supported     |
+| Monoprice 21826                    |     Supported     |
+| Parblo A610                        |     Supported     |
 | Parblo A610 Pro                    |    Has Quirks     | Wheel button reports as final aux button.
 | Parblo Ninos M                     |    Has Quirks     | Aux buttons are not in order. Physical dimensions are unconfirmed. If you have this tablet please help us update the dimensions.
 | Parblo Ninos N7B                   |    Has Quirks     | Physical dimensions are unconfirmed - both axes have mismatching LPI's and neither LPI's are commonly seen. If you have this tablet please help us update the dimensions.
 | Parblo Ninos S                     |    Has Quirks     | Aux buttons are not in order.
-| Silvercrest SGT 10.6 A2            |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
-| Trust Flex Design Tablet           |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed
-| Turcom TS-6580                     |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
-| UC-Logic 1060N                     |    Has Quirks     | Windows: Some variants require Zadig's WinUSB to be installed on interface 0
-| UC-Logic TWMNA62                   |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
-| UGEE M708                          |    Has Quirks     | Windows: Might need Zadig's WinUSB to be installed on interface 0
+| Silvercrest SGT 10.6 A2            |     Supported     |
+| Trust Flex Design Tablet           |     Supported     |
+| Turcom TS-6580                     |     Supported     |
+| UC-Logic 1060N                     |     Supported     |
+| UC-Logic TWMNA62                   |     Supported     |
+| UGEE M708                          |     Supported     |
 | UGEE M808                          |    Has Quirks     | 16k pressure firmware is unsupported; will detect as 8k pressure
-| Wacom PTH-460                      |    Has Quirks     | Wheel reports in reverse direction.
-| Wacom PTH-660                      |    Has Quirks     | Wheel reports in reverse direction.
-| Wacom PTH-860                      |    Has Quirks     | Wheel reports in reverse direction.
-| Wacom PTU-600U                     |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed
+| Wacom PTH-460                      |     Has Quirks    | Wheel reports in reverse direction (fixed in Tablet App for Mac 16 BETA, not yet tested on this tablet).
+| Wacom PTH-660                      |     Has Quirks    | Wheel reports in reverse direction (fixed in Tablet App for Mac 16 BETA, not yet tested on this tablet).
+| Wacom PTH-860                      |     Has Quirks    | Wheel reports in reverse direction (fixed in Tablet App for Mac 16 BETA, not yet tested on this tablet).
+| Wacom PTU-600U                     |     Supported     |
 | XOPPOX D161                        |    Has Quirks     | Aux buttons are not in order.
-| XP-Pen Artist 10S                  |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
-| XP-Pen Artist 16                   |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
-| XP-Pen Artist 22HD                 |    Has Quirks     | Windows: Requires Zadig's WinUSB to be installed on interface 0
-| XP-Pen Star G430                   |    Has Quirks     | Windows: Might need Zadig's WinUSB to be installed on interface 1
+| XP-Pen Artist 10S                  |     Supported     |
+| XP-Pen Artist 16                   |     Supported     |
+| XP-Pen Artist 22HD                 |     Supported     |
+| XP-Pen Star G430                   |     Supported     |
 | Artisul A1201                      |  Missing Features | Touch bar is not yet supported.
-| Artisul AP604 (Pencil Small)       |  Missing Features | Aux buttons and eraser detection are not yet supported. Windows: Requires Zadig's WinUSB to be installed on interface 1.
+| Artisul AP604 (Pencil Small)       |  Missing Features | Aux buttons and eraser detection are not yet supported.
 | Artisul D16 Pro                    |  Missing Features | Wheel is not yet supported.
 | Artisul M0610 Pro                  |  Missing Features | Wheel is not yet supported.
 | Gaomon M10K                        |  Missing Features | Wheel is not yet supported.
@@ -291,7 +292,7 @@
 | Huion GT-221                       |  Missing Features | Touch bar is not yet supported.
 | Huion GT-221 Pro                   |  Missing Features | Touch bar is not yet supported.
 | Huion H1161                        |  Missing Features | Tablet buttons are not yet supported.
-| Huion H610 Pro V3                  |  Missing Features | Tablet buttons are not yet supported. Windows: Requires Zadig's WinUSB to be installed on interface 1. Current tablet configuration has very low resolution.
+| Huion H610 Pro V3                  |  Missing Features | Tablet buttons are not yet supported. Current tablet configuration has very low resolution.
 | Huion HC16                         |  Missing Features | Wheel is not yet supported.
 | Huion HC16 (Variant 2)             |  Missing Features | Wheel is not yet supported.
 | Huion HS611                        |  Missing Features | Touch bar is not yet supported.
@@ -307,7 +308,7 @@
 | Huion RTM-500                      |  Missing Features | Touch bar is not yet supported.
 | Huion RTP-700                      |  Missing Features | Touch bar is not yet supported.
 | LifeTec LT9570                     |  Missing Features | Aux buttons and tilt is not yet supported.
-| Monoprice MP1060-HA60              |  Missing Features | Tablet buttons are not yet supported. Windows: Requires Zadig's WinUSB to be installed on interface 0
+| Monoprice MP1060-HA60              |  Missing Features | Tablet buttons are not yet supported.
 | Parblo A640                        |  Missing Features | Aux buttons are not yet supported.
 | Parblo Intangbo M                  |  Missing Features | Wheel is not yet supported.
 | Parblo Intangbo S                  |  Missing Features | Wheel is not yet supported.
@@ -322,32 +323,32 @@
 | VEIKK Voila (VO1060)               |  Missing Features | Wheel is not yet supported.
 | VEIKK VK1060PRO                    |  Missing Features | Wheels not yet supported.
 | VEIKK VK2200PRO                    |  Missing Features | Wheels not yet supported, tablet buttons may be mapped incorrectly.
-| Wacom CTE-450                      |  Missing Features | Wheel is not yet supported.
-| Wacom CTE-650                      |  Missing Features | Wheel is not yet supported.
+| Wacom CTE-450                      |  Missing Features | Touch ring added in Tablet App for Mac 16 BETA. It reads the ring like the Wacom MTE-450 (same Linux type), which matches an owner's recordings (OpenTabletDriver PR 4758). Not yet tested on this tablet.
+| Wacom CTE-650                      |  Missing Features | Touch ring added in Tablet App for Mac 16 BETA. It reads the ring like the Wacom MTE-450 (same Linux type), which matches an owner's recordings (OpenTabletDriver PR 4758). Not yet tested on this tablet.
 | Wacom CTH-300                      |  Missing Features | Touch is not yet supported.
 | Wacom CTH-301                      |  Missing Features | Touch is not yet supported.
-| Wacom CTH-461                      |  Missing Features | Tablet buttons and touch are not yet supported.
-| Wacom CTL-4100WL                   |  Missing Features | Wireless is not yet supported, center button reports as 5th aux button.
+| Wacom CTH-461                      |  Missing Features | Touch is not yet supported. The 4 tablet buttons work (OpenTabletDriver PR 3694).
+| Wacom CTL-4100WL                   |  Missing Features | Bluetooth added in Tablet App for Mac (pen and 4 buttons, layout from the Linux Wacom driver), not yet tested on this tablet. Center button reports as 5th aux button.
 | Wacom CTL-6100WL                   |  Missing Features | Wireless is not yet supported, center button reports as 5th aux button.
 | Wacom DTH-1320                     |  Missing Features | Touch is not yet supported.
 | Wacom Movink 13 (DTH-135)          |  Missing Features | Touch is not yet supported.
-| Wacom Cintiq 22HD Touch (DTH-2200) |  Missing Features | Touch is not yet supported.
+| Wacom Cintiq 22HD Touch (DTH-2200) |  Missing Features | Touch is not yet supported. Aux functionality has not been verified (OpenTabletDriver issue 5206). Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | Wacom Cintiq Pro 22 (DTH-227)      |  Missing Features | Touch is not yet supported.
 | Wacom Cintiq 27QHD (DTH-2700)      |  Missing Features | Touch is not yet supported.
 | Wacom Cintiq Pro 27 (DTH-271)      |  Missing Features | Aux buttons are not yet supported.
 | Wacom Cintiq Pro 32 (DTH-3220)     |  Missing Features | Touch is not yet supported.
-| Wacom Cintiq 13HD Touch (DTH-1300) |  Missing Features | Center button is not yet supported.
-| Wacom Cintiq 13HD (DTK-1300)       |  Missing Features | Center button is not yet supported.
-| Wacom Cintiq 21UX (DTZ-2100)       |  Missing Features | Touch bars are not yet supported.
-| Wacom Cintiq 22HD (DTK-2200)       |  Missing Features | Touch Strips are not yet supported.
-| Wacom Cintiq 12WX (DTZ-1200W)      |  Missing Features | Touch bars and top side buttons are not yet supported.
-| Wacom PTZ-1230                     |  Missing Features | Touch bars are not yet supported.
-| Wacom PTZ-1231W                    |  Missing Features | Touch bars are not yet supported.
-| Wacom PTZ-431W                     |  Missing Features | Touch bars are not yet supported.
-| Wacom PTZ-430                      |  Missing Features | Touch bars are not yet supported.
-| Wacom PTZ-630                      |  Missing Features | Touch bars are not yet supported.
-| Wacom PTZ-631W                     |  Missing Features | Touch bars are not yet supported.
-| Wacom PTZ-930                      |  Missing Features | Touch bars are not yet supported.
+| Wacom Cintiq 13HD Touch (DTH-1300) |  Missing Features | Centre button added in Tablet App for Mac 16 BETA (ExpressKey 9), not yet tested on this tablet.
+| Wacom Cintiq 13HD (DTK-1300)       |  Missing Features | Centre button added in Tablet App for Mac 16 BETA (ExpressKey 9), not yet tested on this tablet.
+| Wacom Cintiq 21UX (DTZ-2100)       |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom Cintiq 22HD (DTK-2200)       |  Missing Features | Aux functionality has not been verified (OpenTabletDriver issue 5206). Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom Cintiq 12WX (DTZ-1200W)      |  Missing Features | All 10 ExpressKeys work, including the top ones (OpenTabletDriver backport PR 3372). Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom PTZ-1230                     |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom PTZ-1231W                    |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom PTZ-431W                     |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom PTZ-430                      |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom PTZ-630                      |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom PTZ-631W                     |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
+| Wacom PTZ-930                      |  Missing Features | Touch strips added in Tablet App for Mac 16 BETA, not yet tested on this tablet.
 | XP-Pen Artist 12                   |  Missing Features | Touch bar is not yet supported
 | XP-Pen Artist 12 Pro               |  Missing Features | Tilt and wheel are not yet supported.
 | XP-Pen Artist 16 Pro               |  Missing Features | Wheel is not yet supported.
@@ -359,6 +360,6 @@
 | XP-Pen Deco Pro Small              |  Missing Features | Trackpad is not yet supported.
 | XP-Pen Deco Pro SW                 |  Missing Features | Wheel is not yet supported.
 | XP-Pen Deco Pro MW                 |  Missing Features | Touch wheel and physical wheel are not yet supported.
-| XP-Pen Star 02                     |  Missing Features | Pen and auxiliary buttons may produce malformed reports. Windows: Requires Zadig's WinUSB to be installed on interface 0.
+| XP-Pen Star 02                     |  Missing Features | Pen and auxiliary buttons may produce malformed reports.
 | XP-Pen Star 06                     |  Missing Features | Wheel is not yet supported.
 | XP-Pen Star 06C                    |  Missing Features | Wheel is not yet supported.

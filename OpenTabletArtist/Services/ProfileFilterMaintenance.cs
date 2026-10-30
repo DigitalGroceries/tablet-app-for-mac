@@ -26,6 +26,7 @@ public static class ProfileFilterMaintenance
         HoverProfile.FilterTypeName,         // OpenTabletArtist.Dynamics.HoverFilter
         CalibrationProfile.FilterTypeName,   // OpenTabletArtist.Dynamics.CalibrationFilter
         Domain.RingModeBinding.GateTypeName, // OpenTabletArtist.Dynamics.RingGestureGate (build J)
+        Domain.PenScrollBinding.FilterTypeName, // OpenTabletArtist.Dynamics.PenScrollFilter (pen scroll)
     };
 
     /// <summary>Class names (last path segment) of filters this app has ever shipped, including
@@ -34,6 +35,7 @@ public static class ProfileFilterMaintenance
     private static readonly HashSet<string> OurClassNames = new(StringComparer.Ordinal)
     {
         "DynamicsFilter", "HoverFilter", "CalibrationFilter", "PressureCurveFilter", "RingGestureGate",
+        "PenScrollFilter",
     };
 
     /// <summary>Namespace prefixes this app's plugin has used across renames. Anything we write has

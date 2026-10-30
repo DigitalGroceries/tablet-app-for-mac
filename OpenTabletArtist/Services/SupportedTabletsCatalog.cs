@@ -99,6 +99,7 @@ public static class SupportedTabletsCatalog
     {
         "Supported" => 0,
         "Has Quirks" => 1,
+        "Questionable" => 1,   // Version 16: OpenTabletDriver's newer status for configs not fully verified
         "Missing Features" => 2,
         _ => 3,
     };

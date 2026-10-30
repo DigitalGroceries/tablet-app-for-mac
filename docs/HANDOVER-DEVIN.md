@@ -35,7 +35,8 @@ it offers the newest stable, newer BETAs, "Go back to Version 15" and "Earlier v
   WindowsInk x6, BundleVerification x3, SettingsFile x3, PresetStore, PluginInventory, UpdaterTests,
   BuildR10Published) and `dotnet test tests/OpenTabletArtist.UiTests` (baseline **2 known failures**:
   BuildR2AboutTests.HomeSentence…, BuildR6HomeAlignTests.HomeLinks…). Driver tests:
-  `dotnet test external/OpenTabletDriver/OpenTabletDriver.Tests` (0 failures). Any other failure is new.
+  `cd external/OpenTabletDriver && dotnet test OpenTabletDriver.Tests` (0 failures; from the repo root it
+  refuses to run, because the root `global.json` asks for Microsoft.Testing.Platform). Any other failure is new.
 - Package + ad-hoc sign on Linux: `BETA=<n> scripts/pack-macos-linux.sh <version> <out-dir> arm64`
   (needs rcodesign 0.29.0: `cargo install apple-codesign`). Omit BETA for a stable build. Stable releases also
   get a .dmg (Grok's `grok-scripts/` has the dmg recipe).
@@ -69,7 +70,6 @@ it offers the newest stable, newer BETAs, "Go back to Version 15" and "Earlier v
    - Going back to Version 15, editing the ring there, then updating again can reverse those rings.
    - Relative wheels (Huion/XP-Pen dials) may now run backwards: the CW/CCW inversion was removed for every
      wheel, only the PTK-440 absolute ring was tested (see `WheelEditor.OnRelativeDelta` comment).
-   - Wheel activation thresholds still write to All when an app tile is selected, and skip the All stash.
    - Affinity rotate direction (⌘+scroll up = clockwise?) is untested.
 3. the owner proofreads the Bulgarian texts (V14/V15 update texts + touch strip texts).
 4. User feedback on the improved tablets -> move confirmed ones to Supported in

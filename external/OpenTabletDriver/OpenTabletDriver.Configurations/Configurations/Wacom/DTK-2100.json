@@ -13,19 +13,30 @@
     },
     "AuxiliaryButtons": {
       "ButtonCount": 18
-    }
+    },
+    "Wheels": [
+      {
+        "AbsoluteWheelMax": 12,
+        "ButtonCount": 0
+      },
+      {
+        "AbsoluteWheelMax": 12,
+        "ButtonCount": 0
+      }
+    ]
   },
   "DigitizerIdentifiers": [
     {
       "VendorID": 1386,
       "ProductID": 204,
-      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.CintiqV1.CintiqV1ReportParser",
+      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.CintiqV1.CintiqV1TouchStripReportParser",
       "FeatureInitReport": [
         "AgI="
       ]
     }
   ],
   "Attributes": {
-    "libinputoverride": "1"
+    "libinputoverride": "1",
+    "WheelsAreTouchStrips": "true"
   }
 }

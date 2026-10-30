@@ -105,6 +105,8 @@ namespace OpenTabletDriver.Tests.ConfigurationTest
                 yield return new("FeatureInitDelayMs", ConfigurationAttributes.CheckFeatureInitDelayMs);
                 yield return new("WinUsage", ConfigurationAttributes.CheckWinUsage);
                 yield return new("HidReports", ConfigurationAttributes.CheckHidReports);
+                // Tablet App for Mac (Version 16): the tablet's Wheels are touch strips (the app labels them Up / Down).
+                yield return new("WheelsAreTouchStrips", v => v == "true");
             }
         }
 

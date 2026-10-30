@@ -29,6 +29,9 @@ public interface IGestureIo
     void KeyControlOption(bool down) { }
 }
 
+/// <summary>Version 16 BETA 2: whose front window is under the cursor, for the smooth ring actions.</summary>
+public enum FrontApp { Other, Photoshop, Affinity }
+
 /// <summary>Build K: what a ring drag gesture does in Photoshop.</summary>
 public enum GestureKind
 {

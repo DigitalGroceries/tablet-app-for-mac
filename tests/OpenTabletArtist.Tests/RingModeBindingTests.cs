@@ -36,13 +36,15 @@ public class RingModeBindingTests
 
         Assert.True(RingModeBinding.Apply(w, modes));
 
-        // physical clockwise ↔ OTD CounterClockwiseRotation (the app's ring inversion)
-        Assert.Equal(RingModeBinding.TurnTypeName, w.CounterClockwiseRotation!.Path);
-        Assert.Equal("RightBracket", Setting(w.CounterClockwiseRotation, "Mode1Keys"));
-        Assert.Equal("Application+Equal", Setting(w.CounterClockwiseRotation, "Mode2Keys"));
-        Assert.Equal("", Setting(w.CounterClockwiseRotation, "Mode3Keys"));
-        Assert.Equal("LeftBracket", Setting(w.ClockwiseRotation, "Mode1Keys"));
-        Assert.Equal("Application+Minus", Setting(w.ClockwiseRotation, "Mode2Keys"));
+        // Version 16 BETA 2: physical clockwise is OTD's ClockwiseRotation (a rising ring position)
+        Assert.Equal(RingModeBinding.TurnTypeName, w.ClockwiseRotation!.Path);
+        Assert.Equal("RightBracket", Setting(w.ClockwiseRotation, "Mode1Keys"));
+        Assert.Equal("Application+Equal", Setting(w.ClockwiseRotation, "Mode2Keys"));
+        Assert.Equal("", Setting(w.ClockwiseRotation, "Mode3Keys"));
+        Assert.Equal("LeftBracket", Setting(w.CounterClockwiseRotation, "Mode1Keys"));
+        Assert.Equal("Application+Minus", Setting(w.CounterClockwiseRotation, "Mode2Keys"));
+        Assert.Equal("2", Setting(w.ClockwiseRotation, RingModeBinding.DirectionVersionProperty));
+        Assert.False(RingModeBinding.IsLegacy(w));
 
         Assert.Equal(RingModeBinding.NextTypeName, w.WheelButtons[0].Path);
         Assert.Equal("2", Setting(w.WheelButtons[0], RingModeBinding.ModeCountProperty));

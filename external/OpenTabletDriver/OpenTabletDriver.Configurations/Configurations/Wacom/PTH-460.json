@@ -19,7 +19,7 @@
     "Wheels": [
       {
         "AbsoluteWheelMax": 71,
-        "AngleOfZeroReading": 90.0,
+        "AngleOfZeroReading": 180.0,
         "ButtonCount": 1
       }
     ]
@@ -30,7 +30,7 @@
       "ProductID": 914,
       "InputReportLength": 192,
       "OutputReportLength": 0,
-      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.IntuosV2.IntuosV2ReportParser",
+      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.IntuosV2.IntuosV2ReversedRingReportParser",
       "FeatureInitReport": [
         "AgI="
       ],
@@ -43,7 +43,7 @@
       "ProductID": 914,
       "InputReportLength": 193,
       "OutputReportLength": 0,
-      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.IntuosV2.WacomDriverIntuosV2ReportParser",
+      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.IntuosV2.WacomDriverIntuosV2ReversedRingReportParser",
       "InitializationStrings": [
         0
       ]
@@ -53,7 +53,7 @@
       "ProductID": 988,
       "InputReportLength": 192,
       "OutputReportLength": 0,
-      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.IntuosV2.IntuosV2ReportParser",
+      "ReportParser": "OpenTabletDriver.Configurations.Parsers.Wacom.IntuosV2.IntuosV2ReversedRingReportParser",
       "InitializationStrings": [
         0
       ]

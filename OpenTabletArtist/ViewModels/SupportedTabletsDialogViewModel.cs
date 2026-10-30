@@ -154,6 +154,6 @@ public sealed class SupportedTabletRow
     public bool HasNotes => Notes.Length > 0;
     // Pill color classes: green Supported, amber Has Quirks, neutral Missing Features.
     public bool IsSupported => Status == "Supported";
-    public bool IsQuirks => Status == "Has Quirks";
+    public bool IsQuirks => Status is "Has Quirks" or "Questionable";
     public bool IsMissing => Status == "Missing Features";
 }
