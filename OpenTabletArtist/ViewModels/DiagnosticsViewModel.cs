@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Linq;
 using Avalonia.Threading;
@@ -28,6 +31,50 @@ public partial class DiagnosticsViewModel : ObservableObject, IDisposable
 
     // Synced from the session's IConnectionState when provided (gates Start; drives the
     // not-connected warning). Stays settable so tests can simulate connection state directly.
+    // ---- One-click diagnostic file (idea from MockTab). Saved to the Desktop; the path shows here.
+    /// <summary>Names of other tablet drivers found (set by the shell), for the summary.</summary>
+    public Func<IReadOnlyList<string>>? ConflictLabels { get; set; }
+    /// <summary>Daemon version for the summary (set by the shell).</summary>
+    public Func<string?>? DaemonVersion { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDiagnosticFile))]
+    private string _diagnosticFilePath = "";
+    [ObservableProperty] private string _diagnosticStatus = "";
+    public bool HasDiagnosticFile => !string.IsNullOrEmpty(DiagnosticFilePath);
+    public string DiagnosticTitle => Localizer.Te("diag.zip.title", "Diagnostic file");
+    public string DiagnosticDescription => Localizer.Te("diag.zip.description",
+        "Makes one zip with a summary, the app and driver logs, your settings and the connected tablets, for a GitHub issue. Serial numbers and your user name are removed.");
+    public string DiagnosticButton => Localizer.Te("diag.zip.button", "Create diagnostic file");
+    public string RevealLabel => Localizer.Te("backup.auto.folder", "Show in Finder");
+
+    [RelayCommand]
+    private async Task CreateDiagnosticFile()
+    {
+        DiagnosticStatus = Localizer.Te("diag.zip.working", "Creating…");
+        try
+        {
+            var devices = _deviceData?.DetectedTablets.Select(t => $"{t.Name} — area {t.Area}, pressure {t.Pressure}, buttons {t.Buttons}").ToList()
+                          ?? new List<string>();
+            var conflicts = ConflictLabels?.Invoke() ?? Array.Empty<string>();
+            var version = DaemonVersion?.Invoke();
+            var path = await Task.Run(() => DiagnosticBundle.Create(DiagnosticBundle.DefaultFolder(), devices, conflicts, version));
+            DiagnosticFilePath = path;
+            DiagnosticStatus = Localizer.Te("diag.zip.done", "Saved to:");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn("Diagnostic file failed.", ex);
+            DiagnosticFilePath = "";
+            DiagnosticStatus = Localizer.Te("diag.zip.failed", "Couldn't create the diagnostic file: {error}").Replace("{error}", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private void RevealDiagnosticFile()
+    {
+        if (HasDiagnosticFile) PlatformShell.RevealInFileManager(DiagnosticFilePath);
+    }
+
     [ObservableProperty] private bool _isConnected;
 
     [ObservableProperty]

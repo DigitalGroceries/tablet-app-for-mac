@@ -2,6 +2,7 @@
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:c="using:OpenTabletArtist.Controls"
+             xmlns:v="using:OpenTabletArtist.Views"
 >
 
     <!-- DataContext is the DiagnosticsViewModel, supplied by the typed-nav DataTemplate (#15). -->
@@ -154,6 +155,9 @@
                 </Grid>
             </c:Section>
         </StackPanel>
+
+        <!-- One-click diagnostic file (idea from MockTab); also on Settings › System. -->
+        <v:DiagnosticFileView Margin="0,0,0,12" />
 
         <!-- Not connected warning -->
         <c:Section

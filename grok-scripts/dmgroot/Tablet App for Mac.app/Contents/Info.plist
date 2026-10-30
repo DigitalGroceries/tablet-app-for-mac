@@ -9,6 +9,27 @@
   <key>CFBundleShortVersionString</key><string>13</string>
   <key>CFBundleExecutable</key><string>OpenTabletArtist</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeName</key><string>Tablet App settings</string>
+      <key>CFBundleTypeRole</key><string>Editor</string>
+      <key>LSHandlerRank</key><string>Owner</string>
+      <key>CFBundleTypeIconFile</key><string>SettingsDocument</string>
+      <key>LSItemContentTypes</key><array><string>com.freetabletapp.mac.tabletsettings</string></array>
+    </dict>
+  </array>
+  <key>UTExportedTypeDeclarations</key>
+  <array>
+    <dict>
+      <key>UTTypeIdentifier</key><string>com.freetabletapp.mac.tabletsettings</string>
+      <key>UTTypeDescription</key><string>Tablet App settings</string>
+      <key>UTTypeIconFile</key><string>SettingsDocument</string>
+      <key>UTTypeConformsTo</key><array><string>public.zip-archive</string><string>public.data</string></array>
+      <key>UTTypeTagSpecification</key>
+      <dict><key>public.filename-extension</key><array><string>tabletsettings</string></array></dict>
+    </dict>
+  </array>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>LSMinimumSystemVersion</key><string>15.0</string>
   <key>NSHighResolutionCapable</key><true/>

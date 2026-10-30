@@ -1,0 +1,72 @@
+<UserControl x:Class="OpenTabletArtist.Views.BackupView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls"
+             xmlns:v="using:OpenTabletArtist.Views"
+             xmlns:vm="using:OpenTabletArtist.ViewModels"
+             x:DataType="vm:BackupViewModel">
+    <!-- Settings › System: full settings export / import with preview, plus automatic backups.
+         Every message shows here in the window (no popups). -->
+    <StackPanel>
+        <c:Section Title="{Binding SectionTitle}">
+            <StackPanel Spacing="10">
+                <TextBlock Text="{Binding Description}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="ExportButton" Content="{Binding ExportLabel}" Click="OnExport" />
+                    <Button x:Name="ImportButton" Content="{Binding ImportLabel}" Click="OnImport" />
+                </StackPanel>
+                <TextBlock x:Name="StatusText" Text="{Binding Status}" TextWrapping="Wrap" IsVisible="{Binding HasStatus}"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                <Border IsVisible="{Binding HasPreview}" Padding="10" BorderThickness="1"
+                        BorderBrush="{DynamicResource AccentBrush}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding PreviewTitle}" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <ScrollViewer MaxHeight="220">
+                            <ItemsControl ItemsSource="{Binding PreviewRows}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:SettingsChangeRow">
+                                        <TextBlock Text="{Binding Text}" FontFamily="{DynamicResource MonoFontFamily}"
+                                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="{Binding ApplyLabel}" Command="{Binding ApplyImportCommand}"
+                                    IsEnabled="{Binding PreviewHasChanges}" Theme="{StaticResource AccentButton}" />
+                            <Button Content="{Binding CancelLabel}" Command="{Binding CancelImportCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </c:Section>
+
+        <c:Section Title="{Binding AutoTitle}">
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding AutoDescription}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                <ItemsControl ItemsSource="{Binding AutoBackups}" IsVisible="{Binding HasAutoBackups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AutoBackupRow">
+                            <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                <TextBlock Text="{Binding Label}" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Button Grid.Column="1" Content="{Binding $parent[ItemsControl].DataContext.RestoreLabel}"
+                                        Command="{Binding $parent[ItemsControl].DataContext.PreviewAutoBackupCommand}"
+                                        CommandParameter="{Binding}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Content="{Binding ShowFolderLabel}" Command="{Binding ShowBackupsFolderCommand}" />
+            </StackPanel>
+        </c:Section>
+
+        <!-- The diagnostic file, here too: Advanced › Diagnostics is hidden unless Dev turns it on. -->
+        <v:DiagnosticFileView DataContext="{Binding Diagnostics}"
+                              IsVisible="{Binding Diagnostics, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    </StackPanel>
+</UserControl>

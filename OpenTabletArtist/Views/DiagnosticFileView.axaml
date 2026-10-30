@@ -1,0 +1,22 @@
+<UserControl x:Class="OpenTabletArtist.Views.DiagnosticFileView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls">
+    <!-- DataContext: DiagnosticsViewModel. Saved to the Desktop; the path shows here (no popup). -->
+        <c:Section Title="{Binding DiagnosticTitle}" >
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding DiagnosticDescription}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="DiagnosticZipButton" Content="{Binding DiagnosticButton}"
+                            Command="{Binding CreateDiagnosticFileCommand}" />
+                    <Button Content="{Binding RevealLabel}" Command="{Binding RevealDiagnosticFileCommand}"
+                            IsVisible="{Binding HasDiagnosticFile}" />
+                </StackPanel>
+                <TextBlock Text="{Binding DiagnosticStatus}" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                <SelectableTextBlock Text="{Binding DiagnosticFilePath}" IsVisible="{Binding HasDiagnosticFile}"
+                                     FontFamily="{DynamicResource MonoFontFamily}" TextWrapping="Wrap"
+                                     Foreground="{DynamicResource TextSecondaryBrush}" />
+            </StackPanel>
+        </c:Section>
+</UserControl>

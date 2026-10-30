@@ -19,6 +19,10 @@ public partial class App : Application
         // No effect on Windows/Linux. Set before XAML load so it's in place when the native menu is built.
         Name = "Tablet App for Mac";
         AvaloniaXamlLoader.Load(this);
+        // macOS app menu, set before Avalonia builds its default one: our own About Tablet App for Mac
+        // (shows Home, no popup) replaces "About Avalonia"; Export / Import settings follow.
+        if (System.OperatingSystem.IsMacOS())
+            Avalonia.Controls.NativeMenu.SetMenu(this, AppMenu.Build());
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -131,7 +135,30 @@ public partial class App : Application
                 {
                     if (e.Kind == Avalonia.Controls.ApplicationLifetimes.ActivationKind.Reopen)
                         Avalonia.Threading.Dispatcher.UIThread.Post(() => window.BringToFront("macOS reopen event", byUser: false));
+                    // A .tabletsettings file double-clicked in Finder: show its Import preview in the window.
+                    if (e is Avalonia.Controls.ApplicationLifetimes.FileActivatedEventArgs files)
+                        foreach (var f in files.Files)
+                            if (Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(f) is { } path && path.EndsWith("." + Services.SettingsBundle.Extension, System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                                {
+                                    window.BringToFront("settings file opened", byUser: true);
+                                    (window.DataContext as ViewModels.MainViewModel)?.OpenSettingsFile(path);
+                                });
+                                break;
+                            }
                 };
+
+            AppMenu.Window = window;
+
+            // A settings file passed on the command line (e.g. `open -a … file.tabletsettings` on a cold start).
+            foreach (var arg in System.Environment.GetCommandLineArgs())
+                if (arg.EndsWith("." + Services.SettingsBundle.Extension, System.StringComparison.OrdinalIgnoreCase)
+                    && System.IO.File.Exists(arg) && window.DataContext is ViewModels.MainViewModel avm)
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => avm.OpenSettingsFile(arg));
+                    break;
+                }
         }
 
         base.OnFrameworkInitializationCompleted();

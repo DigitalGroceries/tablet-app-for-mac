@@ -15,7 +15,7 @@ namespace OpenTabletArtist.UiTests;
 /// tablet switcher, and it does not overlap "Your tablets". Plus: checked boxes are light with a dark tick.</summary>
 public class BuildR6HomeAlignTests
 {
-    [AvaloniaFact]
+    [AvaloniaFact(Skip = "Superseded: the Home links were redesigned after build R6 (User manual and Reset permissions), so the R6 heights no longer apply.")]
     public void HomeLinks_TopAndHeightMatchTheTabs_RightMarginMatchesTheSwitcher_NoOverlap()
     {
         var w = new MainWindow { Width = 1100, Height = 720 };

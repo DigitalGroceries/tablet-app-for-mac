@@ -21,7 +21,7 @@ public class UpdaterTests
     [Fact]
     public void ReadsLatestRelease()
     {
-        var json = """{"tag_name":"v8","draft":false,"assets":[{"name":"Tablet-App-for-Mac.zip","browser_download_url":"https://x/z"},{"name":"SHA256SUMS","browser_download_url":"https://x/s"}]}""";
+        var json = "{\"tag_name\":\"v8\",\"draft\":false,\"assets\":[{\"name\":\"" + Updater.ZipName + "\",\"browser_download_url\":\"https://x/z\"},{\"name\":\"SHA256SUMS\",\"browser_download_url\":\"https://x/s\"}]}";
         var r = Updater.Parse(json)!;
         Assert.Equal(8, r.Version); Assert.Equal("https://x/z", r.ZipUrl); Assert.Equal("https://x/s", r.SumsUrl);
         Assert.Null(Updater.Parse("""{"tag_name":"v8","assets":[]}"""));

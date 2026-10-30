@@ -34,6 +34,9 @@ class Program
         if (OperatingSystem.IsMacOS() && Environment.GetEnvironmentVariable(AppPaths.OverrideVariable) is null or "")
             SettingsMigration.Migrate(AppPaths.PreviousLocalAppData, AppPaths.LegacyLocalAppData, AppPaths.LocalAppData);
 
+        // Automatic settings backup on the first launch of a new version (keeps the last 5).
+        SettingsBundle.AutoBackupIfVersionChanged();
+
         LaunchInBackground = args.Contains(StartupService.BackgroundArgument, StringComparer.OrdinalIgnoreCase);
         // Build P: a macOS login item (SMAppService.mainApp) can't pass --background, so treat a launch right
         // after login with automatic start chosen as a background launch (menu-bar icon only). UNVERIFIED on a Mac.

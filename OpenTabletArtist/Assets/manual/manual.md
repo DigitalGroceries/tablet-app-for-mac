@@ -184,6 +184,12 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 - **Theme**: **Themes** (Graphite, Silver, Charcoal, Rose, Burgundy, Custom, System; default Graphite), brightness, **Backdrops** (Solid colour, Generated gradient, **Add glow**, **Choose image…**), **Colours** (Highlight colour, Card colour). **Reset to defaults**.
 - **Hotkeys**: global shortcuts for tablet actions and **Load a preset**. **Assign…**, **Clear**. Default: not set.
 - **Presets**: see Presets and saving.
+- **System › Status light** (Intuos4 only): **Light up the status light when the pen touches** is on by default. The tablet's status light stays dim and gets bright while the pen touches, as it did with the Wacom driver. Switch it off for one steady brightness. The setting is sent to the tablet once when it connects, not while you draw.
+- **System › Settings backup**: **Export settings…** saves all your settings in one file: tablets, pens and per-pen settings, presets, applications, Touch Ring modes, calibration and app settings. The suggested name is the tablet model and the date, for example `Intuos4PTK440_30Oct26.tabletsettings` (`TabletApp_30Oct26` when no tablet is connected); you can type another name. Serial numbers and your user name are left out, so you can email the file to someone else or keep it for a new Mac. **Import settings…** opens a file and lists what would change (**New**, **Changed**, **Same**) before anything happens; click **Apply these settings** or **Cancel**. Your current settings are backed up first. Then quit and reopen the app.
+- **Settings files in Finder**: a `.tabletsettings` file shows the app icon on a page. Double-click it to open Tablet App for Mac at **Settings › System** with its Import preview; nothing changes until you click **Apply these settings**.
+- **App menu**: the **Tablet App for Mac** menu at the top left of the screen has **About Tablet App for Mac** (opens Home, with the version and links), **Export settings…** and **Import settings…** (the same as the buttons in Settings › System; results show in the main window). The pen menu in the menu bar has them too.
+- **System › Automatic backups**: when a new version starts for the first time, the app backs up all your settings by itself, and it does the same before every import. The last 5 are kept. **Preview…** shows what bringing one back would change; **Show in Finder** opens the folder.
+- **System › Diagnostic file**: **Create diagnostic file** saves one zip on your Desktop with a summary (app, driver and macOS versions, connected tablets, other tablet drivers found), the app and driver logs and your settings. Serial numbers and your user name are removed. The path shows under the button; attach the zip to a GitHub issue. The same button is on **Advanced › Diagnostics**.
 - **System**: **Start at login**. Switch on **Start automatically when I log in** to have the app start by itself when you log in to your Mac, with only the pen icon in the menu bar. **Open Login Items…** opens the same setting in macOS: System Settings › General › Login Items.
 
 ## Advanced
@@ -194,7 +200,7 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 - **Plugins**: **Rescan plugin folder**, **Open plugin folder**.
 - **Configs** (tablet configs): **Check for more configs**, **Install**, **View**.
 - **Console**: severity filter, text filter, **Auto-scroll** (on), copy as text, Markdown or HTML, **Clear**.
-- **Diagnostics** (shown when **Settings › Dev** turns it on): **Start** and **Stop** live reports.
+- **Diagnostics** (shown when **Settings › Dev** turns it on): **Start** and **Stop** live reports, and **Create diagnostic file**.
 
 ## About and Options
 
@@ -220,6 +226,7 @@ The **driver** is the background part of the app that reads the pen and moves th
 - **Restart Driver** stops the background part and starts it again. Try this first if the pen stops responding.
 - **Stop Driver** stops the background part, so the pen stops working until you start it again. While it is stopped, the menu shows **Start Driver** instead.
 - **Check for updates now** checks for a new version (see Updating).
+- **Export settings…** and **Import settings…** open the app at Settings › System and do the same as the buttons there.
 - **Quit** closes the app and removes the pen icon. The background part keeps running, so the pen still works with the settings you saved.
 - **Quit and stop the driver** closes the app and stops the background part too, so the pen stops working until you open the app again.
 
@@ -250,7 +257,7 @@ Version 19 adds: Cintiq 21UX (DTK-2100) and Cintiq 22HD (DTK-2200, DTH-2200): th
 
 ## Wacom driver conflict
 
-The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninstall the Wacom driver before using this app. Home shows a warning while it is running.
+The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninstall the Wacom driver before using this app. Home shows a warning while it is running. The app also checks which programs are running every 15 seconds and shows **Another tablet driver is running** on **Home** when it finds the Wacom driver (WacomTabletDriver, TabletDriver, Wacom_IOManager, WacomTabletSpringboard, DataStoreMgr), the Xencelabs driver, or a second OpenTabletDriver daemon.
 
 ## Updating
 
@@ -284,7 +291,7 @@ Click **Earlier versions…** on **Home** (Version 15 and later), or download an
 
 ## Credits and licences
 
-Tablet App for Mac is a modified version of OpenTabletArtist by TheSevenPens (GPL-3.0) and uses OpenTabletDriver (LGPL-3.0). The full list of packages and licence texts is on the Credits and licences page.
+Tablet App for Mac is a modified version of OpenTabletArtist by TheSevenPens (GPL-3.0) and uses OpenTabletDriver (LGPL-3.0). The full list of packages and licence texts is on the Credits and licences page. Some features (settings backup, the diagnostic file and the running-driver check) use ideas from MockTab by Cyzor (GPL-3).
 
 ## Glossary
 

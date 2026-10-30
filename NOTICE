@@ -33,3 +33,7 @@ VoiDPlugins — "Windows Ink" output-mode plugin (GPL-3.0)   [planned — see #3
   the plugin binary is bundled, the exact upstream release/commit it was built
   from will be recorded alongside it so the corresponding source is always
   available, as required by the GPL. VoiDPlugins is licensed under GPL-3.0.
+
+Ideas from MockTab (Cyzor), GPL-3: full settings backup and restore, the one-click diagnostic file,
+and the running-process tablet-driver conflict check (process names from MockTab's ConflictProcessMatcher).
+Reimplemented in C#; no MockTab code is copied. https://github.com/Cyzor/tablet-driver

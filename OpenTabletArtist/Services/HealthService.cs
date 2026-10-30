@@ -197,6 +197,16 @@ public sealed partial class HealthService : ObservableObject, IDisposable
                 .ToList();
         }
 
+        // Running-process conflicts (idea from MockTab): off Windows the daemon's driver check isn't shown,
+        // so another tablet driver that is running now gets its own Home card.
+        if (!OperatingSystem.IsWindows() && _conflicts.RunningProcessLabels.Count > 0)
+            next = next.Append(new HealthIssue("driver.running", HealthSeverity.Misconfigured,
+                Localizer.Te("conflict.process.title", "Another tablet driver is running"),
+                Localizer.Te("conflict.process.detail",
+                    "This program is running now and may grab the tablet at the same time. Quit it or uninstall that driver.")
+                    + " (" + string.Join(", ", _conflicts.RunningProcessLabels) + ")",
+                Remediation: null)).ToList();
+
         if (next.SequenceEqual(Issues)) return; // records compare by value — skip a no-op rebuild
         Issues.Clear();
         foreach (var issue in next) Issues.Add(issue);
