@@ -299,5 +299,22 @@
   "update.earlier_title": "Frühere Versionen",
   "update.earlier_heading": "Zu einer früheren Version zurückkehren",
   "update.earlier_body": "Wähle die Version, zu der du zurückkehren möchtest. Die App lädt sie herunter, prüft sie und startet sich neu. Deine Einstellungen bleiben erhalten. Wenn macOS erneut nach Berechtigungen fragt, führt dich das Einrichtungsfenster durch den Vorgang. Die frühere Version bietet dir diese Version bei ihrer wöchentlichen Update-Suche möglicherweise wieder an. Wähle „Nicht jetzt“, um bei ihr zu bleiben.",
-  "update.earlier_none": "Gerade konnte keine frühere Version gefunden werden. Prüfe deine Internetverbindung und versuche es erneut."
+  "update.earlier_none": "Gerade konnte keine frühere Version gefunden werden. Prüfe deine Internetverbindung und versuche es erneut.",
+  "tablet.device.add_body": "Schließen Sie das Tablet an Ihren Mac an. Es erscheint hier von selbst. Wenn nicht, kennt diese App das Modell vielleicht noch nicht: Öffnen Sie Tablet-Konfigurationen, um nachzusehen.",
+  "tablet.device.add_configs": "Tablet-Konfigurationen",
+  "tablet.device.add_tip": "Tablet hinzufügen.",
+  "tablet.device.add_title": "Tablet hinzufügen",
+  "tablet.device.remove_tip": "Dieses Tablet und seine Einstellungen vergessen.",
+  "tablet.pen.add_body": "Halten Sie den neuen Stift nah an das Tablet. Er wird von selbst zur Werkzeugzeile hinzugefügt, mit eigenen Einstellungen für Spitze, Radierer und Seitentasten (zu Beginn eine Kopie des Hauptstifts).",
+  "tablet.pen.add_tip": "Stift hinzufügen.",
+  "tablet.pen.add_title": "Stift hinzufügen",
+  "tablet.pen.per_pen_note": "Dieser Stift hat eigene Einstellungen für Spitze, Radierer und Seitentasten. Spitzengefühl, Druck, Neigung und Zuordnung gelten für alle Stifte.",
+  "tablet.pen.remove_body": "Einstellungen für „{name}“ entfernen? Er verwendet dann wieder die Einstellungen des Hauptstifts. Wenn Sie ihn wieder benutzen, erscheint er hier erneut mit einer Kopie der Einstellungen des Hauptstifts.",
+  "tablet.pen.remove_tip": "Einstellungen des ausgewählten Stifts entfernen.",
+  "tablet.pen.remove_title": "Stift entfernen",
+  "home.perm_reset.body": "Wenn sich die Berechtigungsschalter von selbst ausschalten, hält macOS noch die Einträge einer älteren Version. Setzen Sie sie zurück und fügen Sie dann diese Version erneut hinzu.",
+  "home.perm_reset.button": "Berechtigungen zurücksetzen",
+  "home.perm_reset.dmg": "Tablet App for Mac läuft vom Disk-Image oder aus Downloads. Ziehen Sie die App in Programme und öffnen Sie sie dort, sonst bleiben die Berechtigungen nicht eingeschaltet.",
+  "home.perm_reset.done": "Fertig. Öffnen Sie jetzt Systemeinstellungen › Datenschutz & Sicherheit. Wählen Sie in Input Monitoring und in {pane} jeden alten Eintrag von Tablet App for Mac und entfernen Sie ihn mit −, fügen Sie dann diese Version mit + hinzu und schalten Sie sie ein. Starten Sie die App danach neu.",
+  "home.perm_reset.failed": "Das Zurücksetzen hat nicht funktioniert. Entfernen Sie die alten Einträge von Hand mit − und fügen Sie dann diese Version mit + hinzu."
 }

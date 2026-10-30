@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-App version 18. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
+App version 19. British English. Screens are real screenshots from a Mac running earlier versions, so some may differ slightly.
 
 ## Before you start
 
@@ -246,11 +246,15 @@ Version 16 adds the following. None of it has been tested on these tablets yet, 
 - Bamboo Fun (CTE-450, CTE-650): the Touch Ring.
 - Wacom CTK-4120: newly listed.
 
+Version 19 adds: Cintiq 21UX (DTK-2100) and Cintiq 22HD (DTK-2200, DTH-2200): the ExpressKeys are read the way the Linux Wacom driver reads them, so each key sends its own setting. If you set up these keys in an earlier version, check them once on **Tablet › Functions › ExpressKeys**; the app shows a note in the main window. Not yet tested on these tablets.
+
 ## Wacom driver conflict
 
 The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninstall the Wacom driver before using this app. Home shows a warning while it is running.
 
 ## Updating
+
+**Version 19:** messages and dialogs now open inside the main window, not as separate windows.
 
 **Version 18:** the app is now signed with a stable certificate, so macOS can keep your permissions when you update. Install Version 18 once, then redo both permissions once: remove the old Tablet App for Mac entries with **−** and add Version 18 with **+**. If the switches turn themselves off, use **Reset permissions** on **Home**.
 
