@@ -17,6 +17,11 @@ INFO=$VER; [ "$BETA" != 0 ] && INFO="$VER-beta$BETA"
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 RC=${RCODESIGN:-$HOME/.cargo/bin/rcodesign}
 BID=com.freetabletapp.mac
+# Issue #14: sign with ONE stable self-signed certificate (kept outside the repo, never committed) so the
+# designated requirement is "identifier X and certificate root = H\"…\"" instead of the build's cdhash.
+# macOS permissions are tied to that requirement, so they can survive updates. Set SIGN_PEM to override.
+SIGN_PEM=${SIGN_PEM:-$HOME/.signing/tablet-app-stable.pem}
+[ -f "$SIGN_PEM" ] || { echo "Missing signing key $SIGN_PEM (make it once with: rcodesign generate-self-signed-certificate --person-name 'Tablet App for Mac' --validity-days 7300 --pem-filename ~/.signing/tablet-app-stable, then cat the .crt and .key into the .pem)" >&2; exit 1; }
 export PATH=$HOME/.dotnet:$PATH DOTNET_CLI_TELEMETRY_OPTOUT=1
 mkdir -p "$OUT"
 
@@ -42,7 +47,7 @@ for a in $ARCHES; do
   sed -i "s#<key>CFBundleVersion</key><string>[^<]*</string>#<key>CFBundleVersion</key><string>$VER</string>#; s#<key>CFBundleShortVersionString</key><string>[^<]*</string>#<key>CFBundleShortVersionString</key><string>$VER</string>#" "$APP/Contents/Info.plist"
 
   # Daemon first via its own identifier, then the bundle (rcodesign does both in one pass, nested first).
-  "$RC" sign --binary-identifier "@main:$BID" \
+  "$RC" sign --timestamp-url none --pem-file "$SIGN_PEM" --binary-identifier "@main:$BID" \
     --binary-identifier "Contents/MacOS/Daemon/$a/OpenTabletDriver.Daemon:$BID.daemon" "$APP" >/dev/null
 
   (cd "$D" && python3 - "$OUT/Tablet-App-for-Mac$suf.zip" <<'PY'
@@ -61,6 +66,8 @@ PY
   )
   echo "== $a"; "$RC" print-signature-info "$M/OpenTabletArtist" 2>/dev/null | grep -E "identifier:|flags: Code" | sort -u
   "$RC" print-signature-info "$M/Daemon/$a/OpenTabletDriver.Daemon" 2>/dev/null | grep -E "identifier:" | sort -u
+  # Must say "certificate root = H…", never cdhash, or permissions are lost on every update.
+  "$RC" print-signature-info "$M/OpenTabletArtist" 2>/dev/null | grep -E "designated" | sort -u
 done
 (cd "$OUT" && sha256sum Tablet-App-for-Mac*.zip > SHA256SUMS && cat SHA256SUMS)
 echo PACKDONE
