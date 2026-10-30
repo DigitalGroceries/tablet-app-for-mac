@@ -316,5 +316,7 @@
   "home.perm_reset.button": "権限をリセット",
   "home.perm_reset.dmg": "Tablet App for Mac がディスクイメージまたはダウンロードから実行されています。アプリケーションフォルダにドラッグしてそこから開いてください。そうしないと権限がオンのままになりません。",
   "home.perm_reset.done": "完了しました。システム設定 › プライバシーとセキュリティを開いてください。Input Monitoring と {pane} で、古い Tablet App for Mac の項目を選んで − で削除し、このバージョンを + で追加してオンにしてください。その後アプリを再起動してください。",
-  "home.perm_reset.failed": "リセットできませんでした。古い項目を − で手動で削除してから、このバージョンを + で追加してください。"
+  "home.perm_reset.failed": "リセットできませんでした。古い項目を − で手動で削除してから、このバージョンを + で追加してください。",
+  "manual.title": "ユーザーマニュアル",
+  "manual.open_online": "オンライン版を開く"
 }

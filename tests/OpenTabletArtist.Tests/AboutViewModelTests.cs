@@ -19,12 +19,12 @@ public class AboutViewModelTests
     }
 
     [Fact]
-    public void GetHelp_WithoutAUrl_OpensTheInAppManual()
+    public void UserManual_AlwaysOpensTheOfflineManual()
     {
         var vm = new AboutViewModel();
         bool opened = false;
         vm.ManualRequested += () => opened = true;
         vm.OpenHelpCommand.Execute(null);
-        Assert.Equal(vm.HelpUrl is null, opened);
+        Assert.True(opened);
     }
 }

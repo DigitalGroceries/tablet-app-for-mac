@@ -316,5 +316,7 @@
   "tablet.pen.per_pen_note": "This pen has its own tip, eraser and side-button settings. Tip Feel, pressure, tilt and mapping are shared by all pens.",
   "tablet.pen.remove_body": "Remove the settings for \"{name}\"? It goes back to the main pen's settings. If you use it again, it comes back here with a copy of the main pen's settings.",
   "tablet.pen.remove_tip": "Remove the selected pen's settings.",
-  "tablet.pen.remove_title": "Remove pen"
+  "tablet.pen.remove_title": "Remove pen",
+  "manual.title": "User manual",
+  "manual.open_online": "Open online version"
 }

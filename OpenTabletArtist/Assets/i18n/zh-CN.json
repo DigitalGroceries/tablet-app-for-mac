@@ -316,5 +316,7 @@
   "home.perm_reset.button": "重置权限",
   "home.perm_reset.dmg": "Tablet App for Mac 正在从磁盘映像或“下载”文件夹运行。请将其拖到“应用程序”并从那里打开,否则权限不会保持开启。",
   "home.perm_reset.done": "完成。现在打开系统设置 › 隐私与安全性。在 Input Monitoring 和 {pane} 中,选择每个旧的 Tablet App for Mac 条目并用 − 移除,然后用 + 添加此版本并打开。之后重新启动应用。",
-  "home.perm_reset.failed": "重置未成功。请用 − 手动移除旧条目,然后用 + 添加此版本。"
+  "home.perm_reset.failed": "重置未成功。请用 − 手动移除旧条目,然后用 + 添加此版本。",
+  "manual.title": "用户手册",
+  "manual.open_online": "打开在线版本"
 }

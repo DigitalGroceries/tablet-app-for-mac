@@ -316,5 +316,7 @@
   "home.perm_reset.button": "Berechtigungen zurücksetzen",
   "home.perm_reset.dmg": "Tablet App for Mac läuft vom Disk-Image oder aus Downloads. Ziehen Sie die App in Programme und öffnen Sie sie dort, sonst bleiben die Berechtigungen nicht eingeschaltet.",
   "home.perm_reset.done": "Fertig. Öffnen Sie jetzt Systemeinstellungen › Datenschutz & Sicherheit. Wählen Sie in Input Monitoring und in {pane} jeden alten Eintrag von Tablet App for Mac und entfernen Sie ihn mit −, fügen Sie dann diese Version mit + hinzu und schalten Sie sie ein. Starten Sie die App danach neu.",
-  "home.perm_reset.failed": "Das Zurücksetzen hat nicht funktioniert. Entfernen Sie die alten Einträge von Hand mit − und fügen Sie dann diese Version mit + hinzu."
+  "home.perm_reset.failed": "Das Zurücksetzen hat nicht funktioniert. Entfernen Sie die alten Einträge von Hand mit − und fügen Sie dann diese Version mit + hinzu.",
+  "manual.title": "Benutzerhandbuch",
+  "manual.open_online": "Online-Version öffnen"
 }
