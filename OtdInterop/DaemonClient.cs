@@ -30,7 +30,7 @@ namespace OtdInterop;
 /// <see cref="IOtdSettingsSession"/> documents.
 /// </para>
 /// </remarks>
-internal sealed class DaemonClient : IDaemonTransport, IDaemonSettingsChannel
+internal sealed class DaemonClient : IDaemonTransport, IDaemonSettingsChannel, IDaemonFeatureReports
 {
     private const string DefaultPipeName = "OpenTabletDriver.Daemon";
 
@@ -321,6 +321,18 @@ internal sealed class DaemonClient : IDaemonTransport, IDaemonSettingsChannel
         {
             _log.Debug("Couldn't read the daemon's device list.", ex);
             return new JArray();
+        }
+    }
+
+    /// <summary>One feature report through the daemon (<c>SendFeatureInit</c>). False on any failure.</summary>
+    public async Task<bool> SendFeatureReportAsync(int vendorId, int productId, string usbInterface, byte[] report)
+    {
+        if (_rpc is not { IsDisposed: false }) return false;
+        try { await _rpc.InvokeAsync("SendFeatureInit", vendorId, productId, usbInterface, report); return true; }
+        catch (Exception ex)
+        {
+            _log.Debug("Feature report through the daemon failed.", ex);
+            return false;
         }
     }
 
