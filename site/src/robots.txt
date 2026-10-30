@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://digitalgroceries.github.io/tablet-app-for-mac/sitemap.xml
