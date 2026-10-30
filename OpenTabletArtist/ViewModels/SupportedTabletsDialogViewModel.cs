@@ -40,6 +40,11 @@ public sealed partial class SupportedTabletsDialogViewModel : ObservableObject
     /// <summary>The dialog heading. Names the OpenTabletDriver release, because the list is that release's
     /// built-in catalog (<see cref="SupportedTabletsCatalog"/>) — what "supported" means depends on it.
     /// Read from <see cref="OtdRelease"/> rather than the linked assembly: see the note on that class.</summary>
+    public const string ProgressNote =
+        "Tablet support improves once a week, in that week's app update, so check back once a week to see if your tablet has become fully supported. Each tablet gets worked on, but not every one will end up fully supported. Some can only be improved, but this can be confirmed and improved only with real user feedback for the specific Wacom tablet models. Each weekly update says exactly what changed for which tablet. How often updates come, and how good they are, depends on the voluntary tips we get from happy users who support the project.";
+
+    public string ProgressNoteText => ProgressNote;
+
     public string Title { get; } = $"OpenTabletDriver {OtdRelease.AssetVersion} supports these tablets";
 
     /// <summary>Filter options for the brand dropdown: "All brands" plus each distinct brand.</summary>

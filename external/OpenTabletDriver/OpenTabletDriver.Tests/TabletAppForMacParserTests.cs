@@ -151,6 +151,52 @@ namespace OpenTabletDriver.Tests
             Assert.IsType<OutOfRangeReport>(new CintiqV1TouchStripReportParser().Parse(raw));
         }
 
+        [Theory]
+        [InlineData(5, 0, 0)]
+        [InlineData(6, 0, 1)]
+        [InlineData(6, 7, 8)]
+        [InlineData(7, 0, 9)]
+        [InlineData(8, 0, 10)]
+        [InlineData(8, 7, 17)]
+        [InlineData(9, 0, 18)]
+        [InlineData(9, 1, 19)]
+        public void CintiqV1_Buttons_Follow_The_Linux_Wacom_Layout(int dataByte, int bit, int expectedIndex)
+        {
+            // wacom_wac.c (WACOM_21UX2 / WACOM_22HD): buttons = data[8] << 10 | (data[7] & 1) << 9
+            // | data[6] << 1 | (data[5] & 1); the 22HD's info and wrench keys are data[9] bits 0 and 1.
+            var raw = PadReport(0, 0);
+            raw[dataByte] = (byte)(1 << bit);
+            foreach (var aux in new[]
+            {
+                new CintiqV1AuxReport(raw).AuxButtons,
+                Assert.IsType<CintiqV1TouchStripAuxReport>(new CintiqV1TouchStripReportParser().Parse(raw)).AuxButtons
+            })
+            {
+                Assert.Equal(20, aux.Length);
+                Assert.Equal(new[] { expectedIndex }, Enumerable.Range(0, aux.Length).Where(i => aux[i]));
+            }
+        }
+
+        [Fact]
+        public void CintiqV1_Every_Button_Bit_Has_Its_Own_Slot()
+        {
+            var raw = PadReport(0, 0);
+            raw[5] = 0x01;
+            raw[6] = 0xFF;
+            raw[7] = 0x01;
+            raw[8] = 0xFF;
+            raw[9] = 0x03;
+            Assert.All(new CintiqV1AuxReport(raw).AuxButtons, Assert.True);
+        }
+
+        [Fact]
+        public void CintiqV1_Short_Pad_Packet_Is_Not_Read_As_Buttons()
+        {
+            var raw = new byte[] { 0x0C, 0, 0, 0, 0 };
+            Assert.IsNotAssignableFrom<IAuxReport>(new CintiqV1ReportParser().Parse(raw));
+            Assert.IsNotAssignableFrom<IAuxReport>(new CintiqV1TouchStripReportParser().Parse(raw));
+        }
+
         // ---- Cintiq 13HD: centre button as ExpressKey 9 ----
 
         [Fact]
