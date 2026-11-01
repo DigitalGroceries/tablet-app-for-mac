@@ -11,7 +11,7 @@ Navigation facts for this repository.
 | `plugins/OpenTabletArtist.Dynamics/` | OpenTabletDriver filter plugin shipped in the app (`Contents/Resources/BundledPlugins/OpenTabletArtistDynamics/`). |
 | `OtdInterop/`, `OtdHealth/`, `OtdHealth.Collector/` | Talking to the OpenTabletDriver daemon; health checks. |
 | `external/OpenTabletDriver/` | A copy of OpenTabletDriver v0.6.8-rc1 (upstream commit 126f482, LGPL-3.0) with the patches in `patches/` already applied. Not a submodule. |
-| `patches/` | The OpenTabletDriver patches (macOS F13–F15 keys). |
+| `patches/` | The OpenTabletDriver patches (macOS F13–F15 keys; daemon logs closed JSON-RPC connections at debug level). |
 | `tests/` | `OpenTabletArtist.Tests` (logic), `OpenTabletArtist.UiTests` (headless UI), `OpenTabletArtist.SweepTests` (visual sweep), plus OtdHealth/OtdInterop tests. |
 | `scripts/` | `build-macos-app.sh`, `bundle-macos-app.sh` (assemble the .app on a Mac). |
 | `docs/` | Design notes and build history (`docs/ota-builds/CHANGES.md`). |
