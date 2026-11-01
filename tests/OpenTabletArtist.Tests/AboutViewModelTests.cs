@@ -19,6 +19,14 @@ public class AboutViewModelTests
     }
 
     [Fact]
+    public void GetHelp_OpensGitHubsFeedbackChooser_NotTheManual()
+    {
+        var vm = new AboutViewModel();
+        Assert.Equal("https://github.com/DigitalGroceries/tablet-app-for-mac/issues/new/choose", vm.HelpUrl);
+        Assert.NotEqual(OpenTabletArtist.Services.AppLinks.Manual, vm.HelpUrl);
+    }
+
+    [Fact]
     public void UserManual_AlwaysOpensTheOfflineManual()
     {
         var vm = new AboutViewModel();

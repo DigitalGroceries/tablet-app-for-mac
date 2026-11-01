@@ -96,9 +96,9 @@ public partial class AboutViewModel : ObservableObject
     public string? FeedbackUrl => AppLinks.Feedback;
     public bool HasFeedbackUrl => FeedbackUrl != null;
     public bool HasCreditsUrl => CreditsUrl != null;
-    public string HelpTip => "Open the user manual";
+    public string HelpTip => "Report a bug, ask a question or send feedback";
 
-    /// <summary>Raised when Get help (or User manual) should open the in-app manual.</summary>
+    /// <summary>Raised when User manual should open the in-app manual.</summary>
     public event System.Action? ManualRequested;
 
     [RelayCommand]
