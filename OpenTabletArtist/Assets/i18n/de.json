@@ -258,7 +258,7 @@
   "tablet.about.yes": "Ja",
   "tablet.about.touch_strips": "Touchstreifen",
   "tablet.about.touch_input": "Toucheingabe",
-  "tablet.about.supported": "Unterstützt",
+  "tablet.about.touch_not_used": "Erkannt, noch nicht genutzt",
   "tablet.app.add_tip": "Eine App mit eigenen ExpressKeys, Touch Ring und Stift-Tasten hinzufügen.",
   "tablet.app.remove_tip": "Einstellungen der ausgewählten App entfernen.",
   "tablet.app.all_other": "Alle anderen",

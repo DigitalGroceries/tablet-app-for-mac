@@ -48,6 +48,16 @@ namespace OpenTabletDriver.Daemon
             await StartDaemon();
         }
 
+        // A client (the app) closing its connection leaves StreamJsonRpc tasks that fail with
+        // "Cannot access a disposed object" or ConnectionLostException; that is normal, not an error.
+        internal static bool IsClosedRpcConnection(AggregateException ex)
+        {
+            var inner = ex.Flatten().InnerExceptions;
+            return inner.Count > 0 && inner.All(i =>
+                i is ObjectDisposedException { ObjectName: "StreamJsonRpc.JsonRpc" }
+                || i.GetType().FullName == "StreamJsonRpc.ConnectionLostException");
+        }
+
         static async Task StartDaemon()
         {
             using var instance = new Instance("OpenTabletDriver.Daemon");
@@ -60,7 +70,10 @@ namespace OpenTabletDriver.Daemon
 
             TaskScheduler.UnobservedTaskException += (_, e) =>
             {
-                Log.Exception(e.Exception);
+                if (IsClosedRpcConnection(e.Exception))
+                    Log.Debug("JsonRpc", "A client connection closed: " + e.Exception.InnerException?.Message);
+                else
+                    Log.Exception(e.Exception);
                 e.SetObserved();
             };
 
