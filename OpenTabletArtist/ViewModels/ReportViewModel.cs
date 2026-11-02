@@ -16,8 +16,8 @@ namespace OpenTabletArtist.ViewModels;
 /// All three open the same sheet in the main window. A picture of the app window, taken just before the sheet
 /// opened, is added unless the user unticks it; "Add screenshots…" adds more pictures. Both Send buttons make the
 /// usual diagnostic zip (serial numbers and user name removed) plus the pictures and the user's text and show it in
-/// Finder. "Send by email" (no account needed) opens a pre-filled email to the project's feedback address; "Send on
-/// GitHub" opens a pre-filled GitHub issue (the same no-token way as the Diagnostics page's report).
+/// Finder. "Send by email" (no account needed) opens a pre-filled email to the project's feedback address; "Send with
+/// GitHub account" opens a pre-filled GitHub issue (the same no-token way as the Diagnostics page's report).
 /// </summary>
 public partial class ReportViewModel : ObservableObject
 {
@@ -90,8 +90,8 @@ public partial class ReportViewModel : ObservableObject
     public const string DefaultNote =
         "Both Send buttons save one file on your Desktop with your pictures and the app and driver logs (serial numbers and your user name are removed), and show it in Finder.\n" +
         "Send by email opens your email app with your text, addressed to {email}: attach the file and send it. No account is needed.\n" +
-        "Send on GitHub opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.";
-    public string SendGitHubLabel => Localizer.Te("report.send_github", "Send on GitHub");
+        "Send with GitHub account opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.";
+    public string SendGitHubLabel => Localizer.Te("report.send_github", "Send with GitHub account");
     public string SendEmailLabel => Localizer.Te("report.send_email", "Send by email");
     public string CancelLabel => Localizer.Te("diag.report.cancel", "Cancel");
 
@@ -117,7 +117,7 @@ public partial class ReportViewModel : ObservableObject
             if (!Screenshots.Contains(p) && Pictures.Count < MaxPictures) Screenshots.Add(p);
     }
 
-    /// <summary>Send on GitHub (needs a free GitHub account).</summary>
+    /// <summary>Send with GitHub account (needs a free GitHub account).</summary>
     [RelayCommand(CanExecute = nameof(CanEdit))]
     private Task Send() => SendAsync(email: false);
 

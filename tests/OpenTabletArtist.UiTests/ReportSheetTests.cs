@@ -52,7 +52,7 @@ public class ReportSheetTests
 
             var buttons = sheet.GetVisualDescendants().OfType<Button>().ToDictionary(b => b.Name ?? "", b => b.Content);
             Assert.Equal("Send by email", buttons["ReportSendEmail"]);
-            Assert.Equal("Send on GitHub", buttons["ReportSend"]);
+            Assert.Equal("Send with GitHub account", buttons["ReportSend"]);
 
             // The tick box and the kind follow the view model.
             var box = sheet.GetVisualDescendants().OfType<CheckBox>().First(c => c.Name == "ReportWindowPicture");
