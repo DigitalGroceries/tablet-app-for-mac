@@ -59,4 +59,26 @@ public static class TouchTrackpad
         SyncFilter(profile);
         foreach (var f in profile.Filters.OfType<PluginSettingStore>().Where(f => f.Path == FilterTypeName)) f.Enable = on;
     }
+
+    /// <summary>Item 6 (PR #38): true when a connected wanted tablet's profile has no touch trackpad filter
+    /// yet, so the app should add it and apply once without waiting for the user to change something.
+    /// A filter the user switched off is present, so it is never switched back on here.</summary>
+    public static bool NeedsAutoAdd(Settings? settings, IEnumerable<string> connectedTablets)
+    {
+        if (settings?.Profiles == null) return false;
+        var connected = new HashSet<string>(connectedTablets, StringComparer.Ordinal);
+        return settings.Profiles.Any(p => p != null && connected.Contains(p.Tablet) && Wanted(p) && p.Filters != null
+            && !p.Filters.OfType<PluginSettingStore>().Any(f => f.Path == FilterTypeName));
+    }
+
+    /// <summary>Adds the filter to every connected wanted tablet that lacks it. Returns true if anything changed.</summary>
+    public static bool AutoAdd(Settings? settings, IEnumerable<string> connectedTablets)
+    {
+        if (!NeedsAutoAdd(settings, connectedTablets)) return false;
+        var connected = new HashSet<string>(connectedTablets, StringComparer.Ordinal);
+        bool changed = false;
+        foreach (var p in settings!.Profiles.Where(p => p != null && connected.Contains(p.Tablet)))
+            changed |= SyncFilter(p);
+        return changed;
+    }
 }

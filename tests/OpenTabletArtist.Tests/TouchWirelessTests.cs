@@ -109,3 +109,41 @@ public class TouchWirelessReviewTests
         Assert.Equal(new[] { "PTH-651.json" }, hits);
     }
 }
+
+public class TouchAutoApplyTests
+{
+    private static OpenTabletDriver.Desktop.Settings With(params string[] tablets)
+    {
+        var s = new OpenTabletDriver.Desktop.Settings();
+        foreach (var t in tablets)
+            s.Profiles.Add(new Profile { Tablet = t, OutputMode = new PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)) });
+        return s;
+    }
+
+    [Fact]
+    public void ConnectedPth651_WithoutFilter_IsAddedOnce()
+    {
+        var s = With("Wacom PTH-651");
+        Assert.True(TouchTrackpad.NeedsAutoAdd(s, new[] { "Wacom PTH-651" }));
+        Assert.True(TouchTrackpad.AutoAdd(s, new[] { "Wacom PTH-651" }));
+        Assert.True(s.Profiles.First().Filters.Single(f => f.Path == TouchTrackpad.FilterTypeName).Enable);
+        Assert.False(TouchTrackpad.NeedsAutoAdd(s, new[] { "Wacom PTH-651" }));   // no apply loop
+        Assert.False(TouchTrackpad.AutoAdd(s, new[] { "Wacom PTH-651" }));
+    }
+
+    [Fact]
+    public void SwitchedOff_StaysOff()
+    {
+        var s = With("Wacom PTH-651");
+        TouchTrackpad.Write(s, "Wacom PTH-651", false);
+        Assert.False(TouchTrackpad.NeedsAutoAdd(s, new[] { "Wacom PTH-651" }));
+        Assert.False(TouchTrackpad.IsOn(s.Profiles.First()));
+    }
+
+    [Fact]
+    public void NotConnected_OrOtherTablet_NothingToDo()
+    {
+        Assert.False(TouchTrackpad.NeedsAutoAdd(With("Wacom PTH-651"), System.Array.Empty<string>()));
+        Assert.False(TouchTrackpad.NeedsAutoAdd(With("Wacom PTH-660"), new[] { "Wacom PTH-660" }));
+    }
+}
