@@ -48,4 +48,17 @@ public class RestoreTopLevelDriverSettingsTests : IDisposable
         var p = SettingsBundle.Preview(SettingsBundle.Read(file));
         Assert.Contains(p.Changes, c => c.Area == "driver" && c.Item == "Tools" && c.Kind == "same");
     }
+
+    /// <summary>Review of #50: a setting only in the current driver file is lost on Apply, so it shows as removed.</summary>
+    [Fact]
+    public void OnlyInCurrentFile_ShowsAsRemoved()
+    {
+        File.WriteAllText(Path.Combine(Otd, "settings.json"), "{\"Profiles\":[{\"Tablet\":\"A\"}]}");
+        var file = Path.Combine(_tmp, "b.tabletsettings");
+        SettingsBundle.Export(file, portable: true);
+        File.WriteAllText(Path.Combine(Otd, "settings.json"), "{\"Profiles\":[{\"Tablet\":\"A\"}],\"LockUsableAreaDisplay\":true}");
+        var p = SettingsBundle.Preview(SettingsBundle.Read(file));
+        Assert.Contains(p.Changes, c => c.Area == "driver" && c.Item == "LockUsableAreaDisplay" && c.Kind == "removed");
+        Assert.True(p.HasChanges);
+    }
 }

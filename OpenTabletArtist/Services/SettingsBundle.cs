@@ -286,8 +286,8 @@ public static class SettingsBundle
                 {
                     if (name == "Profiles") continue;
                     var a = incObj[name]; var c = curObj[name];
-                    if (a == null) continue;   // not in the file: Apply leaves the driver's default
-                    var kind = c == null ? "new" : JToken.DeepEquals(a, c) ? "same" : "changed";
+                    // Review: only in the current driver file. Apply replaces the whole file, so it goes: show it.
+                    var kind = a == null ? "removed" : c == null ? "new" : JToken.DeepEquals(a, c) ? "same" : "changed";
                     changes.Add(new SettingsChange("driver", name, kind));
                 }
             }

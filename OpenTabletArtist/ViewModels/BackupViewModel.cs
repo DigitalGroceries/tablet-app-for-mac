@@ -124,6 +124,7 @@ public partial class BackupViewModel : ObservableObject
     {
         "new" => L("backup.kind.new", "New"),
         "changed" => L("backup.kind.changed", "Changed"),
+        "removed" => L("backup.kind.removed", "Removed"),
         _ => L("backup.kind.same", "Same"),
     };
 
