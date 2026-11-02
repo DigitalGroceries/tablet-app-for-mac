@@ -191,7 +191,12 @@ public static class SettingsBundle
                 foreach (var pen in pens.OfType<JObject>())
                 {
                     if (pen["Key"] != null) pen["Key"] = "[removed]";
-                    if (pen["Serial"] != null) pen["Serial"] = 0;
+                    if (pen["Serial"] != null)
+                    {
+                        pen["Serial"] = 0;
+                        // Review: a pen with Serial but no Key must still read as redacted on import.
+                        if (pen["Key"] == null) pen["Key"] = "[removed]";
+                    }
                 }
                 p.Value = pens.ToString(Formatting.None);
             }
@@ -297,6 +302,13 @@ public static class SettingsBundle
                 var (area, item, detail) = DescribeAppKey(p.Name);
                 changes.Add(new SettingsChange(area, item, kind, detail));
             }
+            // Item 17 (#26): preferences that exist now but not in the file are removed by the import; show them.
+            foreach (var p in cur.Properties())
+            {
+                if (IsMachineKey(p.Name) || incoming[p.Name] != null) continue;
+                var (area, item, detail) = DescribeAppKey(p.Name);
+                changes.Add(new SettingsChange(area, item, "removed", detail));
+            }
         }
         if (b.Files.TryGetValue("otd-settings.json", out var otdText))
         {
@@ -364,8 +376,13 @@ public static class SettingsBundle
         }
     }
 
+    /// <summary>Test seam: replaces the app preferences with the imported ones (keys where keep() is true stay
+    /// as they are); false = the write failed. Defaults to <see cref="AppSettings.ReplaceAll"/> (item 17).</summary>
+    internal static Func<IReadOnlyDictionary<string, string>, Func<string, bool>, bool> WritePreferences = AppSettings.ReplaceAll;
+
     /// <summary>Applies an imported file. Makes an automatic backup first so the import can be undone.
     /// Returns the path of that safety backup.</summary>
+
     public static string Apply(Bundle b)
     {
         var safety = MakeBackup("before-import");
@@ -375,14 +392,19 @@ public static class SettingsBundle
         if (b.Files.TryGetValue("app-settings.json", out var appText) && JToken.Parse(Local(appText)) is JObject inc)
         {
             var values = new Dictionary<string, string>();
+            var keptPens = new HashSet<string>(StringComparer.Ordinal);
             foreach (var p in inc.Properties())
             {
                 if (IsMachineKey(p.Name)) continue;
                 var v = p.Value.Type == JTokenType.String ? (string)p.Value! : p.Value.ToString(Formatting.None);
-                if (IsRedactedPenKey(p.Name, v)) continue;   // item 21: keep this Mac's own pens
+                if (IsRedactedPenKey(p.Name, v)) { keptPens.Add(p.Name); continue; }   // item 21: keep this Mac's own pens
                 values[p.Name] = v;
             }
-            AppSettings.SetMany(values);
+            // Item 17 (#26): replace, don't merge: preferences added after the backup are removed too,
+            // except machine keys and the redacted pen entries skipped above (review of #49 + #53).
+            // Item 20 (#26): a failed write must not be reported as restored. Stop before the driver files.
+            if (!WritePreferences(values, k => IsMachineKey(k) || keptPens.Contains(k)))
+                throw new IOException("Couldn't save the imported app settings.");
         }
         var otd = OtdDataDir();
         Directory.CreateDirectory(otd);
