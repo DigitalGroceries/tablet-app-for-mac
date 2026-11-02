@@ -38,3 +38,24 @@ public class Intuos4StatusLedTests
         Assert.Null(Intuos4StatusLed.PickInterface(new JArray()));
     }
 }
+
+/// <summary>Item 24 (#27): a dropped connection must not stop the light being set after reconnect.</summary>
+public class Intuos4ReconnectTests
+{
+    [Fact]
+    public void FailureWhileConnected_Latches() => Assert.True(Intuos4StatusLed.LatchesFailure(true));
+
+    [Fact]
+    public void FailureFromDroppedConnection_DoesNotLatch() => Assert.False(Intuos4StatusLed.LatchesFailure(false));
+
+    [Fact]
+    public void ReconnectAndReplug_ClearTheFailure()
+    {
+        var src = System.IO.File.ReadAllText(System.IO.Path.Combine(Root(), "OpenTabletArtist/Services/Intuos4StatusLed.cs"));
+        Assert.Contains("if (_connection.IsConnected) { _failed = false;", src);
+        Assert.Contains("_lastSent = null; _failed = false;", src);
+    }
+
+    private static string Root([System.Runtime.CompilerServices.CallerFilePath] string f = "") =>
+        System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(f)!, "..", ".."));
+}

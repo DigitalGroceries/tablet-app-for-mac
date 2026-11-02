@@ -67,13 +67,15 @@ public sealed class Intuos4StatusLed : IDisposable
         ? new byte[] { ReportId, 0x04, IdleLevel, TouchLevel, IdleLevel, 0, 0, 0, 0 }
         : new byte[] { ReportId, 0x04, SteadyLevel, SteadyLevel, IdleLevel, 0, 0, 0, 0 };
 
-    private void OnTabletsChanged() { _lastSent = null; _ = ApplyAsync(); }
+    // Item 24 (#27): a replugged tablet is a fresh device, so a past failure no longer applies.
+    private void OnTabletsChanged() { _lastSent = null; _failed = false; _ = ApplyAsync(); }
 
     private void OnConnectionChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(IConnectionState.IsConnected)) return;
         _lastSent = null;
-        if (_connection.IsConnected) _ = ApplyAsync();
+        // Item 24 (#27): failures are scoped to one connection; a new connection gets a fresh try.
+        if (_connection.IsConnected) { _failed = false; _ = ApplyAsync(); }
     }
 
     /// <summary>Re-send after the setting changes.</summary>
@@ -99,11 +101,15 @@ public sealed class Intuos4StatusLed : IDisposable
                 _lastSent = key;
                 AppLog.Info($"Intuos4 status light set ({(BrightOnTouch ? "dim, bright on touch" : "steady")}).");
             }
-            else
+            else if (LatchesFailure(_connection.IsConnected))
             {
                 _failed = true;
                 AppLog.Warn("Intuos4 status light: the tablet didn't accept the brightness setting; not trying again until the app restarts.");
             }
+        }
+        catch (Exception ex) when (!LatchesFailure(_connection.IsConnected))
+        {
+            AppLog.Info($"Intuos4 status light: connection dropped mid-send ({ex.Message}); will retry on reconnect.");
         }
         catch (Exception ex)
         {
@@ -123,6 +129,10 @@ public sealed class Intuos4StatusLed : IDisposable
             .OrderBy(d => int.TryParse(d.Iface, out var n) ? n : 99)
             .Select(d => ((int, int, string)?)(d.Vid, d.Pid, d.Iface!))
             .FirstOrDefault();
+
+    /// <summary>Item 24 (#27): only a send that fails while still connected counts as the tablet refusing.
+    /// A send lost because the daemon dropped is retried when it comes back.</summary>
+    internal static bool LatchesFailure(bool stillConnected) => stillConnected;
 
     public void Dispose()
     {
