@@ -376,10 +376,13 @@
   "report.text_hint": "Facultatif",
   "report.window_picture": "Ajouter cette image de la fenêtre de l'app",
   "report.pictures": "Images ajoutées : {n}",
-  "report.note": "« Envoyer » enregistre un fichier sur votre Bureau avec vos images et les journaux de l'app et du pilote (les numéros de série et votre nom d'utilisateur sont supprimés). Ensuite, il ouvre un nouvel issue GitHub avec votre texte et affiche le fichier dans le Finder : faites glisser le fichier dans l'issue et cliquez sur Create. Un compte GitHub gratuit est nécessaire.",
+  "report.note": "Les deux boutons d'envoi enregistrent un fichier sur votre Bureau avec vos images et les journaux de l'app et du pilote (les numéros de série et votre nom d'utilisateur sont supprimés), et l'affichent dans le Finder.\n« Envoyer par e-mail » ouvre votre app de messagerie avec votre texte, adressé à {email} : joignez le fichier et envoyez-le. Aucun compte n'est nécessaire.\n« Envoyer sur GitHub » ouvre un nouvel issue GitHub avec votre texte : faites-y glisser le fichier et cliquez sur Create. Un compte GitHub gratuit est nécessaire.",
   "report.failed": "Impossible de créer le rapport : {error}",
   "diag.report.screenshots": "Ajouter des captures d'écran…",
   "diag.report.send": "Envoyer",
   "diag.report.cancel": "Annuler",
-  "diag.report.sent": "La page de l'issue GitHub est ouverte. Faites-y glisser le fichier et cliquez sur Create pour l'envoyer."
+  "diag.report.sent": "La page de l'issue GitHub est ouverte. Faites-y glisser le fichier et cliquez sur Create pour l'envoyer.",
+  "report.send_github": "Envoyer sur GitHub",
+  "report.send_email": "Envoyer par e-mail",
+  "report.mail_opened": "Votre app de messagerie est ouverte. Joignez le fichier affiché dans le Finder et envoyez-le."
 }

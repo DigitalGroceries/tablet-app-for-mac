@@ -135,16 +135,57 @@ public static class DiagnosticBundle
     public static string ReportIssueUrl(string zipName, bool recommendation, string? text, string? daemonVersion,
         IEnumerable<string> devices)
     {
-        var words = (text ?? "").Trim();
-        var firstLine = words.Split('\n', 2)[0].Trim();
-        if (firstLine.Length > 70) firstLine = firstLine[..70].TrimEnd() + "…";
-        var kind = recommendation ? "Recommendation" : "Problem";
-        var title = firstLine.Length > 0 ? $"{kind}: {firstLine}" : $"{kind} from the app — {SettingsBundle.AppVersion}";
-
+        var (title, words) = ReportTitle(recommendation, text);
         var body = new StringBuilder();
         body.AppendLine($"**Please drag `{zipName}` (now shown in Finder) into this box, then press Create.**");
         body.AppendLine();
         body.AppendLine(recommendation ? "### Recommendation" : "### Problem");
+        AppendWords(body, words);
+        body.AppendLine();
+        body.AppendLine("### Sent from the app");
+        AppendVersions(body, daemonVersion, devices);
+        return $"https://github.com/{IssueRepo}/issues/new?labels=" + (recommendation ? "enhancement" : "bug")
+            + "&title=" + Uri.EscapeDataString(title)
+            + "&body=" + Uri.EscapeDataString(body.ToString());
+    }
+
+    /// <summary>The address for feedback without a GitHub account: the same one the website's "Feedback without a
+    /// GitHub account" button shows. Put together at run time, like the website does, so it isn't one plain string in
+    /// the published source.</summary>
+    public static string FeedbackEmail => string.Join("@", "organicmachine", "protonmail.com");
+
+    /// <summary>Version 22 BETA 3 (owner's request: feedback with or without a GitHub account): a pre-filled email
+    /// (mailto) to <see cref="FeedbackEmail"/> with the same text as the issue. Mail links can't carry a file, so
+    /// the user attaches the zip that Finder shows.</summary>
+    public static string ReportMailUrl(string zipName, bool recommendation, string? text, string? daemonVersion,
+        IEnumerable<string> devices)
+    {
+        var (title, words) = ReportTitle(recommendation, text);
+        var body = new StringBuilder();
+        body.AppendLine($"Please attach {zipName} (now shown in Finder) to this email, then send it.");
+        body.AppendLine();
+        body.AppendLine(recommendation ? "Recommendation:" : "Problem:");
+        AppendWords(body, words);
+        body.AppendLine();
+        body.AppendLine("Sent from the app:");
+        AppendVersions(body, daemonVersion, devices);
+        // RFC 6068: line breaks in a mail link are CR LF.
+        var crlf = body.ToString().Replace("\r\n", "\n").Replace("\n", "\r\n");
+        return $"mailto:{FeedbackEmail}?subject=" + Uri.EscapeDataString("Tablet App for Mac – " + title)
+            + "&body=" + Uri.EscapeDataString(crlf);
+    }
+
+    static (string Title, string Words) ReportTitle(bool recommendation, string? text)
+    {
+        var words = (text ?? "").Trim();
+        var firstLine = words.Split('\n', 2)[0].Trim();
+        if (firstLine.Length > 70) firstLine = firstLine[..70].TrimEnd() + "…";
+        var kind = recommendation ? "Recommendation" : "Problem";
+        return (firstLine.Length > 0 ? $"{kind}: {firstLine}" : $"{kind} from the app — {SettingsBundle.AppVersion}", words);
+    }
+
+    static void AppendWords(StringBuilder body, string words)
+    {
         if (words.Length == 0) body.AppendLine("(no text)");
         else if (words.Length <= MaxIssueText) body.AppendLine(words);
         else
@@ -153,14 +194,13 @@ public static class DiagnosticBundle
             body.AppendLine();
             body.AppendLine("(The full text is in report.txt in the file.)");
         }
-        body.AppendLine();
-        body.AppendLine("### Sent from the app");
+    }
+
+    static void AppendVersions(StringBuilder body, string? daemonVersion, IEnumerable<string> devices)
+    {
         body.AppendLine($"- App version: {SettingsBundle.AppVersion}");
         body.AppendLine($"- Driver: {daemonVersion ?? "not connected"}");
         foreach (var d in devices) body.AppendLine($"- Tablet: {SettingsBundle.RedactSerialText(d)}");
-        return $"https://github.com/{IssueRepo}/issues/new?labels=" + (recommendation ? "enhancement" : "bug")
-            + "&title=" + Uri.EscapeDataString(title)
-            + "&body=" + Uri.EscapeDataString(body.ToString());
     }
 
     const long MaxLogBytes = 5_000_000;

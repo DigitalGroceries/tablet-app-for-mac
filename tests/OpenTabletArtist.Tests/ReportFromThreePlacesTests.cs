@@ -93,6 +93,43 @@ public class ReportFromThreePlacesTests
     }
 
     [Fact]
+    public async Task Send_by_email_needs_no_GitHub_account_and_opens_a_filled_in_email()
+    {
+        var (vm, urls, revealed, _) = Make();
+        vm.Description = "Pen buttons swap in Krita.\nSecond line.";
+        bool? finished = null;
+        vm.Finished += sent => finished = sent;
+        await vm.SendEmailCommand.ExecuteAsync(null);
+
+        Assert.True(finished);
+        Assert.True(File.Exists(vm.ReportFilePath));
+        using (var z = ZipFile.OpenRead(vm.ReportFilePath))
+        {
+            Assert.NotNull(z.GetEntry("screenshots/1-app-window.png"));
+            Assert.NotNull(z.GetEntry("report.txt"));
+        }
+        var url = Assert.Single(urls);
+        Assert.StartsWith("mailto:" + DiagnosticBundle.FeedbackEmail + "?subject=", url);
+        Assert.DoesNotContain("github.com", url);
+        var text = Uri.UnescapeDataString(url);
+        Assert.Contains("Problem: Pen buttons swap in Krita.", text);
+        Assert.Contains("Second line.", text);
+        Assert.Contains(Path.GetFileName(vm.ReportFilePath), text);
+        Assert.Contains("\r\n", text);                       // mail links use CR LF line breaks
+        Assert.DoesNotContain(" ", url);                     // spaces are encoded, so every mail app reads it
+        Assert.Equal(vm.ReportFilePath, Assert.Single(revealed));
+    }
+
+    [Fact]
+    public void Feedback_address_is_the_websites_and_shows_in_the_note()
+    {
+        Assert.Equal("organicmachine@protonmail.com", DiagnosticBundle.FeedbackEmail);
+        var vm = new ReportViewModel(Inputs, null, "test");
+        Assert.Contains(DiagnosticBundle.FeedbackEmail, vm.Note);
+        Assert.DoesNotContain("{email}", vm.Note);
+    }
+
+    [Fact]
     public async Task Unticking_the_window_picture_leaves_it_out()
     {
         var (vm, _, _, _) = Make();
@@ -188,8 +225,9 @@ public class ReportFromThreePlacesTests
         {
             var keys = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(file));
             foreach (var k in new[] { "report.menu", "report.title", "report.note", "report.window_picture",
-                         "diag.report.send", "diag.report.cancel", "diag.report.screenshots" })
+                         "report.send_github", "report.send_email", "diag.report.cancel", "diag.report.screenshots" })
                 Assert.True(keys[k] != null, $"{Path.GetFileName(file)} has no {k}");
+            Assert.Contains("{email}", (string)keys["report.note"]!);
         }
     }
 

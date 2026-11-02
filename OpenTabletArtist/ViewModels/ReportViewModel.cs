@@ -14,9 +14,10 @@ namespace OpenTabletArtist.ViewModels;
 /// Version 22 BETA 3 (owner's request, 2 Nov 2026): "Report a problem or send a recommendation…", reachable from the app
 /// window (Home's Feedback link and the tablet page's bottom bar), the pen icon menu and the app menu (top left).
 /// All three open the same sheet in the main window. A picture of the app window, taken just before the sheet
-/// opened, is added unless the user unticks it; "Add screenshots…" adds more pictures. Send makes the usual
-/// diagnostic zip (serial numbers and user name removed) plus the pictures and the user's text, opens a pre-filled
-/// GitHub issue and shows the zip in Finder (the same no-token way as the Diagnostics page's report).
+/// opened, is added unless the user unticks it; "Add screenshots…" adds more pictures. Both Send buttons make the
+/// usual diagnostic zip (serial numbers and user name removed) plus the pictures and the user's text and show it in
+/// Finder. "Send by email" (no account needed) opens a pre-filled email to the project's feedback address; "Send on
+/// GitHub" opens a pre-filled GitHub issue (the same no-token way as the Diagnostics page's report).
 /// </summary>
 public partial class ReportViewModel : ObservableObject
 {
@@ -56,7 +57,7 @@ public partial class ReportViewModel : ObservableObject
     public ObservableCollection<string> Screenshots { get; } = new();
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SendCommand), nameof(AddScreenshotsCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SendCommand), nameof(SendEmailCommand), nameof(AddScreenshotsCommand))]
     private bool _isBusy;
 
     [ObservableProperty] private string _status = "";
@@ -85,9 +86,13 @@ public partial class ReportViewModel : ObservableObject
     public string DescriptionHint => Localizer.Te("report.text_hint", "Optional");
     public string WindowPictureLabel => Localizer.Te("report.window_picture", "Add this picture of the app window");
     public string AddScreenshotsLabel => Localizer.Te("diag.report.screenshots", "Add screenshots…");
-    public string Note => Localizer.Te("report.note",
-        "Send saves one file on your Desktop with your pictures and the app and driver logs (serial numbers and your user name are removed). Then it opens a new GitHub issue with your text filled in and shows the file in Finder: drag the file into the issue and press Create. A free GitHub account is needed.");
-    public string SendLabel => Localizer.Te("diag.report.send", "Send");
+    public string Note => Localizer.Te("report.note", DefaultNote).Replace("{email}", DiagnosticBundle.FeedbackEmail);
+    public const string DefaultNote =
+        "Both Send buttons save one file on your Desktop with your pictures and the app and driver logs (serial numbers and your user name are removed), and show it in Finder.\n" +
+        "Send by email opens your email app with your text, addressed to {email}: attach the file and send it. No account is needed.\n" +
+        "Send on GitHub opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.";
+    public string SendGitHubLabel => Localizer.Te("report.send_github", "Send on GitHub");
+    public string SendEmailLabel => Localizer.Te("report.send_email", "Send by email");
     public string CancelLabel => Localizer.Te("diag.report.cancel", "Cancel");
 
     /// <summary>The pictures that Send puts in the zip, in order: the window picture first.</summary>
@@ -112,8 +117,15 @@ public partial class ReportViewModel : ObservableObject
             if (!Screenshots.Contains(p) && Pictures.Count < MaxPictures) Screenshots.Add(p);
     }
 
+    /// <summary>Send on GitHub (needs a free GitHub account).</summary>
     [RelayCommand(CanExecute = nameof(CanEdit))]
-    private async Task Send()
+    private Task Send() => SendAsync(email: false);
+
+    /// <summary>Send by email (no account needed).</summary>
+    [RelayCommand(CanExecute = nameof(CanEdit))]
+    private Task SendEmail() => SendAsync(email: true);
+
+    private async Task SendAsync(bool email)
     {
         IsBusy = true;
         Status = Localizer.Te("diag.zip.working", "Creating…");
@@ -133,10 +145,15 @@ public partial class ReportViewModel : ObservableObject
                 return zip;
             });
             ReportFilePath = path;
-            AppLog.Info($"Report: made {Path.GetFileName(path)} ({(recommendation ? "recommendation" : "problem")}, {pictures.Count} picture(s), from {From}).");
-            OpenUrl(DiagnosticBundle.ReportIssueUrl(Path.GetFileName(path), recommendation, text, version, devices));
+            AppLog.Info($"Report: made {Path.GetFileName(path)} ({(recommendation ? "recommendation" : "problem")}, {pictures.Count} picture(s), from {From}, {(email ? "email" : "GitHub")}).");
+            var name = Path.GetFileName(path);
+            OpenUrl(email
+                ? DiagnosticBundle.ReportMailUrl(name, recommendation, text, version, devices)
+                : DiagnosticBundle.ReportIssueUrl(name, recommendation, text, version, devices));
             Reveal(path);
-            Status = Localizer.Te("diag.report.sent", "Opened the GitHub issue page. Drag the file in and press Create to send it.");
+            Status = email
+                ? Localizer.Te("report.mail_opened", "Opened your email app. Attach the file shown in Finder and send it.")
+                : Localizer.Te("diag.report.sent", "Opened the GitHub issue page. Drag the file in and press Create to send it.");
             Finished?.Invoke(true);
         }
         catch (Exception ex)

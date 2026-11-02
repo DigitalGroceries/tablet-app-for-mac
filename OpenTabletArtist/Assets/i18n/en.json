@@ -389,6 +389,9 @@
   "report.text_hint": "Optional",
   "report.window_picture": "Add this picture of the app window",
   "report.pictures": "Pictures added: {n}",
-  "report.note": "Send saves one file on your Desktop with your pictures and the app and driver logs (serial numbers and your user name are removed). Then it opens a new GitHub issue with your text filled in and shows the file in Finder: drag the file into the issue and press Create. A free GitHub account is needed.",
-  "report.failed": "Couldn't create the report: {error}"
+  "report.note": "Both Send buttons save one file on your Desktop with your pictures and the app and driver logs (serial numbers and your user name are removed), and show it in Finder.\nSend by email opens your email app with your text, addressed to {email}: attach the file and send it. No account is needed.\nSend on GitHub opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.",
+  "report.failed": "Couldn't create the report: {error}",
+  "report.send_github": "Send on GitHub",
+  "report.send_email": "Send by email",
+  "report.mail_opened": "Opened your email app. Attach the file shown in Finder and send it."
 }

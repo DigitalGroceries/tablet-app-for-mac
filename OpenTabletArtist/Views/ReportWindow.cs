@@ -114,12 +114,13 @@ public sealed class ReportWindow : Window
         body.Children.Add(status);
 
         var cancel = new Button { Name = "ReportCancel", Content = vm.CancelLabel, Padding = new Thickness(16, 8), Command = vm.CancelCommand };
-        var send = new Button { Name = "ReportSend", Content = vm.SendLabel, Padding = new Thickness(16, 8), Command = vm.SendCommand };
-        send.Classes.Add("accent");
+        // Owner's request: feedback with or without a GitHub account. Email needs no account, so it comes first.
+        var email = new Button { Name = "ReportSendEmail", Content = vm.SendEmailLabel, Padding = new Thickness(16, 8), Command = vm.SendEmailCommand };
+        var send = new Button { Name = "ReportSend", Content = vm.SendGitHubLabel, Padding = new Thickness(16, 8), Command = vm.SendCommand };
         body.Children.Add(new StackPanel
         {
             Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(0, 4, 0, 0), Children = { cancel, send },
+            Margin = new Thickness(0, 4, 0, 0), Children = { cancel, email, send },
         });
         Content = body;
 

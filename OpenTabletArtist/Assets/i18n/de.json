@@ -376,10 +376,13 @@
   "report.text_hint": "Optional",
   "report.window_picture": "Dieses Bild des App-Fensters hinzufügen",
   "report.pictures": "Bilder hinzugefügt: {n}",
-  "report.note": "„Senden“ speichert eine Datei auf deinem Schreibtisch mit deinen Bildern und den Protokollen der App und des Treibers (Seriennummern und dein Benutzername werden entfernt). Dann öffnet es ein neues GitHub-Issue mit deinem Text und zeigt die Datei im Finder: Zieh die Datei in das Issue und klicke auf „Create“. Ein kostenloses GitHub-Konto ist nötig.",
+  "report.note": "Beide Senden-Tasten speichern eine Datei auf deinem Schreibtisch mit deinen Bildern und den Protokollen der App und des Treibers (Seriennummern und dein Benutzername werden entfernt) und zeigen sie im Finder.\n„Per E-Mail senden“ öffnet dein E-Mail-Programm mit deinem Text, adressiert an {email}: Hänge die Datei an und sende sie. Kein Konto nötig.\n„Auf GitHub senden“ öffnet ein neues GitHub-Issue mit deinem Text: Zieh die Datei hinein und klicke auf „Create“. Dafür ist ein kostenloses GitHub-Konto nötig.",
   "report.failed": "Der Bericht konnte nicht erstellt werden: {error}",
   "diag.report.screenshots": "Bildschirmfotos hinzufügen…",
   "diag.report.send": "Senden",
   "diag.report.cancel": "Abbrechen",
-  "diag.report.sent": "Die GitHub-Issue-Seite ist geöffnet. Zieh die Datei hinein und klicke auf „Create“, um sie zu senden."
+  "diag.report.sent": "Die GitHub-Issue-Seite ist geöffnet. Zieh die Datei hinein und klicke auf „Create“, um sie zu senden.",
+  "report.send_github": "Auf GitHub senden",
+  "report.send_email": "Per E-Mail senden",
+  "report.mail_opened": "Dein E-Mail-Programm ist geöffnet. Hänge die im Finder gezeigte Datei an und sende sie."
 }

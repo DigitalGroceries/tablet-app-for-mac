@@ -376,10 +376,13 @@
   "report.text_hint": "可选",
   "report.window_picture": "添加这张应用窗口的图片",
   "report.pictures": "已添加图片：{n}",
-  "report.note": "“发送”会在桌面上保存一个文件，包含您的图片以及应用和驱动程序的日志（已删除序列号和您的用户名）。然后会打开一个已填好您文字的新 GitHub issue，并在访达中显示该文件：将文件拖入 issue 并点按 Create。需要一个免费的 GitHub 账户。",
+  "report.note": "两个发送按钮都会在桌面上保存一个文件，包含您的图片以及应用和驱动程序的日志（已删除序列号和您的用户名），并在访达中显示该文件。\n“通过电子邮件发送”会打开您的邮件应用，填好您的文字，收件人为 {email}：附上文件并发送即可，无需账户。\n“通过 GitHub 发送”会打开一个填好您文字的新 GitHub issue：将文件拖入并点按 Create。需要一个免费的 GitHub 账户。",
   "report.failed": "无法创建报告：{error}",
   "diag.report.screenshots": "添加截图…",
   "diag.report.send": "发送",
   "diag.report.cancel": "取消",
-  "diag.report.sent": "已打开 GitHub issue 页面。将文件拖入并点按 Create 即可发送。"
+  "diag.report.sent": "已打开 GitHub issue 页面。将文件拖入并点按 Create 即可发送。",
+  "report.send_github": "通过 GitHub 发送",
+  "report.send_email": "通过电子邮件发送",
+  "report.mail_opened": "已打开您的邮件应用。附上访达中显示的文件并发送。"
 }

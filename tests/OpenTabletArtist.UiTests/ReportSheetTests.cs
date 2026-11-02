@@ -47,8 +47,12 @@ public class ReportSheetTests
             var named = sheet.GetVisualDescendants().OfType<Control>().Where(c => !string.IsNullOrEmpty(c.Name))
                 .Select(c => c.Name).ToHashSet();
             foreach (var n in new[] { "ReportProblem", "ReportRecommendation", "ReportText", "ReportWindowPicture",
-                         "ReportAddScreenshots", "ReportCancel", "ReportSend" })
+                         "ReportAddScreenshots", "ReportCancel", "ReportSendEmail", "ReportSend" })
                 Assert.Contains(n, named);
+
+            var buttons = sheet.GetVisualDescendants().OfType<Button>().ToDictionary(b => b.Name ?? "", b => b.Content);
+            Assert.Equal("Send by email", buttons["ReportSendEmail"]);
+            Assert.Equal("Send on GitHub", buttons["ReportSend"]);
 
             // The tick box and the kind follow the view model.
             var box = sheet.GetVisualDescendants().OfType<CheckBox>().First(c => c.Name == "ReportWindowPicture");
