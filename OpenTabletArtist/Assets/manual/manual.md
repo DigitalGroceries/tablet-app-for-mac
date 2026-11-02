@@ -219,7 +219,7 @@ The report opens inside the app window:
 1. Choose **A problem** or **A recommendation**.
 2. Write what happened, or your idea (you can leave it empty).
 3. A picture of the app window, as it was just before the report opened, is added. Untick **Add this picture of the app window** to leave it out. **Add screenshots…** adds more pictures (up to 10 in all).
-4. Press **Send by email** or **Send with GitHub account**. Both save one file on your Desktop with your pictures, your text and the app and driver logs, and show it in Finder. Serial numbers and your user name are removed.
+4. Press **Send by email** or **Send with GitHub account**. Both save one file on your Desktop with your pictures, your text and the app and driver logs, and show it in Finder. Serial numbers and your user name are removed from the logs. Pictures are sent as they are, so check them first.
 5. **Send by email** needs no account: your email app opens with your text filled in. Attach the file and send it.
 6. **Send with GitHub account** needs a free GitHub account: a new GitHub issue opens with your text filled in. Drag the file into it and press **Create**.
 

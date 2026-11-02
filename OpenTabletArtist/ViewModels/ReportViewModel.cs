@@ -88,7 +88,7 @@ public partial class ReportViewModel : ObservableObject
     public string AddScreenshotsLabel => Localizer.Te("diag.report.screenshots", "Add screenshots…");
     public string Note => Localizer.Te("report.note", DefaultNote).Replace("{email}", DiagnosticBundle.FeedbackEmail);
     public const string DefaultNote =
-        "Both Send buttons save one file on your Desktop with your pictures and the app and driver logs (serial numbers and your user name are removed), and show it in Finder.\n" +
+        "Both Send buttons save one file on your Desktop with your pictures and the app and driver logs, and show it in Finder. Serial numbers and your user name are removed from the logs, but pictures are sent as they are: check them first.\n" +
         "Send by email opens your email app with your text, addressed to {email}: attach the file and send it. No account is needed.\n" +
         "Send with GitHub account opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.";
     public string SendGitHubLabel => Localizer.Te("report.send_github", "Send with GitHub account");
@@ -151,6 +151,7 @@ public partial class ReportViewModel : ObservableObject
                 ? DiagnosticBundle.ReportMailUrl(name, recommendation, text, version, devices)
                 : DiagnosticBundle.ReportIssueUrl(name, recommendation, text, version, devices));
             Reveal(path);
+            DeleteWindowPicture();   // it is in the zip now
             Status = email
                 ? Localizer.Te("report.mail_opened", "Opened your email app. Attach the file shown in Finder and send it.")
                 : Localizer.Te("diag.report.sent", "Opened the GitHub issue page. Drag the file in and press Create to send it.");
@@ -165,5 +166,22 @@ public partial class ReportViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void Cancel() => Finished?.Invoke(false);
+    private void Cancel()
+    {
+        DeleteWindowPicture();
+        Finished?.Invoke(false);
+    }
+
+    /// <summary>The window picture is a temporary file: once it is in the zip, or the report is cancelled, it goes.
+    /// Only a file in the temporary folder is ever deleted (never a picture the user added).</summary>
+    private void DeleteWindowPicture()
+    {
+        try
+        {
+            if (WindowPicturePath is { } p && File.Exists(p)
+                && Path.GetFullPath(p).StartsWith(Path.GetFullPath(Path.GetTempPath()), StringComparison.Ordinal))
+                File.Delete(p);
+        }
+        catch (Exception ex) { AppLog.Debug("Report: couldn't delete the temporary window picture.", ex); }
+    }
 }

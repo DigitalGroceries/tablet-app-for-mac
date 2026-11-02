@@ -121,6 +121,38 @@ public class ReportFromThreePlacesTests
     }
 
     [Fact]
+    public async Task The_temporary_window_picture_is_deleted_after_send_and_after_cancel()
+    {
+        var (vm, _, _, _) = Make();
+        var shot = vm.WindowPicturePath!;
+        await vm.SendEmailCommand.ExecuteAsync(null);
+        Assert.False(File.Exists(shot));
+        using (var z = ZipFile.OpenRead(vm.ReportFilePath))
+            Assert.NotNull(z.GetEntry("screenshots/1-app-window.png"));   // it went into the zip first
+
+        var (vm2, _, _, dir2) = Make();
+        var added = Path.Combine(dir2, "mine.png");
+        File.WriteAllBytes(added, new byte[] { 1 });
+        vm2.Screenshots.Add(added);
+        var shot2 = vm2.WindowPicturePath!;
+        vm2.CancelCommand.Execute(null);
+        Assert.False(File.Exists(shot2));
+        Assert.True(File.Exists(added));                                  // the user's own pictures stay
+    }
+
+    [Fact]
+    public void The_email_carries_less_text_than_the_issue()
+    {
+        var longText = new string('b', 3000);
+        var mail = Uri.UnescapeDataString(DiagnosticBundle.ReportMailUrl("x.zip", false, longText, null, Array.Empty<string>()));
+        var issue = Uri.UnescapeDataString(DiagnosticBundle.ReportIssueUrl("x.zip", false, longText, null, Array.Empty<string>()));
+        Assert.Contains(new string('b', DiagnosticBundle.MaxMailText) + "…", mail);
+        Assert.DoesNotContain(new string('b', DiagnosticBundle.MaxMailText + 1), mail);
+        Assert.Contains("report.txt", mail);
+        Assert.Contains(new string('b', DiagnosticBundle.MaxIssueText), issue);
+    }
+
+    [Fact]
     public void Feedback_address_is_the_websites_and_shows_in_the_note()
     {
         Assert.Equal("organicmachine@protonmail.com", DiagnosticBundle.FeedbackEmail);

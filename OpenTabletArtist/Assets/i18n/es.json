@@ -376,7 +376,7 @@
   "report.text_hint": "Opcional",
   "report.window_picture": "Añadir esta imagen de la ventana de la app",
   "report.pictures": "Imágenes añadidas: {n}",
-  "report.note": "Los dos botones de envío guardan un archivo en tu Escritorio con tus imágenes y los registros de la app y del controlador (se eliminan los números de serie y tu nombre de usuario) y lo muestran en Finder.\n«Enviar por correo» abre tu app de correo con tu texto, dirigido a {email}: adjunta el archivo y envíalo. No se necesita ninguna cuenta.\n«Enviar con cuenta de GitHub» abre un nuevo issue de GitHub con tu texto: arrastra el archivo al issue y pulsa Create. Se necesita una cuenta gratuita de GitHub.",
+  "report.note": "Los dos botones de envío guardan un archivo en tu Escritorio con tus imágenes y los registros de la app y del controlador, y lo muestran en Finder. Los números de serie y tu nombre de usuario se eliminan de los registros, pero las imágenes se envían tal cual: revísalas antes.\n«Enviar por correo» abre tu app de correo con tu texto, dirigido a {email}: adjunta el archivo y envíalo. No se necesita ninguna cuenta.\n«Enviar con cuenta de GitHub» abre un nuevo issue de GitHub con tu texto: arrastra el archivo al issue y pulsa Create. Se necesita una cuenta gratuita de GitHub.",
   "report.failed": "No se pudo crear el informe: {error}",
   "diag.report.screenshots": "Añadir capturas de pantalla…",
   "diag.report.send": "Enviar",
