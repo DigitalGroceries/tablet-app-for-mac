@@ -369,12 +369,25 @@ public static class SettingsBundle
         return safety;
     }
 
-    static void KeepLocalSerials(JToken incoming, JToken current)
+    /// <summary>A portable file has serials replaced by "[removed]"; put this Mac's own back. Item 19 (#26): inside
+    /// a profile the serial comes from the local profile for the SAME tablet (matched by name), never from the
+    /// profile at the same position, so a reordered file can't swap serials; no matching tablet = no serial.</summary>
+    internal static void KeepLocalSerials(JToken incoming, JToken current)
     {
+        var curProfiles = current["Profiles"] as JArray;
         foreach (var p in All(incoming).OfType<JProperty>().ToList())
         {
             if (!p.Name.Contains("serial", StringComparison.OrdinalIgnoreCase) || (string?)p.Value != "[removed]") continue;
-            var local = current.SelectToken(p.Path);
+            var profile = p.Ancestors().OfType<JObject>().FirstOrDefault(o => o.Parent is JArray a && a.Parent is JProperty { Name: "Profiles" } pr && pr.Parent == incoming);
+            JToken? local;
+            if (profile != null)
+            {
+                var tablet = (string?)profile["Tablet"];
+                var match = curProfiles?.OfType<JObject>().FirstOrDefault(c => tablet != null && (string?)c["Tablet"] == tablet);
+                var rel = p.Path.Substring(profile.Path.Length).TrimStart('.');
+                local = match?.SelectToken(rel);
+            }
+            else local = current.SelectToken(p.Path);
             p.Value = local?.DeepClone() ?? JValue.CreateNull();
         }
     }
