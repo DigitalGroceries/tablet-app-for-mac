@@ -44,11 +44,13 @@ public static class TouchTrackpad
 
     /// <summary>True when finger touch drives the cursor for this profile: a wanted tablet whose filter is
     /// on (or not written yet, as the next save adds it switched on).</summary>
-    public static bool IsOn(Profile? profile)
+    /// With an outside daemon (<paramref name="appOwnedDaemon"/> false) the app never adds the filter, so a
+    /// missing filter reads as off there.
+    public static bool IsOn(Profile? profile, bool appOwnedDaemon = true)
     {
         if (profile == null || !Wanted(profile)) return false;
         var store = profile.Filters?.OfType<PluginSettingStore>().FirstOrDefault(f => f.Path == FilterTypeName);
-        return store == null || store.Enable;
+        return store == null ? appOwnedDaemon : store.Enable;
     }
 
     /// <summary>The tablet page's on/off switch. Mutates <paramref name="settings"/>; no-op for other tablets.</summary>

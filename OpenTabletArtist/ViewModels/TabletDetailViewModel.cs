@@ -1485,7 +1485,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         // Discussion #31: touch trackpad switch (PTH-651 only) — load without triggering a persist.
         _skipTouchPersist = true;
         TouchTrackpadAvailable = Domain.TouchTrackpad.Wanted(_profile);
-        TouchTrackpadEnabled = Domain.TouchTrackpad.IsOn(_profile);
+        TouchTrackpadEnabled = Domain.TouchTrackpad.IsOn(_profile,
+            _deviceData is not Services.IConnectionState c || c.IsAppOwnedDaemon);
         _skipTouchPersist = false;
 
         RefreshCalibrationStatus();

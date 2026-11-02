@@ -147,3 +147,16 @@ public class TouchAutoApplyTests
         Assert.False(TouchTrackpad.NeedsAutoAdd(With("Wacom PTH-660"), new[] { "Wacom PTH-660" }));
     }
 }
+
+public class TouchOutsideDaemonTests
+{
+    [Fact]
+    public void OutsideDaemon_NoFilter_ReadsOff()
+    {
+        var p = new Profile { Tablet = "Wacom PTH-651", OutputMode = new PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)) };
+        Assert.False(TouchTrackpad.IsOn(p, appOwnedDaemon: false));
+        Assert.True(TouchTrackpad.IsOn(p, appOwnedDaemon: true));
+        TouchTrackpad.SyncFilter(p);
+        Assert.True(TouchTrackpad.IsOn(p, appOwnedDaemon: false));
+    }
+}
