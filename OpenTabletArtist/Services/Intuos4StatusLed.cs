@@ -86,23 +86,33 @@ public sealed class Intuos4StatusLed : IDisposable
         _busy = true;
         try
         {
-            var target = PickInterface(await _daemon.GetDevicesAsync());
-            if (target is not { } t) return;
+            // Item 23 (#27): every connected Intuos4, not just the first one found.
+            var targets = PickInterfaces(await _daemon.GetDevicesAsync());
+            if (targets.Count == 0) return;
             var report = BuildReport(BrightOnTouch);
-            var key = $"{t.Vid}:{t.Pid}:{t.Iface}:{Convert.ToHexString(report)}";
+            var key = string.Join(",", targets.Select(t => $"{t.Vid}:{t.Pid}:{t.Iface}:{t.Count}")) + ":" + Convert.ToHexString(report);
             if (key == _lastSent) return;
             var wait = _lastSend + MinInterval - _now();
             if (wait > TimeSpan.Zero) await Task.Delay(wait);
             _lastSend = _now();
-            if (await _daemon.SendFeatureReportAsync(t.Vid, t.Pid, t.Iface, report))
+            bool allOk = true;
+            foreach (var t in targets)
+            {
+                // Two tablets of the same model share vid/pid/interface: send to all of them at once.
+                var ok = t.Count > 1
+                    ? await _daemon.SendFeatureReportToAllAsync(t.Vid, t.Pid, t.Iface, report)
+                    : await _daemon.SendFeatureReportAsync(t.Vid, t.Pid, t.Iface, report);
+                allOk &= ok;
+            }
+            if (allOk)
             {
                 _lastSent = key;
-                AppLog.Info($"Intuos4 status light set ({(BrightOnTouch ? "dim, bright on touch" : "steady")}).");
+                AppLog.Info($"Intuos4 status light set on {targets.Sum(t => t.Count)} tablet(s) ({(BrightOnTouch ? "dim, bright on touch" : "steady")}).");
             }
             else
             {
                 _failed = true;
-                AppLog.Warn("Intuos4 status light: the tablet didn't accept the brightness setting; not trying again until the app restarts.");
+                AppLog.Warn("Intuos4 status light: a tablet didn't accept the brightness setting; not trying again until the app restarts.");
             }
         }
         catch (Exception ex)
@@ -123,6 +133,25 @@ public sealed class Intuos4StatusLed : IDisposable
             .OrderBy(d => int.TryParse(d.Iface, out var n) ? n : 99)
             .Select(d => ((int, int, string)?)(d.Vid, d.Pid, d.Iface!))
             .FirstOrDefault();
+
+    /// <summary>Item 23 (#27): one target per Intuos4 model (its lowest feature-report interface), with how many
+    /// physical tablets of that model are connected (one endpoint each on that interface).</summary>
+    public static System.Collections.Generic.IReadOnlyList<(int Vid, int Pid, string Iface, int Count)> PickInterfaces(JArray devices)
+    {
+        var eps = devices.OfType<JObject>()
+            .Select(d => (Vid: d["VendorID"]?.Value<int>() ?? 0, Pid: d["ProductID"]?.Value<int>() ?? 0,
+                          Feature: d["FeatureReportLength"]?.Value<int>() ?? 0,
+                          Iface: d["DeviceAttributes"]?["USB_INTERFACE_NUMBER"]?.Value<string>()))
+            .Where(d => IsIntuos4(d.Vid, d.Pid) && d.Feature > 0 && d.Iface != null)
+            .ToList();
+        return eps.GroupBy(d => (d.Vid, d.Pid))
+            .Select(g =>
+            {
+                var iface = g.OrderBy(d => int.TryParse(d.Iface, out var n) ? n : 99).First().Iface!;
+                return (g.Key.Vid, g.Key.Pid, iface, g.Count(d => d.Iface == iface));
+            })
+            .ToList();
+    }
 
     public void Dispose()
     {

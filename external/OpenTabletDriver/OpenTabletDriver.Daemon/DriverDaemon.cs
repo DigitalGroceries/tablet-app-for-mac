@@ -700,6 +700,19 @@ namespace OpenTabletDriver.Daemon
             return Task.CompletedTask;
         }
 
+        public Task<int> SendFeatureInitAll(int vid, int pid, string strInterface, byte[] initData)
+        {
+            int sent = 0;
+            foreach (var device in Driver.CompositeDeviceHub.GetDevices().Where(d => d.VendorID == vid && d.ProductID == pid
+                && d.DeviceAttributes.TryGetValue("USB_INTERFACE_NUMBER", out var i) && i == strInterface))
+            {
+                try { device.OpenAndSendFeatureInit(initData); sent++; }
+                catch (Exception ex) { Log.Write("Device", $"Feature report to {device.DevicePath} failed: {ex.Message}", LogLevel.Warning); }
+            }
+            if (sent == 0) throw new IOException("Device not found");
+            return Task.FromResult(sent);
+        }
+
         public Task SendOutputInit(int vid, int pid, string strInterface, byte[] initData)
         {
             var tablet = Driver.CompositeDeviceHub.GetDevices().FirstOrDefault(d => d.VendorID == vid && d.ProductID == pid && d.DeviceAttributes.TryGetValue("USB_INTERFACE_NUMBER", out var identifierInterface) && identifierInterface == strInterface);

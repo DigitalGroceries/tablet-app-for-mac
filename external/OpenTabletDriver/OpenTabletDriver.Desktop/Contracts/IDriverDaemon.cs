@@ -39,6 +39,9 @@ namespace OpenTabletDriver.Desktop.Contracts
         Task SetTabletDebug(bool isEnabled);
         Task<string> RequestDeviceString(int vendorID, int productID, int index);
         Task SendFeatureInit(int vendorID, int productID, string strInterface, byte[] initData);
+        /// <summary>Tablet App for Mac: like SendFeatureInit, but to EVERY matching device (two identical
+        /// tablets share vid/pid/interface). Returns how many accepted it.</summary>
+        Task<int> SendFeatureInitAll(int vendorID, int productID, string strInterface, byte[] initData);
         Task SendOutputInit(int vendorID, int productID, string strInterface, byte[] initData);
 
         Task<IEnumerable<LogMessage>> GetCurrentLog();
