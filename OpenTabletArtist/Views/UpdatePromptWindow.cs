@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -132,6 +133,48 @@ public static class UpdatePromptWindow
     }
 
     internal static bool DownloadNoteOpen => _downloadNote != null;
+
+    /// <summary>Remembers the version that last ran, so the first run after an update can say thank you.</summary>
+    public const string LastRunKey = "update.lastRunVersion";
+
+    /// <summary>Zak (2 Nov): the download is done by the OLD app, which (before Version 21) has no thank-you
+    /// note. So the new version also thanks donors on its first run after an update. Pure, unit-tested:
+    /// true when a different version ran before, or (no record yet) when the app has been used before.</summary>
+    public static bool ShouldThankAfterUpdate(string? lastRun, string current, bool usedBefore) =>
+        lastRun == null ? usedBefore : lastRun != current;
+
+    /// <summary>Shows the thank-you once after an update; records this version. Not on a quiet login start
+    /// (then it waits for a normal start).</summary>
+    public static void ThankAfterUpdateIfNeeded(bool quietStart)
+    {
+        try
+        {
+            var current = Updater.CurrentBeta > 0 ? $"{Updater.Current}-beta{Updater.CurrentBeta}" : Updater.Current.ToString();
+            var last = AppSettings.Get(LastRunKey);
+            var usedBefore = System.IO.File.Exists(System.IO.Path.Combine(AppPaths.LocalAppData, "settings.json"));
+            if (!ShouldThankAfterUpdate(last, current, usedBefore)) { if (last == null) AppSettings.Set(LastRunKey, current); return; }
+            if (quietStart) return;
+            AppSettings.Set(LastRunKey, current);
+            var label = Updater.CurrentBeta > 0 ? $"{Updater.Current} BETA {Updater.CurrentBeta}" : Updater.Current.ToString();
+            ShowThanks(label);
+        }
+        catch (Exception ex) { AppLog.Warn("Thank-you after update couldn't be shown.", ex); }
+    }
+
+    internal static Window ShowThanks(string label)
+    {
+        var w = NewWindow(Localizer.Te("update.thanks_title", "Thank you"));
+        var ok = new Button { Content = Localizer.Te("update.thanks_ok", "OK"), Padding = new Thickness(16, 8), IsDefault = true,
+            HorizontalAlignment = HorizontalAlignment.Right };
+        ok.Click += (_, _) => w.Close();
+        w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
+            Heading(Localizer.Tf("home.version", ("version", label))),
+            new TextBlock { Text = Localizer.Te("update.donor_thanks", DonorThanks), TextWrapping = TextWrapping.Wrap,
+                FontStyle = FontStyle.Italic }.Fg("TextSecondaryBrush"),
+            ok } };
+        OpenTabletArtist.Helpers.InWindowSheet.Show(w);
+        return w;
+    }
 
     /// <summary>Shows the note whenever <paramref name="state"/> downloads (any update path: Update now, Try BETA,
     /// Go back, pen menu, automatic).</summary>

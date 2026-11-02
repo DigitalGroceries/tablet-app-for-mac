@@ -150,6 +150,9 @@ public partial class App : Application
                 };
 
             AppMenu.Window = window;
+            // Zak (2 Nov): thank donors on the first run after an update (the old app did the download).
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => Views.UpdatePromptWindow.ThankAfterUpdateIfNeeded(Program.LaunchInBackground),
+                Avalonia.Threading.DispatcherPriority.Background);
 
             // A settings file passed on the command line (e.g. `open -a … file.tabletsettings` on a cold start).
             foreach (var arg in System.Environment.GetCommandLineArgs())
