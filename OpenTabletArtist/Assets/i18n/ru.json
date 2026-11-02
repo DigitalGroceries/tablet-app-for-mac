@@ -258,7 +258,7 @@
   "tablet.about.yes": "Да",
   "tablet.about.touch_strips": "Сенсорные полоски",
   "tablet.about.touch_input": "Сенсорный ввод",
-  "tablet.about.supported": "Поддерживается",
+  "tablet.about.touch_not_used": "Обнаружен, пока не используется",
   "tablet.app.add_tip": "Добавить приложение со своими ExpressKeys, сенсорным кольцом и кнопками пера.",
   "tablet.app.remove_tip": "Удалить настройки выбранного приложения.",
   "tablet.app.all_other": "Все остальные",

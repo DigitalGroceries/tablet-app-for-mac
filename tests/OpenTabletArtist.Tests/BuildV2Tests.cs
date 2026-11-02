@@ -80,4 +80,14 @@ public class BuildV2Tests
         Assert.DoesNotContain(f, x => x.Label.Contains("ouse"));
         Assert.Contains(f, x => x.Label == "Tablet buttons" && x.Value == "8");
     }
+
+    [Fact]
+    public void About_features_say_touch_is_detected_but_not_used_yet()
+    {
+        // Discussion #31: "Supported" made users expect finger touch to work as a trackpad.
+        var f = OpenTabletArtist.ViewModels.TabletAboutFacts.BuildFeatures(
+            new OpenTabletArtist.Domain.TabletAboutInfo { HasTouch = true });
+        Assert.Contains(f, x => x.Label == "Touch input" && x.Value == "Detected, not used yet");
+        Assert.DoesNotContain(f, x => x.Value == "Supported");
+    }
 }

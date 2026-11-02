@@ -258,7 +258,7 @@
   "tablet.about.yes": "Yes",
   "tablet.about.touch_strips": "Touch strips",
   "tablet.about.touch_input": "Touch input",
-  "tablet.about.supported": "Supported",
+  "tablet.about.touch_not_used": "Detected, not used yet",
   "tablet.app.add_tip": "Add an application with its own ExpressKeys, Touch Ring and pen bindings.",
   "tablet.app.remove_tip": "Remove the selected application's settings.",
   "tablet.app.all_other": "All other",

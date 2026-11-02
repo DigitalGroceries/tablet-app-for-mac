@@ -258,7 +258,7 @@
   "tablet.about.yes": "あり",
   "tablet.about.touch_strips": "タッチストリップ",
   "tablet.about.touch_input": "タッチ入力",
-  "tablet.about.supported": "対応",
+  "tablet.about.touch_not_used": "検出済み、まだ未使用",
   "tablet.app.add_tip": "独自の ExpressKeys・タッチリング・ペンボタンを持つアプリケーションを追加します。",
   "tablet.app.remove_tip": "選択したアプリケーションの設定を削除します。",
   "tablet.app.all_other": "その他すべて",

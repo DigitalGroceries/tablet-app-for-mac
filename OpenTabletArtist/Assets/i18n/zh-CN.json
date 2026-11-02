@@ -258,7 +258,7 @@
   "tablet.about.yes": "有",
   "tablet.about.touch_strips": "触摸条",
   "tablet.about.touch_input": "触摸输入",
-  "tablet.about.supported": "支持",
+  "tablet.about.touch_not_used": "已检测到，尚未使用",
   "tablet.app.add_tip": "添加具有自己的 ExpressKeys、触摸环和笔按钮的应用程序。",
   "tablet.app.remove_tip": "移除所选应用程序的设置。",
   "tablet.app.all_other": "其他全部",

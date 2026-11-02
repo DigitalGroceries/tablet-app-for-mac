@@ -55,7 +55,7 @@ public static class TabletAboutFacts
         if (a.ExpressKeys is > 0) facts.Add(new(L("tablet.about.tablet_buttons", "Tablet buttons"), a.ExpressKeys!.Value.ToString()));
         if (a.WheelCount > 0) facts.Add(new(L("tablet.about.wheels", "Wheels"), a.WheelCount == 1 ? L("tablet.about.yes", "Yes") : a.WheelCount.ToString()));
         if (a.StripCount > 0) facts.Add(new(L("tablet.about.touch_strips", "Touch strips"), a.StripCount.ToString()));
-        if (a.HasTouch) facts.Add(new(L("tablet.about.touch_input", "Touch input"), L("tablet.about.supported", "Supported")));
+        if (a.HasTouch) facts.Add(new(L("tablet.about.touch_input", "Touch input"), L("tablet.about.touch_not_used", "Detected, not used yet")));
         return facts;
     }
 }
