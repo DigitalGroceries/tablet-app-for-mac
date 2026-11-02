@@ -331,6 +331,9 @@ public static class SettingsBundle
 
     /// <summary>Applies an imported file. Makes an automatic backup first so the import can be undone.
     /// Returns the path of that safety backup.</summary>
+    /// <summary>Test seam: writes the imported app preferences; false = the write failed.</summary>
+    internal static Func<IReadOnlyDictionary<string, string>, bool> WritePreferences = AppSettings.SetMany;
+
     public static string Apply(Bundle b)
     {
         var safety = MakeBackup("before-import");
@@ -343,7 +346,9 @@ public static class SettingsBundle
             foreach (var p in inc.Properties())
                 if (!IsMachineKey(p.Name))
                     values[p.Name] = p.Value.Type == JTokenType.String ? (string)p.Value! : p.Value.ToString(Formatting.None);
-            AppSettings.SetMany(values);
+            // Item 20 (#26): a failed write must not be reported as restored. Stop before the driver files.
+            if (!WritePreferences(values))
+                throw new IOException("Couldn't save the imported app settings.");
         }
         var otd = OtdDataDir();
         Directory.CreateDirectory(otd);

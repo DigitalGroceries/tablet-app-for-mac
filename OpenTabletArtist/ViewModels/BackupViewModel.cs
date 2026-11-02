@@ -167,6 +167,14 @@ public partial class BackupViewModel : ObservableObject
                 "Settings imported. Your previous settings were backed up first ({file}). Quit and reopen the app to finish.")
                 .Replace("{file}", Path.GetFileName(safety)));
         }
+        catch (IOException ex)
+        {
+            // Item 20 (#26): the file was fine; saving it wasn't. Say so, never "imported".
+            AppLog.Warn("Settings import failed.", ex);
+            Say(Localizer.Te("backup.import.write_failed",
+                "The import didn't finish: {error} Your settings may be only partly restored. Try again, or use the automatic backup made just before.")
+                .Replace("{error}", ex.Message), true);
+        }
         catch (Exception ex)
         {
             AppLog.Warn("Settings import failed.", ex);
