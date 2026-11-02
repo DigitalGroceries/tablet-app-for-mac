@@ -1515,6 +1515,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         "CalibrationFilter" => "Calibration",
         "RingGestureGate" => "Ring Gesture Gate",
         "PenScrollFilter" => "Pen scroll",
+        "TouchTrackpadFilter" => "Touch trackpad",
         _ => typeName,
     };
 

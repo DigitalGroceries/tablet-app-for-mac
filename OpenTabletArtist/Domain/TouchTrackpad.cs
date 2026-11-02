@@ -1,0 +1,43 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using OpenTabletDriver.Desktop.Profiles;
+using OpenTabletDriver.Desktop.Reflection;
+
+namespace OpenTabletArtist.Domain;
+
+/// <summary>
+/// Discussion #31 (best attempt): keeps the touch trackpad filter
+/// (<c>OpenTabletArtist.Dynamics.TouchTrackpadFilter</c>) in the profile of tablets where finger touch
+/// should drive the cursor. Only the PTH-651 for now, as that's the tablet we were asked about; others
+/// with touch can be added once someone tests them.
+/// </summary>
+public static class TouchTrackpad
+{
+    public const string FilterTypeName = "OpenTabletArtist.Dynamics.TouchTrackpadFilter";
+
+    public static readonly IReadOnlySet<string> Tablets = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "Wacom PTH-651",
+    };
+
+    public static bool Wanted(Profile profile) => Tablets.Contains(profile.Tablet);
+
+    /// <summary>Adds the filter (enabled, once) to a wanted tablet's profile. Leaves it alone if the user
+    /// switched it off. Never touches other filters. Returns true if it changed anything.</summary>
+    public static bool SyncFilter(Profile profile)
+    {
+        if (profile.Filters == null || !Wanted(profile)) return false;
+        var existing = profile.Filters.OfType<PluginSettingStore>().Where(f => f.Path == FilterTypeName).ToList();
+        if (existing.Count == 0)
+        {
+            var filter = AuxKeyBinding.NewStore(FilterTypeName);
+            filter.Enable = true;
+            profile.Filters.Add(filter);
+            return true;
+        }
+        bool changed = false;
+        foreach (var extra in existing.Skip(1)) { profile.Filters.Remove(extra); changed = true; }
+        return changed;
+    }
+}
