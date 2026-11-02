@@ -11,7 +11,7 @@ public class DonorThanksTests
     [Fact]
     public async Task IsDownloading_OnlyWhileTheDownloadRuns()
     {
-        var s = new AppUpdateState();
+        var s = new AppUpdateState { MinNoteTime = System.TimeSpan.Zero };
         var seen = new List<bool>();
         s.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(AppUpdateState.IsDownloading)) seen.Add(s.IsDownloading); };
         var gate = new TaskCompletionSource<string?>();
@@ -35,4 +35,17 @@ public class DonorThanksTests
 
     static string Root([System.Runtime.CompilerServices.CallerFilePath] string f = "") =>
         System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(f)!, "..", ".."));
+}
+
+public class DonorThanksMinTimeTests
+{
+    [Fact]
+    public async System.Threading.Tasks.Task FastDownload_StillKeepsTheNoteUp()
+    {
+        var s = new AppUpdateState { MinNoteTime = System.TimeSpan.FromMilliseconds(300), Download = _ => System.Threading.Tasks.Task.FromResult<string?>(null) };
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        await s.DownloadWithNoteAsync(new Updater.Release(99, "z", "s"));
+        Assert.True(sw.ElapsedMilliseconds >= 250);
+        Assert.False(s.IsDownloading);
+    }
 }
