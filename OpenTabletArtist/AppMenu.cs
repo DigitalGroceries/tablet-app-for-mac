@@ -37,7 +37,7 @@ public static class AppMenu
         var import = new NativeMenuItem(L("appmenu.import", "Import settings…"));
         import.Click += (_, _) => { if (Ready(out var w, out var m)) _ = ImportAsync(w, m, "app menu"); };
 
-        // Version 22 BETA 3 (Zak): the report sheet, also in the pen menu and the app window.
+        // Version 22 BETA 3 (owner's request): the report sheet, also in the pen menu and the app window.
         var report = new NativeMenuItem(ReportViewModel.MenuLabel);
         report.Click += (_, _) => _ = ReportWindow.OpenAsync("app menu");
 

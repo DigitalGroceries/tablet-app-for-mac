@@ -10,7 +10,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>Version 22 BETA 3 (Zak, 2 Nov 2026): "Report a problem or send a recommendation…" from the app window,
+/// <summary>Version 22 BETA 3 (owner's request, 2 Nov 2026): "Report a problem or send a recommendation…" from the app window,
 /// the pen menu and the app menu. These test the shared sheet's logic: the window picture, extra pictures, the
 /// user's text in the zip and the pre-filled GitHub issue.</summary>
 public class ReportFromThreePlacesTests

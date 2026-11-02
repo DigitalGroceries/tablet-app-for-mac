@@ -17,7 +17,7 @@ using OpenTabletArtist.ViewModels;
 namespace OpenTabletArtist.Views;
 
 /// <summary>
-/// Version 22 BETA 3 (Zak, 2 Nov 2026): the "Report a problem or send a recommendation" sheet. The same sheet opens
+/// Version 22 BETA 3 (owner's request, 2 Nov 2026): the "Report a problem or send a recommendation" sheet. The same sheet opens
 /// from the app window (Home › Feedback, the tablet page's bottom bar), the pen icon menu and the app menu
 /// (top left). It shows inside the main window like every other dialog (Version 19: no popup windows).
 /// </summary>

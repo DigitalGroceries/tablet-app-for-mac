@@ -135,7 +135,7 @@ public sealed class AppTray : IDisposable
         _importItem = new NativeMenuItem(Localizer.Te("appmenu.import", "Import settings…"));
         _importItem.Click += (_, _) => { if (_window.DataContext is ViewModels.MainViewModel m) _ = AppMenu.ImportAsync(_window, m, "pen menu"); };
 
-        // Version 22 BETA 3 (Zak): the report sheet opens in the window, with a picture of the window added.
+        // Version 22 BETA 3 (owner's request): the report sheet opens in the window, with a picture of the window added.
         _reportItem = new NativeMenuItem(ViewModels.ReportViewModel.MenuLabel);
         _reportItem.Click += (_, _) => _ = Views.ReportWindow.OpenAsync("pen menu");
 

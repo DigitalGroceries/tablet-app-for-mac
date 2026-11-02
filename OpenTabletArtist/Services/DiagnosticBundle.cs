@@ -129,7 +129,7 @@ public static class DiagnosticBundle
     /// report.txt; a long text would make the "new issue" link too long for the browser.</summary>
     public const int MaxIssueText = 1500;
 
-    /// <summary>Version 22 BETA 3 (Zak, 2 Nov): the report from the app window, the pen menu and the app menu.
+    /// <summary>Version 22 BETA 3 (owner's request, 2 Nov 2026): the report from the app window, the pen menu and the app menu.
     /// A pre-filled "new issue" page: the user's text, the kind (problem or recommendation) and the versions.
     /// No token in the app: the user's own browser posts it.</summary>
     public static string ReportIssueUrl(string zipName, bool recommendation, string? text, string? daemonVersion,

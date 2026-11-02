@@ -11,7 +11,7 @@ using OpenTabletArtist.Services;
 namespace OpenTabletArtist.ViewModels;
 
 /// <summary>
-/// Version 22 BETA 3 (Zak, 2 Nov 2026): "Report a problem or send a recommendation…", reachable from the app
+/// Version 22 BETA 3 (owner's request, 2 Nov 2026): "Report a problem or send a recommendation…", reachable from the app
 /// window (Home's Feedback link and the tablet page's bottom bar), the pen icon menu and the app menu (top left).
 /// All three open the same sheet in the main window. A picture of the app window, taken just before the sheet
 /// opened, is added unless the user unticks it; "Add screenshots…" adds more pictures. Send makes the usual

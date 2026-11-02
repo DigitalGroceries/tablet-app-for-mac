@@ -101,7 +101,7 @@ public partial class AboutViewModel : ObservableObject
     /// <summary>Raised when User manual should open the in-app manual.</summary>
     public event System.Action? ManualRequested;
 
-    /// <summary>Version 22 BETA 3 (Zak): Feedback opens the in-app report (problem or recommendation, with
+    /// <summary>Version 22 BETA 3 (owner's request): Feedback opens the in-app report (problem or recommendation, with
     /// pictures) instead of the website.</summary>
     public event System.Action? ReportRequested;
     public string ReportTip => ReportViewModel.MenuLabel.TrimEnd('…');

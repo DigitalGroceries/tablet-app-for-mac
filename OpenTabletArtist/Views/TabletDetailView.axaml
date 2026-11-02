@@ -1569,7 +1569,7 @@
                 <!-- Version 5: the bottom About button duplicated the About page and did nothing there; removed. -->
                 <Button x:Name="BtnOptions" Classes="bottomBar" Content="Options…" Click="OnBottomOptions" ToolTip.Tip="More tablet options (calibration, filters, JSON)." />
                 <Button Classes="bottomBar" Content="?" MinWidth="34" Click="OnBottomHelp" ToolTip.Tip="Open the user manual." />
-                <!-- Version 22 BETA 3 (Zak): the report, also in the pen menu and the app menu. -->
+                <!-- Version 22 BETA 3 (owner's request): the report, also in the pen menu and the app menu. -->
                 <Button x:Name="BtnReport" Classes="bottomBar" Click="OnBottomReport" />
             </StackPanel>
         </Border>

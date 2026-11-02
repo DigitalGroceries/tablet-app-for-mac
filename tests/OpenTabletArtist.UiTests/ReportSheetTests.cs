@@ -13,7 +13,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>Version 22 BETA 3 (Zak, 2 Nov 2026): the report sheet that the app window, the pen menu and the app
+/// <summary>Version 22 BETA 3 (owner's request, 2 Nov 2026): the report sheet that the app window, the pen menu and the app
 /// menu all open.</summary>
 public class ReportSheetTests
 {
