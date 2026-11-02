@@ -58,3 +58,27 @@ public class DonorThanksWiredTests
         finally { InWindowSheet.MainOverride = null; mw.Close(); }
     }
 }
+
+public class ThankAfterUpdateSheetTests
+{
+    [AvaloniaFact]
+    public void ThankYou_OpensInTheWindow_WithTheDonorLine()
+    {
+        var mw = new MainWindow { Width = 900, Height = 700 };
+        mw.Show();
+        InWindowSheet.MainOverride = () => mw;
+        try
+        {
+            var w = UpdatePromptWindow.ShowThanks("21 BETA 2");
+            Dispatcher.UIThread.RunJobs();
+            Assert.True(InWindowSheet.IsOpen);
+            var texts = System.Linq.Enumerable.ToList(System.Linq.Enumerable.Select(
+                System.Linq.Enumerable.OfType<Avalonia.Controls.TextBlock>(Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(mw)), t => t.Text));
+            Assert.Contains("We are grateful to all who donated and keep this project alive.", texts);
+            w.Close();
+            Dispatcher.UIThread.RunJobs();
+            Assert.False(InWindowSheet.IsOpen);
+        }
+        finally { InWindowSheet.MainOverride = null; mw.Close(); }
+    }
+}

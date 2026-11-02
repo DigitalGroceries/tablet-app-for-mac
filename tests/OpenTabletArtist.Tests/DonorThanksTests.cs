@@ -49,3 +49,15 @@ public class DonorThanksMinTimeTests
         Assert.False(s.IsDownloading);
     }
 }
+
+/// <summary>The old app does the download, so the new version thanks donors on its first run after an update.</summary>
+public class ThankAfterUpdateTests
+{
+    [Theory]
+    [InlineData("19", "21-beta2", true, true)]       // updated from 19
+    [InlineData("21-beta2", "21-beta2", true, false)] // same version again
+    [InlineData(null, "21-beta2", true, true)]       // no record yet (came from 19/20/21 BETA 1), app used before
+    [InlineData(null, "21-beta2", false, false)]     // first install
+    public void ShowsOnlyAfterAnUpdate(string? last, string current, bool usedBefore, bool expected) =>
+        Assert.Equal(expected, OpenTabletArtist.Views.UpdatePromptWindow.ShouldThankAfterUpdate(last, current, usedBefore));
+}
