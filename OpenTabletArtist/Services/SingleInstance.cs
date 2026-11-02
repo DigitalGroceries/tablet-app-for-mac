@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
@@ -35,6 +38,7 @@ public sealed class SingleInstance : IDisposable
 
     // Linux activation channel: the primary binds/listens on this socket, a second instance connects to it.
     private string? _socketPath;
+    private string[] _documents = Array.Empty<string>();
     private Socket? _listenSocket;
     private Thread? _acceptThread;
 
@@ -53,8 +57,13 @@ public sealed class SingleInstance : IDisposable
     /// normally); false if another instance already holds it (the caller should exit — the existing
     /// instance has been signalled to surface its window). Always true off Windows.
     /// </summary>
-    public bool TryAcquire()
+    public bool TryAcquire() => TryAcquire(null);
+
+    /// <summary>Item 26 (#28): as <see cref="TryAcquire()"/>, but a second copy forwards these document paths
+    /// (e.g. a .tabletsettings file) to the primary instead of dropping them.</summary>
+    public bool TryAcquire(IEnumerable<string>? documents)
     {
+        _documents = documents?.Where(d => !string.IsNullOrWhiteSpace(d)).ToArray() ?? Array.Empty<string>();
         // Version 1: macOS uses the same lock file + socket as Linux, so a second copy (another bundle, a
         // login item pointing elsewhere, a second `open -n`) brings this window forward and quits.
         if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
@@ -120,6 +129,10 @@ public sealed class SingleInstance : IDisposable
         {
             using var client = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
             client.Connect(new UnixDomainSocketEndPoint(_socketPath));
+            // Item 26 (#28): the payload is the document paths, one per line. Empty = just surface the window.
+            if (_documents.Length > 0)
+                client.Send(EncodePaths(_documents));
+            client.Shutdown(SocketShutdown.Send);
         }
         catch { /* primary not listening (yet) — worst case the user surfaces the window themselves */ }
     }
@@ -129,8 +142,13 @@ public sealed class SingleInstance : IDisposable
     /// user relaunched the app). The callback runs on a thread-pool thread, so it must marshal to the
     /// UI thread before touching the window.
     /// </summary>
-    public void ListenForActivation(Action onActivate)
+    public void ListenForActivation(Action onActivate) => ListenForActivation(onActivate, null);
+
+    /// <summary>Item 26 (#28): <paramref name="onDocument"/> runs for each path a second copy forwards
+    /// (thread-pool thread; marshal to the UI thread).</summary>
+    public void ListenForActivation(Action onActivate, Action<string>? onDocument)
     {
+        _onDocument = onDocument;
         if (!IsPrimary) return;
 
         if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
@@ -182,6 +200,7 @@ public sealed class SingleInstance : IDisposable
     // (getsockopt / disconnect / sleep) waiting for that call to return, which froze Quit on the main thread.
     // The loop now polls with a short timeout and checks a stop flag, so Dispose never waits on a blocked call.
     private volatile bool _stopping;
+    private Action<string>? _onDocument;
     internal const int PollMicroseconds = 100_000;
 
     private void AcceptLoop(Socket listener, Action onActivate)
@@ -197,8 +216,33 @@ public sealed class SingleInstance : IDisposable
             }
             catch { break; } // listener disposed on shutdown (or a fatal socket error) — stop listening
             try { onActivate(); } catch { /* activation callback must never kill the loop */ }
+            try
+            {
+                foreach (var path in ReadPaths(client))
+                    try { _onDocument?.Invoke(path); } catch { }
+            }
+            catch { /* a bad payload is just an ordinary nudge */ }
             try { client.Dispose(); } catch { }
         }
+    }
+
+    internal const int MaxPayload = 64 * 1024;
+
+    internal static byte[] EncodePaths(IEnumerable<string> paths) =>
+        Encoding.UTF8.GetBytes(string.Join("\n", paths.Where(p => !p.Contains('\n'))));
+
+    internal static IReadOnlyList<string> DecodePaths(byte[] data, int length) =>
+        Encoding.UTF8.GetString(data, 0, length).Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+    // Reads the (optional) payload with a short timeout, so an old-style pathless nudge never stalls the loop.
+    private static IReadOnlyList<string> ReadPaths(Socket client)
+    {
+        client.ReceiveTimeout = 1000;
+        var buf = new byte[MaxPayload];
+        int total = 0, n;
+        while (total < buf.Length && (n = client.Receive(buf, total, buf.Length - total, SocketFlags.None)) > 0)
+            total += n;
+        return total == 0 ? Array.Empty<string>() : DecodePaths(buf, total);
     }
 
     public void Dispose()
