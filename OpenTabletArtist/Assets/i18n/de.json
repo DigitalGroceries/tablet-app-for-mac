@@ -367,5 +367,19 @@
   "backup.area.app.settings": "Per-application settings",
   "backup.area.appbuttons": "Per-application buttons",
   "backup.area.ring.modes": "Touch Ring modes",
-  "backup.area.ringbackup": "Touch Ring modes (saved copy)"
+  "backup.area.ringbackup": "Touch Ring modes (saved copy)",
+  "report.menu": "Problem melden oder Empfehlung senden…",
+  "report.title": "Problem melden oder Empfehlung senden",
+  "report.kind.problem": "Ein Problem",
+  "report.kind.recommendation": "Eine Empfehlung",
+  "report.text_label": "Was ist passiert, oder was ist deine Idee?",
+  "report.text_hint": "Optional",
+  "report.window_picture": "Dieses Bild des App-Fensters hinzufügen",
+  "report.pictures": "Bilder hinzugefügt: {n}",
+  "report.note": "„Senden“ speichert eine Datei auf deinem Schreibtisch mit deinen Bildern und den Protokollen der App und des Treibers (Seriennummern und dein Benutzername werden entfernt). Dann öffnet es ein neues GitHub-Issue mit deinem Text und zeigt die Datei im Finder: Zieh die Datei in das Issue und klicke auf „Create“. Ein kostenloses GitHub-Konto ist nötig.",
+  "report.failed": "Der Bericht konnte nicht erstellt werden: {error}",
+  "diag.report.screenshots": "Bildschirmfotos hinzufügen…",
+  "diag.report.send": "Senden",
+  "diag.report.cancel": "Abbrechen",
+  "diag.report.sent": "Die GitHub-Issue-Seite ist geöffnet. Zieh die Datei hinein und klicke auf „Create“, um sie zu senden."
 }

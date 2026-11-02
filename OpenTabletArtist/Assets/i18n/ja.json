@@ -367,5 +367,19 @@
   "backup.area.app.settings": "Per-application settings",
   "backup.area.appbuttons": "Per-application buttons",
   "backup.area.ring.modes": "Touch Ring modes",
-  "backup.area.ringbackup": "Touch Ring modes (saved copy)"
+  "backup.area.ringbackup": "Touch Ring modes (saved copy)",
+  "report.menu": "問題を報告、または提案を送信…",
+  "report.title": "問題を報告、または提案を送信",
+  "report.kind.problem": "問題",
+  "report.kind.recommendation": "提案",
+  "report.text_label": "何が起きましたか？ またはどんなアイデアですか？",
+  "report.text_hint": "任意",
+  "report.window_picture": "アプリのウインドウのこの画像を追加",
+  "report.pictures": "追加した画像: {n}",
+  "report.note": "「送信」を押すと、画像とアプリおよびサービスのログを含むファイルがデスクトップに保存されます（シリアル番号とユーザー名は削除されます）。続いて、テキストが入力された新しい GitHub の issue が開き、Finder にファイルが表示されます。ファイルを issue にドラッグして Create を押してください。無料の GitHub アカウントが必要です。",
+  "report.failed": "レポートを作成できませんでした: {error}",
+  "diag.report.screenshots": "スクリーンショットを追加…",
+  "diag.report.send": "送信",
+  "diag.report.cancel": "キャンセル",
+  "diag.report.sent": "GitHub の issue ページを開きました。ファイルをドラッグして Create を押すと送信されます。"
 }

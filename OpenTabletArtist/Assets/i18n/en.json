@@ -380,5 +380,15 @@
   "backup.area.ring.modes": "Touch Ring modes",
   "backup.area.ringbackup": "Touch Ring modes (saved copy)",
   "tablet.about.touch_trackpad_beta": "Touch trackpad (BETA, please test)",
-  "tablet.about.touch_trackpad_switch": "Touch trackpad (BETA)"
+  "tablet.about.touch_trackpad_switch": "Touch trackpad (BETA)",
+  "report.menu": "Report a problem or send a recommendation…",
+  "report.title": "Report a problem or send a recommendation",
+  "report.kind.problem": "A problem",
+  "report.kind.recommendation": "A recommendation",
+  "report.text_label": "What happened, or what is your idea?",
+  "report.text_hint": "Optional",
+  "report.window_picture": "Add this picture of the app window",
+  "report.pictures": "Pictures added: {n}",
+  "report.note": "Send saves one file on your Desktop with your pictures and the app and driver logs (serial numbers and your user name are removed). Then it opens a new GitHub issue with your text filled in and shows the file in Finder: drag the file into the issue and press Create. A free GitHub account is needed.",
+  "report.failed": "Couldn't create the report: {error}"
 }

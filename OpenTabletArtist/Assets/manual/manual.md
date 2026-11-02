@@ -80,7 +80,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 - **Tool**: **Functions** (ExpressKeys, Touch ring), **Pen** (pen, eraser, mapping), a tile for each extra pen, and **More** (about, calibration, hover, filters, json). **+** explains how to add a pen: bring the new pen close to the tablet and the app adds a tile for it. **−** removes the selected extra pen's settings; the main pen can't be removed.
 - **Application**: **All**, or a specific app. **+** adds apps (Command-click to choose several at once). Each added app has its own ExpressKeys, Touch Ring, pen tip and pen button actions. They switch when that app comes to the front, but only once the pen tip is lifted, so a stroke is not interrupted. Mapping and pressure stay the same for every app. **−** removes the selected app's settings; it then uses **All** again.
 - **Refresh** reloads the tablet's settings from the driver.
-- Footer: **Options…** (Settings), **?** (this manual).
+- Footer: **Options…** (Settings), **?** (this manual), **Report a problem or send a recommendation…** (see Report a problem or send a recommendation).
 
 ## Tablet › Pen
 
@@ -187,7 +187,7 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 - **System › Status light** (Intuos4 only): **Light up the status light when the pen touches** is on by default. The tablet's status light stays dim and gets bright while the pen touches, as it did with the Wacom driver. Switch it off for one steady brightness. The setting is sent to the tablet once when it connects, not while you draw.
 - **System › Settings backup**: **Export settings…** saves all your settings in one file: tablets, pens and per-pen settings, presets, applications, Touch Ring modes, calibration and app settings. The suggested name is the tablet model and the date, for example `Intuos4PTK440_30Oct26.tabletsettings` (`TabletApp_30Oct26` when no tablet is connected); you can type another name. Serial numbers and your user name are left out, so you can email the file to someone else or keep it for a new Mac. **Import settings…** opens a file and lists what would change (**New**, **Changed**, **Same**) before anything happens; click **Apply these settings** or **Cancel**. Your current settings are backed up first. Then quit and reopen the app.
 - **Settings files in Finder**: a `.tabletsettings` file shows the app icon on a page. Double-click it to open Tablet App for Mac at **Settings › System** with its Import preview; nothing changes until you click **Apply these settings**.
-- **App menu**: the **Tablet App for Mac** menu at the top left of the screen has **About Tablet App for Mac** (opens Home, with the version and links), **Export settings…** and **Import settings…** (the same as the buttons in Settings › System; results show in the main window). The pen menu in the menu bar has them too.
+- **App menu**: the **Tablet App for Mac** menu at the top left of the screen has **About Tablet App for Mac** (opens Home, with the version and links), **Report a problem or send a recommendation…** (see Report a problem or send a recommendation), **Export settings…** and **Import settings…** (the same as the buttons in Settings › System; results show in the main window). The pen menu in the menu bar has them too.
 - **System › Automatic backups**: when a new version starts for the first time, the app backs up all your settings by itself, and it does the same before every import. The last 5 are kept. **Preview…** shows what bringing one back would change; **Show in Finder** opens the folder.
 - **System › Diagnostic file**: **Create diagnostic file** saves one zip on your Desktop with a summary (app, driver and macOS versions, connected tablets, other tablet drivers found), the app and driver logs and your settings. Serial numbers and your user name are removed. The path shows under the button; attach the zip to a GitHub issue. The same button is on **Advanced › Diagnostics**.
 - **System**: **Start at login**. Switch on **Start automatically when I log in** to have the app start by itself when you log in to your Mac, with only the pen icon in the menu bar. **Open Login Items…** opens the same setting in macOS: System Settings › General › Login Items.
@@ -204,7 +204,25 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 
 ## About and Options
 
-**About** shows the version and links: **Get help** (report a bug, ask a question or send feedback on GitHub), **Supported tablets**, **Source code**, **Releases**, **User manual**, **Credits and licences**, **Feedback**. **Options…** opens Settings.
+**About** shows the version and links: **Get help** (report a bug, ask a question or send feedback on GitHub), **Supported tablets**, **Source code**, **Releases**, **User manual**, **Credits and licences**, **Feedback** (opens Report a problem or send a recommendation, below). **Options…** opens Settings.
+
+## Report a problem or send a recommendation
+
+You can open the same report from three places:
+
+- the app window: **Feedback** on **Home**, or **Report a problem or send a recommendation…** at the bottom of the Tablet page;
+- the pen icon menu in the menu bar (top right);
+- the **Tablet App for Mac** menu (top left).
+
+The report opens inside the app window:
+
+1. Choose **A problem** or **A recommendation**.
+2. Write what happened, or your idea (you can leave it empty).
+3. A picture of the app window, as it was just before the report opened, is added. Untick **Add this picture of the app window** to leave it out. **Add screenshots…** adds more pictures (up to 10 in all).
+4. Press **Send**. The app saves one file on your Desktop with your pictures, your text and the app and driver logs. Serial numbers and your user name are removed. Then it opens a new GitHub issue with your text filled in and shows the file in Finder.
+5. Drag the file into the issue and press **Create**. You need a free GitHub account.
+
+**Cancel** closes the report and sends nothing.
 
 ## Presets and saving
 
@@ -226,6 +244,7 @@ The **driver** is the background part of the app that reads the pen and moves th
 - **Restart Driver** stops the background part and starts it again. Try this first if the pen stops responding.
 - **Stop Driver** stops the background part, so the pen stops working until you start it again. While it is stopped, the menu shows **Start Driver** instead.
 - **Check for updates now** checks for a new version (see Updating).
+- **Report a problem or send a recommendation…** opens the app's window with the report in it (see Report a problem or send a recommendation).
 - **Export settings…** and **Import settings…** open the app at Settings › System and do the same as the buttons there.
 - **Quit** closes the app and removes the pen icon. The background part keeps running, so the pen still works with the settings you saved.
 - **Quit and stop the driver** closes the app and stops the background part too, so the pen stops working until you open the app again.

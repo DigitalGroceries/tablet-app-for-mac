@@ -47,16 +47,21 @@ public partial class DiagnosticsViewModel : ObservableObject, IDisposable
     public string DiagnosticButton => Localizer.Te("diag.zip.button", "Create diagnostic file");
     public string RevealLabel => Localizer.Te("backup.auto.folder", "Show in Finder");
 
+    /// <summary>What a diagnostic file or report needs from the app: the connected tablets, other tablet
+    /// drivers found and the driver version. Also used by the Report sheet (app window, pen menu, app menu).</summary>
+    public (List<string> Devices, IReadOnlyList<string> Conflicts, string? Version) ReportInputs() => (
+        _deviceData?.DetectedTablets.Select(t => $"{t.Name} — area {t.Area}, pressure {t.Pressure}, buttons {t.Buttons}").ToList()
+            ?? new List<string>(),
+        ConflictLabels?.Invoke() ?? Array.Empty<string>(),
+        DaemonVersion?.Invoke());
+
     [RelayCommand]
     private async Task CreateDiagnosticFile()
     {
         DiagnosticStatus = Localizer.Te("diag.zip.working", "Creating…");
         try
         {
-            var devices = _deviceData?.DetectedTablets.Select(t => $"{t.Name} — area {t.Area}, pressure {t.Pressure}, buttons {t.Buttons}").ToList()
-                          ?? new List<string>();
-            var conflicts = ConflictLabels?.Invoke() ?? Array.Empty<string>();
-            var version = DaemonVersion?.Invoke();
+            var (devices, conflicts, version) = ReportInputs();
             var path = await Task.Run(() => DiagnosticBundle.Create(DiagnosticBundle.DefaultFolder(), devices, conflicts, version));
             DiagnosticFilePath = path;
             DiagnosticStatus = Localizer.Te("diag.zip.done", "Saved to:");

@@ -367,5 +367,19 @@
   "backup.area.app.settings": "Per-application settings",
   "backup.area.appbuttons": "Per-application buttons",
   "backup.area.ring.modes": "Touch Ring modes",
-  "backup.area.ringbackup": "Touch Ring modes (saved copy)"
+  "backup.area.ringbackup": "Touch Ring modes (saved copy)",
+  "report.menu": "Сообщить о проблеме или отправить рекомендацию…",
+  "report.title": "Сообщить о проблеме или отправить рекомендацию",
+  "report.kind.problem": "Проблема",
+  "report.kind.recommendation": "Рекомендация",
+  "report.text_label": "Что случилось или какая у вас идея?",
+  "report.text_hint": "Необязательно",
+  "report.window_picture": "Добавить этот снимок окна приложения",
+  "report.pictures": "Добавлено изображений: {n}",
+  "report.note": "«Отправить» сохраняет на Рабочем столе один файл с вашими изображениями и журналами приложения и службы (серийные номера и имя пользователя удаляются). Затем открывается новый issue на GitHub с вашим текстом, а файл показывается в Finder: перетащите файл в issue и нажмите Create. Нужна бесплатная учётная запись GitHub.",
+  "report.failed": "Не удалось создать отчёт: {error}",
+  "diag.report.screenshots": "Добавить снимки экрана…",
+  "diag.report.send": "Отправить",
+  "diag.report.cancel": "Отмена",
+  "diag.report.sent": "Страница issue на GitHub открыта. Перетащите в неё файл и нажмите Create, чтобы отправить."
 }

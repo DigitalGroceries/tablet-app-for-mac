@@ -367,5 +367,19 @@
   "backup.area.app.settings": "Per-application settings",
   "backup.area.appbuttons": "Per-application buttons",
   "backup.area.ring.modes": "Touch Ring modes",
-  "backup.area.ringbackup": "Touch Ring modes (saved copy)"
+  "backup.area.ringbackup": "Touch Ring modes (saved copy)",
+  "report.menu": "Съобщете за проблем или изпратете препоръка…",
+  "report.title": "Съобщете за проблем или изпратете препоръка",
+  "report.kind.problem": "Проблем",
+  "report.kind.recommendation": "Препоръка",
+  "report.text_label": "Какво се случи или каква е идеята ви?",
+  "report.text_hint": "По желание",
+  "report.window_picture": "Добави тази снимка на прозореца на приложението",
+  "report.pictures": "Добавени снимки: {n}",
+  "report.note": "„Изпрати“ записва един файл на работния плот с вашите снимки и логовете на приложението и на услугата (серийните номера и потребителското ви име са премахнати). След това отваря нов GitHub issue с вашия текст и показва файла във Finder: плъзнете файла в issue-то и натиснете Create. Нужен е безплатен акаунт в GitHub.",
+  "report.failed": "Докладът не можа да бъде създаден: {error}",
+  "diag.report.screenshots": "Добави снимки на екрана…",
+  "diag.report.send": "Изпрати",
+  "diag.report.cancel": "Отказ",
+  "diag.report.sent": "Страницата за нов GitHub issue е отворена. Плъзнете файла в нея и натиснете Create, за да го изпратите."
 }

@@ -101,6 +101,14 @@ public partial class AboutViewModel : ObservableObject
     /// <summary>Raised when User manual should open the in-app manual.</summary>
     public event System.Action? ManualRequested;
 
+    /// <summary>Version 22 BETA 3 (Zak): Feedback opens the in-app report (problem or recommendation, with
+    /// pictures) instead of the website.</summary>
+    public event System.Action? ReportRequested;
+    public string ReportTip => ReportViewModel.MenuLabel.TrimEnd('…');
+
+    [RelayCommand]
+    private void OpenReport() => ReportRequested?.Invoke();
+
     [RelayCommand]
     private void OpenHelp() => ManualRequested?.Invoke();   // Version 19 BETA 2: always the offline manual, in the main window
 

@@ -45,6 +45,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         About = new AboutViewModel(dialogs,
             () => TabletsOverview.Tablets.FirstOrDefault(t => t.IsDetected)?.Name);
         About.ManualRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(Views.ManualWindow.ShowManual);
+        About.ReportRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = Views.ReportWindow.OpenAsync("Home"));
         // Version 7: weekly update check at launch (auto: download then OK to install).
         if (System.OperatingSystem.IsMacOS()) Avalonia.Threading.Dispatcher.UIThread.Post(async () => await About.MonthlyCheckAsync());
 
