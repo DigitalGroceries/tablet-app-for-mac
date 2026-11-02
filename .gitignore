@@ -39,3 +39,9 @@ site/_out/
 __pycache__/
 shots/
 shots-before/
+
+# Item 8 (#15): signing keys never belong in the repo.
+*.pem
+*.p12
+*.key
+.signing/

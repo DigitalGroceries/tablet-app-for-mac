@@ -21,7 +21,18 @@ BID=com.freetabletapp.mac
 # designated requirement is "identifier X and certificate root = H\"…\"" instead of the build's cdhash.
 # macOS permissions are tied to that requirement, so they can survive updates. Set SIGN_PEM to override.
 SIGN_PEM=${SIGN_PEM:-$HOME/.signing/tablet-app-stable.pem}
-[ -f "$SIGN_PEM" ] || { echo "Missing signing key $SIGN_PEM (make it once with: rcodesign generate-self-signed-certificate --person-name 'Tablet App for Mac' --validity-days 7300 --pem-filename ~/.signing/tablet-app-stable, then cat the .crt and .key into the .pem)" >&2; exit 1; }
+[ -f "$SIGN_PEM" ] || { echo "Missing signing key $SIGN_PEM (make it once, private to you: umask 077; mkdir -p ~/.signing; rcodesign generate-self-signed-certificate --person-name 'Tablet App for Mac' --validity-days 7300 --pem-filename ~/.signing/tablet-app-stable, then cat the .crt and .key into the .pem and delete the separate .key)" >&2; exit 1; }
+# Item 8 (#15): the .pem holds the private key. Never sign with a key inside the repo, and keep the key and
+# its folder readable by us only (600 / 700), so another account on the build machine can't copy it.
+PEM_REAL=$(readlink -f "$SIGN_PEM")
+case "$PEM_REAL/" in "$ROOT"/*) echo "Signing key $SIGN_PEM is inside the repo; move it outside (e.g. ~/.signing) and never commit it." >&2; exit 1;; esac
+if [ -n "$(find "$PEM_REAL" -perm /077 2>/dev/null)" ]; then
+  chmod 600 "$PEM_REAL" && echo "Signing key was readable by others; tightened to 600: $PEM_REAL" >&2
+fi
+PEM_DIR=$(dirname "$PEM_REAL")
+if [ "$PEM_DIR" != "$HOME" ] && [ -O "$PEM_DIR" ] && [ -n "$(find "$PEM_DIR" -maxdepth 0 -perm /077 2>/dev/null)" ]; then
+  chmod 700 "$PEM_DIR" && echo "Signing key folder was open to others; tightened to 700: $PEM_DIR" >&2
+fi
 export PATH=$HOME/.dotnet:$PATH DOTNET_CLI_TELEMETRY_OPTOUT=1
 mkdir -p "$OUT"
 
