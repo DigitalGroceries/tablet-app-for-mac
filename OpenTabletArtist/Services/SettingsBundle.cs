@@ -262,6 +262,13 @@ public static class SettingsBundle
                 var (area, item, detail) = DescribeAppKey(p.Name);
                 changes.Add(new SettingsChange(area, item, kind, detail));
             }
+            // Item 17 (#26): preferences that exist now but not in the file are removed by the import; show them.
+            foreach (var p in cur.Properties())
+            {
+                if (IsMachineKey(p.Name) || incoming[p.Name] != null) continue;
+                var (area, item, detail) = DescribeAppKey(p.Name);
+                changes.Add(new SettingsChange(area, item, "removed", detail));
+            }
         }
         if (b.Files.TryGetValue("otd-settings.json", out var otdText))
         {
@@ -343,7 +350,8 @@ public static class SettingsBundle
             foreach (var p in inc.Properties())
                 if (!IsMachineKey(p.Name))
                     values[p.Name] = p.Value.Type == JTokenType.String ? (string)p.Value! : p.Value.ToString(Formatting.None);
-            AppSettings.SetMany(values);
+            // Item 17 (#26): replace, don't merge: preferences added after the backup are removed too.
+            AppSettings.ReplaceAll(values, IsMachineKey);
         }
         var otd = OtdDataDir();
         Directory.CreateDirectory(otd);
