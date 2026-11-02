@@ -230,6 +230,10 @@ public partial class StartupViewModel : ObservableObject
         OnPropertyChanged(nameof(OpenLoginItemsLabel));
         OnPropertyChanged(nameof(OpenLoginItemsTip));
         OnPropertyChanged(nameof(LoginUnavailableMessage));
+        // Item 25 (#27): the status light labels follow a language change too.
+        OnPropertyChanged(nameof(StatusLedSectionTitle));
+        OnPropertyChanged(nameof(StatusLedLabel));
+        OnPropertyChanged(nameof(StatusLedDescription));
         RefreshLoginItem();
     }
 }
