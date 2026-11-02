@@ -75,6 +75,48 @@ public static class DiagnosticBundle
         return path;
     }
 
+    /// <summary>Adds user-picked screenshots (images only, max 10, 15 MB each) to an existing zip under screenshots/.
+    /// Returns how many were added.</summary>
+    public static int AddScreenshots(string zipPath, IEnumerable<string> images)
+    {
+        var ok = new[] { ".png", ".jpg", ".jpeg", ".heic", ".gif", ".tiff", ".webp" };
+        int n = 0;
+        using var zip = ZipFile.Open(zipPath, ZipArchiveMode.Update);
+        foreach (var img in images.Take(10))
+        {
+            try
+            {
+                if (!File.Exists(img) || !ok.Contains(Path.GetExtension(img).ToLowerInvariant())) continue;
+                if (new FileInfo(img).Length > 15_000_000) continue;
+                var name = "screenshots/" + (n + 1) + "-" + Path.GetFileName(img);
+                zip.CreateEntryFromFile(img, name, CompressionLevel.Optimal);
+                n++;
+            }
+            catch (Exception ex) { AppLog.Debug($"Diagnostics: couldn't add screenshot {img}", ex); }
+        }
+        return n;
+    }
+
+    public const string IssueRepo = "DigitalGroceries/tablet-app-for-mac";
+
+    /// <summary>Pre-filled "new issue" page for the report (no token in the app: the user's browser posts it).</summary>
+    public static string IssueUrl(string zipName, string? daemonVersion, IEnumerable<string> devices)
+    {
+        var body = new StringBuilder();
+        body.AppendLine("Diagnostic report sent from the Tablet App.");
+        body.AppendLine();
+        body.AppendLine($"- App version: {SettingsBundle.AppVersion}");
+        body.AppendLine($"- Driver: {daemonVersion ?? "not connected"}");
+        foreach (var d in devices) body.AppendLine($"- Tablet: {SettingsBundle.RedactSerialText(d)}");
+        body.AppendLine();
+        body.AppendLine($"**Please drag `{zipName}` (now shown in Finder) into this box, then press Create.**");
+        body.AppendLine();
+        body.AppendLine("What happened (optional):");
+        return $"https://github.com/{IssueRepo}/issues/new?labels=diagnostic&title="
+            + Uri.EscapeDataString("Diagnostic from user — " + SettingsBundle.AppVersion)
+            + "&body=" + Uri.EscapeDataString(body.ToString());
+    }
+
     const long MaxLogBytes = 5_000_000;
 
     static void AddFile(ZipArchive zip, string name, string path, Func<string, string> clean)

@@ -17,6 +17,20 @@
                 <SelectableTextBlock Text="{Binding DiagnosticFilePath}" IsVisible="{Binding HasDiagnosticFile}"
                                      FontFamily="{DynamicResource MonoFontFamily}" TextWrapping="Wrap"
                                      Foreground="{DynamicResource TextSecondaryBrush}" />
+                <Border IsVisible="{Binding IsReportOpen}" Padding="12" CornerRadius="8" BorderThickness="1"
+                        BorderBrush="{DynamicResource TextSecondaryBrush}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding ReportTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ReportSummary}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ReportText}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="AddShotsButton" Content="{Binding AddScreenshotsLabel}" Command="{Binding AddScreenshotsCommand}" />
+                            <Button Content="{Binding CancelLabel}" Command="{Binding CancelReportCommand}" />
+                            <Button Content="{Binding SendLabel}" Command="{Binding SendReportCommand}" Classes="accent" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </c:Section>
 </UserControl>

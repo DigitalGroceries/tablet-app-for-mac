@@ -60,6 +60,9 @@ public partial class DiagnosticsViewModel : ObservableObject, IDisposable
             var path = await Task.Run(() => DiagnosticBundle.Create(DiagnosticBundle.DefaultFolder(), devices, conflicts, version));
             DiagnosticFilePath = path;
             DiagnosticStatus = Localizer.Te("diag.zip.done", "Saved to:");
+            _lastDevices = devices; _lastVersion = version;
+            ReportSummary = $"App {SettingsBundle.AppVersion} · " + (devices.Count == 0 ? "no tablet" : string.Join(", ", devices));
+            IsReportOpen = true;
         }
         catch (Exception ex)
         {
@@ -67,6 +70,50 @@ public partial class DiagnosticsViewModel : ObservableObject, IDisposable
             DiagnosticFilePath = "";
             DiagnosticStatus = Localizer.Te("diag.zip.failed", "Couldn't create the diagnostic file: {error}").Replace("{error}", ex.Message);
         }
+    }
+
+    // ---- Apple crash-report style: after Create, a report panel with Add screenshots / Send / Cancel.
+    [ObservableProperty] private bool _isReportOpen;
+    [ObservableProperty] private string _reportSummary = "";
+    /// <summary>Opens an image picker (set by the view). Null in tests unless supplied.</summary>
+    public Func<Task<IReadOnlyList<string>>>? PickImages { get; set; }
+    /// <summary>Opens a URL (defaults to the browser); swappable for tests.</summary>
+    public Action<string> OpenUrl { get; set; } = PlatformShell.OpenUrl;
+    /// <summary>Reveals a file (defaults to Finder); swappable for tests.</summary>
+    public Action<string> Reveal { get; set; } = PlatformShell.RevealInFileManager;
+    private List<string> _lastDevices = new();
+    private string? _lastVersion;
+    public string ReportTitle => Localizer.Te("diag.report.title", "Send diagnostic report to the team?");
+    public string ReportText => Localizer.Te("diag.report.text", "The report has serial numbers and your user name removed. Send opens a new GitHub issue with the details filled in and shows the file in Finder: drag it into the issue and press Create. Cancel keeps the file on your Desktop and sends nothing.");
+    public string AddScreenshotsLabel => Localizer.Te("diag.report.screenshots", "Add screenshots…");
+    public string SendLabel => Localizer.Te("diag.report.send", "Send");
+    public string CancelLabel => Localizer.Te("diag.report.cancel", "Cancel");
+
+    [RelayCommand]
+    private async Task AddScreenshots()
+    {
+        if (!HasDiagnosticFile || PickImages == null) return;
+        var picked = await PickImages();
+        if (picked.Count == 0) return;
+        var n = await Task.Run(() => DiagnosticBundle.AddScreenshots(DiagnosticFilePath, picked));
+        ReportSummary += "\n" + Localizer.Te("diag.report.added", "Screenshots added: {n}").Replace("{n}", n.ToString());
+    }
+
+    [RelayCommand]
+    private void SendReport()
+    {
+        if (!HasDiagnosticFile) return;
+        OpenUrl(DiagnosticBundle.IssueUrl(System.IO.Path.GetFileName(DiagnosticFilePath), _lastVersion, _lastDevices));
+        Reveal(DiagnosticFilePath);
+        IsReportOpen = false;
+        DiagnosticStatus = Localizer.Te("diag.report.sent", "Opened the GitHub issue page. Drag the file in and press Create to send it.");
+    }
+
+    [RelayCommand]
+    private void CancelReport()
+    {
+        IsReportOpen = false;
+        DiagnosticStatus = Localizer.Te("diag.zip.done", "Saved to:");
     }
 
     [RelayCommand]
