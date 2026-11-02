@@ -126,7 +126,7 @@ public sealed class SetupWindow : Window
             catch (Exception) { /* picture missing: the words still say what to do */ }
         }
         void Row(params Control[] c) { var r = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 }; r.Children.AddRange(c); _body.Children.Add(r); }
-        void Stale(string text) { _staleHint = new TextBlock { Text = text, IsVisible = false, FontSize = 15, TextWrapping = TextWrapping.Wrap }.Fg("WarningBrush"); _body.Children.Add(_staleHint); }
+        void Stale(string text) { _staleHint = new TextBlock { Text = text, IsVisible = false, FontSize = 15, TextWrapping = TextWrapping.Wrap }.Fg("WarningTextBrush"); _body.Children.Add(_staleHint); }
 
         switch (step)
         {
@@ -136,7 +136,7 @@ public sealed class SetupWindow : Window
                 bool hasUtility = WacomDriverCheck.HasUtilityOnThisMac();
                 var removable = WacomDriverCheck.RemovableOnThisMac();
                 _body.Children.Add(Plain(Localizer.T(hasUtility ? "setup.wacom.howto" : "setup.wacom.howto_no_utility")));
-                var wnote = new TextBlock { FontSize = 14, TextWrapping = TextWrapping.Wrap, IsVisible = false }.Fg("WarningBrush");
+                var wnote = new TextBlock { FontSize = 14, TextWrapping = TextWrapping.Wrap, IsVisible = false }.Fg("WarningTextBrush");
                 void DoRemoveLeftovers()
                 {
                     var result = WacomDriverCheck.RemoveRemovableOnThisMac();
