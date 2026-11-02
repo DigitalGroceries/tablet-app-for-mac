@@ -258,7 +258,7 @@
   "tablet.about.yes": "Oui",
   "tablet.about.touch_strips": "Bandes tactiles",
   "tablet.about.touch_input": "Entrée tactile",
-  "tablet.about.touch_not_used": "Détecté, pas encore utilisé",
+  "tablet.about.touch_not_used": "Détectée, pas encore utilisée",
   "tablet.app.add_tip": "Ajouter une application avec ses propres ExpressKeys, Touch Ring et boutons du stylet.",
   "tablet.app.remove_tip": "Supprimer les réglages de l’application sélectionnée.",
   "tablet.app.all_other": "Toutes les autres",
