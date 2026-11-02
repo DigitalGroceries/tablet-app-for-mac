@@ -1,3 +1,4 @@
+using System.Linq;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using OpenTabletArtist.Helpers;
@@ -80,5 +81,35 @@ public class ThankAfterUpdateSheetTests
             Assert.False(InWindowSheet.IsOpen);
         }
         finally { InWindowSheet.MainOverride = null; mw.Close(); }
+    }
+}
+
+/// <summary>Zak (2 Nov mock-ups): the download sheet has no title (only the close button), the thanks large,
+/// bold and centred on top, then the bar, then "Downloading the update…" small and right-aligned.</summary>
+public class DownloadSheetLayoutTests
+{
+    [AvaloniaFact]
+    public void DownloadSheet_HasNoTitle_ThanksFirst_StatusUnderTheBar()
+    {
+        var mw = new MainWindow { Width = 900, Height = 700 };
+        mw.Show();
+        InWindowSheet.MainOverride = () => mw;
+        try
+        {
+            UpdatePromptWindow.SyncDownloadNote(true);
+            Dispatcher.UIThread.RunJobs();
+            var sheet = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(mw)
+                .OfType<Avalonia.Controls.Border>().First(b => b.Name == "Sheet");
+            var texts = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(sheet)
+                .OfType<Avalonia.Controls.TextBlock>().Where(t => !string.IsNullOrEmpty(t.Text) && t.Text != "×" && t.IsEffectivelyVisible).ToList();
+            Assert.True(texts.Count == 2, string.Join(" | ", texts.Select(t => $"[{t.Text}]")));   // no title line
+            Assert.Equal("We are grateful to all who donated and keep this project alive", texts[0].Text);
+            Assert.True(texts[0].FontSize >= 20);
+            Assert.Equal(Avalonia.Media.TextAlignment.Center, texts[0].TextAlignment);
+            Assert.Equal("Downloading the update…", texts[1].Text);
+            Assert.Equal(Avalonia.Layout.HorizontalAlignment.Right, texts[1].HorizontalAlignment);
+            Assert.True(texts[1].FontSize < texts[0].FontSize);
+        }
+        finally { UpdatePromptWindow.SyncDownloadNote(false); Dispatcher.UIThread.RunJobs(); InWindowSheet.MainOverride = null; mw.Close(); }
     }
 }
