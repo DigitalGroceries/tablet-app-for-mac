@@ -71,10 +71,16 @@ public interface IDaemonCapabilities : IDaemonDebugSession, IDaemonLogSource, ID
     /// <c>SendFeatureInit</c> (used for the Intuos4 status LED). False when not connected or it failed.</summary>
     Task<bool> SendFeatureReportAsync(int vendorId, int productId, string usbInterface, byte[] report) =>
         Task.FromResult(false);
+
+    /// <summary>Item 23 (#27): the same report to every matching device (two identical tablets). Defaults
+    /// to the single-device send.</summary>
+    Task<bool> SendFeatureReportToAllAsync(int vendorId, int productId, string usbInterface, byte[] report) =>
+        SendFeatureReportAsync(vendorId, productId, usbInterface, report);
 }
 
 /// <summary>A transport that can send feature reports through the daemon.</summary>
 public interface IDaemonFeatureReports
 {
     Task<bool> SendFeatureReportAsync(int vendorId, int productId, string usbInterface, byte[] report);
+    Task<bool> SendFeatureReportToAllAsync(int vendorId, int productId, string usbInterface, byte[] report);
 }

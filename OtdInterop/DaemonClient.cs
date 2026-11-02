@@ -336,6 +336,22 @@ internal sealed class DaemonClient : IDaemonTransport, IDaemonSettingsChannel, I
         }
     }
 
+    public async Task<bool> SendFeatureReportToAllAsync(int vendorId, int productId, string usbInterface, byte[] report)
+    {
+        if (_rpc is not { IsDisposed: false }) return false;
+        try { return await _rpc.InvokeAsync<int>("SendFeatureInitAll", vendorId, productId, usbInterface, report) > 0; }
+        catch (StreamJsonRpc.RemoteMethodNotFoundException)
+        {
+            // An older daemon: only the first matching device can be reached.
+            return await SendFeatureReportAsync(vendorId, productId, usbInterface, report);
+        }
+        catch (Exception ex)
+        {
+            _log.Debug("Feature report (all devices) through the daemon failed.", ex);
+            return false;
+        }
+    }
+
     private void OnDeviceReport(JObject data)
     {
         DeviceReport?.Invoke(data);

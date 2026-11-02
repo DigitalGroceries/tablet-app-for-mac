@@ -89,6 +89,12 @@ internal sealed class DaemonCapabilities(IDaemonTransport inner, Func<bool> gone
             : f.SendFeatureReportAsync(vendorId, productId, usbInterface, report);
 
     /// <inheritdoc />
+    public Task<bool> SendFeatureReportToAllAsync(int vendorId, int productId, string usbInterface, byte[] report) =>
+        gone() || inner is not IDaemonFeatureReports f
+            ? Task.FromResult(false)
+            : f.SendFeatureReportToAllAsync(vendorId, productId, usbInterface, report);
+
+    /// <inheritdoc />
     public Task<bool> DownloadPluginAsync(PluginMetadata metadata) =>
         gone() ? Task.FromResult(false) : inner.DownloadPluginAsync(metadata);
 

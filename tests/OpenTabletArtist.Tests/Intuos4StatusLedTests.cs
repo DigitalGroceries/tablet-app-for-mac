@@ -38,3 +38,38 @@ public class Intuos4StatusLedTests
         Assert.Null(Intuos4StatusLed.PickInterface(new JArray()));
     }
 }
+
+/// <summary>Item 23 (#27): with two Intuos4 tablets connected, both get the brightness setting.</summary>
+public class Intuos4TwoTabletsTests
+{
+    [Fact]
+    public void TwoSameModels_OneTargetCountingBoth()
+    {
+        var devices = JArray.Parse("""
+        [
+          {"VendorID":1386,"ProductID":184,"FeatureReportLength":33,"DeviceAttributes":{"USB_INTERFACE_NUMBER":"1"}},
+          {"VendorID":1386,"ProductID":184,"FeatureReportLength":33,"DeviceAttributes":{"USB_INTERFACE_NUMBER":"2"}},
+          {"VendorID":1386,"ProductID":184,"FeatureReportLength":33,"DeviceAttributes":{"USB_INTERFACE_NUMBER":"1"}},
+          {"VendorID":1386,"ProductID":184,"FeatureReportLength":33,"DeviceAttributes":{"USB_INTERFACE_NUMBER":"2"}}
+        ]
+        """);
+        var t = Assert.Single(Intuos4StatusLed.PickInterfaces(devices));
+        Assert.Equal((1386, 184, "1", 2), t);
+    }
+
+    [Fact]
+    public void TwoDifferentModels_TwoTargets()
+    {
+        var devices = JArray.Parse("""
+        [
+          {"VendorID":1386,"ProductID":184,"FeatureReportLength":33,"DeviceAttributes":{"USB_INTERFACE_NUMBER":"1"}},
+          {"VendorID":1386,"ProductID":185,"FeatureReportLength":33,"DeviceAttributes":{"USB_INTERFACE_NUMBER":"1"}},
+          {"VendorID":1386,"ProductID":855,"FeatureReportLength":33,"DeviceAttributes":{"USB_INTERFACE_NUMBER":"0"}}
+        ]
+        """);
+        var t = Intuos4StatusLed.PickInterfaces(devices);
+        Assert.Equal(2, t.Count);
+        Assert.Contains((1386, 185, "1", 1), t);
+        Assert.Empty(Intuos4StatusLed.PickInterfaces(new JArray()));
+    }
+}
