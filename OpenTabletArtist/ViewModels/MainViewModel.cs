@@ -180,6 +180,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _dialogs = dialogs;
         _session.ResolveUnsavedChanges = ResolveUnsavedSettingsAsync;
         AppUpdateState.Shared.PrepareForOlderVersion = PrepareRingsForOlderVersionAsync;
+        // Zak (2 Nov): thank donors while an app update downloads.
+        AppUpdateState.Shared.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(AppUpdateState.IsDownloading)) return;
+            var on = AppUpdateState.Shared.IsDownloading;
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => Views.UpdatePromptWindow.SyncDownloadNote(on));
+        };
 
         // Stopping or restarting a daemon this app didn't start asks first (#613, option 2). Wired here
         // rather than injected because DialogService is built FROM the session, so it cannot be a

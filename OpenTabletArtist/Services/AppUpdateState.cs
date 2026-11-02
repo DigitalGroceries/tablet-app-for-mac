@@ -47,6 +47,21 @@ public sealed class AppUpdateState : INotifyPropertyChanged
     public string Status => _status;
     public bool IsBusy => _busy;
 
+    /// <summary>Zak (2 Nov): true while an app update downloads, so the window can show the thank-you note.</summary>
+    public bool IsDownloading => _downloading;
+    bool _downloading;
+
+    /// <summary>Test seam: the download itself.</summary>
+    internal Func<Updater.Release, Task<string?>> Download = Updater.DownloadAsync;
+
+    internal async Task<string?> DownloadWithNoteAsync(Updater.Release r)
+    {
+        _downloading = true;
+        Notify(nameof(IsDownloading));
+        try { return await Download(r); }
+        finally { _downloading = false; Notify(nameof(IsDownloading)); }
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <summary>Checks GitHub; updates the offers and <see cref="Status"/>.</summary>
@@ -100,7 +115,7 @@ public sealed class AppUpdateState : INotifyPropertyChanged
         SetLocalizedStatus("update.downloading");
         try
         {
-            var err = await Updater.DownloadAsync(r);
+            var err = await DownloadWithNoteAsync(r);
             if (err != null) { SetRawStatus(err); return err; }
             SetLocalizedStatus("update.ready_status", ("version", r.Label));
             return null;
@@ -149,7 +164,7 @@ public sealed class AppUpdateState : INotifyPropertyChanged
         try
         {
             AppLog.Info($"Update: installing Version {r.Label}.");
-            var err = await Updater.DownloadAsync(r);
+            var err = await DownloadWithNoteAsync(r);
             if (err == null && RingDowngrade.IsNeededFor(r.Version) && PrepareForOlderVersion is { } prepare)
             {
                 try { await prepare(); }

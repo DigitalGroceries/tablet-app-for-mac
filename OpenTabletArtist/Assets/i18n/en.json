@@ -78,6 +78,7 @@
   "update.available_ask": "Version {version} is available. Update now?",
   "update.latest": "You have the latest version.",
   "update.downloading": "Downloading the update…",
+  "update.donor_thanks": "We are grateful to all who donated and keep this project alive.",
   "update.installing": "Installing…",
   "update.prompt_title": "Update available",
   "update.prompt_heading": "Version {version} is available",
