@@ -80,6 +80,7 @@
   "update.downloading": "Downloading the update…",
   "update.donor_thanks": "We are grateful to all who donated and keep this project alive.",
   "update.thanks_title": "Thank you",
+  "update.installed_title": "Version {version} – installed",
   "update.thanks_ok": "OK",
   "update.installing": "Installing…",
   "update.prompt_title": "Update available",

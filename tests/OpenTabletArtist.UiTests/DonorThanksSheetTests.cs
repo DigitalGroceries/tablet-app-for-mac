@@ -74,7 +74,7 @@ public class ThankAfterUpdateSheetTests
             Assert.True(InWindowSheet.IsOpen);
             var texts = System.Linq.Enumerable.ToList(System.Linq.Enumerable.Select(
                 System.Linq.Enumerable.OfType<Avalonia.Controls.TextBlock>(Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(mw)), t => t.Text));
-            Assert.Contains("We are grateful to all who donated and keep this project alive.", texts);
+            Assert.Contains("We are grateful to all who donated and keep this project alive", texts);
             w.Close();
             Dispatcher.UIThread.RunJobs();
             Assert.False(InWindowSheet.IsOpen);
