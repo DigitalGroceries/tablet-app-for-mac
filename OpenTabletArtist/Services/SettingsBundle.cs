@@ -262,6 +262,13 @@ public static class SettingsBundle
                 var (area, item, detail) = DescribeAppKey(p.Name);
                 changes.Add(new SettingsChange(area, item, kind, detail));
             }
+            // Item 17 (#26): preferences that exist now but not in the file are removed by the import; show them.
+            foreach (var p in cur.Properties())
+            {
+                if (IsMachineKey(p.Name) || incoming[p.Name] != null) continue;
+                var (area, item, detail) = DescribeAppKey(p.Name);
+                changes.Add(new SettingsChange(area, item, "removed", detail));
+            }
         }
         if (b.Files.TryGetValue("otd-settings.json", out var otdText))
         {
@@ -329,10 +336,12 @@ public static class SettingsBundle
         }
     }
 
+    /// <summary>Test seam: replaces the app preferences with the imported ones (keys where keep() is true stay
+    /// as they are); false = the write failed. Defaults to <see cref="AppSettings.ReplaceAll"/> (item 17).</summary>
+    internal static Func<IReadOnlyDictionary<string, string>, Func<string, bool>, bool> WritePreferences = AppSettings.ReplaceAll;
+
     /// <summary>Applies an imported file. Makes an automatic backup first so the import can be undone.
     /// Returns the path of that safety backup.</summary>
-    /// <summary>Test seam: writes the imported app preferences; false = the write failed.</summary>
-    internal static Func<IReadOnlyDictionary<string, string>, bool> WritePreferences = AppSettings.SetMany;
 
     public static string Apply(Bundle b)
     {
@@ -346,8 +355,9 @@ public static class SettingsBundle
             foreach (var p in inc.Properties())
                 if (!IsMachineKey(p.Name))
                     values[p.Name] = p.Value.Type == JTokenType.String ? (string)p.Value! : p.Value.ToString(Formatting.None);
+            // Item 17 (#26): replace, don't merge: preferences added after the backup are removed too.
             // Item 20 (#26): a failed write must not be reported as restored. Stop before the driver files.
-            if (!WritePreferences(values))
+            if (!WritePreferences(values, IsMachineKey))
                 throw new IOException("Couldn't save the imported app settings.");
         }
         var otd = OtdDataDir();

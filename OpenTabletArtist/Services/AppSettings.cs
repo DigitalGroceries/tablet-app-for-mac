@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -62,6 +63,25 @@ public static class AppSettings
         foreach (var (key, value) in values)
             obj[key] = value;
         return Persist(obj);
+    }
+
+    /// <summary>Item 17 (#26): a full restore of the preferences. Every key that <paramref name="keep"/> doesn't
+    /// protect (this Mac's own keys) is replaced by <paramref name="values"/>: keys missing from it are removed,
+    /// so choices made after the backup don't survive the restore. One write. Returns false if the write failed.</summary>
+    public static bool ReplaceAll(IReadOnlyDictionary<string, string> values, Func<string, bool> keep)
+    {
+        var obj = Load();
+        Replace(obj, values, keep);
+        return Persist(obj);
+    }
+
+    /// <summary>Pure part of <see cref="ReplaceAll"/> (unit-tested).</summary>
+    internal static void Replace(JObject obj, IReadOnlyDictionary<string, string> values, Func<string, bool> keep)
+    {
+        foreach (var p in obj.Properties().ToList())
+            if (!keep(p.Name) && !values.ContainsKey(p.Name)) p.Remove();
+        foreach (var (key, value) in values)
+            obj[key] = value;
     }
 
     /// <summary>Removes a key (no-op if absent). Used to clear a snapshot's hotkey mapping (#320).</summary>
