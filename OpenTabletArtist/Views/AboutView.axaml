@@ -34,7 +34,7 @@
     </UserControl.Styles>
     <StackPanel x:Name="HomeLinks" Width="394" HorizontalAlignment="Right" VerticalAlignment="Top">
             <UniformGrid x:Name="LinkGrid" Columns="3" Rows="3" ColumnSpacing="8" RowSpacing="6">
-                <Button x:Name="HelpLink" Command="{Binding OpenHelpCommand}" Classes="homeLink" ToolTip.Tip="{Binding HelpTip}"
+                <Button x:Name="HelpLink" Command="{Binding OpenUrlCommand}" CommandParameter="{Binding HelpUrl}" Classes="homeLink" ToolTip.Tip="{Binding HelpTip}"
                         HorizontalAlignment="Stretch" FontSize="11" Cursor="Hand">
                     <TextBlock Text="{Binding GetHelpLabel}" />
                 </Button>

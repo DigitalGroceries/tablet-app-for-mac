@@ -36,7 +36,7 @@ public sealed class ManualWindow : Window
         Width = 860; Height = 900; MinWidth = 560;
         Title = Services.Localizer.Te("manual.title", "User manual");
         var page = Build(Load(Services.Localizer.ResolvedCode));
-        if (Services.AppLinks.GetHelp is { } url)
+        if (Services.AppLinks.Manual is { } url)
         {
             var online = new Button { Content = Services.Localizer.Te("manual.open_online", "Open online version"), Classes = { "homeLink" },
                 Padding = new Thickness(0), Background = Brushes.Transparent,
