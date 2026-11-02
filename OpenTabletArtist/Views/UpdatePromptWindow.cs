@@ -105,6 +105,34 @@ public static class UpdatePromptWindow
         return done.Task;
     }
 
+    /// <summary>Zak (2 Nov): while an app update downloads, a note in the window under the download status
+    /// thanks everyone who donated. It closes by itself when the download ends.</summary>
+    public const string DonorThanks = "We are grateful to all who donated and keep this project alive.";
+    static Window? _downloadNote;
+
+    public static void SyncDownloadNote(bool downloading)
+    {
+        if (downloading && _downloadNote == null)
+        {
+            var w = NewWindow(Localizer.T("update.downloading"));
+            w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
+                Heading(Localizer.T("update.downloading")),
+                new ProgressBar { IsIndeterminate = true, Height = 4 },
+                new TextBlock { Text = Localizer.Te("update.donor_thanks", DonorThanks), TextWrapping = TextWrapping.Wrap,
+                    FontStyle = FontStyle.Italic }.Fg("TextSecondaryBrush") } };
+            w.Closed += (_, _) => { if (ReferenceEquals(_downloadNote, w)) _downloadNote = null; };
+            _downloadNote = w;
+            OpenTabletArtist.Helpers.InWindowSheet.Show(w);
+        }
+        else if (!downloading && _downloadNote is { } open)
+        {
+            _downloadNote = null;
+            open.Close();
+        }
+    }
+
+    internal static bool DownloadNoteOpen => _downloadNote != null;
+
     static Window NewWindow(string title) => new()
     {
         Title = title, Width = 480, SizeToContent = SizeToContent.Height, CanResize = false,
