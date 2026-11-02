@@ -576,6 +576,14 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                        <!-- Discussion #31: finger touch as a trackpad (PTH-651 only, BETA). -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,4,0,0"
+                              IsVisible="{Binding TouchTrackpadAvailable}">
+                            <TextBlock x:Name="LblTouchTrackpad" Grid.Column="0" Text="Touch trackpad (BETA)"
+                                       VerticalAlignment="Center" TextWrapping="Wrap" />
+                            <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding TouchTrackpadEnabled}" />
+                        </Grid>
                     </StackPanel>
                 </ctrl:Section>
                 </StackPanel>

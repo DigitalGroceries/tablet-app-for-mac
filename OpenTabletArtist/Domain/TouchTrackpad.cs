@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OpenTabletDriver.Desktop;
 using OpenTabletDriver.Desktop.Profiles;
 using OpenTabletDriver.Desktop.Reflection;
 
@@ -39,5 +40,23 @@ public static class TouchTrackpad
         bool changed = false;
         foreach (var extra in existing.Skip(1)) { profile.Filters.Remove(extra); changed = true; }
         return changed;
+    }
+
+    /// <summary>True when finger touch drives the cursor for this profile: a wanted tablet whose filter is
+    /// on (or not written yet, as the next save adds it switched on).</summary>
+    public static bool IsOn(Profile? profile)
+    {
+        if (profile == null || !Wanted(profile)) return false;
+        var store = profile.Filters?.OfType<PluginSettingStore>().FirstOrDefault(f => f.Path == FilterTypeName);
+        return store == null || store.Enable;
+    }
+
+    /// <summary>The tablet page's on/off switch. Mutates <paramref name="settings"/>; no-op for other tablets.</summary>
+    public static void Write(Settings? settings, string tabletName, bool on)
+    {
+        var profile = settings?.Profiles?.FirstOrDefault(p => p.Tablet == tabletName);
+        if (profile?.Filters == null || !Wanted(profile)) return;
+        SyncFilter(profile);
+        foreach (var f in profile.Filters.OfType<PluginSettingStore>().Where(f => f.Path == FilterTypeName)) f.Enable = on;
     }
 }

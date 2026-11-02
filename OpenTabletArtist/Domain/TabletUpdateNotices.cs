@@ -28,6 +28,16 @@ public static class TabletUpdateNotices
                 "What this means for you: if you set up the ExpressKeys on the right side before this update, some of them may now do a different job. On a Cintiq 22HD, the two top keys now work too.",
                 "What to do: open Functions › ExpressKeys, press each key and check what it does. Change any that are wrong, then click Save.",
             ]),
+        new TabletUpdateNotice(
+            "pth651-touch-trackpad-wireless",
+            ["Wacom PTH-651"],
+            "Finger touch now works as a trackpad (BETA, please test)",
+            [
+                "This version turns on finger touch for your {tablet}: one finger moves the pointer like a trackpad, two fingers scroll. Touch is ignored while the pen is near the tablet.",
+                "What to do: try it with one and two fingers. To switch it off, open TABLET, click the ABOUT tab and turn off Touch trackpad under Features.",
+                "Wireless kit: this version also tries to recognise the Wacom wireless receiver. Wireless: PTH-651 only, untested. If the tablet doesn't appear over wireless, please keep using the USB cable.",
+                "We don't have this tablet or the wireless kit, so please tell us how it goes in Discussion #31 on GitHub.",
+            ]),
     ];
 
     public static string DismissedKey(string id) => DismissedKeyPrefix + id;
