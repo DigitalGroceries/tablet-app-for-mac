@@ -1134,6 +1134,8 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
                 PresetDirectory = appInfo.PresetDirectory ?? "";
                 PluginDirectory = appInfo.PluginDirectory ?? "";
                 ConfigurationDirectory = appInfo.ConfigurationDirectory ?? "";   // authoritative override folder (#480/#467)
+                // Item 16 (#26): backups export/import the daemon's own data folder, not this process's default.
+                SettingsBundle.DaemonSettingsFile = appInfo.SettingsFile;
             }
 
             // Best-effort history, deliberately AFTER every essential read (#735). SetMany never throws
