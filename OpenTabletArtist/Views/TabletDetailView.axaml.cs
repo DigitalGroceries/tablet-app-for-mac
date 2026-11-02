@@ -104,6 +104,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
 
         if (LblModel != null) LblModel.Text = Localizer.T("tablet.about.model");
         if (LblFeatures != null) LblFeatures.Text = Localizer.T("tablet.about.features");
+        if (LblTouchTrackpad != null) LblTouchTrackpad.Text = Localizer.Te("tablet.about.touch_trackpad_switch", "Touch trackpad (BETA)");
 
         if (LblScreenArea != null) LblScreenArea.Text = Localizer.T("tablet.mapping.screen_area");
         if (BtnAllDisplays != null) BtnAllDisplays.Content = Localizer.T("tablet.mapping.all_displays");

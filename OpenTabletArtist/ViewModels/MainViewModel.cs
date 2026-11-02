@@ -355,6 +355,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _session.DataLoaded += ReconcileOpenTabletDetails;
         // Update notices for the connected tablets (shown in the window until dismissed).
         _session.DataLoaded += RefreshTabletNotices;
+        // PR #38 item 6: a PTH-651 gets its touch trackpad filter live straight after the update.
+        _session.DataLoaded += () => Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+        {
+            try { await AutoApplyTouchTrackpadAsync(); }
+            catch (Exception ex) { AppLog.Warn("Couldn't switch on the touch trackpad.", ex); }
+        });
         _session.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(IDeviceData.DetectedTablets) or nameof(AppSession.Ownership)) RefreshTabletNotices();
@@ -682,6 +688,29 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private bool _prompting;
+    private bool _touchAutoApplying;
+
+    /// <summary>PR #38 item 6: when a connected PTH-651's profile has no touch trackpad filter yet, add it and
+    /// apply once, so touch works without the user changing another setting first. Saved too, unless the
+    /// user already had unsaved edits (then it is applied now and saved with their next save). Only for the
+    /// app's own daemon. Runs on each load but does nothing once the filter is there.</summary>
+    private async Task AutoApplyTouchTrackpadAsync()
+    {
+        if (_touchAutoApplying || !_session.IsAppOwnedDaemon || _session.SettingsBusy) return;
+        var connected = _session.DetectedTablets.Select(t => t.Name).ToList();
+        if (_session.CurrentSettings is not { } settings || !Domain.TouchTrackpad.NeedsAutoAdd(settings, connected)) return;
+        _touchAutoApplying = true;
+        try
+        {
+            bool hadUnsaved = _session.HasUnsavedChanges;
+            if (PerAppBindingRuntime.Shared?.AppliedBundleId != null) await PerAppBindingRuntime.Shared.EnsureAllOnDaemonAsync();
+            if (_session.CurrentSettings is not { } fresh || !Domain.TouchTrackpad.AutoAdd(fresh, connected)) return;
+            await _session.ApplySettingsAsync(fresh);
+            if (!hadUnsaved) await _session.SaveSettingsAsync();
+            AppLog.Info("Touch trackpad switched on for a connected PTH-651 (Discussion #31, BETA).");
+        }
+        finally { _touchAutoApplying = false; }
+    }
 
     /// <summary>Version 16 BETA 3: before going back to Version 15 or earlier, put every ring-mode table in the
     /// layout that version reads (see <see cref="RingDowngrade"/>) and save it.</summary>

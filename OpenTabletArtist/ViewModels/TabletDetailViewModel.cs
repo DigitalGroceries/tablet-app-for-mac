@@ -976,7 +976,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var info = _deviceData != null ? TabletAboutInfo.From(_deviceData.Tablets, TabletName) : null;
         TabletFacts = info != null ? TabletAboutFacts.BuildFacts(info) : System.Array.Empty<TabletFact>();
         ActiveAreaFacts = info != null ? TabletAboutFacts.BuildActiveAreaFacts(info) : System.Array.Empty<TabletFact>();
-        TabletFeatures = info != null ? TabletAboutFacts.BuildFeatures(info) : System.Array.Empty<TabletFact>();
+        TabletFeatures = info != null ? TabletAboutFacts.BuildFeatures(info, TouchTrackpadEnabled) : System.Array.Empty<TabletFact>();
         SetAboutDiagram(info);
     }
 
@@ -1482,6 +1482,13 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _skipHoverPersist = false;
         CanEditHover = _applyAction != null;
 
+        // Discussion #31: touch trackpad switch (PTH-651 only) — load without triggering a persist.
+        _skipTouchPersist = true;
+        TouchTrackpadAvailable = Domain.TouchTrackpad.Wanted(_profile);
+        TouchTrackpadEnabled = Domain.TouchTrackpad.IsOn(_profile,
+            _deviceData is not Services.IConnectionState c || c.IsAppOwnedDaemon);
+        _skipTouchPersist = false;
+
         RefreshCalibrationStatus();
     }
 
@@ -1515,6 +1522,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         "CalibrationFilter" => "Calibration",
         "RingGestureGate" => "Ring Gesture Gate",
         "PenScrollFilter" => "Pen scroll",
+        "TouchTrackpadFilter" => "Touch trackpad",
         _ => typeName,
     };
 
@@ -2822,6 +2830,28 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", dynamics, enable: true);
         // The write mutated _profile.Filters (added/enabled/disabled the DynamicsFilter); reflect that
         // in the Filters tab and JSON view immediately rather than waiting for a manual Refresh.
+        UpdateFiltersDisplay();
+        TakeOutcome(await SubmitAsync(_settings), draft);
+    }
+
+    // ── Touch trackpad (Discussion #31, BETA) ──────────────────
+
+    [ObservableProperty] private bool _touchTrackpadAvailable;
+    [ObservableProperty] private bool _touchTrackpadEnabled;
+    private bool _skipTouchPersist;
+
+    partial void OnTouchTrackpadEnabledChanged(bool value)
+    {
+        RefreshAbout();
+        if (_skipTouchPersist || _applyAction == null || _settings == null) return;
+        _ = PersistTouchTrackpadAsync(value);
+    }
+
+    private async Task PersistTouchTrackpadAsync(bool on)
+    {
+        if (_settings == null) return;
+        var draft = _draftGeneration;
+        Domain.TouchTrackpad.Write(_settings, _profile.Tablet ?? "", on);
         UpdateFiltersDisplay();
         TakeOutcome(await SubmitAsync(_settings), draft);
     }

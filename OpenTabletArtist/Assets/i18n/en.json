@@ -367,5 +367,7 @@
   "backup.area.app.settings": "Per-application settings",
   "backup.area.appbuttons": "Per-application buttons",
   "backup.area.ring.modes": "Touch Ring modes",
-  "backup.area.ringbackup": "Touch Ring modes (saved copy)"
+  "backup.area.ringbackup": "Touch Ring modes (saved copy)",
+  "tablet.about.touch_trackpad_beta": "Touch trackpad (BETA, please test)",
+  "tablet.about.touch_trackpad_switch": "Touch trackpad (BETA)"
 }
