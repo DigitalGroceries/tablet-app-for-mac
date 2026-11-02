@@ -133,6 +133,17 @@ public static class UpdatePromptWindow
 
     internal static bool DownloadNoteOpen => _downloadNote != null;
 
+    /// <summary>Shows the note whenever <paramref name="state"/> downloads (any update path: Update now, Try BETA,
+    /// Go back, pen menu, automatic).</summary>
+    public static void WireDownloadNote(AppUpdateState state) =>
+        state.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(AppUpdateState.IsDownloading)) return;
+            var on = state.IsDownloading;
+            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess()) SyncDownloadNote(on);
+            else Avalonia.Threading.Dispatcher.UIThread.Post(() => SyncDownloadNote(on));
+        };
+
     static Window NewWindow(string title) => new()
     {
         Title = title, Width = 480, SizeToContent = SizeToContent.Height, CanResize = false,

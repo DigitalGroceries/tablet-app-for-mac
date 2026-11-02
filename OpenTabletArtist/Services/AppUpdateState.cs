@@ -51,6 +51,9 @@ public sealed class AppUpdateState : INotifyPropertyChanged
     public bool IsDownloading => _downloading;
     bool _downloading;
 
+    /// <summary>The shortest time the thank-you note stays up after a successful download.</summary>
+    internal TimeSpan MinNoteTime = TimeSpan.FromSeconds(3);
+
     /// <summary>Test seam: the download itself.</summary>
     internal Func<Updater.Release, Task<string?>> Download = Updater.DownloadAsync;
 
@@ -58,7 +61,16 @@ public sealed class AppUpdateState : INotifyPropertyChanged
     {
         _downloading = true;
         Notify(nameof(IsDownloading));
-        try { return await Download(r); }
+        var started = DateTime.UtcNow;
+        try
+        {
+            var err = await Download(r);
+            // A fast download (or one that installs and quits straight after) must still leave the thank-you
+            // note on screen long enough to read.
+            var left = MinNoteTime - (DateTime.UtcNow - started);
+            if (err == null && left > TimeSpan.Zero) await Task.Delay(left);
+            return err;
+        }
         finally { _downloading = false; Notify(nameof(IsDownloading)); }
     }
 
