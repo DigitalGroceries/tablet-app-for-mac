@@ -27,7 +27,10 @@ public static class InWindowSheet
     internal static Func<MainWindow?>? MainOverride;
 
     static MainWindow? Main() => MainOverride?.Invoke() ??
-        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow as MainWindow;
+        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow as MainWindow
+        // Item 28: after a quiet login start desktop.MainWindow is still unset, but the window exists. Use it,
+        // so setup and the manual open inside it rather than as their own windows.
+        ?? AppMenu.Window;
 
     static Panel? Host(MainWindow? mw) => mw?.FindControl<Panel>(HostName);
 
@@ -58,7 +61,9 @@ public static class InWindowSheet
     static Task Attach(Window dialog, MainWindow mw, Panel host)
     {
         var done = new TaskCompletionSource();
-        if (!mw.IsVisible) mw.Show();
+        // Item 28: BringToFront (not a bare Show) so a hidden window after a quiet login gets its Dock icon and
+        // becomes desktop.MainWindow too.
+        if (!mw.IsVisible) mw.BringToFront("in-window sheet opened", byUser: true);
         mw.Activate();
 
         var content = dialog.Content as Control ?? new TextBlock { Text = dialog.Content?.ToString() ?? "" };
