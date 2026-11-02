@@ -733,6 +733,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// DataLoaded, which runs <see cref="ReconcileOpenTabletDetails"/>.</summary>
     public void OnWindowActivated()
     {
+        // Item 7 (#15): coming back from System Settings, Home drops the Reset permissions card at once.
+        Dashboard.RecheckAccessibility();
         if (!_session.IsConnected) return;
         var now = Environment.TickCount64;
         if (now - _lastActivationReloadTick < 750) return;
@@ -742,6 +744,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnCurrentPageChanged(ObservableObject? oldValue, ObservableObject? newValue)
     {
+        // Item 7 (#15): Home re-reads the permissions each time it's shown.
+        if (newValue is DashboardViewModel home) home.RecheckAccessibility();
+
         // Stop the debug stream when leaving the ADVANCED tabbed page (which hosts Diagnostics).
         // The tabbed-page view also stops it on tab-switch; this covers navigating away entirely.
         if (ReferenceEquals(oldValue, Advanced) && !ReferenceEquals(newValue, Advanced))

@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -31,6 +32,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         Action? openConfigs = null)
     {
         _session = session;
+        Avalonia.Threading.Dispatcher.UIThread.Post(UpdatePermissionPoll);
         Daemon = daemon;
         _dialogs = dialogs;
         _navigateToTablet = navigateToTablet;
@@ -211,11 +213,43 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         Services.PlatformShell.OpenAccessibilitySettings();
     }
 
-    /// <summary>Re-checks the Accessibility grant (called when Home is shown).</summary>
+    /// <summary>Re-checks both grants. Item 7 (#15): nothing used to call this, so Home kept the Reset
+    /// permissions card from start-up even after setup was done. Now called when Home is shown, when the
+    /// window becomes active, and every few seconds while a permission is still missing.</summary>
     public void RecheckAccessibility()
     {
-        AccessibilityMissing = !Services.MacAccessibility.IsTrusted();
-        PermissionsMissing = AccessibilityMissing || !Services.MacAccessibility.CanReadPen();
+        var (accessibilityMissing, permissionsMissing) = EvaluatePermissions(
+            Services.MacAccessibility.IsTrusted(), Services.MacAccessibility.CanReadPen());
+        AccessibilityMissing = accessibilityMissing;
+        PermissionsMissing = permissionsMissing;
+    }
+
+    /// <summary>Pure: which Home cards a pair of grants calls for.</summary>
+    public static (bool AccessibilityMissing, bool PermissionsMissing) EvaluatePermissions(bool trusted, bool canReadPen)
+        => (!trusted, !trusted || !canReadPen);
+
+    /// <summary>Pure: the permissions card shows while a grant is missing, or always when running from the
+    /// disk image (by design: permissions won't stick there).</summary>
+    public static bool PermissionsCardVisible(bool permissionsMissing, bool runningFromDiskImage)
+        => permissionsMissing || runningFromDiskImage;
+
+    private Avalonia.Threading.DispatcherTimer? _permissionPoll;
+
+    /// <summary>Polls the grants every 2 s while one is missing, so the card goes once setup is done;
+    /// stops by itself when both are there.</summary>
+    private void UpdatePermissionPoll()
+    {
+        if (!OperatingSystem.IsMacOS()) return;
+        if (PermissionsMissing)
+        {
+            if (_permissionPoll == null)
+            {
+                _permissionPoll = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+                _permissionPoll.Tick += (_, _) => RecheckAccessibility();
+            }
+            _permissionPoll.Start();
+        }
+        else _permissionPoll?.Stop();
     }
 
     /// <summary>Issue #14: either permission is missing, so Home offers "Reset permissions".</summary>
@@ -224,8 +258,13 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     /// <summary>Running from the disk image or a translocated copy: permissions will not stick.</summary>
     public bool RunningFromDiskImage { get; } = Services.PermissionReset.IsRunningFromDiskImageOrTranslocated();
-    public bool ShowPermissionsCard => PermissionsMissing || RunningFromDiskImage;
-    partial void OnPermissionsMissingChanged(bool value) => OnPropertyChanged(nameof(ShowPermissionsCard));
+    public bool ShowPermissionsCard => PermissionsCardVisible(PermissionsMissing, RunningFromDiskImage);
+    partial void OnPermissionsMissingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowPermissionsCard));
+        if (!value) PermissionsResetStatus = "";
+        UpdatePermissionPoll();
+    }
 
     public string PermissionsResetBody => Services.Localizer.Te("home.perm_reset.body",
         "If the permission switches turn themselves off, macOS is still holding the entries for an older version. Reset them, then add this version again.");
@@ -269,6 +308,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _permissionPoll?.Stop();
         _session.PropertyChanged -= OnSessionPropertyChanged;
         Health.PropertyChanged -= OnAttentionSourceChanged;
         Daemon.PropertyChanged -= OnAttentionSourceChanged;
