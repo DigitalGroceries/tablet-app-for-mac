@@ -77,6 +77,19 @@ public class BuildPTests
     }
 
     [Fact]
+    public void StatusLightLabels_RefreshOnLanguageChange()   // item 25 (#27)
+    {
+        var (c, _, _) = Make();
+        var vm = new StartupViewModel(c);
+        var changed = new System.Collections.Generic.List<string?>();
+        vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+        vm.RefreshLocalized();
+        Assert.Contains(nameof(StartupViewModel.StatusLedSectionTitle), changed);
+        Assert.Contains(nameof(StartupViewModel.StatusLedLabel), changed);
+        Assert.Contains(nameof(StartupViewModel.StatusLedDescription), changed);
+    }
+
+    [Fact]
     public void Toggle_FollowsRealState_WhenRemovedInSystemSettings()
     {
         var (c, f, store) = Make();
