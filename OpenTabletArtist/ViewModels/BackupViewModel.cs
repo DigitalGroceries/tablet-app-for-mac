@@ -23,12 +23,22 @@ public partial class BackupViewModel : ObservableObject
 {
     private readonly Func<string?> _tabletName;
     private readonly Func<Task>? _reloadDriver;
+    private readonly Func<Task<bool>>? _resolveUnsaved;
     private SettingsBundle.Bundle? _pending;
 
-    public BackupViewModel(Func<string?>? tabletName = null, Func<Task>? reloadDriver = null)
+    /// <summary>Tests: stands in for <see cref="SettingsBundle.Apply"/> (returns the safety backup path).</summary>
+    internal Func<SettingsBundle.Bundle, string>? ApplyOverride { get; set; }
+    /// <summary>Tests: the import waiting for Apply.</summary>
+    internal SettingsBundle.Bundle? Pending { get => _pending; set => _pending = value; }
+
+    /// <param name="resolveUnsaved">Item 15 (#26): asks about unsaved driver edits BEFORE the import is written,
+    /// and leaves none behind (saved or thrown away). False = the user cancelled, so nothing is imported.</param>
+    public BackupViewModel(Func<string?>? tabletName = null, Func<Task>? reloadDriver = null,
+        Func<Task<bool>>? resolveUnsaved = null)
     {
         _tabletName = tabletName ?? (() => null);
         _reloadDriver = reloadDriver;
+        _resolveUnsaved = resolveUnsaved;
         RefreshAutoBackups();
     }
 
@@ -157,9 +167,16 @@ public partial class BackupViewModel : ObservableObject
     private async Task ApplyImport()
     {
         if (_pending == null) return;
+        // Item 15 (#26): unsaved edits are dealt with first. Otherwise the restart below asks about them after
+        // the import was written, and Save put the old settings back over the imported ones.
+        if (_resolveUnsaved != null && !await _resolveUnsaved())
+        {
+            Say(L("backup.import.cancelled", "Import cancelled. Nothing was changed."));
+            return;
+        }
         try
         {
-            var safety = SettingsBundle.Apply(_pending);
+            var safety = ApplyOverride != null ? ApplyOverride(_pending) : SettingsBundle.Apply(_pending);
             _pending = null;
             HasPreview = false;
             RefreshAutoBackups();

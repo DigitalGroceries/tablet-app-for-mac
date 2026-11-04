@@ -315,7 +315,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _statusLed = new Intuos4StatusLed(_session.Daemon, _session);
         Startup.StatusLedChanged = _statusLed.SettingChangedAsync;
         Startup.Backup = new BackupViewModel(() => _session.ActiveTabletName,
-            async () => { if (_session.IsConnected) await _session.RestartDaemonCommand.ExecuteAsync(null); });
+            async () => { if (_session.IsConnected) await _session.RestartDaemonCommand.ExecuteAsync(null); },
+            ResolveUnsavedBeforeImportAsync);
         Diagnostics.ConflictLabels = () => _conflicts.Drivers.Select(d => d.Name).ToList();
         Diagnostics.DaemonVersion = () => _session.DaemonVersion;
         Startup.Backup.Diagnostics = Diagnostics;
@@ -738,6 +739,16 @@ public partial class MainViewModel : ObservableObject, IDisposable
         Services.UnsavedSnapshot.Delete(_session.SnapshotDirectory);   // R11: discarded
         ResetEditorInput();
         return true;
+    }
+
+    /// <summary>Item 15 (#26): before an import writes the driver settings, the user saves or throws away their
+    /// unsaved edits. A throw-away also reloads the driver's settings, so no unsaved edits are left for the
+    /// restart to offer to save over the import. False = cancelled (or edits still pending): don't import.</summary>
+    private async Task<bool> ResolveUnsavedBeforeImportAsync()
+    {
+        if (!await ResolveUnsavedSettingsAsync()) return false;
+        if (_session.HasUnsavedChanges && _session.IsConnected) await _session.ReloadSettingsAsync();
+        return !_session.HasUnsavedChanges;
     }
 
     /// <summary>Version 2: the quit prompt. Never blocks on the daemon and always lets the quit finish.</summary>
