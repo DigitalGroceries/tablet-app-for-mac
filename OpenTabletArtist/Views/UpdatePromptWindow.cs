@@ -117,10 +117,10 @@ public static class UpdatePromptWindow
         {
             var w = NewWindow(Localizer.T("update.downloading"));
             w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
-                Heading(Localizer.T("update.downloading")),
+                Gratitude(),
                 new ProgressBar { IsIndeterminate = true, Height = 4 },
-                new TextBlock { Text = Localizer.Te("update.donor_thanks", DonorThanks), TextWrapping = TextWrapping.Wrap,
-                    FontStyle = FontStyle.Italic }.Fg("TextSecondaryBrush") } };
+                new TextBlock { Text = Localizer.T("update.downloading"), FontWeight = FontWeight.SemiBold,
+                    HorizontalAlignment = HorizontalAlignment.Right }.Fg("TextSecondaryBrush") } };
             w.Closed += (_, _) => { if (ReferenceEquals(_downloadNote, w)) _downloadNote = null; };
             _downloadNote = w;
             OpenTabletArtist.Helpers.InWindowSheet.Show(w);
@@ -163,14 +163,12 @@ public static class UpdatePromptWindow
 
     internal static Window ShowThanks(string label)
     {
-        var w = NewWindow(Localizer.Te("update.thanks_title", "Thank you"));
+        var w = NewWindow(Localizer.Te("update.installed_title", "Version {version} – installed").Replace("{version}", label));
         var ok = new Button { Content = Localizer.Te("update.thanks_ok", "OK"), Padding = new Thickness(16, 8), IsDefault = true,
             HorizontalAlignment = HorizontalAlignment.Right };
         ok.Click += (_, _) => w.Close();
         w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
-            Heading(Localizer.Tf("home.version", ("version", label))),
-            new TextBlock { Text = Localizer.Te("update.donor_thanks", DonorThanks), TextWrapping = TextWrapping.Wrap,
-                FontStyle = FontStyle.Italic }.Fg("TextSecondaryBrush"),
+            Gratitude(),
             ok } };
         OpenTabletArtist.Helpers.InWindowSheet.Show(w);
         return w;
@@ -192,6 +190,14 @@ public static class UpdatePromptWindow
         Title = title, Width = 480, SizeToContent = SizeToContent.Height, CanResize = false,
         WindowStartupLocation = WindowStartupLocation.CenterScreen
     };
+
+    /// <summary>Zak (2 Nov mock-ups): the thanks is the main message, large and centred, shown once.</summary>
+    static TextBlock Gratitude() => new TextBlock
+    {
+        Text = Localizer.Te("update.donor_thanks", DonorThanks).TrimEnd('.'), FontSize = 22, FontWeight = FontWeight.Bold,
+        TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center,
+        MaxWidth = 380
+    }.Fg("TextPrimaryBrush");
 
     static TextBlock Heading(string text) => new TextBlock
     {
