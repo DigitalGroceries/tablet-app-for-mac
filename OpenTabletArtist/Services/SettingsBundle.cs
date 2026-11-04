@@ -450,12 +450,11 @@ public static class SettingsBundle
         }
         foreach (var (name, text) in b.Files)
         {
-            string? dest = name.StartsWith("presets/") ? Path.Combine(otd, "Presets", name["presets/".Length..])
-                : name.StartsWith("configurations/") ? Path.Combine(otd, "Configurations", name["configurations/".Length..])
+            // Item 22 (#26): a crafted file must not write outside Presets/ or Configurations/.
+            var full = name.StartsWith("presets/") ? SafeDestination(Path.Combine(otd, "Presets"), name["presets/".Length..])
+                : name.StartsWith("configurations/") ? SafeDestination(Path.Combine(otd, "Configurations"), name["configurations/".Length..])
                 : null;
-            if (dest == null) continue;
-            var full = Path.GetFullPath(dest);
-            if (!full.StartsWith(Path.GetFullPath(otd), StringComparison.Ordinal)) continue;
+            if (full == null) continue;
             Directory.CreateDirectory(Path.GetDirectoryName(full)!);
             WriteAtomic(full, Local(text));
         }
@@ -483,6 +482,27 @@ public static class SettingsBundle
             else local = current.SelectToken(p.Path);
             p.Value = local?.DeepClone() ?? JValue.CreateNull();
         }
+    }
+
+    /// <summary>Item 22 (#26): where an imported file may be written, or null when it would land anywhere but
+    /// inside <paramref name="folder"/>: absolute names, ".." steps, backslashes, empty names, non-.json files,
+    /// a sibling folder whose name merely starts the same ("Presets-evil"), or a path through a symbolic link.</summary>
+    internal static string? SafeDestination(string folder, string relative)
+    {
+        if (string.IsNullOrWhiteSpace(relative) || relative.Contains('\\') || relative.Contains('\0')
+            || Path.IsPathRooted(relative) || relative.StartsWith('~')
+            || !relative.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            return null;
+        var parts = relative.Split('/');
+        if (parts.Any(p => p.Length == 0 || p == "." || p == "..")) return null;
+        var root = Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var full = Path.GetFullPath(Path.Combine(root, relative));
+        if (!full.StartsWith(root, StringComparison.Ordinal)) return null;
+        // No symbolic links on the way (they could point anywhere).
+        for (var d = new DirectoryInfo(Path.GetDirectoryName(full)!); d != null && d.FullName.Length > root.Length - 1; d = d.Parent)
+            if (d.Exists && d.LinkTarget != null) return null;
+        if (File.Exists(full) && new FileInfo(full).LinkTarget != null) return null;
+        return full;
     }
 
     static void WriteAtomic(string path, string text)
