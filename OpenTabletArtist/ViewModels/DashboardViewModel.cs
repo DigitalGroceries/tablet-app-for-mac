@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -236,14 +237,17 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] private string _permissionsResetStatus = "";
 
+    /// <summary>Item 5 / #15: async, so Home doesn't freeze while tccutil runs; the button is disabled
+    /// until it finishes (AsyncRelayCommand doesn't run twice at once).</summary>
     [RelayCommand]
-    private void ResetPermissions()
+    private async Task ResetPermissions()
     {
-        var ok = Services.PermissionReset.Run();
+        var ok = await Services.PermissionReset.RunAsync();
         PermissionsResetStatus = ok
             ? Services.Localizer.Tf("home.perm_reset.done", ("pane", Services.MacAccessibility.PointerPaneName()))
             : Services.Localizer.Te("home.perm_reset.failed", "The reset did not work. Remove the old entries by hand with −, then add this version with +.");
         Services.PlatformShell.OpenInputMonitoringSettings();
+        RecheckAccessibility();
     }
 
     /// <summary>True when this column really has nothing to say. The daemon problem card lives outside the
