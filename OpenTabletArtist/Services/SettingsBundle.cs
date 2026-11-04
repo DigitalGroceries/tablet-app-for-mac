@@ -56,7 +56,25 @@ public static class SettingsBundle
 
     public static string BackupsDir => Path.Combine(AppDataDir(), "Backups");
 
-    static string DefaultOtdDir()
+    /// <summary>Item 16 (#26): the settings file the connected daemon reported (AppInfo.SettingsFile), set by
+    /// the session on each load. The daemon can run with its own data folder (--appdata), so its folder wins
+    /// over this process's default; null/empty = not connected yet, use the default.</summary>
+    public static volatile string? DaemonSettingsFile;
+
+    /// <summary>The OpenTabletDriver data folder: the connected daemon's, else this process's default.</summary>
+    public static string ResolveOtdDir(string? daemonSettingsFile, Func<string> fallback)
+    {
+        if (!string.IsNullOrWhiteSpace(daemonSettingsFile))
+        {
+            var dir = Path.GetDirectoryName(daemonSettingsFile);
+            if (!string.IsNullOrEmpty(dir)) return dir;
+        }
+        return fallback();
+    }
+
+    static string DefaultOtdDir() => ResolveOtdDir(DaemonSettingsFile, ProcessOtdDir);
+
+    static string ProcessOtdDir()
     {
         try { return OpenTabletDriver.Desktop.AppInfo.Current.AppDataDirectory; }
         catch
