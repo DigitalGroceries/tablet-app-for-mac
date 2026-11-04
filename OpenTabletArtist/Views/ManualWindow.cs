@@ -24,7 +24,8 @@ public sealed class ManualWindow : Window
 
     public static void ShowManual()
     {
-        if (_open is { } w) { w.Activate(); return; }
+        // Item 28: the manual lives in the main window; activating its (never shown) window would open it on its own.
+        if (_open != null) { AppMenu.Window?.BringToFront("manual already open"); return; }
         _open = new ManualWindow();
         _open.Closed += (_, _) => _open = null;
         OpenTabletArtist.Helpers.InWindowSheet.Show(_open);
