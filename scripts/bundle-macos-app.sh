@@ -23,7 +23,6 @@ PREBUILT_ICNS="$HERE/../OpenTabletArtist/Assets/macos/AppIcon.icns"
 DOC_ICNS="$HERE/../packaging/macos/SettingsDocument.icns"
 if [[ -f "$PREBUILT_ICNS" ]]; then
   cp "$PREBUILT_ICNS" "$APP/Contents/Resources/AppIcon.icns"
-  [ -f "$DOC_ICNS" ] && cp "$DOC_ICNS" "$APP/Contents/Resources/SettingsDocument.icns"
 else
   ICONSET="$(mktemp -d)/OpenTabletArtist.iconset"; mkdir -p "$ICONSET"
   for s in 16 32 128 256 512; do
@@ -31,6 +30,10 @@ else
     sips -z "$((s*2))" "$((s*2))" "$ICON_SRC" --out "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null
   done
   iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
+fi
+# The .tabletsettings document icon goes in either way: Info.plist always names SettingsDocument (#28).
+if [[ -f "$DOC_ICNS" ]]; then
+  cp "$DOC_ICNS" "$APP/Contents/Resources/SettingsDocument.icns"
 fi
 
 cat > "$APP/Contents/Info.plist" <<PLIST
