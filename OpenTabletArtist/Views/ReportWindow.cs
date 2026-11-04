@@ -114,21 +114,50 @@ public sealed class ReportWindow : Window
         body.Children.Add(status);
 
         var cancel = new Button { Name = "ReportCancel", Content = vm.CancelLabel, Padding = new Thickness(16, 8), Command = vm.CancelCommand };
-        // Owner's request: feedback with or without a GitHub account. Email needs no account, so it comes first.
-        var email = new Button { Name = "ReportSendEmail", Content = vm.SendEmailLabel, Padding = new Thickness(16, 8), Command = vm.SendEmailCommand };
+        // Owner's request: feedback with or without a GitHub account. The file needs no account, so it comes first.
+        var file = new Button { Name = "ReportSendFile", Content = vm.SendFileLabel, Padding = new Thickness(16, 8), Command = vm.SendFileCommand };
         var send = new Button { Name = "ReportSend", Content = vm.SendGitHubLabel, Padding = new Thickness(16, 8), Command = vm.SendCommand };
         body.Children.Add(new StackPanel
         {
             Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(0, 4, 0, 0), Children = { cancel, email, send },
+            Margin = new Thickness(0, 4, 0, 0), Children = { cancel, file, send },
         });
-        Content = body;
+
+        // Version 23 (owner's request, 4 Nov 2026): after "Send with file" the sheet says where the file is and where to
+        // email it, instead of closing with no word. The text can be selected, so the address can be copied.
+        var savedText = new SelectableTextBlock { Name = "ReportSavedText", TextWrapping = TextWrapping.Wrap }.Fg();
+        var showFile = new Button { Name = "ReportShowFile", Content = vm.ShowFileLabel, Padding = new Thickness(16, 8), Command = vm.ShowFileCommand };
+        var done = new Button { Name = "ReportDone", Content = vm.CloseLabel, Padding = new Thickness(16, 8), Command = vm.DoneCommand };
+        var saved = new StackPanel
+        {
+            Name = "ReportSaved", Margin = new Thickness(24, 8, 24, 20), Spacing = 12, IsVisible = false,
+            Children =
+            {
+                new TextBlock { Text = vm.SavedTitle, FontSize = 15, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }.Fg(),
+                savedText,
+                new StackPanel
+                {
+                    Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right,
+                    Margin = new Thickness(0, 4, 0, 0), Children = { showFile, done },
+                },
+            },
+        };
+        void ShowSaved()
+        {
+            body.IsVisible = !vm.IsSaved;
+            saved.IsVisible = vm.IsSaved;
+            savedText.Text = vm.SavedMessage;
+            if (vm.IsSaved) done.Focus();
+        }
+        Content = new Panel { Children = { body, saved } };
 
         vm.PickImages = () => PickAsync(body);
+        vm.PickSaveFile = name => PickSaveAsync(body, vm.SaveDialogTitle, name);
         vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(ReportViewModel.PicturesText)) count.Text = vm.PicturesText;
             if (e.PropertyName == nameof(ReportViewModel.Status)) { status.Text = vm.Status; status.IsVisible = vm.Status.Length > 0; }
+            if (e.PropertyName == nameof(ReportViewModel.SavedPath)) ShowSaved();
         };
         vm.Finished += _ => Close();
         Opened += (_, _) => text.Focus();
@@ -138,6 +167,27 @@ public sealed class ReportWindow : Window
     {
         try { return new Bitmap(path); }
         catch (Exception ex) { AppLog.Debug("Report: couldn't show the window picture.", ex); return null; }
+    }
+
+    static readonly FilePickerFileType ZipType =
+        new("Zip archive") { Patterns = new[] { "*.zip" }, AppleUniformTypeIdentifiers = new[] { "public.zip-archive" } };
+
+    /// <summary>The macOS save panel, starting on the Desktop with the suggested name. Null when the user closes it.</summary>
+    static async Task<string?> PickSaveAsync(Control anchor, string title, string suggestedName)
+    {
+        var top = TopLevel.GetTopLevel(anchor) ?? AppMenu.Window;
+        if (top == null) return null;
+        var desktop = await top.StorageProvider.TryGetFolderFromPathAsync(DiagnosticBundle.DefaultFolder());
+        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = title,
+            SuggestedFileName = suggestedName,
+            SuggestedStartLocation = desktop,
+            DefaultExtension = "zip",
+            FileTypeChoices = new[] { ZipType },
+            ShowOverwritePrompt = true,
+        });
+        return file?.TryGetLocalPath();
     }
 
     static async Task<IReadOnlyList<string>> PickAsync(Control anchor)

@@ -376,13 +376,16 @@
   "report.text_hint": "任意",
   "report.window_picture": "アプリのウインドウのこの画像を追加",
   "report.pictures": "追加した画像: {n}",
-  "report.note": "どちらの送信ボタンも、画像とアプリおよびサービスのログを含むファイルをデスクトップに保存し、Finder に表示します。シリアル番号とユーザー名はログから削除されますが、画像はそのまま送信されます。先に確認してください。\n「メールで送信」を押すと、テキストが入力され、宛先が {email} のメールが開きます。ファイルを添付して送信してください。アカウントは不要です。\n「GitHub アカウントで送信」を押すと、テキストが入力された新しい GitHub の issue が開きます。ファイルをドラッグして Create を押してください。無料の GitHub アカウントが必要です。",
+  "report.note": "「ファイルで送信」を押すと、テキスト、画像、アプリおよびサービスのログを含むファイルをどこに保存するかを尋ねます。保存したら、そのファイルを {email} 宛てのメールに添付してください。アカウントは不要です。\n「GitHub アカウントで送信」を押すと、ファイルをデスクトップに保存し、テキストが入力された新しい GitHub の issue を開きます。ファイルをドラッグして Create を押してください。無料の GitHub アカウントが必要です。\nシリアル番号とユーザー名はログから削除されますが、画像はそのまま送信されます。先に確認してください。",
   "report.failed": "レポートを作成できませんでした: {error}",
   "diag.report.screenshots": "スクリーンショットを追加…",
   "diag.report.send": "送信",
   "diag.report.cancel": "キャンセル",
   "diag.report.sent": "GitHub の issue ページを開きました。ファイルをドラッグして Create を押すと送信されます。",
   "report.send_github": "GitHub アカウントで送信",
-  "report.send_email": "メールで送信",
-  "report.mail_opened": "メールアプリを開きました。Finder に表示されたファイルを添付して送信してください。"
+  "report.send_file": "ファイルで送信",
+  "report.save_title": "レポートファイルを保存",
+  "report.saved_title": "レポートを保存しました",
+  "report.saved_text": "レポートファイルを次の場所に保存しました:\n{path}\n\n送信するには、{email} 宛てにメールを書き、このファイルを添付してください。テキストと画像はすでにファイルに含まれています。",
+  "report.show_file": "Finder に表示"
 }

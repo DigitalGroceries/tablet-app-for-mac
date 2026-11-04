@@ -129,10 +129,6 @@ public static class DiagnosticBundle
     /// report.txt; a long text would make the "new issue" link too long for the browser.</summary>
     public const int MaxIssueText = 1500;
 
-    /// <summary>The same for the email: some mail apps cut long mail links short, so the email carries less
-    /// (the whole text is in report.txt in the attached file).</summary>
-    public const int MaxMailText = 500;
-
     /// <summary>Version 22 BETA 3 (owner's request, 2 Nov 2026): the report from the app window, the pen menu and the app menu.
     /// A pre-filled "new issue" page: the user's text, the kind (problem or recommendation) and the versions.
     /// No token in the app: the user's own browser posts it.</summary>
@@ -153,31 +149,10 @@ public static class DiagnosticBundle
             + "&body=" + Uri.EscapeDataString(body.ToString());
     }
 
-    /// <summary>The address for feedback without a GitHub account: the same one the website's "Feedback without a
-    /// GitHub account" button shows. Put together at run time, like the website does, so it isn't one plain string in
+    /// <summary>The address for feedback without a GitHub account ("Send with file"): the same one the website's
+    /// "Feedback without a GitHub account" button shows. Put together at run time, like the website does, so it isn't one plain string in
     /// the published source.</summary>
     public static string FeedbackEmail => string.Join("@", "organicmachine", "protonmail.com");
-
-    /// <summary>Version 22 BETA 3 (owner's request: feedback with or without a GitHub account): a pre-filled email
-    /// (mailto) to <see cref="FeedbackEmail"/> with the same text as the issue. Mail links can't carry a file, so
-    /// the user attaches the zip that Finder shows.</summary>
-    public static string ReportMailUrl(string zipName, bool recommendation, string? text, string? daemonVersion,
-        IEnumerable<string> devices)
-    {
-        var (title, words) = ReportTitle(recommendation, text);
-        var body = new StringBuilder();
-        body.AppendLine($"Please attach {zipName} (now shown in Finder) to this email, then send it.");
-        body.AppendLine();
-        body.AppendLine(recommendation ? "Recommendation:" : "Problem:");
-        AppendWords(body, words, MaxMailText);
-        body.AppendLine();
-        body.AppendLine("Sent from the app:");
-        AppendVersions(body, daemonVersion, devices);
-        // RFC 6068: line breaks in a mail link are CR LF.
-        var crlf = body.ToString().Replace("\r\n", "\n").Replace("\n", "\r\n");
-        return $"mailto:{FeedbackEmail}?subject=" + Uri.EscapeDataString("Tablet App for Mac – " + title)
-            + "&body=" + Uri.EscapeDataString(crlf);
-    }
 
     static (string Title, string Words) ReportTitle(bool recommendation, string? text)
     {

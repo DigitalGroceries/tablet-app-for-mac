@@ -47,11 +47,11 @@ public class ReportSheetTests
             var named = sheet.GetVisualDescendants().OfType<Control>().Where(c => !string.IsNullOrEmpty(c.Name))
                 .Select(c => c.Name).ToHashSet();
             foreach (var n in new[] { "ReportProblem", "ReportRecommendation", "ReportText", "ReportWindowPicture",
-                         "ReportAddScreenshots", "ReportCancel", "ReportSendEmail", "ReportSend" })
+                         "ReportAddScreenshots", "ReportCancel", "ReportSendFile", "ReportSend" })
                 Assert.Contains(n, named);
 
             var buttons = sheet.GetVisualDescendants().OfType<Button>().ToDictionary(b => b.Name ?? "", b => b.Content);
-            Assert.Equal("Send by email", buttons["ReportSendEmail"]);
+            Assert.Equal("Send with file", buttons["ReportSendFile"]);
             Assert.Equal("Send with GitHub account", buttons["ReportSend"]);
 
             // The tick box and the kind follow the view model.
@@ -68,6 +68,46 @@ public class ReportSheetTests
             Dispatcher.UIThread.RunJobs();
             Assert.False(InWindowSheet.IsOpen);
             Assert.False(ReportWindow.IsOpen);
+        }
+        finally { InWindowSheet.MainOverride = null; mw.Close(); }
+    }
+
+    [AvaloniaFact]
+    public async System.Threading.Tasks.Task Send_with_file_shows_where_the_file_is_and_close_shuts_the_sheet()
+    {
+        // Version 23 (owner's request, 4 Nov 2026): the sheet no longer closes with no word after saving.
+        var mw = new MainWindow { Width = 900, Height = 700 };
+        mw.Show();
+        InWindowSheet.MainOverride = () => mw;
+        try
+        {
+            var vm = new ReportViewModel(Inputs, null, "test");
+            ReportWindow.Open(vm);
+            Dispatcher.UIThread.RunJobs();
+            var target = Path.Combine(Directory.CreateTempSubdirectory().FullName, "my-report.zip");
+            vm.PickSaveFile = _ => System.Threading.Tasks.Task.FromResult<string?>(target);   // stands in for the save panel
+            vm.Reveal = _ => { };
+            await vm.SendFileCommand.ExecuteAsync(null);
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.True(File.Exists(target));
+            Assert.True(ReportWindow.IsOpen);
+            var sheet = mw.GetVisualDescendants().OfType<Border>().First(b => b.Name == "Sheet");
+            var saved = sheet.GetVisualDescendants().OfType<StackPanel>().First(p => p.Name == "ReportSaved");
+            Assert.True(saved.IsVisible);
+            Assert.False(sheet.GetVisualDescendants().OfType<Button>().First(b => b.Name == "ReportSendFile").IsEffectivelyVisible);
+            var text = saved.GetVisualDescendants().OfType<SelectableTextBlock>().First(t => t.Name == "ReportSavedText").Text ?? "";
+            Assert.Contains(target, text);
+            Assert.Contains("organicmachine@protonmail.com", text);
+            Assert.Contains(saved.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Report saved");
+            var buttons = saved.GetVisualDescendants().OfType<Button>().ToDictionary(b => b.Name ?? "", b => b.Content);
+            Assert.Equal("Show in Finder", buttons["ReportShowFile"]);
+            Assert.Equal("Close", buttons["ReportDone"]);
+
+            vm.DoneCommand.Execute(null);
+            Dispatcher.UIThread.RunJobs();
+            Assert.False(ReportWindow.IsOpen);
+            Assert.False(InWindowSheet.IsOpen);
         }
         finally { InWindowSheet.MainOverride = null; mw.Close(); }
     }

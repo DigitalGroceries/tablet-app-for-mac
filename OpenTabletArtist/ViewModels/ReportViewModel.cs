@@ -14,10 +14,12 @@ namespace OpenTabletArtist.ViewModels;
 /// Version 22 BETA 3 (owner's request, 2 Nov 2026): "Report a problem or send a recommendation…", reachable from the app
 /// window (Home's Feedback link and the tablet page's bottom bar), the pen icon menu and the app menu (top left).
 /// All three open the same sheet in the main window. A picture of the app window, taken just before the sheet
-/// opened, is added unless the user unticks it; "Add screenshots…" adds more pictures. Both Send buttons make the
-/// usual diagnostic zip (serial numbers and user name removed) plus the pictures and the user's text and show it in
-/// Finder. "Send by email" (no account needed) opens a pre-filled email to the project's feedback address; "Send with
-/// GitHub account" opens a pre-filled GitHub issue (the same no-token way as the Diagnostics page's report).
+/// opened, is added unless the user unticks it; "Add screenshots…" adds more pictures. Both buttons make the usual
+/// diagnostic zip (serial numbers and user name removed) plus the pictures and the user's text.
+/// Version 23 (owner's request, 4 Nov 2026): "Send with file" (no account needed) asks where to save the zip, saves it
+/// there and then says where it is and which address to email it to. It opens no email app. "Send with GitHub
+/// account" saves the zip on the Desktop, shows it in Finder and opens a pre-filled GitHub issue (the same no-token
+/// way as the Diagnostics page's report).
 /// </summary>
 public partial class ReportViewModel : ObservableObject
 {
@@ -57,24 +59,34 @@ public partial class ReportViewModel : ObservableObject
     public ObservableCollection<string> Screenshots { get; } = new();
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SendCommand), nameof(SendEmailCommand), nameof(AddScreenshotsCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SendCommand), nameof(SendFileCommand), nameof(AddScreenshotsCommand))]
     private bool _isBusy;
 
     [ObservableProperty] private string _status = "";
 
-    /// <summary>The zip that Send made (empty until then).</summary>
+    /// <summary>The zip that a Send button made (empty until then).</summary>
     public string ReportFilePath { get; private set; } = "";
+
+    /// <summary>Where "Send with file" saved the zip (empty until then). When set, the sheet shows the saved message.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSaved), nameof(SavedMessage))]
+    private string _savedPath = "";
+
+    public bool IsSaved => SavedPath.Length > 0;
 
     /// <summary>Opens an image picker (set by the sheet). Null in tests unless supplied.</summary>
     public Func<Task<IReadOnlyList<string>>>? PickImages { get; set; }
+    /// <summary>Opens the save panel with a suggested file name and returns the chosen path, or null when the user
+    /// closed it (set by the sheet; tests supply their own).</summary>
+    public Func<string, Task<string?>>? PickSaveFile { get; set; }
     /// <summary>Opens a URL (defaults to the browser); swappable for tests.</summary>
     public Action<string> OpenUrl { get; set; } = PlatformShell.OpenUrl;
     /// <summary>Reveals a file (defaults to Finder); swappable for tests.</summary>
     public Action<string> Reveal { get; set; } = PlatformShell.RevealInFileManager;
-    /// <summary>Where the zip is saved (defaults to the Desktop); swappable for tests.</summary>
+    /// <summary>Where "Send with GitHub account" saves the zip (defaults to the Desktop); swappable for tests.</summary>
     public Func<string> Folder { get; set; } = DiagnosticBundle.DefaultFolder;
 
-    /// <summary>Raised when the sheet should close: true after Send, false after Cancel.</summary>
+    /// <summary>Raised when the sheet should close: true after a Send (or Close on the saved message), false after Cancel.</summary>
     public event Action<bool>? Finished;
 
     // ---- Texts (English fallbacks; translations in Assets/i18n).
@@ -88,11 +100,20 @@ public partial class ReportViewModel : ObservableObject
     public string AddScreenshotsLabel => Localizer.Te("diag.report.screenshots", "Add screenshots…");
     public string Note => Localizer.Te("report.note", DefaultNote).Replace("{email}", DiagnosticBundle.FeedbackEmail);
     public const string DefaultNote =
-        "Both Send buttons save one file on your Desktop with your pictures and the app and driver logs, and show it in Finder. Serial numbers and your user name are removed from the logs, but pictures are sent as they are: check them first.\n" +
-        "Send by email opens your email app with your text, addressed to {email}: attach the file and send it. No account is needed.\n" +
-        "Send with GitHub account opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.";
+        "Send with file asks where to save one file with your text, your pictures and the app and driver logs. Then attach that file to an email to {email}. No account is needed.\n" +
+        "Send with GitHub account saves the file on your Desktop and opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.\n" +
+        "Serial numbers and your user name are removed from the logs, but pictures are sent as they are: check them first.";
     public string SendGitHubLabel => Localizer.Te("report.send_github", "Send with GitHub account");
-    public string SendEmailLabel => Localizer.Te("report.send_email", "Send by email");
+    public string SendFileLabel => Localizer.Te("report.send_file", "Send with file");
+    public string SaveDialogTitle => Localizer.Te("report.save_title", "Save the report file");
+    public string SavedTitle => Localizer.Te("report.saved_title", "Report saved");
+    /// <summary>Where the file is and where to email it (owner's choice, 4 Nov 2026: a message only, no email app).</summary>
+    public string SavedMessage => !IsSaved ? "" : Localizer.Te("report.saved_text", DefaultSavedText)
+        .Replace("{path}", SavedPath).Replace("{email}", DiagnosticBundle.FeedbackEmail);
+    public const string DefaultSavedText =
+        "Your report file is saved here:\n{path}\n\nTo send it, write an email to {email} and attach this file. Your text and pictures are already in it.";
+    public string ShowFileLabel => Localizer.Te("report.show_file", "Show in Finder");
+    public string CloseLabel => Localizer.Te("app.close", "Close");
     public string CancelLabel => Localizer.Te("diag.report.cancel", "Cancel");
 
     /// <summary>The pictures that Send puts in the zip, in order: the window picture first.</summary>
@@ -117,52 +138,95 @@ public partial class ReportViewModel : ObservableObject
             if (!Screenshots.Contains(p) && Pictures.Count < MaxPictures) Screenshots.Add(p);
     }
 
-    /// <summary>Send with GitHub account (needs a free GitHub account).</summary>
+    /// <summary>Send with GitHub account (needs a free GitHub account): saves on the Desktop, shows the file in Finder and
+    /// opens a pre-filled GitHub issue.</summary>
     [RelayCommand(CanExecute = nameof(CanEdit))]
-    private Task Send() => SendAsync(email: false);
-
-    /// <summary>Send by email (no account needed).</summary>
-    [RelayCommand(CanExecute = nameof(CanEdit))]
-    private Task SendEmail() => SendAsync(email: true);
-
-    private async Task SendAsync(bool email)
+    private async Task Send()
     {
         IsBusy = true;
         Status = Localizer.Te("diag.zip.working", "Creating…");
         try
         {
-            var (devices, conflicts, version) = _inputs();
-            var pictures = Pictures;
-            var recommendation = IsRecommendation;
-            var text = Description ?? "";
-            var folder = Folder();
-            var path = await Task.Run(() =>
-            {
-                var zip = DiagnosticBundle.Create(folder, devices, conflicts, version);
-                DiagnosticBundle.AddScreenshots(zip, pictures);
-                DiagnosticBundle.AddText(zip, "report.txt",
-                    (recommendation ? "Recommendation" : "Problem") + Environment.NewLine + Environment.NewLine + text);
-                return zip;
-            });
+            var inputs = _inputs();
+            var path = await MakeZipAsync(Folder(), inputs);
             ReportFilePath = path;
-            AppLog.Info($"Report: made {Path.GetFileName(path)} ({(recommendation ? "recommendation" : "problem")}, {pictures.Count} picture(s), from {From}, {(email ? "email" : "GitHub")}).");
-            var name = Path.GetFileName(path);
-            OpenUrl(email
-                ? DiagnosticBundle.ReportMailUrl(name, recommendation, text, version, devices)
-                : DiagnosticBundle.ReportIssueUrl(name, recommendation, text, version, devices));
+            AppLog.Info($"Report: made {Path.GetFileName(path)} ({Kind}, {Pictures.Count} picture(s), from {From}, GitHub).");
+            OpenUrl(DiagnosticBundle.ReportIssueUrl(Path.GetFileName(path), IsRecommendation, Description ?? "", inputs.Version, inputs.Devices));
             Reveal(path);
             DeleteWindowPicture();   // it is in the zip now
-            Status = email
-                ? Localizer.Te("report.mail_opened", "Opened your email app. Attach the file shown in Finder and send it.")
-                : Localizer.Te("diag.report.sent", "Opened the GitHub issue page. Drag the file in and press Create to send it.");
+            Status = Localizer.Te("diag.report.sent", "Opened the GitHub issue page. Drag the file in and press Create to send it.");
             Finished?.Invoke(true);
         }
-        catch (Exception ex)
-        {
-            AppLog.Warn("Report: couldn't make the report file.", ex);
-            Status = Localizer.Te("report.failed", "Couldn't create the report: {error}").Replace("{error}", ex.Message);
-        }
+        catch (Exception ex) { Failed(ex); }
         finally { IsBusy = false; }
+    }
+
+    /// <summary>Send with file (no account needed): asks where to save the zip, saves it there, then shows where it is
+    /// and the address to email it to. Closing the save panel saves nothing and leaves the report open.</summary>
+    [RelayCommand(CanExecute = nameof(CanEdit))]
+    private async Task SendFile()
+    {
+        if (PickSaveFile == null) return;
+        string? target;
+        try { target = await PickSaveFile(DiagnosticBundle.SuggestedFileName(DateTime.Now)); }
+        catch (Exception ex) { AppLog.Warn("Report: the save panel failed.", ex); Failed(ex); return; }
+        if (string.IsNullOrWhiteSpace(target)) return;
+        if (!target.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) target += ".zip";
+
+        IsBusy = true;
+        Status = Localizer.Te("diag.zip.working", "Creating…");
+        var temp = Path.Combine(Path.GetTempPath(), "TabletApp-report-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var made = await MakeZipAsync(temp, _inputs());
+            await Task.Run(() => File.Move(made, target, overwrite: true));   // the save panel already asked about replacing
+            ReportFilePath = target;
+            AppLog.Info($"Report: saved {Path.GetFileName(target)} ({Kind}, {Pictures.Count} picture(s), from {From}, file).");
+            DeleteWindowPicture();   // it is in the zip now
+            Status = "";
+            SavedPath = target;
+        }
+        catch (Exception ex) { Failed(ex); }
+        finally
+        {
+            IsBusy = false;
+            try { if (Directory.Exists(temp)) Directory.Delete(temp, recursive: true); }
+            catch (Exception ex) { AppLog.Debug("Report: couldn't remove the temporary folder.", ex); }
+        }
+    }
+
+    /// <summary>"Show in Finder" on the saved message.</summary>
+    [RelayCommand]
+    private void ShowFile() { if (IsSaved) Reveal(SavedPath); }
+
+    /// <summary>"Close" on the saved message.</summary>
+    [RelayCommand]
+    private void Done() => Finished?.Invoke(true);
+
+    string Kind => IsRecommendation ? "recommendation" : "problem";
+
+    /// <summary>Makes the diagnostic zip in <paramref name="folder"/> with the pictures and the user's text.</summary>
+    private Task<string> MakeZipAsync(string folder,
+        (List<string> Devices, IReadOnlyList<string> Conflicts, string? Version) inputs)
+    {
+        var (devices, conflicts, version) = inputs;
+        var pictures = Pictures;
+        var recommendation = IsRecommendation;
+        var text = Description ?? "";
+        return Task.Run(() =>
+        {
+            var zip = DiagnosticBundle.Create(folder, devices, conflicts, version);
+            DiagnosticBundle.AddScreenshots(zip, pictures);
+            DiagnosticBundle.AddText(zip, "report.txt",
+                (recommendation ? "Recommendation" : "Problem") + Environment.NewLine + Environment.NewLine + text);
+            return zip;
+        });
+    }
+
+    private void Failed(Exception ex)
+    {
+        AppLog.Warn("Report: couldn't make the report file.", ex);
+        Status = Localizer.Te("report.failed", "Couldn't create the report: {error}").Replace("{error}", ex.Message);
     }
 
     [RelayCommand]

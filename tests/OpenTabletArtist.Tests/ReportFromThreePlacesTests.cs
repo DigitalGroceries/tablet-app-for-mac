@@ -12,7 +12,7 @@ namespace OpenTabletArtist.Tests;
 
 /// <summary>Version 22 BETA 3 (owner's request, 2 Nov 2026): "Report a problem or send a recommendation…" from the app window,
 /// the pen menu and the app menu. These test the shared sheet's logic: the window picture, extra pictures, the
-/// user's text in the zip and the pre-filled GitHub issue.</summary>
+/// user's text in the zip, the pre-filled GitHub issue and (Version 23) "Send with file".</summary>
 public class ReportFromThreePlacesTests
 {
     static (List<string>, IReadOnlyList<string>, string?) Inputs() =>
@@ -92,40 +92,111 @@ public class ReportFromThreePlacesTests
         Assert.Equal(vm.ReportFilePath, Assert.Single(revealed));
     }
 
-    [Fact]
-    public async Task Send_by_email_needs_no_GitHub_account_and_opens_a_filled_in_email()
+    /// <summary>Saves where the user chose (the test's stand-in for the save panel) and records the suggested name.</summary>
+    static List<string> SaveTo(ReportViewModel vm, string? path)
     {
-        var (vm, urls, revealed, _) = Make();
+        var suggested = new List<string>();
+        vm.PickSaveFile = name => { suggested.Add(name); return Task.FromResult(path); };
+        return suggested;
+    }
+
+    [Fact]
+    public async Task Send_with_file_asks_where_to_save_then_says_where_it_is_and_opens_nothing()
+    {
+        // Version 23 (owner's request, 4 Nov 2026): the button asks where to save, then says where the file is and
+        // which address to email it to. No email app, no web page, no Finder until the user asks.
+        var (vm, urls, revealed, dir) = Make();
+        var chosen = Directory.CreateDirectory(Path.Combine(dir, "My reports")).FullName;
+        var suggested = SaveTo(vm, Path.Combine(chosen, "pen report"));   // no .zip typed: it is added
         vm.Description = "Pen buttons swap in Krita.\nSecond line.";
         bool? finished = null;
         vm.Finished += sent => finished = sent;
-        await vm.SendEmailCommand.ExecuteAsync(null);
+        await vm.SendFileCommand.ExecuteAsync(null);
 
-        Assert.True(finished);
-        Assert.True(File.Exists(vm.ReportFilePath));
-        using (var z = ZipFile.OpenRead(vm.ReportFilePath))
+        var name = Assert.Single(suggested);
+        Assert.StartsWith("TabletApp-diagnostics-", name);
+        Assert.EndsWith(".zip", name);
+        var saved = Path.Combine(chosen, "pen report.zip");
+        Assert.Equal(saved, vm.SavedPath);
+        Assert.Equal(saved, vm.ReportFilePath);
+        Assert.True(File.Exists(saved));
+        using (var z = ZipFile.OpenRead(saved))
         {
+            Assert.NotNull(z.GetEntry("summary.txt"));
             Assert.NotNull(z.GetEntry("screenshots/1-app-window.png"));
-            Assert.NotNull(z.GetEntry("report.txt"));
+            using var r = new StreamReader(z.GetEntry("report.txt")!.Open());
+            var report = r.ReadToEnd();
+            Assert.StartsWith("Problem", report);
+            Assert.Contains("Second line.", report);
         }
-        var url = Assert.Single(urls);
-        Assert.StartsWith("mailto:" + DiagnosticBundle.FeedbackEmail + "?subject=", url);
-        Assert.DoesNotContain("github.com", url);
-        var text = Uri.UnescapeDataString(url);
-        Assert.Contains("Problem: Pen buttons swap in Krita.", text);
-        Assert.Contains("Second line.", text);
-        Assert.Contains(Path.GetFileName(vm.ReportFilePath), text);
-        Assert.Contains("\r\n", text);                       // mail links use CR LF line breaks
-        Assert.DoesNotContain(" ", url);                     // spaces are encoded, so every mail app reads it
-        Assert.Equal(vm.ReportFilePath, Assert.Single(revealed));
+        Assert.Empty(urls);
+        Assert.Empty(revealed);
+        Assert.Null(finished);                                        // the sheet stays open with the message
+        Assert.True(vm.IsSaved);
+        Assert.Contains(saved, vm.SavedMessage);
+        Assert.Contains(DiagnosticBundle.FeedbackEmail, vm.SavedMessage);
+        Assert.DoesNotContain("{", vm.SavedMessage);
+        Assert.Equal("", vm.Status);
+
+        vm.ShowFileCommand.Execute(null);
+        Assert.Equal(saved, Assert.Single(revealed));
+        vm.DoneCommand.Execute(null);
+        Assert.True(finished);
+    }
+
+    [Fact]
+    public async Task Closing_the_save_panel_saves_nothing_and_keeps_the_report_open()
+    {
+        var (vm, urls, revealed, _) = Make();
+        SaveTo(vm, null);
+        var shot = vm.WindowPicturePath!;
+        bool? finished = null;
+        vm.Finished += sent => finished = sent;
+        await vm.SendFileCommand.ExecuteAsync(null);
+
+        Assert.Null(finished);
+        Assert.False(vm.IsSaved);
+        Assert.Equal("", vm.ReportFilePath);
+        Assert.Equal("", vm.SavedMessage);
+        Assert.True(File.Exists(shot));                               // still needed if the user tries again
+        Assert.Empty(urls); Assert.Empty(revealed);
+        Assert.True(vm.SendFileCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Send_with_file_replaces_a_file_of_the_same_name()
+    {
+        // The save panel asks before replacing; once the user agrees, the old file is replaced.
+        var (vm, _, _, dir) = Make();
+        var target = Path.Combine(dir, "report.zip");
+        File.WriteAllText(target, "old");
+        SaveTo(vm, target);
+        await vm.SendFileCommand.ExecuteAsync(null);
+        using var z = ZipFile.OpenRead(target);
+        Assert.NotNull(z.GetEntry("report.txt"));
+    }
+
+    [Fact]
+    public async Task A_failed_save_shows_the_reason_and_keeps_the_report_open()
+    {
+        var (vm, _, _, dir) = Make();
+        SaveTo(vm, Path.Combine(dir, "no-such-folder", "report.zip"));
+        bool? finished = null;
+        vm.Finished += sent => finished = sent;
+        await vm.SendFileCommand.ExecuteAsync(null);
+        Assert.Null(finished);
+        Assert.False(vm.IsSaved);
+        Assert.StartsWith("Couldn't create the report", vm.Status);
+        Assert.False(vm.IsBusy);
     }
 
     [Fact]
     public async Task The_temporary_window_picture_is_deleted_after_send_and_after_cancel()
     {
-        var (vm, _, _, _) = Make();
+        var (vm, _, _, dir) = Make();
+        SaveTo(vm, Path.Combine(dir, "report.zip"));
         var shot = vm.WindowPicturePath!;
-        await vm.SendEmailCommand.ExecuteAsync(null);
+        await vm.SendFileCommand.ExecuteAsync(null);
         Assert.False(File.Exists(shot));
         using (var z = ZipFile.OpenRead(vm.ReportFilePath))
             Assert.NotNull(z.GetEntry("screenshots/1-app-window.png"));   // it went into the zip first
@@ -138,18 +209,6 @@ public class ReportFromThreePlacesTests
         vm2.CancelCommand.Execute(null);
         Assert.False(File.Exists(shot2));
         Assert.True(File.Exists(added));                                  // the user's own pictures stay
-    }
-
-    [Fact]
-    public void The_email_carries_less_text_than_the_issue()
-    {
-        var longText = new string('b', 3000);
-        var mail = Uri.UnescapeDataString(DiagnosticBundle.ReportMailUrl("x.zip", false, longText, null, Array.Empty<string>()));
-        var issue = Uri.UnescapeDataString(DiagnosticBundle.ReportIssueUrl("x.zip", false, longText, null, Array.Empty<string>()));
-        Assert.Contains(new string('b', DiagnosticBundle.MaxMailText) + "…", mail);
-        Assert.DoesNotContain(new string('b', DiagnosticBundle.MaxMailText + 1), mail);
-        Assert.Contains("report.txt", mail);
-        Assert.Contains(new string('b', DiagnosticBundle.MaxIssueText), issue);
     }
 
     [Fact]
@@ -257,9 +316,15 @@ public class ReportFromThreePlacesTests
         {
             var keys = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(file));
             foreach (var k in new[] { "report.menu", "report.title", "report.note", "report.window_picture",
-                         "report.send_github", "report.send_email", "diag.report.cancel", "diag.report.screenshots" })
+                         "report.send_github", "report.send_file", "report.save_title", "report.saved_title",
+                         "report.saved_text", "report.show_file", "app.close", "diag.report.cancel", "diag.report.screenshots" })
                 Assert.True(keys[k] != null, $"{Path.GetFileName(file)} has no {k}");
             Assert.Contains("{email}", (string)keys["report.note"]!);
+            Assert.Contains("{path}", (string)keys["report.saved_text"]!);
+            Assert.Contains("{email}", (string)keys["report.saved_text"]!);
+            // The email button and its message are gone (owner's request, 4 Nov 2026).
+            Assert.Null(keys["report.send_email"]);
+            Assert.Null(keys["report.mail_opened"]);
         }
     }
 

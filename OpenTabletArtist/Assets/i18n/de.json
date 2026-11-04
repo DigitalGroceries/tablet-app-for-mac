@@ -376,13 +376,16 @@
   "report.text_hint": "Optional",
   "report.window_picture": "Dieses Bild des App-Fensters hinzufügen",
   "report.pictures": "Bilder hinzugefügt: {n}",
-  "report.note": "Beide Senden-Tasten speichern eine Datei auf deinem Schreibtisch mit deinen Bildern und den Protokollen der App und des Treibers und zeigen sie im Finder. Seriennummern und dein Benutzername werden aus den Protokollen entfernt, aber Bilder werden so gesendet, wie sie sind: Prüfe sie vorher.\n„Per E-Mail senden“ öffnet dein E-Mail-Programm mit deinem Text, adressiert an {email}: Hänge die Datei an und sende sie. Kein Konto nötig.\n„Mit GitHub-Konto senden“ öffnet ein neues GitHub-Issue mit deinem Text: Zieh die Datei hinein und klicke auf „Create“. Dafür ist ein kostenloses GitHub-Konto nötig.",
+  "report.note": "„Mit Datei senden“ fragt, wo eine Datei mit deinem Text, deinen Bildern und den Protokollen der App und des Treibers gespeichert werden soll. Hänge diese Datei dann an eine E-Mail an {email}. Kein Konto nötig.\n„Mit GitHub-Konto senden“ speichert die Datei auf deinem Schreibtisch und öffnet ein neues GitHub-Issue mit deinem Text: Zieh die Datei hinein und klicke auf „Create“. Dafür ist ein kostenloses GitHub-Konto nötig.\nSeriennummern und dein Benutzername werden aus den Protokollen entfernt, aber Bilder werden so gesendet, wie sie sind: Prüfe sie vorher.",
   "report.failed": "Der Bericht konnte nicht erstellt werden: {error}",
   "diag.report.screenshots": "Bildschirmfotos hinzufügen…",
   "diag.report.send": "Senden",
   "diag.report.cancel": "Abbrechen",
   "diag.report.sent": "Die GitHub-Issue-Seite ist geöffnet. Zieh die Datei hinein und klicke auf „Create“, um sie zu senden.",
   "report.send_github": "Mit GitHub-Konto senden",
-  "report.send_email": "Per E-Mail senden",
-  "report.mail_opened": "Dein E-Mail-Programm ist geöffnet. Hänge die im Finder gezeigte Datei an und sende sie."
+  "report.send_file": "Mit Datei senden",
+  "report.save_title": "Berichtsdatei speichern",
+  "report.saved_title": "Bericht gespeichert",
+  "report.saved_text": "Deine Berichtsdatei ist hier gespeichert:\n{path}\n\nUm sie zu senden, schreib eine E-Mail an {email} und hänge diese Datei an. Dein Text und deine Bilder sind schon darin.",
+  "report.show_file": "Im Finder anzeigen"
 }
