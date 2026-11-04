@@ -125,7 +125,13 @@ public partial class App : Application
             // When a second instance is launched, it signals this (primary) one to surface instead of
             // opening a duplicate window (#191). The signal arrives off the UI thread — marshal first.
             Program.Instance.ListenForActivation(() =>
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => window.BringToFront("second copy opened", byUser: false)));
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => window.BringToFront("second copy opened", byUser: false)),
+                // Item 26 (#28): a settings file the second copy was asked to open: preview it here.
+                path => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    window.BringToFront("settings file opened", byUser: true);
+                    (window.DataContext as ViewModels.MainViewModel)?.OpenSettingsFile(path);
+                }));
 
             // Version 1: on macOS a second "open" of the same app (Finder, Dock, Launchpad, Spotlight) doesn't start
             // a new process: macOS sends the running one a reopen event. Show the window then, including after a

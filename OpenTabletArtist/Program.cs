@@ -57,7 +57,8 @@ class Program
         // mainApp login item, which passes no arguments.
         // If another instance is already running, it's been signalled to surface its window — exit
         // now so we don't spawn a duplicate window + tray icon.
-        if (!Instance.TryAcquire())
+        // Item 26 (#28): a settings file given to this copy goes to the running one, not lost when we exit.
+        if (!Instance.TryAcquire(Services.SettingsFileArgs.From(args)))
         {
             Instance.Dispose();
             return;
