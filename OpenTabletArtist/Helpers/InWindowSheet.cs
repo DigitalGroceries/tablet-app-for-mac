@@ -11,6 +11,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 
 namespace OpenTabletArtist.Helpers;
 
@@ -58,6 +59,8 @@ public static class InWindowSheet
     static Task Attach(Window dialog, MainWindow mw, Panel host)
     {
         var done = new TaskCompletionSource();
+        // Item 9 (#17): remember what had keyboard focus on the page, to give it back when the last sheet closes.
+        var focusBefore = _stack.Count == 0 ? mw.FocusManager?.GetFocusedElement() as Control : null;
         if (!mw.IsVisible) mw.Show();
         mw.Activate();
 
@@ -91,7 +94,10 @@ public static class InWindowSheet
             HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             MaxHeight = hostH, MaxWidth = Math.Max(400, (mw.Bounds.Width > 0 ? mw.Bounds.Width : 1100) - 48),
             Child = body,
+            Focusable = true,
         };
+        // Item 9 (#17): Tab stays inside the sheet instead of walking into the page behind it.
+        KeyboardNavigation.SetTabNavigation(sheet, KeyboardNavigationMode.Cycle);
         // Always the app theme (never the dialog window's own background, which follows macOS, not the app).
         sheet.Use(Border.BackgroundProperty, "BgElevatedBrush").Use(Border.BorderBrushProperty, "GlassBorderBrush");
         sheet.Use(Avalonia.Controls.Documents.TextElement.ForegroundProperty, "TextPrimaryBrush");
@@ -112,7 +118,10 @@ public static class InWindowSheet
             var copy = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = e.Key, KeyModifiers = e.KeyModifiers,
                 PhysicalKey = e.PhysicalKey, KeySymbol = e.KeySymbol, Source = dialog };
             dialog.RaiseEvent(copy);
-            if (copy.Handled) e.Handled = true;
+            if (copy.Handled) { e.Handled = true; return; }
+            // Item 10 (#17): ⌘S belongs to the page behind (Save settings); it must not save while a sheet is open.
+            if (IsPageSaveGesture(e.Key, e.KeyModifiers) && !sheet.KeyBindings.Any(k => k.Gesture?.Matches(e) == true))
+                e.Handled = true;
         }, RoutingStrategies.Tunnel);
 
         bool closedFired = false;
@@ -123,6 +132,7 @@ public static class InWindowSheet
             Dispatcher.UIThread.Post(() =>
             {
                 Detach(host, sheet);
+                RestoreFocus(focusBefore);
                 if (!closedFired) Invoke(dialog, "OnClosed", EventArgs.Empty);
                 done.TrySetResult();
             });
@@ -135,10 +145,32 @@ public static class InWindowSheet
         Dispatcher.UIThread.Post(() =>
         {
             Invoke(dialog, "OnOpened", EventArgs.Empty);
-            var first = sheet.GetVisualDescendantsOfType<Button>().FirstOrDefault(b => b.IsDefault) as Control;
-            first?.Focus();
+            FocusInitial(sheet);
         }, DispatcherPriority.Loaded);
         return done.Task;
+    }
+
+    /// <summary>The ⌘S gesture the main window binds to Save settings.</summary>
+    internal static bool IsPageSaveGesture(Key key, KeyModifiers mods) => key == Key.S && mods == KeyModifiers.Meta;
+
+    /// <summary>Item 9 (#17): keyboard focus moves into the sheet: its default button, else the first text box,
+    /// else the first control that takes focus, else the sheet itself, so keys never land on the page behind.</summary>
+    internal static void FocusInitial(Control sheet)
+    {
+        var all = sheet.GetVisualDescendantsOfType<Control>()
+            .Where(c => c.Focusable && c.IsEffectivelyVisible && c.IsEffectivelyEnabled).ToList();
+        Control? target = all.OfType<Button>().FirstOrDefault(b => b.IsDefault)
+            ?? all.OfType<TextBox>().FirstOrDefault() as Control
+            ?? all.FirstOrDefault(c => c is not ScrollViewer)
+            ?? sheet;
+        if (!target.Focus()) sheet.Focus();
+    }
+
+    /// <summary>When a sheet closes: focus the sheet below it, or (last sheet) what had focus on the page.</summary>
+    static void RestoreFocus(Control? before)
+    {
+        if (_stack.TryPeek(out var top)) { FocusInitial(top); return; }
+        if (before is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true } && TopLevel.GetTopLevel(before) != null) before.Focus();
     }
 
     static void Detach(Panel host, Control sheet)
