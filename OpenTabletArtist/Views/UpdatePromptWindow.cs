@@ -157,8 +157,7 @@ public static class UpdatePromptWindow
             if (!ShouldThankAfterUpdate(last, current, usedBefore)) { if (last == null) AppSettings.Set(LastRunKey, current); return; }
             if (quietStart) return;
             AppSettings.Set(LastRunKey, current);
-            var label = Updater.CurrentBeta > 0 ? $"{Updater.Current} BETA {Updater.CurrentBeta}" : Updater.Current.ToString();
-            ShowThanks(label);
+            ShowThanks(Updater.CurrentLabel);
         }
         catch (Exception ex) { AppLog.Warn("Thank-you after update couldn't be shown.", ex); }
     }

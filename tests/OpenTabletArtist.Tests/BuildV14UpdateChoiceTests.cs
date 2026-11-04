@@ -51,7 +51,8 @@ public class BuildV14UpdateChoiceTests
             Rel("v12", false, false, false),      // no SHA256SUMS: skipped
             Rel("v7-test", true, false, true)) + "]";
         var all = Updater.ParseAll(json);
-        Assert.Equal(new[] { "14 BETA 2", "14 BETA 1", "13", "7 BETA 1" }, all.Select(r => r.Label).ToArray());
+        // A pre-release whose tag has no BETA number ("v7-test") reads "7 BETA" (simple names, 4 Nov 2026).
+        Assert.Equal(new[] { "14 BETA 2", "14 BETA 1", "13", "7 BETA" }, all.Select(r => r.Label).ToArray());
         Assert.Equal("https://x/v13/z", all.Single(r => r.Label == "13").ZipUrl);
         Assert.Equal("https://x/v14-beta2/s", all.Single(r => r.Label == "14 BETA 2").SumsUrl);
         Assert.Empty(Updater.ParseAll("{}"));

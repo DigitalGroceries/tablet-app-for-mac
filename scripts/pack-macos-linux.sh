@@ -3,17 +3,22 @@
 # Same layout and signing identifiers as Grok's grok-scripts/sign-pack-v13.sh (Version 13), minus the .dmg step.
 #
 # Needs: .NET SDK from global.json ($HOME/.dotnet), rcodesign (cargo install apple-codesign; 0.29.0 used).
-# Usage: scripts/pack-macos-linux.sh <version> <out-dir> [arm64|x64 ...]
-#   e.g. scripts/pack-macos-linux.sh 14 /tmp/v14 arm64
-#   BETA build: BETA=2 scripts/pack-macos-linux.sh 14 /tmp/v14b2 arm64  (the app then knows it is "14 BETA 2",
-#   so its update check offers the stable version, newer BETAs and going back to stable; tag it v14-beta2).
+# Usage: scripts/pack-macos-linux.sh <version> <out-dir> [arm64]
+#   e.g. scripts/pack-macos-linux.sh 23 /tmp/v23 arm64
+#   BETA build: BETA=yes scripts/pack-macos-linux.sh 23 /tmp/v23b arm64  (the app then knows it is "23 BETA",
+#   so its update check offers the stable version, newer BETAs and going back to stable; tag it v23-beta).
+#   Version names are simple (the owner, 4 Nov 2026): "Version 23 BETA", then "Version 23"; no BETA numbers.
+#   Apple silicon only: no Intel builds (the owner, 4 Nov 2026).
+#   (Older numbered BETAs: BETA=2 gives "-beta2".)
 set -euo pipefail
 VER=${1:?version, e.g. 14}
 OUT=${2:?output folder}
 shift 2
 ARCHES=${*:-arm64}
 BETA=${BETA:-0}
-INFO=$VER; [ "$BETA" != 0 ] && INFO="$VER-beta$BETA"
+INFO=$VER
+case "$BETA" in 0|no|"") ;; yes) INFO="$VER-beta" ;; *) INFO="$VER-beta$BETA" ;; esac
+for a in $ARCHES; do [ "$a" = arm64 ] || { echo "Apple silicon only: '$a' is not built (no Intel builds)." >&2; exit 1; }; done
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 RC=${RCODESIGN:-$HOME/.cargo/bin/rcodesign}
 BID=com.freetabletapp.mac
@@ -39,7 +44,7 @@ mkdir -p "$OUT"
 dotnet build "$ROOT/plugins/OpenTabletArtist.Dynamics" -c Release -nologo -v q -o "$OUT/plugin"
 
 for a in $ARCHES; do
-  suf=""; [ "$a" = x64 ] && suf="-Intel"
+  suf=""
   P="$OUT/pub-$a"; rm -rf "$P"
   dotnet publish "$ROOT/OpenTabletArtist/OpenTabletArtist.csproj" -c Release -r osx-$a --self-contained true \
     -p:PublishSingleFile=true -p:Version="$VER" -p:InformationalVersion="$INFO" -o "$P/app" -nologo -v q

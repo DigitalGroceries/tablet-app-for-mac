@@ -20,9 +20,10 @@ public static class AppVersionInfo
 
         // Version 1: any old "v" prefix is dropped.
         if (v.StartsWith('v') || v.StartsWith('V')) v = v[1..];
-        // Version 14: a BETA build ("14-beta2") reads "14 BETA 2", like the website and GitHub.
-        var m = System.Text.RegularExpressions.Regex.Match(v, @"^(\d+)-beta(\d+)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        if (m.Success) v = $"{m.Groups[1].Value} BETA {m.Groups[2].Value}";
+        // Version 14: a BETA build ("14-beta2") reads "14 BETA 2", like the website and GitHub. From Version 23 a
+        // BETA has no number (the owner, 4 Nov 2026): "23-beta" reads "23 BETA".
+        var m = System.Text.RegularExpressions.Regex.Match(v, @"^(\d+)-beta(\d*)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (m.Success) v = m.Groups[2].Value.Length > 0 ? $"{m.Groups[1].Value} BETA {m.Groups[2].Value}" : $"{m.Groups[1].Value} BETA";
         return v;
     }
 

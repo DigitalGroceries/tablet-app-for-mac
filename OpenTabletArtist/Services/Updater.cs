@@ -21,20 +21,20 @@ public static class Updater
     public const string Api = "https://api.github.com/repos/DigitalGroceries/tablet-app-for-mac/releases/latest";
     /// <summary>Version 14: all recent releases (stable and BETA pre-releases), so the user can choose.</summary>
     public const string ListApi = "https://api.github.com/repos/DigitalGroceries/tablet-app-for-mac/releases?per_page=30";
-    /// <summary>Version 7 test 3: one app per Mac type (no universal launcher), so the updater picks its own zip.</summary>
-    public static string ZipName => ZipNameFor(System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture);
-    public static string ZipNameFor(System.Runtime.InteropServices.Architecture a)
-        => a == System.Runtime.InteropServices.Architecture.X64 ? "Tablet-App-for-Mac-Intel.zip" : "Tablet-App-for-Mac.zip";
+    /// <summary>The app's zip. Apple silicon only (the owner, 4 Nov 2026: no Intel builds, ever).</summary>
+    public const string ZipName = "Tablet-App-for-Mac.zip";
     public const string SumsName = "SHA256SUMS";
     public static readonly TimeSpan Every = TimeSpan.FromDays(7);
 
-    /// <summary>A release. <paramref name="Beta"/> 0 = stable; 1, 2, … = BETA number (a GitHub pre-release).</summary>
-    public sealed record Release(int Version, string ZipUrl, string SumsUrl, int Beta = 0)
+    /// <summary>A release. <paramref name="Beta"/> 0 = stable; 1, 2, … = BETA number (a GitHub pre-release).
+    /// <paramref name="Numbered"/> false for a BETA tagged without a number ("v23-beta"): from Version 23 on, the
+    /// owner's rule (4 Nov 2026) is one simple name, "Version 23 BETA", then "Version 23".</summary>
+    public sealed record Release(int Version, string ZipUrl, string SumsUrl, int Beta = 0, bool Numbered = true)
     {
         public bool IsBeta => Beta > 0;
         public int Rank => RankOf(Version, Beta);
-        /// <summary>"14" or "14 BETA 2" (used after "Version ").</summary>
-        public string Label => IsBeta ? $"{Version} BETA {Beta}" : Version.ToString();
+        /// <summary>"14", "14 BETA 2" (older BETAs) or "23 BETA" (used after "Version ").</summary>
+        public string Label => !IsBeta ? Version.ToString() : Numbered ? $"{Version} BETA {Beta}" : $"{Version} BETA";
     }
 
     /// <summary>Version 14: what the user can choose from. <see cref="Stable"/> is a newer stable version, or —
@@ -98,6 +98,13 @@ public static class Updater
     /// InformationalVersion "14-beta2").</summary>
     public static int CurrentBeta => ParseBeta(InformationalVersion);
 
+    /// <summary>The running app's name after "Version ": "23", "23 BETA" or an older "22 BETA 2".</summary>
+    public static string CurrentLabel => Domain.AppVersionInfo.Number(InformationalVersion);
+
+    /// <summary>True when a BETA tag carries a number ("v22-beta2"); false for "v23-beta". Pure.</summary>
+    public static bool BetaHasNumber(string? tag) =>
+        System.Text.RegularExpressions.Regex.IsMatch(tag ?? "", @"(?i)-beta\d+");
+
     /// <summary>Reads a GitHub "latest release" reply. Pure, unit-tested.</summary>
     public static Release? Parse(string json)
     {
@@ -131,7 +138,7 @@ public static class Updater
             var version = ParseVersion(tag);
             if (zip == null || sums == null || version == 0) continue;
             var pre = r.TryGetProperty("prerelease", out var p) && p.ValueKind == JsonValueKind.True;
-            list.Add(new Release(version, zip, sums, pre ? Math.Max(1, ParseBeta(tag)) : 0));
+            list.Add(new Release(version, zip, sums, pre ? Math.Max(1, ParseBeta(tag)) : 0, Numbered: !pre || BetaHasNumber(tag)));
         }
         return list;
     }

@@ -128,11 +128,38 @@ public class TrayDiagnosticsTests
 
 public class UpdaterZipNameTests
 {
+    /// <summary>The owner, 4 Nov 2026: Apple silicon only, no Intel builds.</summary>
     [Xunit.Fact]
-    public void Apple_silicon_and_Intel_get_their_own_zip()
+    public void One_zip_for_Apple_silicon_and_no_Intel_zip()
     {
-        Xunit.Assert.Equal("Tablet-App-for-Mac.zip", OpenTabletArtist.Services.Updater.ZipNameFor(System.Runtime.InteropServices.Architecture.Arm64));
-        Xunit.Assert.Equal("Tablet-App-for-Mac-Intel.zip", OpenTabletArtist.Services.Updater.ZipNameFor(System.Runtime.InteropServices.Architecture.X64));
+        Xunit.Assert.Equal("Tablet-App-for-Mac.zip", OpenTabletArtist.Services.Updater.ZipName);
+        Xunit.Assert.DoesNotContain("Intel", OpenTabletArtist.Services.Updater.ZipName);
+    }
+
+    /// <summary>The owner, 4 Nov 2026: simple names, "Version 23 BETA" then "Version 23".</summary>
+    [Xunit.Fact]
+    public void A_BETA_without_a_number_reads_N_BETA()
+    {
+        Xunit.Assert.Equal("23 BETA", OpenTabletArtist.Domain.AppVersionInfo.Number("23-beta+abc1234"));
+        Xunit.Assert.Equal("22 BETA 2", OpenTabletArtist.Domain.AppVersionInfo.Number("22-beta2"));
+        Xunit.Assert.Equal(1, OpenTabletArtist.Services.Updater.ParseBeta("v23-beta"));
+        Xunit.Assert.False(OpenTabletArtist.Services.Updater.BetaHasNumber("v23-beta"));
+        Xunit.Assert.True(OpenTabletArtist.Services.Updater.BetaHasNumber("v22-beta2"));
+        var json = """
+        [ {"tag_name":"v23-beta","prerelease":true,"assets":[
+            {"name":"Tablet-App-for-Mac.zip","browser_download_url":"https://x/z"},
+            {"name":"SHA256SUMS","browser_download_url":"https://x/s"}]},
+          {"tag_name":"v22-beta2","prerelease":true,"assets":[
+            {"name":"Tablet-App-for-Mac.zip","browser_download_url":"https://x/z2"},
+            {"name":"SHA256SUMS","browser_download_url":"https://x/s2"}]},
+          {"tag_name":"v21","prerelease":false,"assets":[
+            {"name":"Tablet-App-for-Mac.zip","browser_download_url":"https://x/z3"},
+            {"name":"SHA256SUMS","browser_download_url":"https://x/s3"}]} ]
+        """;
+        var all = OpenTabletArtist.Services.Updater.ParseAll(json);
+        Xunit.Assert.Equal(new[] { "23 BETA", "22 BETA 2", "21" }, all.Select(r => r.Label).ToArray());
+        var c = OpenTabletArtist.Services.Updater.Choose(all, 21, 0);
+        Xunit.Assert.Equal("23 BETA", c.Beta?.Label);
     }
 }
 
