@@ -367,5 +367,22 @@
   "backup.area.app.settings": "Per-application settings",
   "backup.area.appbuttons": "Per-application buttons",
   "backup.area.ring.modes": "Touch Ring modes",
-  "backup.area.ringbackup": "Touch Ring modes (saved copy)"
+  "backup.area.ringbackup": "Touch Ring modes (saved copy)",
+  "report.menu": "Problem melden oder Empfehlung senden…",
+  "report.title": "Problem melden oder Empfehlung senden",
+  "report.kind.problem": "Ein Problem",
+  "report.kind.recommendation": "Eine Empfehlung",
+  "report.text_label": "Was ist passiert, oder was ist deine Idee?",
+  "report.text_hint": "Optional",
+  "report.window_picture": "Dieses Bild des App-Fensters hinzufügen",
+  "report.pictures": "Bilder hinzugefügt: {n}",
+  "report.note": "Beide Senden-Tasten speichern eine Datei auf deinem Schreibtisch mit deinen Bildern und den Protokollen der App und des Treibers und zeigen sie im Finder. Seriennummern und dein Benutzername werden aus den Protokollen entfernt, aber Bilder werden so gesendet, wie sie sind: Prüfe sie vorher.\n„Per E-Mail senden“ öffnet dein E-Mail-Programm mit deinem Text, adressiert an {email}: Hänge die Datei an und sende sie. Kein Konto nötig.\n„Mit GitHub-Konto senden“ öffnet ein neues GitHub-Issue mit deinem Text: Zieh die Datei hinein und klicke auf „Create“. Dafür ist ein kostenloses GitHub-Konto nötig.",
+  "report.failed": "Der Bericht konnte nicht erstellt werden: {error}",
+  "diag.report.screenshots": "Bildschirmfotos hinzufügen…",
+  "diag.report.send": "Senden",
+  "diag.report.cancel": "Abbrechen",
+  "diag.report.sent": "Die GitHub-Issue-Seite ist geöffnet. Zieh die Datei hinein und klicke auf „Create“, um sie zu senden.",
+  "report.send_github": "Mit GitHub-Konto senden",
+  "report.send_email": "Per E-Mail senden",
+  "report.mail_opened": "Dein E-Mail-Programm ist geöffnet. Hänge die im Finder gezeigte Datei an und sende sie."
 }

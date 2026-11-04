@@ -367,5 +367,22 @@
   "backup.area.app.settings": "Per-application settings",
   "backup.area.appbuttons": "Per-application buttons",
   "backup.area.ring.modes": "Touch Ring modes",
-  "backup.area.ringbackup": "Touch Ring modes (saved copy)"
+  "backup.area.ringbackup": "Touch Ring modes (saved copy)",
+  "report.menu": "Informar de un problema o enviar una recomendación…",
+  "report.title": "Informar de un problema o enviar una recomendación",
+  "report.kind.problem": "Un problema",
+  "report.kind.recommendation": "Una recomendación",
+  "report.text_label": "¿Qué ha pasado o cuál es tu idea?",
+  "report.text_hint": "Opcional",
+  "report.window_picture": "Añadir esta imagen de la ventana de la app",
+  "report.pictures": "Imágenes añadidas: {n}",
+  "report.note": "Los dos botones de envío guardan un archivo en tu Escritorio con tus imágenes y los registros de la app y del controlador, y lo muestran en Finder. Los números de serie y tu nombre de usuario se eliminan de los registros, pero las imágenes se envían tal cual: revísalas antes.\n«Enviar por correo» abre tu app de correo con tu texto, dirigido a {email}: adjunta el archivo y envíalo. No se necesita ninguna cuenta.\n«Enviar con cuenta de GitHub» abre un nuevo issue de GitHub con tu texto: arrastra el archivo al issue y pulsa Create. Se necesita una cuenta gratuita de GitHub.",
+  "report.failed": "No se pudo crear el informe: {error}",
+  "diag.report.screenshots": "Añadir capturas de pantalla…",
+  "diag.report.send": "Enviar",
+  "diag.report.cancel": "Cancelar",
+  "diag.report.sent": "Se abrió la página del issue de GitHub. Arrastra el archivo y pulsa Create para enviarlo.",
+  "report.send_github": "Enviar con cuenta de GitHub",
+  "report.send_email": "Enviar por correo",
+  "report.mail_opened": "Se abrió tu app de correo. Adjunta el archivo que muestra Finder y envíalo."
 }

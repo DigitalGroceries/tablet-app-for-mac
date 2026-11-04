@@ -79,6 +79,7 @@ public sealed class AppTray : IDisposable
     private readonly NativeMenuItem _quitItem;
     private readonly NativeMenuItem _exportItem;   // Version 20: settings export/import in the pen menu
     private readonly NativeMenuItem _importItem;
+    private readonly NativeMenuItem _reportItem;  // Version 22 BETA 3: Report a problem or send a recommendation…
 
     // Signatures of the last-built submenus (so the 3s data poll doesn't churn an open menu): the
     // display submenu (active tablet + monitor geometry + mapped display) and the active-tablet
@@ -134,6 +135,10 @@ public sealed class AppTray : IDisposable
         _importItem = new NativeMenuItem(Localizer.Te("appmenu.import", "Import settings…"));
         _importItem.Click += (_, _) => { if (_window.DataContext is ViewModels.MainViewModel m) _ = AppMenu.ImportAsync(_window, m, "pen menu"); };
 
+        // Version 22 BETA 3 (owner's request): the report sheet opens in the window, with a picture of the window added.
+        _reportItem = new NativeMenuItem(ViewModels.ReportViewModel.MenuLabel);
+        _reportItem.Click += (_, _) => _ = Views.ReportWindow.OpenAsync("pen menu");
+
         // Quit leaves the daemon running (it's a separate process); "Quit and stop the daemon" also
         // stops it (#596), shown only when there's a running daemon to stop.
         _quitItem = new NativeMenuItem(Localizer.T("tray.quit"));
@@ -153,6 +158,8 @@ public sealed class AppTray : IDisposable
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(_checkUpdatesItem);
         menu.Items.Add(_updateAvailableItem);
+        menu.Items.Add(new NativeMenuItemSeparator());
+        menu.Items.Add(_reportItem);
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(_exportItem);
         menu.Items.Add(_importItem);
@@ -224,6 +231,7 @@ public sealed class AppTray : IDisposable
         _updateAvailableItem.Header = Localizer.T("update.prompt_title");
         _exportItem.Header = Localizer.Te("appmenu.export", "Export settings…");
         _importItem.Header = Localizer.Te("appmenu.import", "Import settings…");
+        _reportItem.Header = ViewModels.ReportViewModel.MenuLabel;
         _quitItem.Header = Localizer.T("tray.quit");
         _quitStopItem.Header = Localizer.T("tray.quit_stop");
     }

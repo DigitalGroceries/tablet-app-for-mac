@@ -50,7 +50,7 @@
                         HorizontalAlignment="Stretch" FontSize="11" Cursor="Hand">
                     <TextBlock Text="{Binding ReleasesLabel}" />
                 </Button>
-                <Button x:Name="FeedbackLink" Command="{Binding OpenUrlCommand}" CommandParameter="{Binding FeedbackUrl}" IsEnabled="{Binding HasFeedbackUrl}" IsVisible="{Binding HasFeedbackUrl}" Classes="homeLink" ToolTip.Tip="Report a problem or suggest a feature."
+                <Button x:Name="FeedbackLink" Command="{Binding OpenReportCommand}" Classes="homeLink" ToolTip.Tip="{Binding ReportTip}"
                         HorizontalAlignment="Stretch" FontSize="11" Cursor="Hand">
                     <TextBlock Text="{Binding FeedbackLabel}" />
                 </Button>

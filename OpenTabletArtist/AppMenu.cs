@@ -37,8 +37,14 @@ public static class AppMenu
         var import = new NativeMenuItem(L("appmenu.import", "Import settings…"));
         import.Click += (_, _) => { if (Ready(out var w, out var m)) _ = ImportAsync(w, m, "app menu"); };
 
+        // Version 22 BETA 3 (owner's request): the report sheet, also in the pen menu and the app window.
+        var report = new NativeMenuItem(ReportViewModel.MenuLabel);
+        report.Click += (_, _) => _ = ReportWindow.OpenAsync("app menu");
+
         var menu = new NativeMenu();
         menu.Items.Add(about);
+        menu.Items.Add(new NativeMenuItemSeparator());
+        menu.Items.Add(report);
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(export);
         menu.Items.Add(import);
@@ -47,6 +53,7 @@ public static class AppMenu
         Localizer.LanguageChanged += () =>
         {
             about.Header = L("appmenu.about", "About Tablet App for Mac");
+            report.Header = ReportViewModel.MenuLabel;
             export.Header = L("appmenu.export", "Export settings…");
             import.Header = L("appmenu.import", "Import settings…");
         };

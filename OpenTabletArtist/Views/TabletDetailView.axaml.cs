@@ -57,6 +57,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (ToolPenButton != null) ToolTip.SetTip(ToolPenButton, Localizer.T("tablet.tool.pen"));
         if (ToolMoreButton != null) ToolTip.SetTip(ToolMoreButton, Localizer.T("tablet.tool.more"));
         if (AppAllTile != null) ToolTip.SetTip(AppAllTile, Vm?.AllAppLabel ?? Localizer.T("tablet.app.all"));
+        if (BtnReport != null) BtnReport.Content = ReportViewModel.MenuLabel;
 
         if (ButtonsTab != null) ButtonsTab.Content = Localizer.T("tablet.tab.expresskeys");
         if (WheelsTab != null) WheelsTab.Content = Localizer.T("tablet.tab.touch_ring");
@@ -258,6 +259,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     }
     // R18: '?' opens the in-app user manual (no upstream link).
     private void OnBottomHelp(object? s, RoutedEventArgs e) => ManualWindow.ShowManual();
+    private void OnBottomReport(object? s, RoutedEventArgs e) => _ = ReportWindow.OpenAsync("tablet page");
 
     // Build N.1: Wacom-like "Default" buttons. Always confirm; they edit like any change (no extra save).
     private async void OnRingDefault(object? s, RoutedEventArgs e)

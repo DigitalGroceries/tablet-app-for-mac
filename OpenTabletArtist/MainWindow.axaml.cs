@@ -236,6 +236,28 @@ public partial class MainWindow : Window
     // rendering the content alone drops the backdrop and leaves cards floating on transparent.
     private Control? RootVisual => Content as Control;
 
+    /// <summary>Version 22 BETA 3: a PNG of the whole window for "Report a problem or send a recommendation…",
+    /// saved in a temporary folder. Null when the window has not been laid out yet or the picture fails.</summary>
+    internal string? CaptureReportPicture()
+    {
+        try
+        {
+            if (RootVisual is not { } visual) return null;
+            var dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "TabletApp-report");
+            System.IO.Directory.CreateDirectory(dir);
+            // A report that never finished (the app quit with the sheet open) leaves its picture behind: tidy old ones.
+            foreach (var old in System.IO.Directory.EnumerateFiles(dir, "app-window-*.png"))
+                try { if (System.IO.File.GetLastWriteTimeUtc(old) < DateTime.UtcNow.AddDays(-1)) System.IO.File.Delete(old); }
+                catch (Exception) { /* next time */ }
+            var name = $"app-window-{DateTime.Now:yyyyMMdd-HHmmss}";
+            var path = System.IO.Path.Combine(dir, name + ".png");
+            if (PageScreenshot.RenderTo(visual, RenderScaling, name, dir, ScreenshotFormat.PNG) == 0) return null;
+            // An empty file (nothing drawn) is not worth sending.
+            return System.IO.File.Exists(path) && new System.IO.FileInfo(path).Length > 0 ? path : null;
+        }
+        catch (Exception ex) { AppLog.Warn("Report: couldn't take the picture of the app window.", ex); return null; }
+    }
+
     // The nav-bar on-page capture control: render whatever page is currently shown.
     private void OnCapturePage(object? sender, RoutedEventArgs e)
     {
