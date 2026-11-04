@@ -218,7 +218,9 @@ public sealed class SingleInstance : IDisposable
             try { onActivate(); } catch { /* activation callback must never kill the loop */ }
             try
             {
-                foreach (var path in ReadPaths(client))
+                // Any local process can write to this socket: only pass on full paths to existing .tabletsettings files
+                // (the import still shows its preview and asks before anything changes).
+                foreach (var path in AcceptedPaths(ReadPaths(client)))
                     try { _onDocument?.Invoke(path); } catch { }
             }
             catch { /* a bad payload is just an ordinary nudge */ }
@@ -227,6 +229,10 @@ public sealed class SingleInstance : IDisposable
     }
 
     internal const int MaxPayload = 64 * 1024;
+
+    /// <summary>The forwarded paths the primary acts on: absolute, ending in .tabletsettings, and existing.</summary>
+    internal static IReadOnlyList<string> AcceptedPaths(IEnumerable<string> paths, Func<string, bool>? exists = null) =>
+        SettingsFileArgs.From(paths.Where(Path.IsPathRooted).Take(10), exists);
 
     internal static byte[] EncodePaths(IEnumerable<string> paths) =>
         Encoding.UTF8.GetBytes(string.Join("\n", paths.Where(p => !p.Contains('\n'))));
