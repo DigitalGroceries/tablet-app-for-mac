@@ -105,6 +105,27 @@ public static class LightnessService
         return (Math.Max(x, y) + 0.05) / (Math.Min(x, y) + 0.05);
     }
 
+    public static readonly Color Warning = Color.FromRgb(0xF5, 0x9E, 0x0B);
+
+    /// <summary>Item 14 (#23): warning TEXT (Setup's hints, Wacom removal errors) in the warning hue, scaled
+    /// darker (light steps) or towards white (dark steps) until it has 4.5:1 on the sheet background
+    /// (BgElevated) and the window (BgBase). The plain amber had about 1.6:1 on the light steps.</summary>
+    public static Color WarningText(int step)
+    {
+        var p = For(step);
+        var c = Warning;
+        for (int i = 0; i <= 100; i++)
+        {
+            double f = i / 100.0;
+            c = p.Dark
+                ? Color.FromRgb(Mix(Warning.R, 255, f), Mix(Warning.G, 255, f), Mix(Warning.B, 255, f))
+                : Color.FromRgb(Mix(Warning.R, 0, f), Mix(Warning.G, 0, f), Mix(Warning.B, 0, f));
+            if (Contrast(c, p.Elevated) >= 4.5 && Contrast(c, p.Base) >= 4.5) return c;
+        }
+        return c;
+        static byte Mix(byte a, byte b, double f) => (byte)Math.Round(a + (b - a) * f);
+    }
+
     public static bool DrivesTheme(string choice) =>
         choice is ThemeService.Wacom or ThemeService.Light or ThemeService.Dark or ThemeService.System;
 
@@ -131,7 +152,7 @@ public static class LightnessService
             ("BgBaseBrush", p.Base), ("BgElevatedBrush", p.Elevated), ("BgSurfaceBrush", p.Surface),
             ("GlassBgBrush", p.Surface), ("GlassBgHoverBrush", p.ControlHover), ("GlassBorderBrush", p.Border),
             ("TextPrimaryBrush", p.Text), ("TextSecondaryBrush", p.TextSecondary), ("TextMutedBrush", p.TextMuted),
-            ("DividerBrush", p.Divider), ("TextInverseBrush", p.OnAccent),
+            ("DividerBrush", p.Divider), ("TextInverseBrush", p.OnAccent), ("WarningTextBrush", WarningText(step)),
             ("PenDiagramFillBrush", p.Dark ? G(0x4A) : G(0x5A)), ("PenDiagramButtonFillBrush", p.Dark ? G(0x5E) : G(0x70)),
             ("PenDiagramStrokeBrush", p.Dark ? G(0xB0) : G(0x20)),
             ("WacomPaneBrush", p.Pane), ("WacomTileWellBrush", p.Well), ("ScribbleCanvasBrush", p.Canvas),

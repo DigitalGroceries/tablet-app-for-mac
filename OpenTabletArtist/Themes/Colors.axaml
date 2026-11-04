@@ -30,6 +30,9 @@
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}" />
     <SolidColorBrush x:Key="SuccessMutedBrush" Color="{StaticResource SuccessMuted}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}" />
+    <!-- Item 14 (#23): warning TEXT on sheets/panels. LightnessService replaces it per step with a shade that
+         keeps 4.5:1 (darker amber on the light steps); this default suits the dark default step. -->
+    <SolidColorBrush x:Key="WarningTextBrush" Color="{StaticResource Warning}" />
     <SolidColorBrush x:Key="WarningMutedBrush" Color="{StaticResource WarningMuted}" />
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}" />
     <SolidColorBrush x:Key="ErrorMutedBrush" Color="{StaticResource ErrorMuted}" />
