@@ -162,6 +162,8 @@ public partial class StartupViewModel : ObservableObject
     }
 
     // ---- Intuos4 status light (Settings › System)
+    /// <summary>Shown only while an Intuos4 is connected (set by the shell; Jay, Discussion #31).</summary>
+    [ObservableProperty] private bool _showStatusLight;
     /// <summary>Re-sends the LED setting to the tablet (set by the shell).</summary>
     public Func<System.Threading.Tasks.Task>? StatusLedChanged { get; set; }
     public bool StatusLedBrightOnTouch

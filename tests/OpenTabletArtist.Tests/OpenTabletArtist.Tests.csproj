@@ -77,6 +77,8 @@
     <!-- Build R: ring bindings (key fallback + timed key hold) and the gesture they call. -->
     <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\RingModeBindings.cs" Link="Plugin\RingModeBindings.cs" />
     <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\RingGesture.cs" Link="Plugin\RingGesture.cs" />
+    <!-- Version 23 BETA: touch trackpad taps and drags (pure logic, no OTD types). -->
+    <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\TouchTapGestures.cs" Link="Plugin\TouchTapGestures.cs" />
   </ItemGroup>
 
   <ItemGroup>

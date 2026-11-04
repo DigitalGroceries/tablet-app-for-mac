@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,6 +62,15 @@ public sealed class Intuos4StatusLed : IDisposable
 
     public static bool IsIntuos4(int vendorId, int productId) =>
         vendorId == WacomVendorId && Intuos4ProductIds.Contains(productId);
+
+    /// <summary>The OpenTabletDriver names of the Intuos4 models (product IDs 0xB8-0xBC).</summary>
+    public static readonly string[] Intuos4Names =
+        { "Wacom PTK-440", "Wacom PTK-640", "Wacom PTK-840", "Wacom PTK-1240", "Wacom PTK-540WL" };
+
+    /// <summary>Version 23 BETA (Jay, Discussion #31): the Status light setting is shown only while an Intuos4 is
+    /// connected; other tablets have no such light.</summary>
+    public static bool AnyIntuos4(IEnumerable<string> connectedTabletNames) =>
+        connectedTabletNames.Any(n => Intuos4Names.Contains(n, StringComparer.OrdinalIgnoreCase));
 
     /// <summary>The 9-byte LED control report (Linux wacom_led_control, Intuos4 branch).</summary>
     public static byte[] BuildReport(bool brightOnTouch) => brightOnTouch

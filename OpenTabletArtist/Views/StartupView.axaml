@@ -19,7 +19,7 @@
         </c:Section>
 
         <!-- Intuos4 status light: dim, bright while the pen touches (feature report 0x20). -->
-        <c:Section Title="{Binding StatusLedSectionTitle}">
+        <c:Section Title="{Binding StatusLedSectionTitle}" IsVisible="{Binding ShowStatusLight}">
             <c:ToggleSetting x:Name="StatusLedToggle" Label="{Binding StatusLedLabel}"
                              Description="{Binding StatusLedDescription}"
                              IsChecked="{Binding StatusLedBrightOnTouch}" />

@@ -94,3 +94,35 @@ public class Intuos4ReconnectTests
     private static string Root([System.Runtime.CompilerServices.CallerFilePath] string f = "") =>
         System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(f)!, "..", ".."));
 }
+
+/// <summary>Version 23 BETA (Jay, Discussion #31): the Status light setting only while an Intuos4 is connected.</summary>
+public class StatusLightOnlyForIntuos4Tests
+{
+    [Fact]
+    public void An_Intuos4_among_the_connected_tablets_shows_it() =>
+        Assert.True(Intuos4StatusLed.AnyIntuos4(new[] { "Wacom PTH-651", "Wacom PTK-440" }));
+
+    [Fact]
+    public void Other_tablets_or_none_hide_it()
+    {
+        Assert.False(Intuos4StatusLed.AnyIntuos4(new[] { "Wacom PTH-651" }));
+        Assert.False(Intuos4StatusLed.AnyIntuos4(System.Array.Empty<string>()));
+    }
+
+    [Fact]
+    public void The_names_are_the_driver_configs_for_the_Intuos4_product_ids()
+    {
+        var dir = System.IO.Path.Combine(Root(), "external/OpenTabletDriver/OpenTabletDriver.Configurations/Configurations/Wacom");
+        var names = new System.Collections.Generic.List<string>();
+        foreach (var f in System.IO.Directory.GetFiles(dir, "*.json"))
+        {
+            var j = Newtonsoft.Json.Linq.JObject.Parse(System.IO.File.ReadAllText(f));
+            var ids = (j["DigitizerIdentifiers"] as Newtonsoft.Json.Linq.JArray ?? new()).Select(i => (int?)i["ProductID"] ?? 0);
+            if (ids.Any(id => Intuos4StatusLed.IsIntuos4(Intuos4StatusLed.WacomVendorId, id))) names.Add((string)j["Name"]!);
+        }
+        Assert.Equal(Intuos4StatusLed.Intuos4Names.OrderBy(n => n), names.OrderBy(n => n));
+    }
+
+    private static string Root([System.Runtime.CompilerServices.CallerFilePath] string f = "") =>
+        System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(f)!, "..", ".."));
+}

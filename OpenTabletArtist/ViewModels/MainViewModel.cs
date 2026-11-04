@@ -168,7 +168,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     // Notices describe changes in the bundled driver, so only the app's own driver may trigger them:
     // a separately installed OpenTabletDriver can report the same tablets with its old behaviour.
     private void RefreshTabletNotices() => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        TabletNotices.Refresh(_session.IsAppOwnedDaemon ? _session.DetectedTablets.Select(t => t.Name) : []));
+    {
+        TabletNotices.Refresh(_session.IsAppOwnedDaemon ? _session.DetectedTablets.Select(t => t.Name) : []);
+        // Version 23 BETA: the Status light setting only while an Intuos4 is connected.
+        Startup.ShowStatusLight = Intuos4StatusLed.AnyIntuos4(_session.DetectedTablets.Select(t => t.Name));
+    });
 
     public MainViewModel()
     {
