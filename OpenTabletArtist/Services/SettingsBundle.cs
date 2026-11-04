@@ -342,6 +342,20 @@ public static class SettingsBundle
                 var kind = match == null ? "new" : JToken.DeepEquals(Normalise(match), Normalise(prof)) ? "same" : "changed";
                 changes.Add(new SettingsChange("tablet", name, kind));
             }
+            // Item 18 (#26): Apply replaces the whole driver file, so its top-level settings (Tools, the
+            // usable-area locks, …) are compared too; otherwise a difference there left Apply disabled.
+            if (inc is JObject incObj)
+            {
+                var curObj = curTok as JObject ?? new JObject();
+                foreach (var name in incObj.Properties().Select(p => p.Name).Union(curObj.Properties().Select(p => p.Name)))
+                {
+                    if (name == "Profiles") continue;
+                    var a = incObj[name]; var c = curObj[name];
+                    // Review: only in the current driver file. Apply replaces the whole file, so it goes: show it.
+                    var kind = a == null ? "removed" : c == null ? "new" : JToken.DeepEquals(a, c) ? "same" : "changed";
+                    changes.Add(new SettingsChange("driver", name, kind));
+                }
+            }
         }
         foreach (var (name, text) in b.Files.Where(f => f.Key.StartsWith("presets/") || f.Key.StartsWith("configurations/")))
         {

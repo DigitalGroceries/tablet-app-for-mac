@@ -143,7 +143,7 @@ public partial class BackupViewModel : ObservableObject
     internal static string RowText(SettingsChange c)
     {
         var kind = KindText(c.Kind);
-        if (c.Area is "preset" or "config" or "pref")
+        if (c.Area is "preset" or "config" or "pref" or "driver")
             return $"{kind}  {AreaText(c.Area)}: {c.Item}";
         var text = $"{kind}  {c.Item} - {AreaText(c.Area)}";
         return c.Detail == null ? text : $"{text} ({c.Detail})";
@@ -159,6 +159,7 @@ public partial class BackupViewModel : ObservableObject
         "ring" => L("backup.area.ring.modes", "Touch Ring modes"),
         "ringbackup" => L("backup.area.ringbackup", "Touch Ring modes (saved copy)"),
         "preset" => L("backup.area.preset", "Preset"),
+        "driver" => L("backup.area.driver", "Driver setting"),
         "config" => L("backup.area.config", "Tablet configuration"),
         _ => L("backup.area.pref", "App setting"),
     };
