@@ -194,6 +194,13 @@ public sealed class AppUpdateState : INotifyPropertyChanged
         }
     }
 
+    /// <summary>Test seam: sets what the update check found, as if a check had just run.</summary>
+    internal void SetChoicesForTest(Updater.UpdateChoices choices)
+    {
+        _choices = choices;
+        NotifyChoices();
+    }
+
     void NotifyChoices()
     {
         Notify(nameof(Choices));

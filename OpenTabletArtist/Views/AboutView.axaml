@@ -73,17 +73,19 @@
             <!-- Version 14 (Zak): the "Feedback is read once a week." line under the links was removed. -->
             <!-- Version 7: updates. -->
             <StackPanel x:Name="UpdatesPanel" Spacing="8" Margin="0,10,0,0" HorizontalAlignment="Right">
-                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <!-- Version 23 (owner's report, 4 Nov 2026: "Go back to Ver…" was cut off at every window size): these
+                     rows wrap, so a button that doesn't fit goes under, right-aligned, instead of being cut. -->
+                <WrapPanel x:Name="UpdateNowRow" ItemSpacing="8" LineSpacing="8" ItemsAlignment="End" HorizontalAlignment="Right">
                     <Button x:Name="CheckForUpdatesButton" Content="{Binding CheckUpdatesLabel}" Command="{Binding CheckForUpdatesCommand}" />
                     <Button x:Name="UpdateNowButton" Content="{Binding UpdateNowLabel}" IsVisible="{Binding UpdateReady}" Command="{Binding UpdateNowCommand}" />
-                </StackPanel>
+                </WrapPanel>
                 <!-- Version 14: the choice between stable and BETA (not tested yet), and back to stable from a BETA.
                      Version 15: "Earlier versions…" is always there, so any version (stable or BETA) can go back. -->
-                <StackPanel x:Name="UpdateChoicesRow" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <WrapPanel x:Name="UpdateChoicesRow" ItemSpacing="8" LineSpacing="8" ItemsAlignment="End" HorizontalAlignment="Right">
                     <Button x:Name="EarlierVersionsButton" Content="{Binding EarlierLabel}" Command="{Binding ChooseEarlierCommand}" />
                     <Button x:Name="TryBetaButton" Content="{Binding TryBetaLabel}" IsVisible="{Binding BetaOfferReady}" Command="{Binding TryBetaCommand}" />
                     <Button x:Name="GoBackButton" Content="{Binding GoBackLabel}" IsVisible="{Binding GoBackReady}" Command="{Binding GoBackCommand}" />
-                </StackPanel>
+                </WrapPanel>
                 <TextBlock Text="{Binding UpdateStatus}" HorizontalAlignment="Right" TextWrapping="Wrap" />
                 <CheckBox x:Name="UpdateAutomaticallyBox" Content="{Binding UpdateAutomaticallyLabel}" IsChecked="{Binding UpdateAutomatically}" HorizontalAlignment="Right" />
             </StackPanel>
