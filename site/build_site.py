@@ -8,7 +8,8 @@ STABLE release are placeholders, filled from site/site.json:
   {{P1}}, {{P2}}   the two previous STABLE versions (Zak's rule: the site links the two most recent previous ones)
 
 Images and the manual PDF are not kept here (they live on gh-pages). Pass --manual PATH to copy a new
-manual PDF to help/tablet-app-for-mac-manual.pdf.
+manual PDF to help/tablet-app-for-mac-manual.pdf; with --check
+it is compared byte for byte and a different PDF counts as a difference.
 
 Pages removed from site/src are removed from the output too (item 12, #22): any text page file (see PAGE_EXTS)
 in the output that has no source here is deleted, or reported as "stale:" with --check. Images, the manual PDF,
@@ -48,6 +49,13 @@ def render(text, cfg):
                 .replace('{{P1}}', str(p[0])).replace('{{P2}}', str(p[1])))
 
 
+def manual_matches(new_pdf, published):
+    """True when the published manual PDF is byte-for-byte the new one."""
+    if not os.path.exists(published):
+        return False
+    return open(new_pdf, 'rb').read() == open(published, 'rb').read()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--out', required=True)
@@ -73,8 +81,15 @@ def main():
         diff.append(rel)
         if not a.check:
             os.remove(os.path.join(a.out, rel))
-    if a.manual and not a.check:
-        shutil.copyfile(a.manual, os.path.join(a.out, 'help', 'tablet-app-for-mac-manual.pdf'))
+    if a.manual:
+        # Item 13 (#22): the manual is part of the check too. Compare bytes; copy only when building.
+        rel = os.path.join('help', 'tablet-app-for-mac-manual.pdf')
+        dst = os.path.join(a.out, rel)
+        if not manual_matches(a.manual, dst):
+            diff.append(rel)
+            if not a.check:
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                shutil.copyfile(a.manual, dst)
     for d in diff:
         if d in stale:
             print(('stale: ' if a.check else 'removed: ') + d)
