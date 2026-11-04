@@ -115,7 +115,9 @@ public static class UpdatePromptWindow
     {
         if (downloading && _downloadNote == null)
         {
-            var w = NewWindow(Localizer.T("update.downloading"));
+            // Zak (2 Nov mock-up): no title on the download sheet, only the close button; the thanks is the
+            // first thing, and the download status sits small under the bar.
+            var w = NewWindow("");
             w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
                 Gratitude(),
                 new ProgressBar { IsIndeterminate = true, Height = 4 },
