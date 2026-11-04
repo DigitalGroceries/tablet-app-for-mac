@@ -10,6 +10,10 @@ STABLE release are placeholders, filled from site/site.json:
 Images and the manual PDF are not kept here (they live on gh-pages). Pass --manual PATH to copy a new
 manual PDF to help/tablet-app-for-mac-manual.pdf.
 
+Pages removed from site/src are removed from the output too (item 12, #22): any text page file (see PAGE_EXTS)
+in the output that has no source here is deleted, or reported as "stale:" with --check. Images, the manual PDF,
+.git and KEEP are never touched.
+
 Usage:
   python3 site/build_site.py --out /path/to/gh-pages-checkout [--manual manual.pdf]
   python3 site/build_site.py --out /path/to/gh-pages-checkout --check   # exit 1 if the output would differ
@@ -18,6 +22,24 @@ import argparse, json, os, shutil, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, 'src')
+# Text files the generator owns on gh-pages; everything else there (images, PDF) is kept by hand.
+PAGE_EXTS = {'.html', '.htm', '.css', '.js', '.svg', '.txt', '.xml', '.json', '.md', '.nojekyll'}
+KEEP = {'CNAME'}
+
+
+def stale_files(out, src=SRC):
+    """Page files in the output with no source in site/src (relative paths, sorted)."""
+    stale = []
+    for root, dirs, files in os.walk(out):
+        dirs[:] = [d for d in dirs if d != '.git']
+        for f in files:
+            rel = os.path.relpath(os.path.join(root, f), out)
+            ext = os.path.splitext(f)[1].lower() or (f.lower() if f.startswith('.') else '')
+            if rel in KEEP or ext not in PAGE_EXTS:
+                continue
+            if not os.path.exists(os.path.join(src, rel)):
+                stale.append(rel)
+    return sorted(stale)
 
 
 def render(text, cfg):
@@ -46,10 +68,18 @@ def main():
                 if not a.check:
                     os.makedirs(os.path.dirname(dst), exist_ok=True)
                     open(dst, 'w', encoding='utf-8', newline='').write(data)
+    stale = stale_files(a.out)
+    for rel in stale:
+        diff.append(rel)
+        if not a.check:
+            os.remove(os.path.join(a.out, rel))
     if a.manual and not a.check:
         shutil.copyfile(a.manual, os.path.join(a.out, 'help', 'tablet-app-for-mac-manual.pdf'))
     for d in diff:
-        print(('differs: ' if a.check else 'wrote: ') + d)
+        if d in stale:
+            print(('stale: ' if a.check else 'removed: ') + d)
+        else:
+            print(('differs: ' if a.check else 'wrote: ') + d)
     if a.check and diff:
         sys.exit(1)
     print('site: %d file(s) %s' % (len(diff), 'differ' if a.check else 'changed'))
