@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-App version 20. British English. Screens are real screenshots from a Mac; a few come from earlier versions, so some may differ slightly.
+App version 24. British English. Screens are real screenshots from a Mac; a few come from earlier versions, so some may differ slightly.
 
 ## Before you start
 
@@ -94,7 +94,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 | Current pressure | Live | Pressure after the curve; tooltip shows the raw value. |
 | Button 1 / Button 2 cards | Default (right click) / Default (middle click) | **Change…** opens the function editor; **Default** restores it. |
 | Pen button test | Live | Press a barrel button: its number on the pen picture lights while held, and the line above the cards reads "Button 2 pressed." (or 1). |
-| Movement | Normal (Absolute) | Absolute maps the pen to the screen; Mouse (Relative) moves the cursor like a mouse. |
+| Movement | Normal (Absolute) | Absolute maps the pen to the screen; Mouse (Relative) moves the cursor like a mouse. Mouse-like mode also uses the tablet rotation set under Mapping. |
 | Position smoothing | 0.00 | Steadies the cursor, with some lag. |
 | Disable pen tip | Off | The tip makes no strokes; the bar reads 0%. |
 | Disable pressure sensitivity | Off | Every stroke uses the Manual Pen Tip Pressure while pressed, in every app. |
@@ -115,7 +115,7 @@ The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable 
 | Control | Default | Function |
 |---|---|---|
 | Active area | Whole tablet | Drag the area or its corners. |
-| Rotation | 0° | 180° puts the ExpressKeys on the other side; 90° and 270° are portrait. After rotating, recalibrate (More › calibration) if the pointer no longer sits under the nib. |
+| Rotation | 0° | 180° puts the ExpressKeys on the other side; 90° and 270° are portrait. This rotation is also used in Mouse-like (Relative) mode. After rotating, recalibrate (More › calibration) if the pointer no longer sits under the nib. |
 | Display / All displays | Main display | The display the area maps to. |
 | Force proportions | On | Keeps the area at the display's aspect ratio. |
 | Display Settings | – | Opens macOS Displays settings. |
@@ -180,6 +180,7 @@ On the Intuos Pro M (PTH-651), finger touch works like a Mac trackpad. Switch it
 - Tap to click. Two quick taps double-click.
 - Tap, then touch again and move to drag. Lift your finger to let go.
 - Tap with two fingers to right-click.
+- A held click is released when the driver stops the touch filter (for example when the tablet is unplugged).
 
 Touch is ignored while the pen is near the tablet, so a resting hand doesn't move the pointer.
 
@@ -232,7 +233,7 @@ The report opens inside the app window:
 - Write what happened, or your idea (you can leave it empty).
 - A picture of the app window, as it was just before the report opened, is added. Untick **Add this picture of the app window** to leave it out. **Add screenshots…** adds more pictures (up to 10 in all).
 - Press **Send with file** or **Send with GitHub account**. Both make one file with your text, your pictures and the app and driver logs. Serial numbers and your user name are removed from the logs. Pictures are sent as they are, so check them first.
-- **Send with file** needs no account. It asks where to save the file (the Desktop is suggested). Then the report shows where the file is. Click **Open upload page** and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file. **Show in Finder** shows the file.
+- **Send with file** needs no account. It asks where to save the file (the Desktop is suggested). Then the report shows where the file is. Click **Open upload page** and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file. There is no Show in Finder button.
 - **Send with GitHub account** needs a free GitHub account. It saves the file on your Desktop, shows it in Finder and opens a new GitHub issue with your text filled in. Drag the file into it and press **Create**.
 
 **Cancel** closes the report and sends nothing.
@@ -302,7 +303,7 @@ The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninst
 - **Update automatically** is an optional setting just below it. It is off unless you turn it on. When it is on, the app downloads a new stable version by itself, then asks for OK before installing. It never installs a BETA by itself.
 - To go back to an earlier version, click **Earlier versions…** on **Home** and choose one of the two most recent stable versions older than the one you have. This works from a stable version and from a BETA. Your settings stay.
 
-![Home while using a BETA, with Check for updates now, Earlier versions…, Go back to Version 15, and the Update automatically setting](img/85-home-updates.png)
+![Home while using a BETA, with Check for updates now, Earlier versions…, and the Update automatically setting. The go-back button now says Previous Version; this picture still shows the older “Go back to Version 15” label.](img/85-home-updates.png)
 
 - The two permissions are asked for only at the first installation. Updates from Version 18 on keep them.
 - **Coming from Version 6:** install Version 7 or later by hand once (see Install and first launch). Then do the one-time step for Version 17 or older above.

@@ -72,7 +72,7 @@
 <tr><td>Current pressure</td><td>Live</td><td>Pressure after the curve; tooltip shows the raw value.</td></tr>
 <tr><td>Button 1 / Button 2 cards</td><td>Default (right click) / Default (middle click)</td><td><strong>Change…</strong> opens the function editor; <strong>Default</strong> restores it.</td></tr>
 <tr><td>Pen button test</td><td>Live</td><td>Press a barrel button: its number on the pen picture lights while held, and the line above the cards reads "Button 2 pressed." (or 1).</td></tr>
-<tr><td>Movement</td><td>Normal (Absolute)</td><td>Absolute maps the pen to the screen; Mouse (Relative) moves the cursor like a mouse.</td></tr>
+<tr><td>Movement</td><td>Normal (Absolute)</td><td>Absolute maps the pen to the screen; Mouse (Relative) moves the cursor like a mouse. Mouse-like mode also uses the tablet rotation set under Mapping.</td></tr>
 <tr><td>Position smoothing</td><td>0.00</td><td>Steadies the cursor, with some lag.</td></tr>
 <tr><td>Disable pen tip</td><td>Off</td><td>The tip makes no strokes; the bar reads 0%.</td></tr>
 <tr><td>Disable pressure sensitivity</td><td>Off</td><td>Every stroke uses the Manual Pen Tip Pressure while pressed, in every app.</td></tr>
@@ -84,7 +84,7 @@
 <section class="chap" id="tablet-mapping" aria-labelledby="tablet-mapping-h"><h2 id="tablet-mapping-h">Tablet › Mapping</h2><figure><picture><source type="image/webp" srcset="/tablet-app-for-mac/assets/manual/22-mapping-display.webp"><source type="image/png" srcset="/tablet-app-for-mac/assets/manual/22-mapping-display.png"><img src="/tablet-app-for-mac/assets/manual/22-mapping-display.webp" alt="Mapping" width="960" height="969" loading="lazy" decoding="async"></picture><figcaption>Mapping</figcaption></figure>
 <table><tr><th>Control</th><th>Default</th><th>Function</th></tr>
 <tr><td>Active area</td><td>Whole tablet</td><td>Drag the area or its corners.</td></tr>
-<tr><td>Rotation</td><td>0°</td><td>180° puts the ExpressKeys on the other side; 90° and 270° are portrait. After rotating, recalibrate (More › calibration) if the pointer no longer sits under the nib.</td></tr>
+<tr><td>Rotation</td><td>0°</td><td>180° puts the ExpressKeys on the other side; 90° and 270° are portrait. This rotation is also used in Mouse-like (Relative) mode. After rotating, recalibrate (More › calibration) if the pointer no longer sits under the nib.</td></tr>
 <tr><td>Display / All displays</td><td>Main display</td><td>The display the area maps to.</td></tr>
 <tr><td>Force proportions</td><td>On</td><td>Keeps the area at the display's aspect ratio.</td></tr>
 <tr><td>Display Settings</td><td>–</td><td>Opens macOS Displays settings.</td></tr>
@@ -139,6 +139,7 @@
 <li>Tap to click. Two quick taps double-click.</li>
 <li>Tap, then touch again and move to drag. Lift your finger to let go.</li>
 <li>Tap with two fingers to right-click.</li>
+<li>A held click is released when the driver stops the touch filter (for example when the tablet is unplugged).</li>
 </ul>
 <p>Touch is ignored while the pen is near the tablet, so a resting hand doesn't move the pointer.</p><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
 <section class="chap" id="scribble" aria-labelledby="scribble-h"><h2 id="scribble-h">Scribble</h2><p>A test canvas with a precise crosshair cursor. If the canvas says "Drawing is off because the pen isn't set to follow the screen", click <strong>Use pen on screen</strong>: Movement becomes <strong>Normal (Absolute)</strong> and, if needed, the pen is mapped to all displays. The same settings are in <strong>Tablet › Pen › Movement</strong> and <strong>Tablet › Mapping</strong>. Draws with the processed pressure, so the curve, Disable pen tip and the Manual Pressure are visible.</p>
@@ -177,7 +178,7 @@
 <li>Write what happened, or your idea (you can leave it empty).</li>
 <li>A picture of the app window, as it was just before the report opened, is added. Untick <strong>Add this picture of the app window</strong> to leave it out. <strong>Add screenshots…</strong> adds more pictures (up to 10 in all).</li>
 <li>Press <strong>Send with file</strong> or <strong>Send with GitHub account</strong>. Both make one file with your text, your pictures and the app and driver logs. Serial numbers and your user name are removed from the logs. Pictures are sent as they are, so check them first.</li>
-<li><strong>Send with file</strong> needs no account. It asks where to save the file (the Desktop is suggested). Then the report shows where the file is. Click <strong>Open upload page</strong> and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file. <strong>Show in Finder</strong> shows the file.</li>
+<li><strong>Send with file</strong> needs no account. It asks where to save the file (the Desktop is suggested). Then the report shows where the file is. Click <strong>Open upload page</strong> and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file. There is no Show in Finder button.</li>
 <li><strong>Send with GitHub account</strong> needs a free GitHub account. It saves the file on your Desktop, shows it in Finder and opens a new GitHub issue with your text filled in. Drag the file into it and press <strong>Create</strong>.</li>
 </ul>
 <p><strong>Cancel</strong> closes the report and sends nothing.</p><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
@@ -227,7 +228,7 @@
 <li><strong>Update automatically</strong> is an optional setting just below it. It is off unless you turn it on. When it is on, the app downloads a new stable version by itself, then asks for OK before installing. It never installs a BETA by itself.</li>
 <li>To go back to an earlier version, click <strong>Earlier versions…</strong> on <strong>Home</strong> and choose one of the two most recent stable versions older than the one you have. This works from a stable version and from a BETA. Your settings stay.</li>
 </ul>
-<figure><picture><source type="image/webp" srcset="/tablet-app-for-mac/assets/manual/85-home-updates.webp"><source type="image/png" srcset="/tablet-app-for-mac/assets/manual/85-home-updates.png"><img src="/tablet-app-for-mac/assets/manual/85-home-updates.webp" alt="Home while using a BETA, with Check for updates now, Earlier versions…, Go back to Version 15, and the Update automatically setting" width="960" height="480" loading="lazy" decoding="async"></picture><figcaption>Home while using a BETA, with Check for updates now, Earlier versions…, Go back to Version 15, and the Update automatically setting</figcaption></figure>
+<figure><picture><source type="image/webp" srcset="/tablet-app-for-mac/assets/manual/85-home-updates.webp"><source type="image/png" srcset="/tablet-app-for-mac/assets/manual/85-home-updates.png"><img src="/tablet-app-for-mac/assets/manual/85-home-updates.webp" alt="Home while using a BETA, with Check for updates now, Earlier versions…, and the Update automatically setting. The go-back button now says Previous Version; this picture still shows the older “Go back to Version 15” label." width="960" height="480" loading="lazy" decoding="async"></picture><figcaption>Home while using a BETA, with Check for updates now, Earlier versions…, and the Update automatically setting. The go-back button now says Previous Version; this picture still shows the older “Go back to Version 15” label.</figcaption></figure>
 <ul>
 <li>The two permissions are asked for only at the first installation. Updates from Version 18 on keep them.</li>
 <li><strong>Coming from Version 6:</strong> install Version 7 or later by hand once (see Install and first launch). Then do the one-time step for Version 17 or older above.</li>
