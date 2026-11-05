@@ -102,7 +102,7 @@ public class ReportSheetTests
             Assert.DoesNotContain("organicmachine@protonmail.com", text);
             Assert.Contains(saved.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Report saved");
             var buttons = saved.GetVisualDescendants().OfType<Button>().ToDictionary(b => b.Name ?? "", b => b.Content);
-            Assert.Equal("Show in Finder", buttons["ReportShowFile"]);
+            Assert.False(buttons.ContainsKey("ReportShowFile"));
             Assert.Equal("Open upload page", buttons["ReportOpenUpload"]);
             Assert.Equal("Close", buttons["ReportDone"]);
 

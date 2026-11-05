@@ -113,7 +113,6 @@ public partial class ReportViewModel : ObservableObject
         .Replace("{path}", SavedPath);
     public const string DefaultSavedText =
         "Your report file is saved here:\n{path}\n\nTo send it, click Open upload page and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file.";
-    public string ShowFileLabel => Localizer.Te("report.show_file", "Show in Finder");
     public string OpenUploadLabel => Localizer.Te("report.open_upload", "Open upload page");
     public string CloseLabel => Localizer.Te("app.close", "Close");
     public string CancelLabel => Localizer.Te("diag.report.cancel", "Cancel");
@@ -196,10 +195,6 @@ public partial class ReportViewModel : ObservableObject
             catch (Exception ex) { AppLog.Debug("Report: couldn't remove the temporary folder.", ex); }
         }
     }
-
-    /// <summary>"Show in Finder" on the saved message.</summary>
-    [RelayCommand]
-    private void ShowFile() { if (IsSaved) Reveal(SavedPath); }
 
     /// <summary>"Open upload page" on the saved message (Digital Groceries' Dropbox file request).</summary>
     [RelayCommand]

@@ -139,8 +139,8 @@ public class ReportFromThreePlacesTests
         Assert.DoesNotContain(DiagnosticBundle.FeedbackEmail, vm.SavedMessage);
         Assert.Equal("", vm.Status);
 
-        vm.ShowFileCommand.Execute(null);
-        Assert.Equal(saved, Assert.Single(revealed));
+        // Zak 5 Nov 2026: no Show in Finder — path is already on the message; only Open upload page + Close.
+        Assert.Empty(revealed);
         vm.OpenUploadCommand.Execute(null);
         Assert.Equal(DiagnosticBundle.ReportUploadUrl, Assert.Single(urls));
         vm.DoneCommand.Execute(null);

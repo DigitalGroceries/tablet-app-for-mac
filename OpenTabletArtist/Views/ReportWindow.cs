@@ -125,8 +125,8 @@ public sealed class ReportWindow : Window
 
         // Version 24 (Zak, 5 Nov 2026): after "Send with file" the sheet says where the file is and offers
         // Open upload page. The text can be selected, so the path can be copied.
+        // Zak 5 Nov 2026: no "Show in Finder" — the save panel already chose the place, so the path in the message is enough.
         var savedText = new SelectableTextBlock { Name = "ReportSavedText", TextWrapping = TextWrapping.Wrap }.Fg();
-        var showFile = new Button { Name = "ReportShowFile", Content = vm.ShowFileLabel, Padding = new Thickness(16, 8), Command = vm.ShowFileCommand };
         var openUpload = new Button { Name = "ReportOpenUpload", Content = vm.OpenUploadLabel, Padding = new Thickness(16, 8), Command = vm.OpenUploadCommand };
         var done = new Button { Name = "ReportDone", Content = vm.CloseLabel, Padding = new Thickness(16, 8), Command = vm.DoneCommand };
         var saved = new StackPanel
@@ -139,7 +139,7 @@ public sealed class ReportWindow : Window
                 new StackPanel
                 {
                     Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right,
-                    Margin = new Thickness(0, 4, 0, 0), Children = { showFile, openUpload, done },
+                    Margin = new Thickness(0, 4, 0, 0), Children = { openUpload, done },
                 },
             },
         };
