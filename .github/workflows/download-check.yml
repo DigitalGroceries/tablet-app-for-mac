@@ -1,0 +1,100 @@
+name: Download check
+
+# Zak's team rule (5 Nov 2026): the website's Download button must be tested once a day.
+# Why: from 2 Nov to 5 Nov 2026 the big Download button pointed at Tablet-App-for-Mac.dmg, but
+# Versions 21 and 23 were published with a .zip only, so every new visitor got "404 Not Found".
+#
+# Every day this reads the live website (home page + llms.txt), follows every GitHub download link on
+# it (the Download button, the "go back" links, the JSON-LD downloadUrl) and checks that each one
+# really downloads. It also checks that the version the home page shows is the latest release.
+# On a problem it fails and opens (or comments on) one issue labelled "download-check", so the team
+# sees it at its next session start.
+
+on:
+  schedule:
+    - cron: '17 7 * * *'   # every day, 07:17 UTC
+  workflow_dispatch:
+    inputs:
+      extra_url:
+        description: 'Also test this URL (for testing the check itself)'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Do not open or comment on an issue'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test every download link on the website
+        id: test
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXTRA_URL: ${{ inputs.extra_url }}
+        run: |
+          set -uo pipefail
+          SITE=https://digitalgroceries.github.io/tablet-app-for-mac
+          REPO=${{ github.repository }}
+          : > report.md
+          fail=0
+
+          curl -sSfL "$SITE/" -o home.html || { echo "- The home page did not load." >> report.md; fail=1; }
+          curl -sSfL "$SITE/llms.txt" -o llms.txt || { echo "- llms.txt did not load." >> report.md; fail=1; }
+
+          urls=$(cat home.html llms.txt 2>/dev/null \
+            | grep -oE "https://github\.com/$REPO/releases/(latest/)?download/[^\"' )<>]+" | sort -u)
+          [ -n "${EXTRA_URL:-}" ] && urls=$(printf '%s\n%s\n' "$urls" "$EXTRA_URL")
+          if [ -z "$(echo "$urls" | tr -d '[:space:]')" ]; then
+            echo "- No download links were found on the home page." >> report.md; fail=1
+          fi
+
+          for u in $urls; do
+            # Ask for the first byte only: 206 (or 200) after the redirects means the file is really there.
+            code=$(curl -sL -r 0-0 -o /dev/null -w '%{http_code}' --retry 2 --max-time 60 "$u")
+            echo "$code  $u"
+            if [ "$code" != "206" ] && [ "$code" != "200" ]; then
+              echo "- HTTP $code: $u" >> report.md; fail=1
+            fi
+          done
+
+          latest=$(gh release view --repo "$REPO" --json tagName --jq .tagName | sed 's/^v//')
+          shown=$(grep -oE 'Version [0-9]+ · free' home.html | head -1 | grep -oE '[0-9]+' || true)
+          echo "Latest release: $latest   Home page shows: ${shown:-nothing}"
+          if [ "$shown" != "$latest" ]; then
+            echo "- The home page shows Version ${shown:-?}, but the latest release is Version $latest." >> report.md; fail=1
+          fi
+          if ! gh release view "v$latest" --repo "$REPO" --json assets --jq '.assets[].name' | grep -qx 'Tablet-App-for-Mac.zip'; then
+            echo "- The latest release (v$latest) has no Tablet-App-for-Mac.zip (the in-app update needs it)." >> report.md; fail=1
+          fi
+
+          echo "fail=$fail" >> "$GITHUB_OUTPUT"
+          cat report.md
+
+      - name: Report the problem in an issue
+        if: steps.test.outputs.fail == '1' && inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO=${{ github.repository }}
+          RUN="${{ github.server_url }}/$REPO/actions/runs/${{ github.run_id }}"
+          { echo "The daily download check found a problem on the website:"; echo; cat report.md; echo; echo "Run: $RUN"; } > body.md
+          gh label create download-check --repo "$REPO" --color B60205 \
+            --description "Daily website download check" 2>/dev/null || true
+          open=$(gh issue list --repo "$REPO" --label download-check --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --repo "$REPO" --body-file body.md
+          else
+            gh issue create --repo "$REPO" --label download-check \
+              --title "Website download check failed" --body-file body.md
+          fi
+
+      - name: Fail the run when something is broken
+        if: steps.test.outputs.fail == '1'
+        run: exit 1
