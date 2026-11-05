@@ -303,7 +303,7 @@ The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninst
 - **Update automatically** is an optional setting just below it. It is off unless you turn it on. When it is on, the app downloads a new stable version by itself, then asks for OK before installing. It never installs a BETA by itself.
 - To go back to an earlier version, click **Earlier versions…** on **Home** and choose one of the two most recent stable versions older than the one you have. This works from a stable version and from a BETA. Your settings stay.
 
-![Home while using a BETA, with Check for updates now, Earlier versions…, and the Update automatically setting. The go-back button now says Previous Version; this picture still shows the older “Go back to Version 15” label.](img/85-home-updates.png)
+![Home on Version 24: You have the latest version. Check for updates now, Earlier versions…, and Update automatically are on the right.](img/85-home-updates.png)
 
 - The two permissions are asked for only at the first installation. Updates from Version 18 on keep them.
 - **Coming from Version 6:** install Version 7 or later by hand once (see Install and first launch). Then do the one-time step for Version 17 or older above.
