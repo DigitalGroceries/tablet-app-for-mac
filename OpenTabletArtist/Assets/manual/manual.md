@@ -41,7 +41,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 **The two permissions (Input Monitoring and Accessibility) are needed only at the first installation.** The setup window guides you. From Version 18 on, updates keep them: there is nothing to do.
 
-1. Unzip **Tablet-App-for-Mac.zip** (double-click it in Downloads) and drag **Tablet App for Mac** onto the **Applications** folder.
+1. Open **Tablet-App-for-Mac.dmg** and drag **Tablet App for Mac** onto the **Applications** folder.
 2. Open the app from Applications. The first time, your Mac may say the app was not opened. Click **Done**. Do not click **Move to Bin**.
 
 ![The message "Tablet App for Mac.app Not Opened", with the Done and Move to Bin buttons](img/install-01-not-opened.png)
