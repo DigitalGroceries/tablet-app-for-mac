@@ -19,7 +19,7 @@ namespace OpenTabletArtist.Dynamics;
 /// taps to double-click, two-finger tap to right-click (<see cref="TouchTapGestures"/>). Passes every report on untouched.
 /// </summary>
 [PluginName("Tablet App for Mac - Touch trackpad")]
-public class TouchTrackpadFilter : IPositionedPipelineElement<IDeviceReport>
+public class TouchTrackpadFilter : IPositionedPipelineElement<IDeviceReport>, IDisposable
 {
     [TabletReference] public TabletReference? Tablet { get; set; }
 
@@ -33,6 +33,7 @@ public class TouchTrackpadFilter : IPositionedPipelineElement<IDeviceReport>
     private readonly TouchTapGestures _taps = new();
     private readonly object _gate = new();
     private System.Threading.Timer? _timer;
+    private bool _disposed;
 
     public void Consume(IDeviceReport value)
     {
@@ -40,12 +41,30 @@ public class TouchTrackpadFilter : IPositionedPipelineElement<IDeviceReport>
         {
             lock (_gate)
             {
-                if (value is ITabletReport) { _penSeen = DateTime.UtcNow; Do(_taps.Cancel()); }
-                else if (value is ITouchReport touch) Handle(touch);
+                if (!_disposed)
+                {
+                    if (value is ITabletReport) { _penSeen = DateTime.UtcNow; Do(_taps.Cancel()); }
+                    else if (value is ITouchReport touch) Handle(touch);
+                }
             }
         }
         catch (Exception) { /* never let touch break the pen */ }
         Emit?.Invoke(value);
+    }
+
+    /// <summary>OTD disposes pipeline elements that implement <see cref="IDisposable"/> on disconnect or a
+    /// settings reload. Force-release a held click so the button is not left down, then stop the timer.</summary>
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            try { Do(_taps.Cancel()); }   // LeftUp if a touch drag was held
+            catch (Exception) { /* Dispose must not throw */ }
+            _timer?.Dispose();
+            _timer = null;
+        }
     }
 
     private void Handle(ITouchReport report)
@@ -101,7 +120,7 @@ public class TouchTrackpadFilter : IPositionedPipelineElement<IDeviceReport>
                     MacPointer.Button(MacPointer.RightDown, 1); MacPointer.Button(MacPointer.RightUp, 1); break;
             }
         }
-        if (_taps.Busy)
+        if (_taps.Busy && !_disposed)
         {
             _timer ??= new System.Threading.Timer(_ => OnTick(), null, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
             _timer.Change(50, 50);

@@ -103,8 +103,8 @@ public class ReportFromThreePlacesTests
     [Fact]
     public async Task Send_with_file_asks_where_to_save_then_says_where_it_is_and_opens_nothing()
     {
-        // Version 23 (owner's request, 4 Nov 2026): the button asks where to save, then says where the file is and
-        // which address to email it to. No email app, no web page, no Finder until the user asks.
+        // Version 24 (Zak, 5 Nov 2026): the button asks where to save, then says where the file is and
+        // how to upload it. No web page and no Finder until the user asks.
         var (vm, urls, revealed, dir) = Make();
         var chosen = Directory.CreateDirectory(Path.Combine(dir, "My reports")).FullName;
         var suggested = SaveTo(vm, Path.Combine(chosen, "pen report"));   // no .zip typed: it is added
@@ -134,12 +134,15 @@ public class ReportFromThreePlacesTests
         Assert.Null(finished);                                        // the sheet stays open with the message
         Assert.True(vm.IsSaved);
         Assert.Contains(saved, vm.SavedMessage);
-        Assert.Contains(DiagnosticBundle.FeedbackEmail, vm.SavedMessage);
+        Assert.Contains("Open upload page", vm.SavedMessage);
         Assert.DoesNotContain("{", vm.SavedMessage);
+        Assert.DoesNotContain(DiagnosticBundle.FeedbackEmail, vm.SavedMessage);
         Assert.Equal("", vm.Status);
 
         vm.ShowFileCommand.Execute(null);
         Assert.Equal(saved, Assert.Single(revealed));
+        vm.OpenUploadCommand.Execute(null);
+        Assert.Equal(DiagnosticBundle.ReportUploadUrl, Assert.Single(urls));
         vm.DoneCommand.Execute(null);
         Assert.True(finished);
     }
@@ -212,12 +215,13 @@ public class ReportFromThreePlacesTests
     }
 
     [Fact]
-    public void Feedback_address_is_the_websites_and_shows_in_the_note()
+    public void Upload_page_is_Dropbox_and_shows_in_the_note()
     {
-        Assert.Equal("organicmachine@protonmail.com", DiagnosticBundle.FeedbackEmail);
+        Assert.Equal("https://www.dropbox.com/request/9k5b0u782t79plarauv9", DiagnosticBundle.ReportUploadUrl);
         var vm = new ReportViewModel(Inputs, null, "test");
-        Assert.Contains(DiagnosticBundle.FeedbackEmail, vm.Note);
+        Assert.Contains("Open upload page", vm.Note);
         Assert.DoesNotContain("{email}", vm.Note);
+        Assert.DoesNotContain(DiagnosticBundle.FeedbackEmail, vm.Note);
     }
 
     [Fact]
@@ -317,11 +321,12 @@ public class ReportFromThreePlacesTests
             var keys = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(file));
             foreach (var k in new[] { "report.menu", "report.title", "report.note", "report.window_picture",
                          "report.send_github", "report.send_file", "report.save_title", "report.saved_title",
-                         "report.saved_text", "report.show_file", "app.close", "diag.report.cancel", "diag.report.screenshots" })
+                         "report.saved_text", "report.show_file", "report.open_upload", "app.close",
+                         "diag.report.cancel", "diag.report.screenshots" })
                 Assert.True(keys[k] != null, $"{Path.GetFileName(file)} has no {k}");
-            Assert.Contains("{email}", (string)keys["report.note"]!);
+            Assert.DoesNotContain("{email}", (string)keys["report.note"]!);
             Assert.Contains("{path}", (string)keys["report.saved_text"]!);
-            Assert.Contains("{email}", (string)keys["report.saved_text"]!);
+            Assert.DoesNotContain("{email}", (string)keys["report.saved_text"]!);
             // The email button and its message are gone (owner's request, 4 Nov 2026).
             Assert.Null(keys["report.send_email"]);
             Assert.Null(keys["report.mail_opened"]);

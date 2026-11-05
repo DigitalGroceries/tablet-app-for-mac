@@ -16,10 +16,11 @@ namespace OpenTabletArtist.ViewModels;
 /// All three open the same sheet in the main window. A picture of the app window, taken just before the sheet
 /// opened, is added unless the user unticks it; "Add screenshots…" adds more pictures. Both buttons make the usual
 /// diagnostic zip (serial numbers and user name removed) plus the pictures and the user's text.
-/// Version 23 (owner's request, 4 Nov 2026): "Send with file" (no account needed) asks where to save the zip, saves it
-/// there and then says where it is and which address to email it to. It opens no email app. "Send with GitHub
-/// account" saves the zip on the Desktop, shows it in Finder and opens a pre-filled GitHub issue (the same no-token
-/// way as the Diagnostics page's report).
+/// Version 23 (owner's request, 4 Nov 2026): "Send with file" asked where to save the zip, then said where it is
+/// and which address to email it to. Version 24 (Zak, 5 Nov 2026): after saving, the sheet says where the file is
+/// and offers Open upload page (Digital Groceries' Dropbox file request). The page itself asks for name and email;
+/// the app no longer asks for an email. "Send with GitHub account" is unchanged: it saves the zip on the Desktop,
+/// shows it in Finder and opens a pre-filled GitHub issue (the same no-token way as the Diagnostics page's report).
 /// </summary>
 public partial class ReportViewModel : ObservableObject
 {
@@ -98,21 +99,22 @@ public partial class ReportViewModel : ObservableObject
     public string DescriptionHint => Localizer.Te("report.text_hint", "Optional");
     public string WindowPictureLabel => Localizer.Te("report.window_picture", "Add this picture of the app window");
     public string AddScreenshotsLabel => Localizer.Te("diag.report.screenshots", "Add screenshots…");
-    public string Note => Localizer.Te("report.note", DefaultNote).Replace("{email}", DiagnosticBundle.FeedbackEmail);
+    public string Note => Localizer.Te("report.note", DefaultNote);
     public const string DefaultNote =
-        "Send with file asks where to save one file with your text, your pictures and the app and driver logs. Then attach that file to an email to {email}. No account is needed.\n" +
+        "Send with file asks where to save one file with your text, your pictures and the app and driver logs. Then click Open upload page and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed.\n" +
         "Send with GitHub account saves the file on your Desktop and opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.\n" +
         "Serial numbers and your user name are removed from the logs, but pictures are sent as they are: check them first.";
     public string SendGitHubLabel => Localizer.Te("report.send_github", "Send with GitHub account");
     public string SendFileLabel => Localizer.Te("report.send_file", "Send with file");
     public string SaveDialogTitle => Localizer.Te("report.save_title", "Save the report file");
     public string SavedTitle => Localizer.Te("report.saved_title", "Report saved");
-    /// <summary>Where the file is and where to email it (owner's choice, 4 Nov 2026: a message only, no email app).</summary>
+    /// <summary>Where the file is and how to upload it (Version 24: a message only; the upload page is opened on request).</summary>
     public string SavedMessage => !IsSaved ? "" : Localizer.Te("report.saved_text", DefaultSavedText)
-        .Replace("{path}", SavedPath).Replace("{email}", DiagnosticBundle.FeedbackEmail);
+        .Replace("{path}", SavedPath);
     public const string DefaultSavedText =
-        "Your report file is saved here:\n{path}\n\nTo send it, write an email to {email} and attach this file. Your text and pictures are already in it.";
+        "Your report file is saved here:\n{path}\n\nTo send it, click Open upload page and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file.";
     public string ShowFileLabel => Localizer.Te("report.show_file", "Show in Finder");
+    public string OpenUploadLabel => Localizer.Te("report.open_upload", "Open upload page");
     public string CloseLabel => Localizer.Te("app.close", "Close");
     public string CancelLabel => Localizer.Te("diag.report.cancel", "Cancel");
 
@@ -162,7 +164,7 @@ public partial class ReportViewModel : ObservableObject
     }
 
     /// <summary>Send with file (no account needed): asks where to save the zip, saves it there, then shows where it is
-    /// and the address to email it to. Closing the save panel saves nothing and leaves the report open.</summary>
+    /// and offers Open upload page. Closing the save panel saves nothing and leaves the report open.</summary>
     [RelayCommand(CanExecute = nameof(CanEdit))]
     private async Task SendFile()
     {
@@ -198,6 +200,10 @@ public partial class ReportViewModel : ObservableObject
     /// <summary>"Show in Finder" on the saved message.</summary>
     [RelayCommand]
     private void ShowFile() { if (IsSaved) Reveal(SavedPath); }
+
+    /// <summary>"Open upload page" on the saved message (Digital Groceries' Dropbox file request).</summary>
+    [RelayCommand]
+    private void OpenUpload() { if (IsSaved) OpenUrl(DiagnosticBundle.ReportUploadUrl); }
 
     /// <summary>"Close" on the saved message.</summary>
     [RelayCommand]

@@ -282,6 +282,7 @@
   "update.install_stable": "安装版本 {version}",
   "update.try_beta": "试用版本 {beta}",
   "update.go_back": "回退到版本 {version}",
+  "update.go_back_short": "上一版本",
   "update.beta_title": "BETA 版",
   "update.beta_heading": "版本 {beta} 是 BETA 版",
   "update.beta_body": "BETA 版包含尚未测试的新功能，因此某些功能可能无法正常工作。应用会下载、校验并自动重新打开。设置会保留。你随时可以通过“立即检查更新”回退到稳定版。请通过“主页”上的“反馈”告诉我们使用体验。",
@@ -376,7 +377,7 @@
   "report.text_hint": "可选",
   "report.window_picture": "添加这张应用窗口的图片",
   "report.pictures": "已添加图片：{n}",
-  "report.note": "“使用文件发送”会询问将一个文件保存到哪里，该文件包含您的文字、图片以及应用和驱动程序的日志。然后将该文件附加到发往 {email} 的电子邮件中即可，无需账户。\n“使用 GitHub 账户发送”会将文件保存到桌面，并打开一个填好您文字的新 GitHub issue：将文件拖入并点按 Create。需要一个免费的 GitHub 账户。\n序列号和您的用户名会从日志中删除，但图片会按原样发送：请先检查。",
+  "report.note": "“使用文件发送”会询问将一个文件保存到哪里，该文件包含您的文字、图片以及应用和驱动程序的日志。然后点击“打开上传页面”并添加此文件。该页面会询问您的姓名和电子邮件（Dropbox 的规则）——只有 Tablet App for Mac 团队能看到这些信息；无需 Dropbox 账户。\n“使用 GitHub 账户发送”会将文件保存到桌面，并打开一个填好您文字的新 GitHub issue：将文件拖入并点按 Create。需要一个免费的 GitHub 账户。\n序列号和您的用户名会从日志中删除，但图片会按原样发送：请先检查。",
   "report.failed": "无法创建报告：{error}",
   "diag.report.screenshots": "添加截图…",
   "diag.report.send": "发送",
@@ -386,6 +387,7 @@
   "report.send_file": "使用文件发送",
   "report.save_title": "保存报告文件",
   "report.saved_title": "报告已保存",
-  "report.saved_text": "您的报告文件已保存在：\n{path}\n\n要发送它，请写一封电子邮件至 {email}，并附上此文件。您的文字和图片已包含在其中。",
-  "report.show_file": "在访达中显示"
+  "report.saved_text": "您的报告文件已保存在：\n{path}\n\n要发送它，请点击“打开上传页面”并添加此文件。该页面会询问您的姓名和电子邮件（Dropbox 的规则）——只有 Tablet App for Mac 团队能看到这些信息；无需 Dropbox 账户。您的文字和图片已包含在其中。",
+  "report.show_file": "在访达中显示",
+  "report.open_upload": "打开上传页面"
 }

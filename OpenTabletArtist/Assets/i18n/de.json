@@ -282,6 +282,7 @@
   "update.install_stable": "Version {version} installieren",
   "update.try_beta": "Version {beta} ausprobieren",
   "update.go_back": "Zurück zu Version {version}",
+  "update.go_back_short": "Vorherige Version",
   "update.beta_title": "BETA-Version",
   "update.beta_heading": "Version {beta} ist eine BETA",
   "update.beta_body": "Eine BETA hat neue Funktionen, die noch nicht getestet wurden. Daher funktioniert vielleicht etwas nicht. Die App lädt sie herunter, prüft sie und startet sich neu. Deine Einstellungen bleiben erhalten. Mit „Jetzt nach Updates suchen“ kannst du jederzeit zur stabilen Version zurückkehren. Bitte gib uns über „Feedback“ auf „Start“ Rückmeldung, wie es gelaufen ist.",
@@ -376,7 +377,7 @@
   "report.text_hint": "Optional",
   "report.window_picture": "Dieses Bild des App-Fensters hinzufügen",
   "report.pictures": "Bilder hinzugefügt: {n}",
-  "report.note": "„Mit Datei senden“ fragt, wo eine Datei mit deinem Text, deinen Bildern und den Protokollen der App und des Treibers gespeichert werden soll. Hänge diese Datei dann an eine E-Mail an {email}. Kein Konto nötig.\n„Mit GitHub-Konto senden“ speichert die Datei auf deinem Schreibtisch und öffnet ein neues GitHub-Issue mit deinem Text: Zieh die Datei hinein und klicke auf „Create“. Dafür ist ein kostenloses GitHub-Konto nötig.\nSeriennummern und dein Benutzername werden aus den Protokollen entfernt, aber Bilder werden so gesendet, wie sie sind: Prüfe sie vorher.",
+  "report.note": "„Mit Datei senden“ fragt, wo eine Datei mit deinem Text, deinen Bildern und den Protokollen der App und des Treibers gespeichert werden soll. Klicke danach auf „Upload-Seite öffnen“ und füge diese Datei hinzu. Die Seite fragt nach deinem Namen und deiner E-Mail (Regel von Dropbox) — nur das Team von Tablet App for Mac sieht sie; kein Dropbox-Konto nötig.\n„Mit GitHub-Konto senden“ speichert die Datei auf deinem Schreibtisch und öffnet ein neues GitHub-Issue mit deinem Text: Zieh die Datei hinein und klicke auf „Create“. Dafür ist ein kostenloses GitHub-Konto nötig.\nSeriennummern und dein Benutzername werden aus den Protokollen entfernt, aber Bilder werden so gesendet, wie sie sind: Prüfe sie vorher.",
   "report.failed": "Der Bericht konnte nicht erstellt werden: {error}",
   "diag.report.screenshots": "Bildschirmfotos hinzufügen…",
   "diag.report.send": "Senden",
@@ -386,6 +387,7 @@
   "report.send_file": "Mit Datei senden",
   "report.save_title": "Berichtsdatei speichern",
   "report.saved_title": "Bericht gespeichert",
-  "report.saved_text": "Deine Berichtsdatei ist hier gespeichert:\n{path}\n\nUm sie zu senden, schreib eine E-Mail an {email} und hänge diese Datei an. Dein Text und deine Bilder sind schon darin.",
-  "report.show_file": "Im Finder anzeigen"
+  "report.saved_text": "Deine Berichtsdatei ist hier gespeichert:\n{path}\n\nUm sie zu senden, klicke auf „Upload-Seite öffnen“ und füge diese Datei hinzu. Die Seite fragt nach deinem Namen und deiner E-Mail (Regel von Dropbox) — nur das Team von Tablet App for Mac sieht sie; kein Dropbox-Konto nötig. Dein Text und deine Bilder sind schon darin.",
+  "report.show_file": "Im Finder anzeigen",
+  "report.open_upload": "Upload-Seite öffnen"
 }

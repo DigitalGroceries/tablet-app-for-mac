@@ -282,6 +282,7 @@
   "update.install_stable": "Instalar la versión {version}",
   "update.try_beta": "Probar la versión {beta}",
   "update.go_back": "Volver a la versión {version}",
+  "update.go_back_short": "Versión anterior",
   "update.beta_title": "Versión BETA",
   "update.beta_heading": "La versión {beta} es una BETA",
   "update.beta_body": "Una BETA tiene funciones nuevas que aún no se han probado, así que puede que algo no funcione. La app la descarga, la comprueba y se vuelve a abrir sola. Tus ajustes se conservan. Puedes volver a la versión estable cuando quieras con «Buscar actualizaciones ahora». Cuéntanos qué tal te fue con «Comentarios» en «Inicio».",
@@ -376,7 +377,7 @@
   "report.text_hint": "Opcional",
   "report.window_picture": "Añadir esta imagen de la ventana de la app",
   "report.pictures": "Imágenes añadidas: {n}",
-  "report.note": "«Enviar con archivo» te pregunta dónde guardar un archivo con tu texto, tus imágenes y los registros de la app y del controlador. Después, adjunta ese archivo a un correo para {email}. No se necesita ninguna cuenta.\n«Enviar con cuenta de GitHub» guarda el archivo en tu Escritorio y abre un nuevo issue de GitHub con tu texto: arrastra el archivo al issue y pulsa Create. Se necesita una cuenta gratuita de GitHub.\nLos números de serie y tu nombre de usuario se eliminan de los registros, pero las imágenes se envían tal cual: revísalas antes.",
+  "report.note": "«Enviar con archivo» te pregunta dónde guardar un archivo con tu texto, tus imágenes y los registros de la app y del controlador. Después, pulsa «Abrir la página de envío» y añade este archivo. La página pide tu nombre y tu correo (norma de Dropbox) — solo el equipo de Tablet App for Mac los ve; no se necesita una cuenta de Dropbox.\n«Enviar con cuenta de GitHub» guarda el archivo en tu Escritorio y abre un nuevo issue de GitHub con tu texto: arrastra el archivo al issue y pulsa Create. Se necesita una cuenta gratuita de GitHub.\nLos números de serie y tu nombre de usuario se eliminan de los registros, pero las imágenes se envían tal cual: revísalas antes.",
   "report.failed": "No se pudo crear el informe: {error}",
   "diag.report.screenshots": "Añadir capturas de pantalla…",
   "diag.report.send": "Enviar",
@@ -386,6 +387,7 @@
   "report.send_file": "Enviar con archivo",
   "report.save_title": "Guardar el archivo del informe",
   "report.saved_title": "Informe guardado",
-  "report.saved_text": "Tu archivo de informe se guardó aquí:\n{path}\n\nPara enviarlo, escribe un correo a {email} y adjunta este archivo. Tu texto y tus imágenes ya están dentro.",
-  "report.show_file": "Mostrar en Finder"
+  "report.saved_text": "Tu archivo de informe se guardó aquí:\n{path}\n\nPara enviarlo, pulsa «Abrir la página de envío» y añade este archivo. La página pide tu nombre y tu correo (norma de Dropbox) — solo el equipo de Tablet App for Mac los ve; no se necesita una cuenta de Dropbox. Tu texto y tus imágenes ya están dentro.",
+  "report.show_file": "Mostrar en Finder",
+  "report.open_upload": "Abrir la página de envío"
 }

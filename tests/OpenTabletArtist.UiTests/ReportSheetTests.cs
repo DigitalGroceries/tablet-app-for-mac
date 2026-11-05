@@ -98,10 +98,12 @@ public class ReportSheetTests
             Assert.False(sheet.GetVisualDescendants().OfType<Button>().First(b => b.Name == "ReportSendFile").IsEffectivelyVisible);
             var text = saved.GetVisualDescendants().OfType<SelectableTextBlock>().First(t => t.Name == "ReportSavedText").Text ?? "";
             Assert.Contains(target, text);
-            Assert.Contains("organicmachine@protonmail.com", text);
+            Assert.Contains("Open upload page", text);
+            Assert.DoesNotContain("organicmachine@protonmail.com", text);
             Assert.Contains(saved.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Report saved");
             var buttons = saved.GetVisualDescendants().OfType<Button>().ToDictionary(b => b.Name ?? "", b => b.Content);
             Assert.Equal("Show in Finder", buttons["ReportShowFile"]);
+            Assert.Equal("Open upload page", buttons["ReportOpenUpload"]);
             Assert.Equal("Close", buttons["ReportDone"]);
 
             vm.DoneCommand.Execute(null);

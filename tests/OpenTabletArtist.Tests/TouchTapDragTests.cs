@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -109,5 +110,21 @@ public class TouchTapDragTests
         Assert.Empty(g.Tick(Ms(400)));
         Assert.Equal(new[] { LeftUp }, g.Tick(Ms(700)));       // no report for over 300 ms: lifted
         Assert.False(g.Dragging);
+    }
+
+    [Fact]
+    public void Dispose_releases_a_held_button_and_is_safe_to_call_twice()
+    {
+        var filter = new TouchTrackpadFilter();
+        Assert.IsAssignableFrom<IDisposable>(filter);
+        var taps = (TouchTapGestures)typeof(TouchTrackpadFilter)
+            .GetField("_taps", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetValue(filter)!;
+        taps.Touch(1, P, Ms(0)); taps.Touch(0, P, Ms(80)); taps.Touch(1, P, Ms(200));
+        Assert.True(taps.Dragging);
+        filter.Dispose();
+        Assert.False(taps.Dragging);
+        Assert.False(taps.Busy);
+        filter.Dispose();
     }
 }

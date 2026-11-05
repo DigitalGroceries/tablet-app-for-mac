@@ -69,7 +69,6 @@ section.chap{scroll-margin-top:16px}section.chap h2{scroll-margin-top:16px}
 .tag.betatag{border-color:#C9A227;color:#E8D07A}.rel.betarel{border-color:#5C4E1C}
 
 button.btn{font:inherit;font-weight:600;cursor:pointer}
-#mailfb-out a{color:var(--head)}
 
 /* Supported tablets list (27 Oct 2026) */
 table.tablets td.n,table.tablets th.n{text-align:right;white-space:nowrap}

@@ -282,6 +282,7 @@
   "update.install_stable": "Installer la version {version}",
   "update.try_beta": "Essayer la version {beta}",
   "update.go_back": "Revenir à la version {version}",
+  "update.go_back_short": "Version précédente",
   "update.beta_title": "Version BETA",
   "update.beta_heading": "La version {beta} est une BETA",
   "update.beta_body": "Une BETA apporte de nouvelles fonctionnalités qui n'ont pas encore été testées ; il se peut donc que certaines choses ne fonctionnent pas. L'app la télécharge, la vérifie et se rouvre automatiquement. Vos réglages sont conservés. Vous pouvez revenir à la version stable à tout moment en choisissant « Rechercher des mises à jour maintenant ». Dites-nous comment cela s'est passé en choisissant « Commentaires » sur la page « Accueil ».",
@@ -376,7 +377,7 @@
   "report.text_hint": "Facultatif",
   "report.window_picture": "Ajouter cette image de la fenêtre de l'app",
   "report.pictures": "Images ajoutées : {n}",
-  "report.note": "« Envoyer avec un fichier » vous demande où enregistrer un fichier contenant votre texte, vos images et les journaux de l'app et du pilote. Joignez ensuite ce fichier à un e-mail adressé à {email}. Aucun compte n'est nécessaire.\n« Envoyer avec un compte GitHub » enregistre le fichier sur votre Bureau et ouvre une nouvelle issue GitHub avec votre texte : faites-y glisser le fichier et cliquez sur Create. Un compte GitHub gratuit est nécessaire.\nLes numéros de série et votre nom d'utilisateur sont supprimés des journaux, mais les images sont envoyées telles quelles : vérifiez-les d'abord.",
+  "report.note": "« Envoyer avec un fichier » vous demande où enregistrer un fichier contenant votre texte, vos images et les journaux de l'app et du pilote. Cliquez ensuite sur « Ouvrir la page d'envoi » et ajoutez ce fichier. La page demande votre nom et votre e-mail (règle de Dropbox) — seule l'équipe de Tablet App for Mac les voit ; aucun compte Dropbox n'est nécessaire.\n« Envoyer avec un compte GitHub » enregistre le fichier sur votre Bureau et ouvre une nouvelle issue GitHub avec votre texte : faites-y glisser le fichier et cliquez sur Create. Un compte GitHub gratuit est nécessaire.\nLes numéros de série et votre nom d'utilisateur sont supprimés des journaux, mais les images sont envoyées telles quelles : vérifiez-les d'abord.",
   "report.failed": "Impossible de créer le rapport : {error}",
   "diag.report.screenshots": "Ajouter des captures d'écran…",
   "diag.report.send": "Envoyer",
@@ -386,6 +387,7 @@
   "report.send_file": "Envoyer avec un fichier",
   "report.save_title": "Enregistrer le fichier du rapport",
   "report.saved_title": "Rapport enregistré",
-  "report.saved_text": "Votre fichier de rapport est enregistré ici :\n{path}\n\nPour l'envoyer, écrivez un e-mail à {email} et joignez ce fichier. Votre texte et vos images y sont déjà.",
-  "report.show_file": "Afficher dans le Finder"
+  "report.saved_text": "Votre fichier de rapport est enregistré ici :\n{path}\n\nPour l'envoyer, cliquez sur « Ouvrir la page d'envoi » et ajoutez ce fichier. La page demande votre nom et votre e-mail (règle de Dropbox) — seule l'équipe de Tablet App for Mac les voit ; aucun compte Dropbox n'est nécessaire. Votre texte et vos images y sont déjà.",
+  "report.show_file": "Afficher dans le Finder",
+  "report.open_upload": "Ouvrir la page d'envoi"
 }
