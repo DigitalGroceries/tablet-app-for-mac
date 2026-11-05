@@ -150,7 +150,7 @@
 | Wacom PTH-450                      |     Supported     |
 | Wacom PTH-451                      |     Supported     |
 | Wacom PTH-650                      |     Supported     |
-| Wacom PTH-651                      |     Supported     |
+| Wacom PTH-651                      |     Supported     | Wireless Kit confirmed working by a user with Tablet App for Mac 21. Touch works as a trackpad (from 21); finger tap, double-tap, drag and two-finger right-click added in 23, not yet confirmed.
 | Wacom PTH-850                      |     Supported     |
 | Wacom PTH-851                      |     Supported     |
 | Wacom PTK-440                      |     Supported     |
