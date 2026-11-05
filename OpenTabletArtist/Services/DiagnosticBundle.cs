@@ -149,9 +149,12 @@ public static class DiagnosticBundle
             + "&body=" + Uri.EscapeDataString(body.ToString());
     }
 
-    /// <summary>The address for feedback without a GitHub account ("Send with file"): the same one the website's
-    /// "Feedback without a GitHub account" button shows. Put together at run time, like the website does, so it isn't one plain string in
-    /// the published source.</summary>
+    /// <summary>Version 24: Digital Groceries' Dropbox file request for reports sent without a GitHub account
+    /// (folder "/Tablet App for Mac - send a report"). The page itself asks for name and email.</summary>
+    public const string ReportUploadUrl = "https://www.dropbox.com/request/9k5b0u782t79plarauv9";
+
+    /// <summary>The old address for feedback without a GitHub account. Kept for compatibility; Version 24
+    /// sends file reports through <see cref="ReportUploadUrl"/> instead.</summary>
     public static string FeedbackEmail => string.Join("@", "organicmachine", "protonmail.com");
 
     static (string Title, string Words) ReportTitle(bool recommendation, string? text)

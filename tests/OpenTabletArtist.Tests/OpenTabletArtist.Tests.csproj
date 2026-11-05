@@ -79,6 +79,8 @@
     <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\RingGesture.cs" Link="Plugin\RingGesture.cs" />
     <!-- Version 23 BETA: touch trackpad taps and drags (pure logic, no OTD types). -->
     <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\TouchTapGestures.cs" Link="Plugin\TouchTapGestures.cs" />
+    <!-- Version 24: filter Dispose force-releases a held click (OTD disposes IDisposable pipeline elements). -->
+    <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\TouchTrackpad.cs" Link="Plugin\TouchTrackpad.cs" />
   </ItemGroup>
 
   <ItemGroup>

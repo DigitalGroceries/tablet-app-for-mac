@@ -232,7 +232,7 @@ The report opens inside the app window:
 - Write what happened, or your idea (you can leave it empty).
 - A picture of the app window, as it was just before the report opened, is added. Untick **Add this picture of the app window** to leave it out. **Add screenshots…** adds more pictures (up to 10 in all).
 - Press **Send with file** or **Send with GitHub account**. Both make one file with your text, your pictures and the app and driver logs. Serial numbers and your user name are removed from the logs. Pictures are sent as they are, so check them first.
-- **Send with file** needs no account. It asks where to save the file (the Desktop is suggested). Then the report shows where the file is and the email address to send it to. Write an email to that address and attach the file. **Show in Finder** shows the file.
+- **Send with file** needs no account. It asks where to save the file (the Desktop is suggested). Then the report shows where the file is. Click **Open upload page** and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file. **Show in Finder** shows the file.
 - **Send with GitHub account** needs a free GitHub account. It saves the file on your Desktop, shows it in Finder and opens a new GitHub issue with your text filled in. Drag the file into it and press **Create**.
 
 **Cancel** closes the report and sends nothing.
@@ -298,7 +298,7 @@ The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninst
 **Permissions:** from Version 18 on, updates keep both permissions; there is nothing to do. **Updating from Version 17 or older:** once, in System Settings › Privacy & Security › **Input Monitoring** and **Device Control and Data Access** (called **Accessibility** on older macOS), remove the old Tablet App for Mac entries with **−**, add the app with **+** and switch it on.
 
 - The app checks for updates once a week when it starts. When there is a new stable version, it asks **Update now?** Click **Update now** and the app downloads it, checks it, installs it and opens again by itself.
-- To check any time, click **Check for updates now** on **Home** (top right, under the About links). When there is a choice, Home shows **Install Version N** (the newest stable version) and **Try Version N BETA M** (a BETA: new features, not tested yet). While you use a BETA, **Go back to Version N** returns you to the stable version.
+- To check any time, click **Check for updates now** on **Home** (top right, under the About links). When there is a choice, Home shows **Install Version N** (the newest stable version) and **Try Version N BETA M** (a BETA: new features, not tested yet). While you use a BETA, **Previous Version** returns you to the stable version (the full name, **Go back to Version N**, is in the tooltip).
 - **Update automatically** is an optional setting just below it. It is off unless you turn it on. When it is on, the app downloads a new stable version by itself, then asks for OK before installing. It never installs a BETA by itself.
 - To go back to an earlier version, click **Earlier versions…** on **Home** and choose one of the two most recent stable versions older than the one you have. This works from a stable version and from a BETA. Your settings stay.
 

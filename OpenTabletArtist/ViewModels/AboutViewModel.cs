@@ -47,6 +47,7 @@ public partial class AboutViewModel : ObservableObject
             OnPropertyChanged(nameof(UpdateNowLabel));
             OnPropertyChanged(nameof(TryBetaLabel));
             OnPropertyChanged(nameof(GoBackLabel));
+            OnPropertyChanged(nameof(GoBackTip));
             OnPropertyChanged(nameof(EarlierLabel));
         };
         // Keep Home's update UI in sync with the pen-menu tray (shared AppUpdateState).
@@ -79,9 +80,12 @@ public partial class AboutViewModel : ObservableObject
     /// <summary>Version 14: "Try Version 15 BETA 1".</summary>
     public string TryBetaLabel => Services.AppUpdateState.Shared.BetaOffer is { } b
         ? Services.Localizer.Tf("update.try_beta", ("beta", b.Label)) : "";
-    /// <summary>Version 14: "Go back to Version 13" (shown while running a BETA).</summary>
-    public string GoBackLabel => Services.AppUpdateState.Shared.GoBackOffer is { } g
-        ? Services.Localizer.Tf("update.go_back", ("version", g.Label)) : "";
+    /// <summary>Version 24: short Home label "Previous Version"; the full "Go back to Version N" is the tooltip.</summary>
+    public string GoBackLabel => Services.AppUpdateState.Shared.GoBackOffer is { }
+        ? Services.Localizer.Te("update.go_back_short", "Previous Version") : "";
+    /// <summary>Version 14 wording, kept as the tooltip: "Go back to Version 13".</summary>
+    public string GoBackTip => Services.AppUpdateState.Shared.GoBackOffer is { } g
+        ? Services.Localizer.Te("update.go_back", "Go back to Version {version}").Replace("{version}", g.Label) : "";
     /// <summary>Version 15: "Earlier versions…" (always shown, stable or BETA).</summary>
     public string EarlierLabel => Services.Localizer.T("update.earlier");
     public string UpdateAutomaticallyLabel => Services.Localizer.T("update.automatic");
@@ -143,6 +147,7 @@ public partial class AboutViewModel : ObservableObject
         OnPropertyChanged(nameof(UpdateNowLabel));
         OnPropertyChanged(nameof(TryBetaLabel));
         OnPropertyChanged(nameof(GoBackLabel));
+        OnPropertyChanged(nameof(GoBackTip));
     }
     public bool UpdateAutomatically { get => Services.Updater.Automatic; set => Services.Updater.Automatic = value; }
 

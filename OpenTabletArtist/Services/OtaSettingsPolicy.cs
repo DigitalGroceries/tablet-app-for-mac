@@ -1,4 +1,5 @@
 using OpenTabletDriver.Desktop;
+using OpenTabletDriver.Desktop.Profiles;
 
 namespace OpenTabletArtist.Services;
 
@@ -16,7 +17,22 @@ public static class OtaSettingsPolicy
                 {
                     Domain.PenScrollBinding.SyncFilter(profile);
                     Domain.TouchTrackpad.SyncFilter(profile);   // Discussion #31: finger touch as a trackpad
+                    SyncRelativeRotation(profile);              // Issue #69: Mouse-like reads RelativeRotation
                 }
         if (ownedDaemon) ProfileFilterMaintenance.DisableUnapprovedFilters(workingCopy);
+    }
+
+    /// <summary>
+    /// Issue #69: Mapping writes <c>AbsoluteModeSettings.Tablet.Rotation</c> only; Mouse-like reads
+    /// <c>RelativeModeSettings.RelativeRotation</c>, which was never set. Same sign as OTD CreateRotation.
+    /// </summary>
+    internal static void SyncRelativeRotation(Profile profile)
+    {
+        var tablet = profile.AbsoluteModeSettings?.Tablet;
+        if (tablet == null) return;
+        var rotation = (tablet.Rotation % 360f + 360f) % 360f;
+        profile.RelativeModeSettings ??= RelativeModeSettings.GetDefaults();
+        if (profile.RelativeModeSettings.RelativeRotation != rotation)
+            profile.RelativeModeSettings.RelativeRotation = rotation;
     }
 }

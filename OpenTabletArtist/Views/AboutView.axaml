@@ -84,7 +84,7 @@
                 <WrapPanel x:Name="UpdateChoicesRow" ItemSpacing="8" LineSpacing="8" ItemsAlignment="End" HorizontalAlignment="Right">
                     <Button x:Name="EarlierVersionsButton" Content="{Binding EarlierLabel}" Command="{Binding ChooseEarlierCommand}" />
                     <Button x:Name="TryBetaButton" Content="{Binding TryBetaLabel}" IsVisible="{Binding BetaOfferReady}" Command="{Binding TryBetaCommand}" />
-                    <Button x:Name="GoBackButton" Content="{Binding GoBackLabel}" IsVisible="{Binding GoBackReady}" Command="{Binding GoBackCommand}" />
+                    <Button x:Name="GoBackButton" Content="{Binding GoBackLabel}" ToolTip.Tip="{Binding GoBackTip}" IsVisible="{Binding GoBackReady}" Command="{Binding GoBackCommand}" />
                 </WrapPanel>
                 <TextBlock Text="{Binding UpdateStatus}" HorizontalAlignment="Right" TextWrapping="Wrap" />
                 <CheckBox x:Name="UpdateAutomaticallyBox" Content="{Binding UpdateAutomaticallyLabel}" IsChecked="{Binding UpdateAutomatically}" HorizontalAlignment="Right" />

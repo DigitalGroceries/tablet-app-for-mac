@@ -286,6 +286,7 @@
   "update.install_stable": "Install Version {version}",
   "update.try_beta": "Try Version {beta}",
   "update.go_back": "Go back to Version {version}",
+  "update.go_back_short": "Previous Version",
   "update.beta_title": "BETA version",
   "update.beta_heading": "Version {beta} is a BETA",
   "update.beta_body": "A BETA has new features that are not tested yet, so something may not work. The app downloads it, checks it, and reopens by itself. Your settings stay. You can go back to the stable version at any time with Check for updates now. Please tell us how it went with Feedback on Home.",
@@ -389,12 +390,13 @@
   "report.text_hint": "Optional",
   "report.window_picture": "Add this picture of the app window",
   "report.pictures": "Pictures added: {n}",
-  "report.note": "Send with file asks where to save one file with your text, your pictures and the app and driver logs. Then attach that file to an email to {email}. No account is needed.\nSend with GitHub account saves the file on your Desktop and opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.\nSerial numbers and your user name are removed from the logs, but pictures are sent as they are: check them first.",
+  "report.note": "Send with file asks where to save one file with your text, your pictures and the app and driver logs. Then click Open upload page and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed.\nSend with GitHub account saves the file on your Desktop and opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.\nSerial numbers and your user name are removed from the logs, but pictures are sent as they are: check them first.",
   "report.failed": "Couldn't create the report: {error}",
   "report.send_github": "Send with GitHub account",
   "report.send_file": "Send with file",
   "report.save_title": "Save the report file",
   "report.saved_title": "Report saved",
-  "report.saved_text": "Your report file is saved here:\n{path}\n\nTo send it, write an email to {email} and attach this file. Your text and pictures are already in it.",
-  "report.show_file": "Show in Finder"
+  "report.saved_text": "Your report file is saved here:\n{path}\n\nTo send it, click Open upload page and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file.",
+  "report.show_file": "Show in Finder",
+  "report.open_upload": "Open upload page"
 }
