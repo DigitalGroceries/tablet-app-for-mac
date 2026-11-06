@@ -1431,23 +1431,28 @@
                                     <TextBlock x:Name="LblPenFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
                             </StackPanel>
                         </HeaderedContentControl>
-                        <!-- Version 25: Double Click Fix (Wacom's Tip Double Click Distance), 8 Off … 64 Default … 192 Large. -->
+                        <!-- Version 25: Double Click Fix UI 0..100 (physical 8 Off … 100 Default … 192 Large). -->
                         <HeaderedContentControl x:Name="PenDoubleClickDistanceGroup" Classes="wacomGroup" Header="Double Click Fix">
                             <StackPanel Spacing="4">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                                    <Slider x:Name="TipDoubleClickDistanceSlider" Minimum="8" Maximum="192"
+                                    <Slider x:Name="TipDoubleClickDistanceSlider" Minimum="0" Maximum="100"
+                                            SmallChange="1" LargeChange="10"
                                             Value="{Binding TipDoubleClickDistance}"
-                                            TickFrequency="8" IsSnapToTickEnabled="True" TickPlacement="BottomRight" VerticalAlignment="Center"
+                                            TickFrequency="25" TickPlacement="BottomRight" VerticalAlignment="Center"
                                             AutomationProperties.Name="Double Click Fix" />
-                                    <TextBlock x:Name="TipDoubleClickDistanceValue" Grid.Column="1" MinWidth="32" TextAlignment="Right" VerticalAlignment="Center"
-                                               Text="{Binding TipDoubleClickDistance, StringFormat='{}{0:0}'}" FontWeight="SemiBold" />
+                                    <TextBox x:Name="TipDoubleClickDistanceBox" Grid.Column="1" Width="48" MinWidth="0" VerticalAlignment="Center"
+                                             HorizontalContentAlignment="Right" FontWeight="SemiBold"
+                                             Text="{Binding TipDoubleClickDistance, UpdateSourceTrigger=LostFocus}"
+                                             AutomationProperties.Name="Double Click Fix value" />
                                 </Grid>
-                                <!-- Default sits at 64 on an 8..192 scale: (64-8)/(192-8) ≈ 30% across. -->
-                                <Grid ColumnDefinitions="30*,70*" Margin="0,0,38,0"><TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" />
-                                    <TextBlock x:Name="PenDoubleClickDefault" Grid.Column="1" Text="Default" FontSize="12" HorizontalAlignment="Left" Margin="-20,0,0,0" />
-                                    <TextBlock x:Name="PenDoubleClickLarge" Grid.Column="1" Text="Large" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <!-- Default at 50% (UI 50 = 100 px). -->
+                                <Grid ColumnDefinitions="*,*,*" Margin="0,0,54,0">
+                                    <TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" />
+                                    <TextBlock x:Name="PenDoubleClickDefault" Grid.Column="1" Text="Default" FontSize="12" HorizontalAlignment="Center" />
+                                    <TextBlock x:Name="PenDoubleClickLarge" Grid.Column="2" Text="Large" FontSize="12" HorizontalAlignment="Right" />
+                                </Grid>
                                 <TextBlock x:Name="PenDoubleClickNote"
-                                           Text="Helps the pen tip double-click. Two quick taps that land a little apart still count as a double-click, so folders open instead of sliding around. If folders still move, slide towards Large. Default 64."
+                                           Text="Helps the pen tip double-click. Two quick taps that land a little apart still count as a double-click, so folders open instead of sliding around. If folders still move, slide towards Large. Default 50."
                                            FontSize="11" TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>

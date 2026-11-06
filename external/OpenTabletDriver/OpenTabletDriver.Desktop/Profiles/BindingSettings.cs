@@ -127,8 +127,8 @@ namespace OpenTabletDriver.Desktop.Profiles
         }
 
         /// <summary>
-        /// Tip Double Click Distance in screen pixels (Wacom: Off … Large). Default 40.
-        /// Off/minimum is 8 (legacy macOS-like); Large/maximum is 64.
+        /// Tip Double Click Distance in screen pixels (Wacom: Off … Large). Default 100.
+        /// Off/minimum is 8; Default 100; Large/maximum is 192. UI shows 0..100 mapped onto this range.
         /// </summary>
         [JsonProperty(nameof(TipDoubleClickDistance))]
         public int TipDoubleClickDistance

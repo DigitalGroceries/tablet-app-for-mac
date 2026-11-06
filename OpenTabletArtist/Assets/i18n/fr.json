@@ -397,6 +397,6 @@
   "tablet.pen.double_click_off": "Désactivé",
   "tablet.pen.double_click_default": "Par défaut",
   "tablet.pen.double_click_large": "Grand",
-  "tablet.pen.double_click_note": "Aide le double-clic avec la pointe du stylet. Deux tapes rapides un peu éloignées comptent quand même comme un double-clic, pour que les dossiers s'ouvrent au lieu de glisser. Si les dossiers bougent encore, glissez vers « Grand ». Par défaut 64.",
+  "tablet.pen.double_click_note": "Aide le double-clic avec la pointe du stylet. Deux tapes rapides un peu éloignées comptent quand même comme un double-clic, pour que les dossiers s'ouvrent au lieu de glisser. Si les dossiers bougent encore, glissez vers « Grand ». Par défaut 50.",
   "binding.mouse.double_click": "Double-clic"
 }

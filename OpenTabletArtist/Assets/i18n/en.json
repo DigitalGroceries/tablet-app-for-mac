@@ -406,6 +406,6 @@
   "tablet.pen.double_click_off": "Off",
   "tablet.pen.double_click_default": "Default",
   "tablet.pen.double_click_large": "Large",
-  "tablet.pen.double_click_note": "Helps the pen tip double-click. Two quick taps that land a little apart still count as a double-click, so folders open instead of sliding around. If folders still move, slide towards Large. Default 64.",
+  "tablet.pen.double_click_note": "Helps the pen tip double-click. Two quick taps that land a little apart still count as a double-click, so folders open instead of sliding around. If folders still move, slide towards Large. Default 50.",
   "binding.mouse.double_click": "Double Click"
 }

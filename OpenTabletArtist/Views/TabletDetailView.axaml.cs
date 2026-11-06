@@ -79,7 +79,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (PenDoubleClickDefault != null) PenDoubleClickDefault.Text = Localizer.Te("tablet.pen.double_click_default", "Default");
         if (PenDoubleClickOff != null) PenDoubleClickOff.Text = Localizer.Te("tablet.pen.double_click_off", "Off");
         if (PenDoubleClickLarge != null) PenDoubleClickLarge.Text = Localizer.Te("tablet.pen.double_click_large", "Large");
-        if (PenDoubleClickNote != null) PenDoubleClickNote.Text = Localizer.Te("tablet.pen.double_click_note", "Helps the pen tip double-click. Two quick taps that land a little apart still count as a double-click, so folders open instead of sliding around. If folders still move, slide towards Large. Default 64.");
+        if (PenDoubleClickNote != null) PenDoubleClickNote.Text = Localizer.Te("tablet.pen.double_click_note", "Helps the pen tip double-click. Two quick taps that land a little apart still count as a double-click, so folders open instead of sliding around. If folders still move, slide towards Large. Default 50.");
         if (PenCustomise != null) PenCustomise.Content = Localizer.T("tablet.pen.customise");
         if (ManualTipPressureFrame != null) ManualTipPressureFrame.Header = Localizer.T("tablet.pen.manual_tip_pressure");
         if (PenManualNote != null) PenManualNote.Text = Localizer.T("tablet.pen.manual_tip_note");
