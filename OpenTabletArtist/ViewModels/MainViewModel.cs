@@ -372,6 +372,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             if (e.PropertyName is nameof(IDeviceData.DetectedTablets) or nameof(AppSession.Ownership)) RefreshTabletNotices();
         };
+        // Version 25: All displays is a remembered choice; follow today's desktop (and save it) whenever settings
+        // load or are saved, without waiting for the Tablet page to be opened.
+        _session.DataLoaded += () => Avalonia.Threading.Dispatcher.UIThread.Post(RefitAllDisplaysQuietly);
         // R11: bring back unsaved changes kept at the last system quit, once, as unsaved.
         _session.DataLoaded += () => Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
         {
@@ -544,6 +547,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>Reconcile the TABLET page's switcher list + cached page VMs with the session's tablets.</summary>
+    /// <summary>Version 25: re-fit remembered All displays mappings (start, settings load/save, display change).</summary>
+    public async void RefitAllDisplaysQuietly()
+    {
+        try { await _session.RefitRememberedAllDisplaysAsync(); }
+        catch (Exception ex) { AppLog.Warn("Couldn't re-fit the All displays mapping.", ex); }
+    }
+
     private void RebuildTablets()
     {
         var ordered = _session.Profiles

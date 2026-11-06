@@ -42,6 +42,9 @@ public partial class MainWindow : Window
         // Regaining focus re-pulls settings so an external edit (e.g. the mapping changed in the OTD UX
         // while we were in the background) is picked up promptly rather than on the next fallback poll.
         Activated += (_, _) => (DataContext as MainViewModel)?.OnWindowActivated();
+        // Version 25: a monitor plugged in, unplugged or rearranged re-fits a remembered All displays mapping
+        // (and saves it) even when the Tablet page isn't open.
+        Screens.Changed += OnScreensChanged;
         // Version 7 test 7: log every time the window opens, and hide it again if something opened it during a
         // login start without a request (the stack says what did).
         Opened += (_, _) =>
@@ -55,12 +58,16 @@ public partial class MainWindow : Window
         {
             if (_switchSub != null) { _switchSub.Switched -= OnProfileSwitched; _switchSub.SwitchFailed -= OnProfileSwitchFailed; _switchSub.RestoreFailed -= OnProfileRestoreFailed; }
             if (_cycleSub != null) _cycleSub.Cycled -= OnMonitorCycled;
+            Screens.Changed -= OnScreensChanged;
             ProfileToast.Dismiss();
             (DataContext as MainViewModel)?.Dispose();
         };
     }
 
     // Report manual preset and monitor hotkey actions even while the app is in the tray.
+    private void OnScreensChanged(object? sender, EventArgs e) =>
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => (DataContext as MainViewModel)?.RefitAllDisplaysQuietly());
+
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
         if (_switchSub != null) { _switchSub.Switched -= OnProfileSwitched; _switchSub.SwitchFailed -= OnProfileSwitchFailed; _switchSub.RestoreFailed -= OnProfileRestoreFailed; }

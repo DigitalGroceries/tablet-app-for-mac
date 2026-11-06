@@ -80,7 +80,16 @@ internal static class HealthCollectionAdapter
             _ => LinuxHidAccess.Ok,
         },
         Tablets = s.Tablets.Select(t => new TabletHealthInput(t.Name, t.Detected, t.OutputModeIsWinInk,
-            (DisplayMappingValidity)t.Mapping, t.NonCardinalRotation, !t.DynamicsWarningRequired,
+            AllDisplaysAware(t.Name, (DisplayMappingValidity)t.Mapping), t.NonCardinalRotation, !t.DynamicsWarningRequired,
             t.ConfigIsOverride, t.WinInkOptedOut, t.PenTipDisabled, t.PressureDisabled, t.TiltDisabled, t.Id)).ToArray(),
     };
+
+    /// <summary>Version 25: a tablet whose remembered choice is All displays is graded Clean. Its stored box can lag
+    /// the desktop for a moment after a monitor change, but the app re-fits and saves it by itself
+    /// (<see cref="AppSession.RefitRememberedAllDisplaysAsync"/>), so "mapped area is partly off-screen" would be
+    /// a false alarm with nothing for the user to do.</summary>
+    internal static DisplayMappingValidity AllDisplaysAware(string? tabletName, DisplayMappingValidity mapping) =>
+        mapping is DisplayMappingValidity.OffScreen or DisplayMappingValidity.Custom
+        && !string.IsNullOrEmpty(tabletName) && AppSettings.Get($"MapAllDisplays:{tabletName}") == "1"
+            ? DisplayMappingValidity.Clean : mapping;
 }

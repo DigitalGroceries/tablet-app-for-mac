@@ -13,7 +13,7 @@ public class SettingsFileHandoffTests
     public void SecondCopy_ForwardsSettingsFile_ToPrimary()
     {
         if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS()) return;
-        var key = "Test-" + Guid.NewGuid().ToString("N");
+        var key = "T" + Guid.NewGuid().ToString("N")[..8];   // short: macOS caps socket paths at 104 bytes
         using var first = new SingleInstance(key);
         Assert.True(first.TryAcquire());
         var got = new BlockingCollection<string>();
@@ -35,7 +35,7 @@ public class SettingsFileHandoffTests
     public void PathlessNudge_StillJustSurfaces()
     {
         if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS()) return;
-        var key = "Test-" + Guid.NewGuid().ToString("N");
+        var key = "T" + Guid.NewGuid().ToString("N")[..8];   // short: macOS caps socket paths at 104 bytes
         using var first = new SingleInstance(key);
         Assert.True(first.TryAcquire());
         var got = new BlockingCollection<string>();

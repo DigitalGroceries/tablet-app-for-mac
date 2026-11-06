@@ -968,6 +968,16 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var key = $"{CurrentDigitizer()}|{DisplayMappingApplier.AllDisplaysArea(Displays)}|{_profile.AbsoluteModeSettings?.Tablet?.Rotation}|{ForceProportions}";
         if (key == _allDisplaysRefitTried) return;
         _allDisplaysRefitTried = key;
+        AutoRefitAllDisplays();
+    }
+
+    /// <summary>Version 25: a re-fit the app makes on its own because All displays is the remembered choice
+    /// (page open, tablet detected, display change). The session applies AND saves it, so opening this page
+    /// never leaves "Unsaved changes"; the page picks the result up when the settings reload. Without a
+    /// session (tests/previews) it falls back to the page's own apply.</summary>
+    private void AutoRefitAllDisplays()
+    {
+        if (_deviceData is Services.AppSession session) { _ = session.RefitRememberedAllDisplaysAsync(Displays); return; }
         _ = MapAllDisplays();
     }
 
@@ -1578,7 +1588,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
         // "All displays" was chosen: follow the new monitor layout (hot-plug / rearrange).
         if (AllDisplaysChosen && _applyAction != null && Displays.Count > 0 && !IsAllDisplaysMapped)
-            _ = MapAllDisplays();
+            AutoRefitAllDisplays();
         else
             MaybeRefitAllDisplays();
     }

@@ -50,6 +50,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         [DllImport(ObjC)] private static extern void objc_autoreleasePoolPop(IntPtr pool);
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern IntPtr SendInt(IntPtr obj, IntPtr sel, int a);
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern IntPtr SendULong(IntPtr obj, IntPtr sel, nuint a);
+        [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool SendULongBool(IntPtr obj, IntPtr sel, nuint a);
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern nint SendNInt(IntPtr obj, IntPtr sel);
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool SendBool(IntPtr obj, IntPtr sel);
@@ -68,7 +70,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 Init();
                 pool = objc_autoreleasePoolPush();
                 var window = MacOSWindowPick.Pick(Windows(), point, displays);
-                if (window is { } w) Activate(w.OwnerPid);
+                if (window is { } w) Activate(w.OwnerPid, w.OwnerName);
+                else Note($"No window found under the pen at ({point.X:0}, {point.Y:0}); nothing to activate.");
             }
             catch (Exception ex)
             {
@@ -136,17 +139,34 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         private static bool Responds(IntPtr obj, string selector) =>
             obj != IntPtr.Zero && RespondsTo(obj, sel_registerName("respondsToSelector:"), sel_registerName(selector));
 
-        /// <summary>Activates a regular app that isn't already active (NSRunningApplication activateWithOptions:0).</summary>
-        private static void Activate(int pid)
+        private static void Note(string message) => Log.Write("MacOSAppActivator", message, LogLevel.Info);
+
+        /// <summary>Activates a regular app that isn't already active (NSRunningApplication activateWithOptions:0).
+        /// Every outcome is logged so diagnostics can show why an app did or didn't come forward.</summary>
+        private static void Activate(int pid, string? name)
         {
+            var who = $"{name ?? "unknown app"} (pid {pid})";
             var cls = objc_getClass("NSRunningApplication");
-            if (!Responds(cls, "runningApplicationWithProcessIdentifier:")) return;
+            if (!Responds(cls, "runningApplicationWithProcessIdentifier:"))
+            {
+                Note($"NSRunningApplication doesn't respond to runningApplicationWithProcessIdentifier:; can't activate {who}.");
+                return;
+            }
             var app = SendInt(cls, sel_registerName("runningApplicationWithProcessIdentifier:"), pid);
-            if (app == IntPtr.Zero) return;
-            if (Responds(app, "activationPolicy") && SendNInt(app, sel_registerName("activationPolicy")) != ActivationPolicyRegular) return;
-            if (Responds(app, "isActive") && SendBool(app, sel_registerName("isActive"))) return;
-            if (Responds(app, "activateWithOptions:"))
-                SendULong(app, sel_registerName("activateWithOptions:"), 0);
+            if (app == IntPtr.Zero) { Note($"No running application for {who}; not activated."); return; }
+            if (Responds(app, "activationPolicy"))
+            {
+                var policy = SendNInt(app, sel_registerName("activationPolicy"));
+                if (policy != ActivationPolicyRegular) { Note($"Skipped {who}: not a regular app (activationPolicy {policy})."); return; }
+            }
+            if (Responds(app, "isActive") && SendBool(app, sel_registerName("isActive")))
+            {
+                Note($"Skipped {who}: already active.");
+                return;
+            }
+            if (!Responds(app, "activateWithOptions:")) { Note($"{who} doesn't respond to activateWithOptions:; not activated."); return; }
+            var ok = SendULongBool(app, sel_registerName("activateWithOptions:"), 0);
+            Note(ok ? $"Activated {who}." : $"activateWithOptions:0 returned NO for {who}; the app was not activated.");
         }
     }
 }

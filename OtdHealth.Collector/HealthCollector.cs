@@ -51,6 +51,13 @@ public static class HealthCollector
                 results.Add(new(id, true, true, ProbeOutcome.Completed) { Details = (value as IHasProbeDetails)?.Details });
                 return value;
             }
+            catch (Exception) when (deadline.IsCancellationRequested)
+            {
+                // The deadline (or the caller) cancelled while the source was answering: a source that
+                // reacted to that by returning "not connected" or throwing is not evidence of anything else.
+                outcome = cancellationToken.IsCancellationRequested ? ProbeOutcome.Cancelled : ProbeOutcome.Failed;
+                failure = new(cancellationToken.IsCancellationRequested ? "Cancelled" : "DeadlineExceeded", "Collection was interrupted.");
+            }
             catch (ProbeUnavailableException ex)
             {
                 outcome = ex.Unsupported ? ProbeOutcome.Unsupported : ProbeOutcome.Unavailable;

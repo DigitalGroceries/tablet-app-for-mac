@@ -1404,6 +1404,54 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         await ApplySettingsAsync(settings);
     }
 
+    // The last (tablets, desktop, tablet sizes, proportions) an automatic All displays re-fit was tried
+    // for, so a daemon that stores the area slightly differently can't cause an apply/save loop.
+    private string? _allDisplaysAutoRefitTried;
+
+    /// <summary>Version 25: "All displays" is a remembered choice (AppSettings <c>MapAllDisplays:&lt;tablet&gt;</c>).
+    /// When the stored box no longer matches today's desktop (monitor added, removed, rearranged, or the
+    /// tablet's size arrived later), re-fit it here — at start, on a display change, or after a save — without
+    /// the Tablet page being open. This is the app following the user's own saved choice, so it is applied
+    /// AND saved, never left as "Unsaved changes". It never saves someone else's edit: while the user has
+    /// other unsaved changes (or settings are paused/busy) it does nothing and is retried once they Save or
+    /// Revert. Returns true when a re-fit was applied and saved.</summary>
+    public async Task<bool> RefitRememberedAllDisplaysAsync(IReadOnlyList<Domain.DisplayInfo>? displays = null)
+    {
+        Dispatcher.UIThread.VerifyAccess();
+        var workspace = _workspace;
+        if (workspace is null || !_session.CanEditSettings || SettingsPaused || HasUnsavedChanges
+            || workspace.HasPendingApply || CurrentSettings is not { } settings) return false;
+        displays ??= DisplayEnumerator.Enumerate();
+        if (displays is not { Count: > 0 }) return false;
+        bool force = AppSettings.Get("AllDisplaysForceProportions") != "0";
+
+        bool changed = false;
+        var key = new System.Text.StringBuilder($"{Domain.DisplayMappingApplier.AllDisplaysArea(displays)}|{force}");
+        foreach (var profile in settings.Profiles)
+        {
+            if (string.IsNullOrEmpty(profile.Tablet) || AppSettings.Get($"MapAllDisplays:{profile.Tablet}") != "1") continue;
+            var digitizer = GetTabletDigitizer(profile.Tablet);
+            if (Domain.DisplayMappingApplier.IsAllDisplays(profile, displays)
+                && !Domain.DisplayMappingApplier.NeedsAllDisplaysFit(profile, digitizer, displays, force)) continue;
+            key.Append($"|{profile.Tablet}:{digitizer}:{profile.AbsoluteModeSettings?.Tablet?.Rotation}");
+            changed |= Domain.DisplayMappingApplier.ApplyAllDisplays(profile, digitizer, displays, force);
+        }
+        if (!changed) return false;
+        var attempt = key.ToString();
+        if (attempt == _allDisplaysAutoRefitTried) return false;
+        _allDisplaysAutoRefitTried = attempt;
+
+        var generation = workspace.Generation;
+        var outcome = await ApplySettingsAsync(settings);
+        if (!outcome.IsLive || !ReferenceEquals(workspace, _workspace)) return false;
+        // Something else (a user edit, a preset switch) landed while the re-fit applied: saving now would save
+        // that too. Leave both as unsaved; the user's own Save keeps the re-fit with their change.
+        if (workspace.Generation != generation + 1 || workspace.HasPendingApply) return false;
+        var saved = await SaveSettingsAsync();
+        if (saved) AppLog.Info("All displays: re-fitted the remembered whole-desktop mapping to the current displays and saved it.");
+        return saved;
+    }
+
     public (float Width, float Height)? GetTabletDigitizer(string tabletName)
     {
         if (Tablets is not JArray tablets) return null;
