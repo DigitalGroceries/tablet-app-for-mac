@@ -21,11 +21,22 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
                                 ?? throw new InvalidOperationException("Could not get virtual screen");
             var primary = virtualScreen.Displays.First();
             _offset = primary.Position;
+            // Display bounds in macOS global coordinates (the primary display's top left is 0,0).
+            _displays = virtualScreen.Displays
+                .Select(d => new MacOSScreenEdge.Rect(d.Position - _offset, new Vector2(d.Width, d.Height)))
+                .ToArray();
+            _virtualScreen = new MacOSScreenEdge.Rect(-_offset, new Vector2(virtualScreen.Width, virtualScreen.Height));
         }
+
+        private readonly MacOSScreenEdge.Rect[] _displays;
+        private readonly MacOSScreenEdge.Rect _virtualScreen;
+
+        protected override System.Collections.Generic.IReadOnlyList<MacOSScreenEdge.Rect>? DisplayRects => _displays;
 
         public void SetPosition(Vector2 pos)
         {
-            var newPos = pos - _offset;
+            // Version 25 (OTD #4726): keep the pointer 1/64 px inside the display so the Dock and hot corners trigger.
+            var newPos = MacOSScreenEdge.Clamp(pos - _offset, _displays, _virtualScreen);
             _delta = newPos - _lastPos;
             _lastPos = newPos;
 

@@ -76,6 +76,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             var x = _pendingX ?? 0;
             var y = _pendingY ?? 0;
             var pos = new CGPoint(x, y);
+            var at = CursorLocation();
+            MacOSAppActivator.ActivateAt(new Vector2((float)at.x, (float)at.y), DisplayRects);
             PostClickEvent(CGEventType.kCGEventLeftMouseDown, pos, clickState: 1);
             PostClickEvent(CGEventType.kCGEventLeftMouseUp, pos, clickState: 1);
             PostClickEvent(CGEventType.kCGEventLeftMouseDown, pos, clickState: 2);
@@ -175,6 +177,17 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             _tilt = tilt;
         }
 
+        private static CGPoint CursorLocation()
+        {
+            var e = CGEventCreate(IntPtr.Zero);
+            var p = CGEventGetLocation(e);
+            CFRelease(e);
+            return p;
+        }
+
+        /// <summary>Display bounds in macOS global coordinates, when known (used to recognise the Dock overlay).</summary>
+        protected virtual System.Collections.Generic.IReadOnlyList<MacOSScreenEdge.Rect>? DisplayRects => null;
+
         protected abstract void SetPendingPosition(IntPtr mouseEvent, float x, float y);
         protected abstract void ResetPendingPosition(IntPtr mouseEvent);
 
@@ -261,9 +274,18 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                     // propagate pending position to mouseEvent
                     var cgEventType = ToNoDragCGEventType(button, currState);
                     CGEventSetType(_mouseEvent, cgEventType);
+                    var hasPosition = false;
                     if (DrainPendingPosition() is { } position)
                     {
                         SetPendingPosition(_mouseEvent, position.X, position.Y);
+                        hasPosition = true;
+                    }
+                    // Version 25: on macOS 27 a posted left click raises the window under it without activating
+                    // its app. Activate that app first (fails open: the click is posted as before).
+                    if (currState && button == CGMouseButton.kCGMouseButtonLeft)
+                    {
+                        var at = hasPosition ? CGEventGetLocation(_mouseEvent) : CursorLocation();
+                        MacOSAppActivator.ActivateAt(new Vector2((float)at.x, (float)at.y), DisplayRects);
                     }
                     CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventButtonNumber, i);
                     CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventClickState, clickState); // clickState should be set to 1 (or more) during up, down, and drag events

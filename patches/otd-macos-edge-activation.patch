@@ -1,0 +1,356 @@
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/Absolute/MacOSAbsolutePointer.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/Absolute/MacOSAbsolutePointer.cs
+index 5943994..3d9ec91 100644
+--- a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/Absolute/MacOSAbsolutePointer.cs
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/Absolute/MacOSAbsolutePointer.cs
+@@ -21,11 +21,22 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
+                                 ?? throw new InvalidOperationException("Could not get virtual screen");
+             var primary = virtualScreen.Displays.First();
+             _offset = primary.Position;
++            // Display bounds in macOS global coordinates (the primary display's top left is 0,0).
++            _displays = virtualScreen.Displays
++                .Select(d => new MacOSScreenEdge.Rect(d.Position - _offset, new Vector2(d.Width, d.Height)))
++                .ToArray();
++            _virtualScreen = new MacOSScreenEdge.Rect(-_offset, new Vector2(virtualScreen.Width, virtualScreen.Height));
+         }
+ 
++        private readonly MacOSScreenEdge.Rect[] _displays;
++        private readonly MacOSScreenEdge.Rect _virtualScreen;
++
++        protected override System.Collections.Generic.IReadOnlyList<MacOSScreenEdge.Rect>? DisplayRects => _displays;
++
+         public void SetPosition(Vector2 pos)
+         {
+-            var newPos = pos - _offset;
++            // Version 25 (OTD #4726): keep the pointer 1/64 px inside the display so the Dock and hot corners trigger.
++            var newPos = MacOSScreenEdge.Clamp(pos - _offset, _displays, _virtualScreen);
+             _delta = newPos - _lastPos;
+             _lastPos = newPos;
+ 
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSAppActivator.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSAppActivator.cs
+new file mode 100644
+index 0000000..ed698bc
+--- /dev/null
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSAppActivator.cs
+@@ -0,0 +1,152 @@
++using System;
++using System.Collections.Generic;
++using System.Numerics;
++using System.Runtime.InteropServices;
++using OpenTabletDriver.Plugin;
++
++namespace OpenTabletDriver.Desktop.Interop.Input
++{
++    /// <summary>
++    /// Version 25: before a posted left mouse-down, activate the app that owns the window under the pointer.
++    /// On macOS 27 a click posted to kCGHIDEventTap raises a window without activating its app, and a click
++    /// on the desktop doesn't activate Finder (same symptom and workaround as RustDesk discussion #15583).
++    /// Uses only owner PID and bounds from CGWindowListCopyWindowInfo, so no Screen Recording permission is
++    /// needed. Fails open: any error and the click is posted as before.
++    /// </summary>
++    internal static class MacOSAppActivator
++    {
++        private const string CoreGraphics = "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics";
++        private const string CoreFoundation = "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation";
++        private const string ObjC = "/usr/lib/libobjc.A.dylib";
++        private const string AppKit = "/System/Library/Frameworks/AppKit.framework/AppKit";
++
++        private const uint OnScreenOnly = 1;   // desktop elements are kept on purpose: the desktop is Finder's
++        private const uint Utf8 = 0x08000100;
++        private const int CFNumberSInt32Type = 3;
++        private const int CFNumberFloat64Type = 13;
++        private const long ActivationPolicyRegular = 0;
++
++        [StructLayout(LayoutKind.Sequential)]
++        private struct Rect { public double X, Y, W, H; }
++
++        [DllImport(CoreGraphics)] private static extern IntPtr CGWindowListCopyWindowInfo(uint option, uint relativeToWindow);
++        [DllImport(CoreGraphics)] [return: MarshalAs(UnmanagedType.I1)]
++        private static extern bool CGRectMakeWithDictionaryRepresentation(IntPtr dict, out Rect rect);
++        [DllImport(CoreFoundation)] private static extern void CFRelease(IntPtr cf);
++        [DllImport(CoreFoundation)] private static extern nint CFArrayGetCount(IntPtr array);
++        [DllImport(CoreFoundation)] private static extern IntPtr CFArrayGetValueAtIndex(IntPtr array, nint index);
++        [DllImport(CoreFoundation)] private static extern IntPtr CFDictionaryGetValue(IntPtr dict, IntPtr key);
++        [DllImport(CoreFoundation)] [return: MarshalAs(UnmanagedType.I1)]
++        private static extern bool CFNumberGetValue(IntPtr number, int type, out int value);
++        [DllImport(CoreFoundation, EntryPoint = "CFNumberGetValue")] [return: MarshalAs(UnmanagedType.I1)]
++        private static extern bool CFNumberGetDouble(IntPtr number, int type, out double value);
++        [DllImport(CoreFoundation)] private static extern IntPtr CFStringCreateWithCString(IntPtr alloc, string s, uint encoding);
++        [DllImport(CoreFoundation)] [return: MarshalAs(UnmanagedType.I1)]
++        private static extern bool CFStringGetCString(IntPtr str, byte[] buffer, nint size, uint encoding);
++
++        [DllImport(ObjC)] private static extern IntPtr objc_getClass(string name);
++        [DllImport(ObjC)] private static extern IntPtr sel_registerName(string name);
++        [DllImport(ObjC)] private static extern IntPtr objc_autoreleasePoolPush();
++        [DllImport(ObjC)] private static extern void objc_autoreleasePoolPop(IntPtr pool);
++        [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern IntPtr SendInt(IntPtr obj, IntPtr sel, int a);
++        [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern IntPtr SendULong(IntPtr obj, IntPtr sel, nuint a);
++        [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern nint SendNInt(IntPtr obj, IntPtr sel);
++        [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)]
++        private static extern bool SendBool(IntPtr obj, IntPtr sel);
++        [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)]
++        private static extern bool RespondsTo(IntPtr obj, IntPtr sel, IntPtr query);
++
++        private static bool _ready, _failed, _warned;
++        private static IntPtr _kPid, _kName, _kLayer, _kBounds, _kAlpha;
++
++        public static void ActivateAt(Vector2 point, IReadOnlyList<MacOSScreenEdge.Rect>? displays)
++        {
++            if (_failed || !OperatingSystem.IsMacOS()) return;
++            var pool = IntPtr.Zero;
++            try
++            {
++                Init();
++                pool = objc_autoreleasePoolPush();
++                var window = MacOSWindowPick.Pick(Windows(), point, displays);
++                if (window is { } w) Activate(w.OwnerPid);
++            }
++            catch (Exception ex)
++            {
++                if (!_warned) { _warned = true; Log.Write("MacOSAppActivator", $"Couldn't activate the app under the pen; clicks are posted as before. {ex.Message}", LogLevel.Warning); }
++                if (ex is DllNotFoundException or EntryPointNotFoundException) _failed = true;
++            }
++            finally
++            {
++                if (pool != IntPtr.Zero) objc_autoreleasePoolPop(pool);
++            }
++        }
++
++        private static void Init()
++        {
++            if (_ready) return;
++            NativeLibrary.Load(AppKit);
++            _kPid = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowOwnerPID", Utf8);
++            _kName = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowOwnerName", Utf8);
++            _kLayer = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowLayer", Utf8);
++            _kBounds = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowBounds", Utf8);
++            _kAlpha = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowAlpha", Utf8);
++            _ready = true;
++        }
++
++        /// <summary>On-screen windows, front to back.</summary>
++        private static List<MacOSWindowPick.Window> Windows()
++        {
++            var result = new List<MacOSWindowPick.Window>();
++            var list = CGWindowListCopyWindowInfo(OnScreenOnly, 0);
++            if (list == IntPtr.Zero) return result;
++            try
++            {
++                var n = CFArrayGetCount(list);
++                for (nint i = 0; i < n; i++)
++                {
++                    var d = CFArrayGetValueAtIndex(list, i);
++                    if (d == IntPtr.Zero) continue;
++                    var pidRef = CFDictionaryGetValue(d, _kPid);
++                    if (pidRef == IntPtr.Zero || !CFNumberGetValue(pidRef, CFNumberSInt32Type, out var pid)) continue;
++                    var boundsRef = CFDictionaryGetValue(d, _kBounds);
++                    if (boundsRef == IntPtr.Zero || !CGRectMakeWithDictionaryRepresentation(boundsRef, out var r)) continue;
++                    var layer = 0;
++                    var layerRef = CFDictionaryGetValue(d, _kLayer);
++                    if (layerRef != IntPtr.Zero) CFNumberGetValue(layerRef, CFNumberSInt32Type, out layer);
++                    double alpha = 1;
++                    var alphaRef = CFDictionaryGetValue(d, _kAlpha);
++                    if (alphaRef != IntPtr.Zero) CFNumberGetDouble(alphaRef, CFNumberFloat64Type, out alpha);
++                    result.Add(new MacOSWindowPick.Window(pid, CFString(CFDictionaryGetValue(d, _kName)), layer,
++                        (float)r.X, (float)r.Y, (float)r.W, (float)r.H, (float)alpha));
++                }
++            }
++            finally { CFRelease(list); }
++            return result;
++        }
++
++        private static string? CFString(IntPtr s)
++        {
++            if (s == IntPtr.Zero) return null;
++            var buf = new byte[256];
++            if (!CFStringGetCString(s, buf, buf.Length, Utf8)) return null;
++            var len = Array.IndexOf(buf, (byte)0);
++            return System.Text.Encoding.UTF8.GetString(buf, 0, len < 0 ? buf.Length : len);
++        }
++
++        private static bool Responds(IntPtr obj, string selector) =>
++            obj != IntPtr.Zero && RespondsTo(obj, sel_registerName("respondsToSelector:"), sel_registerName(selector));
++
++        /// <summary>Activates a regular app that isn't already active (NSRunningApplication activateWithOptions:0).</summary>
++        private static void Activate(int pid)
++        {
++            var cls = objc_getClass("NSRunningApplication");
++            if (!Responds(cls, "runningApplicationWithProcessIdentifier:")) return;
++            var app = SendInt(cls, sel_registerName("runningApplicationWithProcessIdentifier:"), pid);
++            if (app == IntPtr.Zero) return;
++            if (Responds(app, "activationPolicy") && SendNInt(app, sel_registerName("activationPolicy")) != ActivationPolicyRegular) return;
++            if (Responds(app, "isActive") && SendBool(app, sel_registerName("isActive"))) return;
++            if (Responds(app, "activateWithOptions:"))
++                SendULong(app, sel_registerName("activateWithOptions:"), 0);
++        }
++    }
++}
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSScreenEdge.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSScreenEdge.cs
+new file mode 100644
+index 0000000..013e56d
+--- /dev/null
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSScreenEdge.cs
+@@ -0,0 +1,54 @@
++using System;
++using System.Collections.Generic;
++using System.Numerics;
++
++namespace OpenTabletDriver.Desktop.Interop.Input
++{
++    /// <summary>
++    /// Version 25 (OTD issue #4726): macOS treats a display as [min, max - 1/64] while OTD maps the
++    /// tablet to [min, max]. A pointer posted at exactly the bottom (or right) edge is outside the display,
++    /// so the Dock and hot corners don't always trigger. Clamp to the display that contains the point,
++    /// inset by 1/64 px at the far edges.
++    /// </summary>
++    public static class MacOSScreenEdge
++    {
++        public const float Inset = 1f / 64f;
++
++        public readonly record struct Rect(Vector2 Position, Vector2 Size);
++
++        /// <summary>Clamps <paramref name="pos"/> into the display that contains it (or the nearest one),
++        /// falling back to <paramref name="virtualScreen"/> when there are no displays.</summary>
++        public static Vector2 Clamp(Vector2 pos, IReadOnlyList<Rect>? displays, Rect virtualScreen)
++        {
++            var target = virtualScreen;
++            if (displays is { Count: > 0 })
++            {
++                var best = float.MaxValue;
++                foreach (var d in displays)
++                {
++                    var dist = DistanceSquared(pos, d);
++                    if (dist < best) { best = dist; target = d; }
++                    if (dist == 0) break;
++                }
++            }
++            return ClampTo(pos, target);
++        }
++
++        public static Vector2 ClampTo(Vector2 pos, Rect r)
++        {
++            var min = r.Position;
++            var max = r.Position + r.Size - new Vector2(Inset, Inset);
++            if (max.X < min.X) max.X = min.X;
++            if (max.Y < min.Y) max.Y = min.Y;
++            return new Vector2(Math.Clamp(pos.X, min.X, max.X), Math.Clamp(pos.Y, min.Y, max.Y));
++        }
++
++        private static float DistanceSquared(Vector2 p, Rect r)
++        {
++            // A point on the far edge (max) belongs to this display, as OTD maps to [min, max].
++            var dx = p.X < r.Position.X ? r.Position.X - p.X : p.X > r.Position.X + r.Size.X ? p.X - (r.Position.X + r.Size.X) : 0;
++            var dy = p.Y < r.Position.Y ? r.Position.Y - p.Y : p.Y > r.Position.Y + r.Size.Y ? p.Y - (r.Position.Y + r.Size.Y) : 0;
++            return dx * dx + dy * dy;
++        }
++    }
++}
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
+index f2bdc7e..5e478ee 100644
+--- a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
+@@ -76,6 +76,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+             var x = _pendingX ?? 0;
+             var y = _pendingY ?? 0;
+             var pos = new CGPoint(x, y);
++            var at = CursorLocation();
++            MacOSAppActivator.ActivateAt(new Vector2((float)at.x, (float)at.y), DisplayRects);
+             PostClickEvent(CGEventType.kCGEventLeftMouseDown, pos, clickState: 1);
+             PostClickEvent(CGEventType.kCGEventLeftMouseUp, pos, clickState: 1);
+             PostClickEvent(CGEventType.kCGEventLeftMouseDown, pos, clickState: 2);
+@@ -175,6 +177,17 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+             _tilt = tilt;
+         }
+ 
++        private static CGPoint CursorLocation()
++        {
++            var e = CGEventCreate(IntPtr.Zero);
++            var p = CGEventGetLocation(e);
++            CFRelease(e);
++            return p;
++        }
++
++        /// <summary>Display bounds in macOS global coordinates, when known (used to recognise the Dock overlay).</summary>
++        protected virtual System.Collections.Generic.IReadOnlyList<MacOSScreenEdge.Rect>? DisplayRects => null;
++
+         protected abstract void SetPendingPosition(IntPtr mouseEvent, float x, float y);
+         protected abstract void ResetPendingPosition(IntPtr mouseEvent);
+ 
+@@ -261,9 +274,18 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+                     // propagate pending position to mouseEvent
+                     var cgEventType = ToNoDragCGEventType(button, currState);
+                     CGEventSetType(_mouseEvent, cgEventType);
++                    var hasPosition = false;
+                     if (DrainPendingPosition() is { } position)
+                     {
+                         SetPendingPosition(_mouseEvent, position.X, position.Y);
++                        hasPosition = true;
++                    }
++                    // Version 25: on macOS 27 a posted left click raises the window under it without activating
++                    // its app. Activate that app first (fails open: the click is posted as before).
++                    if (currState && button == CGMouseButton.kCGMouseButtonLeft)
++                    {
++                        var at = hasPosition ? CGEventGetLocation(_mouseEvent) : CursorLocation();
++                        MacOSAppActivator.ActivateAt(new Vector2((float)at.x, (float)at.y), DisplayRects);
+                     }
+                     CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventButtonNumber, i);
+                     CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventClickState, clickState); // clickState should be set to 1 (or more) during up, down, and drag events
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSWindowPick.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSWindowPick.cs
+new file mode 100644
+index 0000000..7388f67
+--- /dev/null
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSWindowPick.cs
+@@ -0,0 +1,54 @@
++using System;
++using System.Collections.Generic;
++using System.Numerics;
++
++namespace OpenTabletDriver.Desktop.Interop.Input
++{
++    /// <summary>
++    /// Version 25: rules for choosing the window under a pen tap (front to back), used to activate its app
++    /// on macOS 27, where a posted click raises a window without activating its app (same symptom as
++    /// RustDesk discussion #15583). Kept free of native calls so it can be unit tested.
++    /// </summary>
++    public static class MacOSWindowPick
++    {
++        public const string DockBundleId = "com.apple.dock";
++
++        public readonly record struct Window(int OwnerPid, string? OwnerName, int Layer, float X, float Y, float Width, float Height, float Alpha = 1f)
++        {
++            public bool Contains(Vector2 p) => Width > 0 && Height > 0 && p.X >= X && p.Y >= Y && p.X < X + Width && p.Y < Y + Height;
++        }
++
++        /// <summary>
++        /// The front-most window whose bounds contain <paramref name="point"/>. Skips the Dock's full-screen
++        /// overlay (a Dock-owned window that covers the whole display under the point), fully transparent
++        /// windows and windows with no size. The Dock bar itself is kept (tapping an icon there activates
++        /// nothing of ours). Does NOT skip other layers (panels, popovers) or desktop elements: the desktop
++        /// window is Finder's. With no <paramref name="displays"/>, every Dock-owned window is skipped.
++        /// </summary>
++        public static Window? Pick(IReadOnlyList<Window> frontToBack, Vector2 point,
++            IReadOnlyList<MacOSScreenEdge.Rect>? displays = null)
++        {
++            foreach (var w in frontToBack)
++            {
++                if (!w.Contains(point)) continue;
++                if (w.Alpha <= 0) continue;
++                if (string.Equals(w.OwnerName, "Dock", StringComparison.Ordinal) && IsOverlay(w, point, displays)) continue;
++                return w;
++            }
++            return null;
++        }
++
++        private static bool IsOverlay(Window w, Vector2 point, IReadOnlyList<MacOSScreenEdge.Rect>? displays)
++        {
++            if (displays is not { Count: > 0 }) return true;
++            foreach (var d in displays)
++            {
++                var inside = point.X >= d.Position.X && point.Y >= d.Position.Y
++                    && point.X <= d.Position.X + d.Size.X && point.Y <= d.Position.Y + d.Size.Y;
++                if (!inside) continue;
++                return w.Width >= d.Size.X - 1 && w.Height >= d.Size.Y - 1;
++            }
++            return true;
++        }
++    }
++}
