@@ -4,6 +4,7 @@ using System.Numerics;
 using OpenTabletDriver.Desktop.Interop.Input.Keyboard;
 using OpenTabletDriver.Native.OSX;
 using OpenTabletDriver.Native.OSX.Input;
+using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 
 namespace OpenTabletDriver.Desktop.Interop.Input
@@ -42,6 +43,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         private bool? _isEraser;
         private CGMouseButton _lastButton;
         private readonly DoubleClickState _doubleClick = new();
+        private readonly ClickJitterGate _clickJitter = new();
         private readonly Stopwatch _stopWatch;
         private readonly Stopwatch _doubleClickClock;
         private readonly IntPtr _eventSource;
@@ -54,6 +56,15 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             get => _doubleClick.MoveTolerance;
             set => _doubleClick.MoveTolerance = DoubleClickState.ClampTolerance(value);
         }
+
+        /// <summary>Double Click Fix UI 0..100 (0 = gate off, 50 = 1 mm, 100 = 2 mm).</summary>
+        public int DoubleClickFix { get; set; } = ClickJitterGate.UiDefault;
+
+        /// <summary>Live absolute mapping: desktop pixels per tablet millimetre.</summary>
+        public double PixelsPerMillimetre { get; set; }
+
+        /// <summary>Absolute mapped pointer only. Relative / mouse mode leaves jitter unfiltered.</summary>
+        protected virtual bool UseClickJitterGate => false;
 
         public MacOSVirtualMouse()
         {
@@ -128,13 +139,31 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             }
             else if (DrainPendingPosition() is { } position)
             {
-                // can send drag here
-                var lastButtonSet = IsButtonSet(_currButtonStates, _lastButton);
-                var cgEventType = ToDragCGEventType(_lastButton, lastButtonSet);
-                CGEventSetType(_mouseEvent, cgEventType);
-                SetPendingPosition(_mouseEvent, position.X, position.Y);
-                ApplyTabletValues();
-                PostEvent();
+                var dropDrag = false;
+                if (UseClickJitterGate
+                    && _lastButton == CGMouseButton.kCGMouseButtonLeft
+                    && IsButtonSet(_currButtonStates, CGMouseButton.kCGMouseButtonLeft))
+                {
+                    var emit = _clickJitter.FilterDrag(position, _doubleClickClock.ElapsedMilliseconds);
+                    if (emit is null)
+                        dropDrag = true;
+                    else
+                    {
+                        position = emit.Value;
+                        LogClickJitterIfCompleted();
+                    }
+                }
+
+                if (!dropDrag)
+                {
+                    // can send drag here
+                    var lastButtonSet = IsButtonSet(_currButtonStates, _lastButton);
+                    var cgEventType = ToDragCGEventType(_lastButton, lastButtonSet);
+                    CGEventSetType(_mouseEvent, cgEventType);
+                    SetPendingPosition(_mouseEvent, position.X, position.Y);
+                    ApplyTabletValues();
+                    PostEvent();
+                }
             }
             if (_scrollDeltaX.HasValue || _scrollDeltaY.HasValue)
             {
@@ -259,6 +288,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                             ? new Vector2(_pendingX.Value, _pendingY.Value)
                             : null);
                         clickState = _doubleClick.OnMouseDown(down, _doubleClickClock.ElapsedMilliseconds);
+                        if (UseClickJitterGate && button == CGMouseButton.kCGMouseButtonLeft)
+                            _clickJitter.OnTipDown(down, _doubleClickClock.ElapsedMilliseconds, DoubleClickFix, PixelsPerMillimetre);
                     }
                     else
                     {
@@ -275,11 +306,23 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                     var cgEventType = ToNoDragCGEventType(button, currState);
                     CGEventSetType(_mouseEvent, cgEventType);
                     var hasPosition = false;
+                    var isLeftUp = !currState && button == CGMouseButton.kCGMouseButtonLeft;
                     if (DrainPendingPosition() is { } position)
                     {
+                        if (UseClickJitterGate && isLeftUp)
+                            position = _clickJitter.OnTipUp(position, _doubleClickClock.ElapsedMilliseconds);
                         SetPendingPosition(_mouseEvent, position.X, position.Y);
                         hasPosition = true;
                     }
+                    else if (UseClickJitterGate && isLeftUp && _clickJitter.IsGating)
+                    {
+                        var fallback = _doubleClick.LastKnownPosition ?? _clickJitter.DownPosition;
+                        var up = _clickJitter.OnTipUp(fallback, _doubleClickClock.ElapsedMilliseconds);
+                        SetPendingPosition(_mouseEvent, up.X, up.Y);
+                        hasPosition = true;
+                    }
+                    if (UseClickJitterGate && isLeftUp)
+                        LogClickJitterIfCompleted();
                     // Version 25: on macOS 27 a posted left click raises the window under it without activating
                     // its app. Activate that app first (fails open: the click is posted as before).
                     if (currState && button == CGMouseButton.kCGMouseButtonLeft)
@@ -413,6 +456,15 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 CGEventSetFlags(_mouseEvent, _keyboard.getCurrentFlags());
             else
                 CGEventSetFlags(_mouseEvent, ~0U);
+        }
+
+        private void LogClickJitterIfCompleted()
+        {
+            if (_clickJitter.ConsumeCompletion() is not { } completion)
+                return;
+            Log.Write(
+                "ClickJitterGate",
+                $"gated tap: {completion.DurationMs} ms, max wobble {completion.MaxWobblePx:0.#} px ({completion.MaxWobbleMm:0.##} mm), released by {completion.ReleasedBy}");
         }
 
         private void PostEvent()

@@ -10,10 +10,9 @@ namespace OpenTabletDriver.Desktop.Interop.Input
     /// </summary>
     public sealed class DoubleClickState
     {
-        // Version 25 (Double Click Fix): how far apart (screen pixels) two tip taps may land and still count
-        // as one double-click. UI shows 0..100 mapped onto 8..192 px; Default is 100 px (UI 50).
-        // This only decides the click COUNT; it never holds or moves the pointer (the hold-still tried in
-        // da6e313/9833598 made the cursor stick and jump, so it was removed).
+        // Version 25: fixed internal click-COUNT distance (100 px). The Double Click Fix slider no longer
+        // feeds this; it controls ClickJitterGate (pen millimetres) instead. This class never holds or
+        // moves the pointer (the hold-still tried in da6e313/9833598 made the cursor stick and jump).
         public const int DefaultMoveTolerance = 100;
         public const int MinMoveTolerance = 8;
         public const int MaxMoveTolerance = 192;

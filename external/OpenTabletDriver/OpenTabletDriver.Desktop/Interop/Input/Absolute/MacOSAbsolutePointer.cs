@@ -33,6 +33,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Absolute
 
         protected override System.Collections.Generic.IReadOnlyList<MacOSScreenEdge.Rect>? DisplayRects => _displays;
 
+        protected override bool UseClickJitterGate => true;
+
         public void SetPosition(Vector2 pos)
         {
             // Version 25 (OTD #4726): keep the pointer 1/64 px inside the display so the Dock and hot corners trigger.

@@ -397,6 +397,6 @@
   "tablet.pen.double_click_off": "Desactivado",
   "tablet.pen.double_click_default": "Predeterminado",
   "tablet.pen.double_click_large": "Grande",
-  "tablet.pen.double_click_note": "Ayuda al doble clic con la punta del lápiz. Dos toques rápidos que caen un poco separados cuentan igualmente como doble clic, para que las carpetas se abran en vez de moverse. Si las carpetas aún se mueven, desliza hacia «Grande». Predeterminado 50.",
+  "tablet.pen.double_click_note": "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.",
   "binding.mouse.double_click": "Doble clic"
 }

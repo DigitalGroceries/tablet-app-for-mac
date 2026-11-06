@@ -397,6 +397,6 @@
   "tablet.pen.double_click_off": "オフ",
   "tablet.pen.double_click_default": "標準",
   "tablet.pen.double_click_large": "大",
-  "tablet.pen.double_click_note": "ペン先でのダブルクリックを助けます。少し離れた位置への素早い2回のタップもダブルクリックとして扱い、フォルダが動かずに開くようにします。まだフォルダが動く場合は「大」側へ動かしてください。標準 50。",
+  "tablet.pen.double_click_note": "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.",
   "binding.mouse.double_click": "ダブルクリック"
 }

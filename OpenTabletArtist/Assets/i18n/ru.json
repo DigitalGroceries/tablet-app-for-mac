@@ -397,6 +397,6 @@
   "tablet.pen.double_click_off": "Выкл.",
   "tablet.pen.double_click_default": "По умолчанию",
   "tablet.pen.double_click_large": "Большое",
-  "tablet.pen.double_click_note": "Помогает делать двойной щелчок кончиком пера. Два быстрых касания чуть в стороне друг от друга всё равно считаются двойным щелчком, поэтому папки открываются, а не сдвигаются. Если папки всё ещё сдвигаются, сдвиньте ползунок к «Большое». По умолчанию 50.",
+  "tablet.pen.double_click_note": "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.",
   "binding.mouse.double_click": "Двойной щелчок"
 }

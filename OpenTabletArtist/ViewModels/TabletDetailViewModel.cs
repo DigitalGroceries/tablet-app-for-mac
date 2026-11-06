@@ -1220,8 +1220,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(PressureDisabledNote))]
     private bool _disablePressure;
     [ObservableProperty] private bool _disableTilt;
-    /// <summary>Version 25: Double Click Fix UI value 0..100 (Off…Default 50…Large). Persisted as physical pixels 8..192.</summary>
-    [ObservableProperty] private double _tipDoubleClickDistance = DoubleClickState.UiDefault;
+    /// <summary>Version 25: Double Click Fix UI value 0..100 (Off = 0 mm, Default 50 = 1.0 mm, Large 100 = 2.0 mm).</summary>
+    [ObservableProperty] private double _tipDoubleClickDistance = ClickJitterGate.UiDefault;
     [ObservableProperty] private bool _dragBindingsEnabled;
     [ObservableProperty] private bool _disablePenTip;
     /// <summary>R18: the eraser end off — OTD's eraser is a binding (<c>BindingSettings.EraserButton</c>), so
@@ -1338,14 +1338,17 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     partial void OnTipDoubleClickDistanceChanged(double value)
     {
         if (_skipPenInputPersist) return;
-        var display = (int)Math.Round(Math.Clamp(value, DoubleClickState.UiMin, DoubleClickState.UiMax));
+        var display = (int)Math.Round(Math.Clamp(value, ClickJitterGate.UiOff, ClickJitterGate.UiMax));
         if (Math.Abs(display - value) > 0.001)
         {
             TipDoubleClickDistance = display;
             return;
         }
-        var pixels = DoubleClickState.DisplayToPixels(display);
-        _ = ApplySettingsChange(p => p.BindingSettings.TipDoubleClickDistance = pixels);
+        _ = ApplySettingsChange(p =>
+        {
+            p.BindingSettings.DoubleClickFix = display;
+            p.BindingSettings.TipDoubleClickDistance = DoubleClickState.DefaultMoveTolerance;
+        });
     }
 
     partial void OnDragBindingsEnabledChanged(bool value)
@@ -1433,7 +1436,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _legacyFlatPending = !manual.On && pcRead is { } r1 && IsFixedPressureCurve(r1.Dynamics.Curve);
         DisableEraser = PenSwitchBinding.IsOff(bindings.EraserButton);
         DisableTilt = bindings.DisableTilt;
-        TipDoubleClickDistance = DoubleClickState.PixelsToDisplay(bindings.TipDoubleClickDistance);
+        TipDoubleClickDistance = ClickJitterGate.ResolveSavedDisplay(bindings.DoubleClickFix);
         DragBindingsEnabled = bindings.EnableDragBindings;
         // The tip is disabled when it has no binding (#493). Derived from the profile so it stays in
         // sync when the tip binding is edited directly on the pen-switch card.

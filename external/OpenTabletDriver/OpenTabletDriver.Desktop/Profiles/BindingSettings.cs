@@ -27,6 +27,7 @@ namespace OpenTabletDriver.Desktop.Profiles
 
         private bool disablePressure, disableTilt, disableRotation, enableDragBindings;
         private int tipDoubleClickDistance = OpenTabletDriver.Desktop.Interop.Input.DoubleClickState.DefaultMoveTolerance;
+        private int? doubleClickFix;
 
         [JsonProperty(nameof(TipActivationThreshold))]
         public float TipActivationThreshold
@@ -127,14 +128,26 @@ namespace OpenTabletDriver.Desktop.Profiles
         }
 
         /// <summary>
-        /// Tip Double Click Distance in screen pixels (Wacom: Off … Large). Default 100.
-        /// Off/minimum is 8; Default 100; Large/maximum is 192. UI shows 0..100 mapped onto this range.
+        /// Fixed internal tip double-click COUNT tolerance in screen pixels (always 100).
+        /// The Double Click Fix slider no longer writes this; see <see cref="DoubleClickFix"/>.
         /// </summary>
         [JsonProperty(nameof(TipDoubleClickDistance))]
         public int TipDoubleClickDistance
         {
             set => this.RaiseAndSetIfChanged(ref this.tipDoubleClickDistance, value);
             get => this.tipDoubleClickDistance;
+        }
+
+        /// <summary>
+        /// Version 25 Double Click Fix UI 0..100: how far the tip may wobble during a click (0 = off,
+        /// 50 = 1.0 mm, 100 = 2.0 mm). Null means an older file that only stored pixel
+        /// <see cref="TipDoubleClickDistance"/> — treat as Default 50.
+        /// </summary>
+        [JsonProperty(nameof(DoubleClickFix), NullValueHandling = NullValueHandling.Ignore)]
+        public int? DoubleClickFix
+        {
+            set => this.RaiseAndSetIfChanged(ref this.doubleClickFix, value);
+            get => this.doubleClickFix;
         }
 
         public static BindingSettings GetDefaults(TabletSpecifications tabletSpecifications)
@@ -148,6 +161,7 @@ namespace OpenTabletDriver.Desktop.Profiles
                     new AdaptiveBinding(PenAction.Eraser)
                 ),
                 TipDoubleClickDistance = OpenTabletDriver.Desktop.Interop.Input.DoubleClickState.DefaultMoveTolerance,
+                DoubleClickFix = OpenTabletDriver.Desktop.Interop.Input.ClickJitterGate.UiDefault,
                 PenButtons = new PluginSettingStoreCollection(),
                 AuxButtons = new PluginSettingStoreCollection(),
                 MouseButtons = new PluginSettingStoreCollection(),

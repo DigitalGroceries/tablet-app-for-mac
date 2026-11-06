@@ -71,13 +71,12 @@ public class DoubleClickStateTests
     }
 
     [Fact]
-    public void Double_Click_Fix_scale_is_Off_8_Default_100_Large_192()
+    public void Click_count_tolerance_defaults_to_100_pixels()
     {
-        Assert.Equal(8, DoubleClickState.MinMoveTolerance);
         Assert.Equal(100, DoubleClickState.DefaultMoveTolerance);
-        Assert.Equal(192, DoubleClickState.MaxMoveTolerance);
-        Assert.Equal(50, DoubleClickState.UiDefault);
         Assert.Equal(100, new OpenTabletDriver.Desktop.Profiles.BindingSettings().TipDoubleClickDistance);
+        Assert.Null(new OpenTabletDriver.Desktop.Profiles.BindingSettings().DoubleClickFix);
+        Assert.Equal(50, ClickJitterGate.ResolveSavedDisplay(new OpenTabletDriver.Desktop.Profiles.BindingSettings().DoubleClickFix));
     }
 
     [Theory]
@@ -101,18 +100,14 @@ public class DoubleClickStateTests
         Assert.Equal(100, DoubleClickState.PixelsToDisplay(192));
     }
 
-    [Theory]
-    [InlineData(8, false)]
-    [InlineData(64, true)]
-    [InlineData(100, true)]
-    [InlineData(192, true)]
-    public void The_slider_value_decides_whether_two_taps_3mm_apart_are_a_double_click(int value, bool doubleClick)
+    [Fact]
+    public void Fixed_count_tolerance_treats_taps_60px_apart_as_a_double_click()
     {
-        // ~3 mm apart on a ~3360 px wide All-displays desktop over a ~157 mm tablet ≈ 60 px.
-        var s = New(tolerance: value);
+        // ~3 mm apart on a ~21 px/mm All-displays desktop. The slider no longer changes this count.
+        var s = New(tolerance: DoubleClickState.DefaultMoveTolerance);
         s.OnMouseDown(new Vector2(1000, 500), 0);
         s.OnMouseUp(40);
-        Assert.Equal(doubleClick ? 2 : 1, s.OnMouseDown(new Vector2(1060, 500), 200));
+        Assert.Equal(2, s.OnMouseDown(new Vector2(1060, 500), 200));
     }
 
     [Fact]

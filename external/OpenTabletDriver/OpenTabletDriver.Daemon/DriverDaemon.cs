@@ -12,6 +12,7 @@ using OpenTabletDriver.Desktop.Binding;
 using OpenTabletDriver.Desktop.Contracts;
 using OpenTabletDriver.Desktop.Diagnostics;
 using OpenTabletDriver.Desktop.Interop;
+using OpenTabletDriver.Desktop.Interop.Input;
 using OpenTabletDriver.Desktop.Profiles;
 using OpenTabletDriver.Desktop.Reflection;
 using OpenTabletDriver.Desktop.Reflection.Metadata;
@@ -519,10 +520,28 @@ namespace OpenTabletDriver.Daemon
 
             if (pointer is IMouseDoubleClickHandler mouseDoubleClickHandler)
             {
-                mouseDoubleClickHandler.DoubleClickMoveTolerance =
-                    OpenTabletDriver.Desktop.Interop.Input.DoubleClickState.ClampTolerance(settings.TipDoubleClickDistance);
+                mouseDoubleClickHandler.DoubleClickMoveTolerance = DoubleClickState.DefaultMoveTolerance;
                 bindingServiceProvider.AddService(() => mouseDoubleClickHandler);
-                Log.Write(group, $"Tip Double Click Distance: {mouseDoubleClickHandler.DoubleClickMoveTolerance} px");
+                Log.Write(group, $"Tip double-click count distance: {mouseDoubleClickHandler.DoubleClickMoveTolerance} px");
+            }
+
+            if (pointer is MacOSVirtualMouse macMouse)
+            {
+                var display = ClickJitterGate.ResolveSavedDisplay(settings.DoubleClickFix);
+                macMouse.DoubleClickFix = display;
+                double pxPerMm = 0;
+                if (outputMode is AbsoluteOutputMode absolute && absolute.Input != null && absolute.Output != null)
+                {
+                    pxPerMm = ClickJitterGate.PixelsPerMillimetreFromAreas(
+                        absolute.Input.Width, absolute.Input.Height,
+                        absolute.Output.Width, absolute.Output.Height);
+                }
+                macMouse.PixelsPerMillimetre = pxPerMm > 0 ? pxPerMm : ClickJitterGate.FallbackPixelsPerMillimetre;
+                var mm = ClickJitterGate.DisplayToMillimetres(display);
+                var gatePx = ClickJitterGate.GatePixels(display, macMouse.PixelsPerMillimetre);
+                Log.Write(group, display == 0
+                    ? "Double Click Fix: Off"
+                    : $"Double Click Fix: {display} ({mm:0.##} mm, gate {gatePx} px at {macMouse.PixelsPerMillimetre:0.##} px/mm)");
             }
 
             var tip = bindingHandler.Tip = new ThresholdBindingState

@@ -1399,8 +1399,8 @@
         </ctrl:Section>
         <!-- ===== Build O: PEN tab, laid out like Wacom's (Tip Feel Soft–Firm on the left, pen buttons beside a
              drawn pen on the right, Default bottom right). Tip Feel is OTA's pressure curve (Softness, mirrored);
-             Customise… opens the full curve editor. Tip Double Click Distance is Version 25 (Wacom Off…Large
-             in screen pixels). OTD still has no tilt-sensitivity curve, so tilt is on/off only. ===== -->
+             Customise… opens the full curve editor. Double Click Fix is Version 25 (0 = off, 50 = 1 mm, 100 = 2 mm).
+             OTD still has no tilt-sensitivity curve, so tilt is on/off only. ===== -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
                       IsVisible="{Binding #PenTab.IsChecked}">
             <!-- Shared right margin with WacomHeader (+/−): fill the content column, no fixed 720 left strip. -->
@@ -1431,7 +1431,7 @@
                                     <TextBlock x:Name="LblPenFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
                             </StackPanel>
                         </HeaderedContentControl>
-                        <!-- Version 25: Double Click Fix UI 0..100 (physical 8 Off … 100 Default … 192 Large). -->
+                        <!-- Version 25: Double Click Fix UI 0..100 (0 = off, 50 = 1.0 mm, 100 = 2.0 mm). -->
                         <HeaderedContentControl x:Name="PenDoubleClickDistanceGroup" Classes="wacomGroup" Header="Double Click Fix">
                             <StackPanel Spacing="4">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
@@ -1445,14 +1445,14 @@
                                              Text="{Binding TipDoubleClickDistance, UpdateSourceTrigger=LostFocus}"
                                              AutomationProperties.Name="Double Click Fix value" />
                                 </Grid>
-                                <!-- Default at 50% (UI 50 = 100 px). -->
+                                <!-- Default at 50% (UI 50 = 1.0 mm). -->
                                 <Grid ColumnDefinitions="*,*,*" Margin="0,0,54,0">
                                     <TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" />
                                     <TextBlock x:Name="PenDoubleClickDefault" Grid.Column="1" Text="Default" FontSize="12" HorizontalAlignment="Center" />
                                     <TextBlock x:Name="PenDoubleClickLarge" Grid.Column="2" Text="Large" FontSize="12" HorizontalAlignment="Right" />
                                 </Grid>
                                 <TextBlock x:Name="PenDoubleClickNote"
-                                           Text="Helps the pen tip double-click. Two quick taps that land a little apart still count as a double-click, so folders open instead of sliding around. If folders still move, slide towards Large. Default 50."
+                                           Text="How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement."
                                            FontSize="11" TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>
