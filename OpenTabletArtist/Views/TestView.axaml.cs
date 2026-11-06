@@ -19,6 +19,8 @@ public partial class TestView : UserControl
         InitializeComponent();
         // The pen position always comes from the daemon, never the OS pointer (#scribble-driver-only).
         PaintCanvas.IgnorePointer = true;
+        // The eraser end should rub out strokes here (the Pen preview pads leave this off).
+        PaintCanvas.EraseWithEraser = true;
         DataContextChanged += OnDataContextChanged;
         ApplyLanguage();
         Localizer.LanguageChanged += ApplyLanguage;
