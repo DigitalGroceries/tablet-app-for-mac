@@ -235,6 +235,7 @@ The report opens inside the app window:
 - A picture of the app window, as it was just before the report opened, is added. Untick **Add this picture of the app window** to leave it out. **Add screenshots…** adds more pictures (up to 10 in all).
 - Press **Send with file** or **Send with GitHub account**. Both make one file with your text, your pictures and the app and driver logs. Serial numbers and your user name are removed from the logs. Pictures are sent as they are, so check them first.
 - **Send with file** needs no account. It asks where to save the file (the Desktop is suggested). Then the report shows where the file is. Click **Open upload page** and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file. There is no Show in Finder button.
+- **Your email** (optional, near the top of the report): "Leave your email so we can help you better in fixing your issue". It is put in the file only with **Send with file**, so we can reply; **Send with GitHub account** never includes it. You can leave it empty.
 - **Send with GitHub account** needs a free GitHub account. It saves the file on your Desktop, shows it in Finder and opens a new GitHub issue with your text filled in. Drag the file into it and press **Create**.
 
 **Cancel** closes the report and sends nothing.

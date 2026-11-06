@@ -29,12 +29,23 @@ namespace OpenTabletDriver.Desktop.Interop.Input
 
         public bool MovedWhileHeld => _movedWhileHeld;
 
+        /// <summary>The last pointer position seen (by <see cref="OnPosition"/> or a mouse-down), or null before any.</summary>
+        public Vector2? LastKnownPosition { get; private set; }
+
+        /// <summary>
+        /// Where a mouse-down happened: the pending position when there is one, otherwise the last known
+        /// position (e.g. two buttons change in one report and the first already drained the position).
+        /// Never <see cref="Vector2.Zero"/> by default, which would count as "too far" and reset to 1.
+        /// </summary>
+        public Vector2 DownPosition(Vector2? pending) => pending ?? LastKnownPosition ?? _lastMouseDownPosition;
+
         /// <summary>
         /// Records a pointer position. When <paramref name="buttonHeld"/> is true, movement beyond the
         /// tolerance marks a drag and breaks the next double-click. Hover (button not held) is ignored.
         /// </summary>
         public void OnPosition(Vector2 position, bool buttonHeld)
         {
+            LastKnownPosition = position;
             if (!buttonHeld || !_hasLastDown)
                 return;
 
@@ -48,6 +59,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         /// </summary>
         public int OnMouseDown(Vector2 position, long timestampMs)
         {
+            LastKnownPosition = position;
             var timedOut = _hasLastDown && (timestampMs - _lastDownTimestampMs) > IntervalMs;
             var tooFar = _hasLastDown && Vector2.Distance(_lastMouseDownPosition, position) > MoveTolerance;
             var invalidated = !_hasLastDown || _clickState == 0 || _movedWhileHeld || timedOut || tooFar;

@@ -49,6 +49,11 @@ public partial class ReportViewModel : ObservableObject
 
     [ObservableProperty] private string _description = "";
 
+    /// <summary>Version 25 (Zak, 6 Nov 2026): optional "Your email". The free Dropbox plan hides the uploader's email,
+    /// so the app asks again. It goes into report.txt only with "Send with file"; never into the GitHub issue and
+    /// never into app.log. Blank is fine.</summary>
+    [ObservableProperty] private string _email = "";
+
     public string? WindowPicturePath { get; }
     public bool HasWindowPicture => WindowPicturePath != null;
 
@@ -97,6 +102,11 @@ public partial class ReportViewModel : ObservableObject
     public string RecommendationLabel => Localizer.Te("report.kind.recommendation", "A recommendation");
     public string DescriptionLabel => Localizer.Te("report.text_label", "What happened, or what is your idea?");
     public string DescriptionHint => Localizer.Te("report.text_hint", "Optional");
+    public string EmailLabel => Localizer.Te("report.email_label", "Your email");
+    public string EmailHelp => Localizer.Te("report.email_help", DefaultEmailHelp);
+    /// <summary>Zak's exact words (6 Nov 2026).</summary>
+    public const string DefaultEmailHelp = "Leave your email so we can help you better in fixing your issue";
+    public string EmailHint => Localizer.Te("report.email_hint", "Optional · only with Send with file");
     public string WindowPictureLabel => Localizer.Te("report.window_picture", "Add this picture of the app window");
     public string AddScreenshotsLabel => Localizer.Te("diag.report.screenshots", "Add screenshots…");
     public string Note => Localizer.Te("report.note", DefaultNote);
@@ -149,7 +159,7 @@ public partial class ReportViewModel : ObservableObject
         try
         {
             var inputs = _inputs();
-            var path = await MakeZipAsync(Folder(), inputs);
+            var path = await MakeZipAsync(Folder(), inputs, includeEmail: false);   // never the email on GitHub
             ReportFilePath = path;
             AppLog.Info($"Report: made {Path.GetFileName(path)} ({Kind}, {Pictures.Count} picture(s), from {From}, GitHub).");
             OpenUrl(DiagnosticBundle.ReportIssueUrl(Path.GetFileName(path), IsRecommendation, Description ?? "", inputs.Version, inputs.Devices));
@@ -179,7 +189,7 @@ public partial class ReportViewModel : ObservableObject
         var temp = Path.Combine(Path.GetTempPath(), "TabletApp-report-" + Guid.NewGuid().ToString("N"));
         try
         {
-            var made = await MakeZipAsync(temp, _inputs());
+            var made = await MakeZipAsync(temp, _inputs(), includeEmail: true);
             await Task.Run(() => File.Move(made, target, overwrite: true));   // the save panel already asked about replacing
             ReportFilePath = target;
             AppLog.Info($"Report: saved {Path.GetFileName(target)} ({Kind}, {Pictures.Count} picture(s), from {From}, file).");
@@ -208,20 +218,29 @@ public partial class ReportViewModel : ObservableObject
 
     /// <summary>Makes the diagnostic zip in <paramref name="folder"/> with the pictures and the user's text.</summary>
     private Task<string> MakeZipAsync(string folder,
-        (List<string> Devices, IReadOnlyList<string> Conflicts, string? Version) inputs)
+        (List<string> Devices, IReadOnlyList<string> Conflicts, string? Version) inputs, bool includeEmail)
     {
         var (devices, conflicts, version) = inputs;
         var pictures = Pictures;
         var recommendation = IsRecommendation;
         var text = Description ?? "";
+        var email = includeEmail ? (Email ?? "").Trim() : "";
         return Task.Run(() =>
         {
             var zip = DiagnosticBundle.Create(folder, devices, conflicts, version);
             DiagnosticBundle.AddScreenshots(zip, pictures);
-            DiagnosticBundle.AddText(zip, "report.txt",
-                (recommendation ? "Recommendation" : "Problem") + Environment.NewLine + Environment.NewLine + text);
+            DiagnosticBundle.AddText(zip, "report.txt", ReportText(recommendation, text, email));
             return zip;
         });
+    }
+
+    /// <summary>report.txt: the kind, then "Email: …" when the user left one (Send with file only), then the text.</summary>
+    internal static string ReportText(bool recommendation, string text, string email)
+    {
+        var nl = Environment.NewLine;
+        var head = recommendation ? "Recommendation" : "Problem";
+        if (email.Length > 0) head += nl + "Email: " + email;
+        return head + nl + nl + text;
     }
 
     private void Failed(Exception ex)

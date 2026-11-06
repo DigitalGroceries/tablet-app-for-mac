@@ -375,6 +375,9 @@
   "report.kind.recommendation": "Eine Empfehlung",
   "report.text_label": "Was ist passiert, oder was ist deine Idee?",
   "report.text_hint": "Optional",
+  "report.email_label": "Deine E-Mail-Adresse",
+  "report.email_help": "Hinterlasse deine E-Mail-Adresse, damit wir dir besser helfen können, dein Problem zu lösen",
+  "report.email_hint": "Optional · nur bei „Mit Datei senden“",
   "report.window_picture": "Dieses Bild des App-Fensters hinzufügen",
   "report.pictures": "Bilder hinzugefügt: {n}",
   "report.note": "„Mit Datei senden“ fragt, wo eine Datei mit deinem Text, deinen Bildern und den Protokollen der App und des Treibers gespeichert werden soll. Klicke danach auf „Upload-Seite öffnen“ und füge diese Datei hinzu. Die Seite fragt nach deinem Namen und deiner E-Mail (Regel von Dropbox) — nur das Team von Tablet App for Mac sieht sie; kein Dropbox-Konto nötig.\n„Mit GitHub-Konto senden“ speichert die Datei auf deinem Schreibtisch und öffnet ein neues GitHub-Issue mit deinem Text: Zieh die Datei hinein und klicke auf „Create“. Dafür ist ein kostenloses GitHub-Konto nötig.\nSeriennummern und dein Benutzername werden aus den Protokollen entfernt, aber Bilder werden so gesendet, wie sie sind: Prüfe sie vorher.",
@@ -393,6 +396,6 @@
   "tablet.pen.double_click_distance": "Doppelklick-Abstand der Spitze",
   "tablet.pen.double_click_off": "Aus",
   "tablet.pen.double_click_large": "Groß",
-  "tablet.pen.double_click_note": "Wie weit zwei Spitzen-Tipps auseinanderliegen dürfen und trotzdem als Doppelklick zählen, in Bildschirmpixeln. Standard 40.",
+  "tablet.pen.double_click_note": "Wie weit zwei Antippvorgänge mit der Spitze auseinanderliegen dürfen, um noch als Doppelklick zu zählen, in Bildschirmpixeln. Standard 40.",
   "binding.mouse.double_click": "Doppelklick"
 }

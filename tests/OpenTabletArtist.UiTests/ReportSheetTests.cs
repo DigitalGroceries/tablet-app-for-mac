@@ -160,4 +160,35 @@ public class ReportSheetTests
         Assert.Null(link.CommandParameter);
         w.Close();
     }
+
+    [AvaloniaFact]
+    public void Email_box_is_near_the_top_with_Zaks_line_and_follows_the_view_model()
+    {
+        // Version 25 (Zak, 6 Nov 2026): optional "Your email", above the problem/recommendation choice.
+        var mw = new MainWindow { Width = 900, Height = 700 };
+        mw.Show();
+        Dispatcher.UIThread.RunJobs();
+        InWindowSheet.MainOverride = () => mw;
+        try
+        {
+            var vm = new ReportViewModel(Inputs, null, "test");
+            ReportWindow.Open(vm);
+            Dispatcher.UIThread.RunJobs();
+            var sheet = mw.GetVisualDescendants().OfType<Border>().First(b => b.Name == "Sheet");
+            var all = sheet.GetVisualDescendants().OfType<Control>().ToList();
+            var label = all.OfType<TextBlock>().First(t => t.Name == "ReportEmailLabel");
+            var help = all.OfType<TextBlock>().First(t => t.Name == "ReportEmailHelp");
+            Assert.Equal("Your email", label.Text);
+            Assert.Equal("Leave your email so we can help you better in fixing your issue", help.Text);
+            var email = all.OfType<TextBox>().First(t => t.Name == "ReportEmail");
+            // Near the top: before the problem/recommendation choice and the text box.
+            Assert.True(all.IndexOf(email) < all.FindIndex(c => c.Name == "ReportProblem"));
+            Assert.True(all.IndexOf(email) < all.FindIndex(c => c.Name == "ReportText"));
+            email.Text = "a@b.example";
+            Assert.Equal("a@b.example", vm.Email);
+            vm.CancelCommand.Execute(null);
+            Dispatcher.UIThread.RunJobs();
+        }
+        finally { InWindowSheet.MainOverride = null; mw.Close(); }
+    }
 }

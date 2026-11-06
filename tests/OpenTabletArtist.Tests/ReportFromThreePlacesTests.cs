@@ -335,4 +335,64 @@ public class ReportFromThreePlacesTests
 
     static string Root([System.Runtime.CompilerServices.CallerFilePath] string f = "") =>
         Path.GetFullPath(Path.Combine(Path.GetDirectoryName(f)!, "..", ".."));
+
+    // ---- Version 25 (Zak, 6 Nov 2026): the optional "Your email" box.
+
+    static string ReportTxt(string zip)
+    {
+        using var z = ZipFile.OpenRead(zip);
+        using var r = new StreamReader(z.GetEntry("report.txt")!.Open());
+        return r.ReadToEnd();
+    }
+
+    [Fact]
+    public void Email_box_has_the_label_and_Zaks_exact_line()
+    {
+        var (vm, _, _, _) = Make();
+        Assert.Equal("", vm.Email);   // optional: empty by default
+        Assert.Equal("Your email", vm.EmailLabel);
+        Assert.Equal("Leave your email so we can help you better in fixing your issue", vm.EmailHelp);
+        Assert.Equal("Leave your email so we can help you better in fixing your issue", ReportViewModel.DefaultEmailHelp);
+    }
+
+    [Fact]
+    public async Task Send_with_file_puts_the_email_in_report_txt()
+    {
+        var (vm, _, _, dir) = Make();
+        SaveTo(vm, Path.Combine(dir, "with-email.zip"));
+        vm.Description = "Two taps don't double-click.";
+        vm.Email = "  someone@example.com ";
+        await vm.SendFileCommand.ExecuteAsync(null);
+        var report = ReportTxt(vm.SavedPath);
+        Assert.StartsWith("Problem", report);
+        Assert.Contains("Email: someone@example.com" + Environment.NewLine, report);
+        Assert.Contains("Two taps don't double-click.", report);
+    }
+
+    [Fact]
+    public async Task Send_with_file_leaves_the_email_out_when_blank()
+    {
+        var (vm, _, _, dir) = Make();
+        SaveTo(vm, Path.Combine(dir, "no-email.zip"));
+        vm.Description = "Hello";
+        vm.Email = "   ";
+        await vm.SendFileCommand.ExecuteAsync(null);
+        var report = ReportTxt(vm.SavedPath);
+        Assert.DoesNotContain("Email", report);
+        Assert.Equal("Problem" + Environment.NewLine + Environment.NewLine + "Hello", report);
+    }
+
+    [Fact]
+    public async Task Send_with_GitHub_never_includes_the_email()
+    {
+        var (vm, urls, _, _) = Make();
+        vm.Description = "Hello";
+        vm.Email = "someone@example.com";
+        await vm.SendCommand.ExecuteAsync(null);
+        var url = Assert.Single(urls);
+        Assert.DoesNotContain("someone", url);
+        Assert.DoesNotContain("someone", Uri.UnescapeDataString(url));
+        Assert.DoesNotContain("Email", ReportTxt(vm.ReportFilePath));
+        Assert.DoesNotContain("someone", ReportTxt(vm.ReportFilePath));
+    }
 }

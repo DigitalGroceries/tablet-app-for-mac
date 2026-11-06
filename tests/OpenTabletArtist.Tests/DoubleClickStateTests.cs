@@ -68,4 +68,25 @@ public class DoubleClickStateTests
         Assert.Equal(64, DoubleClickState.ClampTolerance(100));
         Assert.Equal(40, DoubleClickState.ClampTolerance(40));
     }
+
+    [Fact]
+    public void Down_without_a_pending_position_uses_the_last_known_position_not_zero()
+    {
+        // Two buttons change in one report: the first drains the pending position, the second has none.
+        var s = New();
+        s.OnPosition(new Vector2(500, 400), buttonHeld: false);
+        Assert.Equal(1, s.OnMouseDown(s.DownPosition(new Vector2(500, 400)), 0));
+        s.OnMouseUp(10);
+        var down = s.DownPosition(null);
+        Assert.Equal(new Vector2(500, 400), down);
+        Assert.Equal(2, s.OnMouseDown(down, 100));
+    }
+
+    [Fact]
+    public void Down_position_prefers_the_pending_position()
+    {
+        var s = New();
+        s.OnPosition(new Vector2(10, 10), buttonHeld: false);
+        Assert.Equal(new Vector2(20, 30), s.DownPosition(new Vector2(20, 30)));
+    }
 }

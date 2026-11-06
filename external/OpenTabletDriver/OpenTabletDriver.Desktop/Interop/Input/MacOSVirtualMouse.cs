@@ -240,9 +240,11 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                     int clickState;
                     if (currState)
                     {
-                        var down = _pendingX.HasValue && _pendingY.HasValue
+                        // No pending position (e.g. an earlier button in this report drained it): use the
+                        // last known position, not Vector2.Zero, so the click count isn't reset.
+                        var down = _doubleClick.DownPosition(_pendingX.HasValue && _pendingY.HasValue
                             ? new Vector2(_pendingX.Value, _pendingY.Value)
-                            : Vector2.Zero;
+                            : null);
                         clickState = _doubleClick.OnMouseDown(down, _doubleClickClock.ElapsedMilliseconds);
                     }
                     else

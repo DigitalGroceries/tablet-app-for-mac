@@ -86,7 +86,22 @@ public sealed class ReportWindow : Window
         text.PropertyChanged += (_, e) => { if (e.Property == TextBox.TextProperty) vm.Description = text.Text ?? ""; };
         Avalonia.Automation.AutomationProperties.SetName(text, vm.DescriptionLabel);
 
+        // Version 25 (Zak, 6 Nov 2026): optional email near the top, with Zak's own line. Send with file only.
+        var email = new TextBox { Name = "ReportEmail", PlaceholderText = vm.EmailHint, Text = vm.Email, MaxWidth = 360, HorizontalAlignment = HorizontalAlignment.Left };
+        email.PropertyChanged += (_, e) => { if (e.Property == TextBox.TextProperty) vm.Email = email.Text ?? ""; };
+        Avalonia.Automation.AutomationProperties.SetName(email, vm.EmailLabel);
+
         var body = new StackPanel { Margin = new Thickness(24, 8, 24, 20), Spacing = 12 };
+        body.Children.Add(new StackPanel
+        {
+            Spacing = 4,
+            Children =
+            {
+                new TextBlock { Name = "ReportEmailLabel", Text = vm.EmailLabel, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }.Fg(),
+                new TextBlock { Name = "ReportEmailHelp", Text = vm.EmailHelp, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush"),
+                email,
+            },
+        });
         body.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 20, Children = { problem, idea } });
         body.Children.Add(new TextBlock { Text = vm.DescriptionLabel, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }.Fg());
         body.Children.Add(text);

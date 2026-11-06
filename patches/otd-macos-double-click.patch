@@ -75,10 +75,10 @@ index 0000000..a255dc5
 +}
 diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/DoubleClickState.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/DoubleClickState.cs
 new file mode 100644
-index 0000000..7a189fb
+index 0000000..9ed053b
 --- /dev/null
 +++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/DoubleClickState.cs
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,100 @@
 +using System;
 +using System.Numerics;
 +
@@ -110,12 +110,23 @@ index 0000000..7a189fb
 +
 +        public bool MovedWhileHeld => _movedWhileHeld;
 +
++        /// <summary>The last pointer position seen (by <see cref="OnPosition"/> or a mouse-down), or null before any.</summary>
++        public Vector2? LastKnownPosition { get; private set; }
++
++        /// <summary>
++        /// Where a mouse-down happened: the pending position when there is one, otherwise the last known
++        /// position (e.g. two buttons change in one report and the first already drained the position).
++        /// Never <see cref="Vector2.Zero"/> by default, which would count as "too far" and reset to 1.
++        /// </summary>
++        public Vector2 DownPosition(Vector2? pending) => pending ?? LastKnownPosition ?? _lastMouseDownPosition;
++
 +        /// <summary>
 +        /// Records a pointer position. When <paramref name="buttonHeld"/> is true, movement beyond the
 +        /// tolerance marks a drag and breaks the next double-click. Hover (button not held) is ignored.
 +        /// </summary>
 +        public void OnPosition(Vector2 position, bool buttonHeld)
 +        {
++            LastKnownPosition = position;
 +            if (!buttonHeld || !_hasLastDown)
 +                return;
 +
@@ -129,6 +140,7 @@ index 0000000..7a189fb
 +        /// </summary>
 +        public int OnMouseDown(Vector2 position, long timestampMs)
 +        {
++            LastKnownPosition = position;
 +            var timedOut = _hasLastDown && (timestampMs - _lastDownTimestampMs) > IntervalMs;
 +            var tooFar = _hasLastDown && Vector2.Distance(_lastMouseDownPosition, position) > MoveTolerance;
 +            var invalidated = !_hasLastDown || _clickState == 0 || _movedWhileHeld || timedOut || tooFar;
@@ -214,7 +226,7 @@ index c6edfea..5aa8344 100644
      }
  }
 diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
-index 2b95441..7e9925f 100644
+index 2b95441..f2bdc7e 100644
 --- a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
 +++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
 @@ -10,9 +10,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input
@@ -308,7 +320,7 @@ index 2b95441..7e9925f 100644
          }
  
          public void SetPressure(float percentage)
-@@ -211,28 +237,19 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+@@ -211,28 +237,21 @@ namespace OpenTabletDriver.Desktop.Interop.Input
  
                  if (currState != prevState)
                  {
@@ -328,9 +340,11 @@ index 2b95441..7e9925f 100644
 -                        {
 -                            _clickState++;
 -                        }
-+                        var down = _pendingX.HasValue && _pendingY.HasValue
++                        // No pending position (e.g. an earlier button in this report drained it): use the
++                        // last known position, not Vector2.Zero, so the click count isn't reset.
++                        var down = _doubleClick.DownPosition(_pendingX.HasValue && _pendingY.HasValue
 +                            ? new Vector2(_pendingX.Value, _pendingY.Value)
-+                            : Vector2.Zero;
++                            : null);
 +                        clickState = _doubleClick.OnMouseDown(down, _doubleClickClock.ElapsedMilliseconds);
                      }
                      else
@@ -345,7 +359,7 @@ index 2b95441..7e9925f 100644
                      }
  
                      // prepare the mouse event, we reset it here in case
-@@ -247,7 +264,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+@@ -247,7 +266,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                          SetPendingPosition(_mouseEvent, position.X, position.Y);
                      }
                      CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventButtonNumber, i);

@@ -1436,7 +1436,7 @@
                             <StackPanel Spacing="4">
                                 <Slider x:Name="TipDoubleClickDistanceSlider" Minimum="8" Maximum="64"
                                         Value="{Binding TipDoubleClickDistance}"
-                                        TickFrequency="8" TickPlacement="BottomRight"
+                                        TickFrequency="8" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
                                         AutomationProperties.Name="Tip Double Click Distance" />
                                 <Grid ColumnDefinitions="*,*"><TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" />
                                     <TextBlock x:Name="PenDoubleClickLarge" Grid.Column="1" Text="Large" FontSize="12" HorizontalAlignment="Right" /></Grid>

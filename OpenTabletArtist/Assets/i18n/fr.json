@@ -375,6 +375,9 @@
   "report.kind.recommendation": "Une recommandation",
   "report.text_label": "Que s'est-il passé, ou quelle est votre idée ?",
   "report.text_hint": "Facultatif",
+  "report.email_label": "Votre e-mail",
+  "report.email_help": "Laissez votre e-mail pour que nous puissions mieux vous aider à résoudre votre problème",
+  "report.email_hint": "Facultatif · uniquement avec « Envoyer avec un fichier »",
   "report.window_picture": "Ajouter cette image de la fenêtre de l'app",
   "report.pictures": "Images ajoutées : {n}",
   "report.note": "« Envoyer avec un fichier » vous demande où enregistrer un fichier contenant votre texte, vos images et les journaux de l'app et du pilote. Cliquez ensuite sur « Ouvrir la page d'envoi » et ajoutez ce fichier. La page demande votre nom et votre e-mail (règle de Dropbox) — seule l'équipe de Tablet App for Mac les voit ; aucun compte Dropbox n'est nécessaire.\n« Envoyer avec un compte GitHub » enregistre le fichier sur votre Bureau et ouvre une nouvelle issue GitHub avec votre texte : faites-y glisser le fichier et cliquez sur Create. Un compte GitHub gratuit est nécessaire.\nLes numéros de série et votre nom d'utilisateur sont supprimés des journaux, mais les images sont envoyées telles quelles : vérifiez-les d'abord.",
@@ -393,6 +396,6 @@
   "tablet.pen.double_click_distance": "Distance de double-clic de la pointe",
   "tablet.pen.double_click_off": "Désactivé",
   "tablet.pen.double_click_large": "Grand",
-  "tablet.pen.double_click_note": "Jusqu’où deux taps de pointe peuvent être écartés et compter encore comme un double-clic, en pixels d’écran. Par défaut 40.",
+  "tablet.pen.double_click_note": "Distance maximale entre deux appuis de la pointe pour qu’ils comptent encore comme un double-clic, en pixels d’écran. Par défaut 40.",
   "binding.mouse.double_click": "Double-clic"
 }
