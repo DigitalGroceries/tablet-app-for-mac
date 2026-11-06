@@ -1,8 +1,9 @@
 #!/bin/bash
-# Version 14 (Claude): build, assemble, ad-hoc sign and zip "Tablet App for Mac.app" on Linux.
+# Build, assemble, sign and zip "Tablet App for Mac.app" on Linux; stage the Finder DMG layout.
 # Same layout and signing identifiers as Grok's grok-scripts/sign-pack-v13.sh (Version 13), minus the .dmg step.
 #
-# Needs: .NET SDK from global.json ($HOME/.dotnet), rcodesign (cargo install apple-codesign; 0.29.0 used).
+# Needs: .NET SDK from global.json ($HOME/.dotnet), rcodesign, Python ds_store and mac_alias.
+# Finish the staged DMG on macOS with scripts/pack-macos-dmg.sh (explicit HFS+, never APFS/ISO).
 # Usage: scripts/pack-macos-linux.sh <version> <out-dir> [arm64]
 #   e.g. scripts/pack-macos-linux.sh 23 /tmp/v23 arm64
 #   BETA build: BETA=yes scripts/pack-macos-linux.sh 23 /tmp/v23b arm64  (the app then knows it is "23 BETA",
@@ -40,6 +41,7 @@ if [ "$PEM_DIR" != "$HOME" ] && [ -O "$PEM_DIR" ] && [ -n "$(find "$PEM_DIR" -ma
 fi
 export PATH=$HOME/.dotnet:$PATH DOTNET_CLI_TELEMETRY_OPTOUT=1
 mkdir -p "$OUT"
+python3 -c "import ds_store, mac_alias"
 
 dotnet build "$ROOT/plugins/OpenTabletArtist.Dynamics" -c Release -nologo -v q -o "$OUT/plugin"
 
@@ -82,6 +84,15 @@ for d, ds, fs in os.walk(root):
 z.close()
 PY
   )
+  # Layout is outside the already signed app; the updater ZIP above is unchanged.
+  # Transfer this stage intact to a Mac, then use pack-macos-dmg.sh. Do not let
+  # hdiutil choose its filesystem: APFS images showed Finder defaults despite .DS_Store.
+  STAGE="$OUT/dmgstage-$a"
+  rm -rf "$STAGE"; mkdir -p "$STAGE"
+  cp -a "$APP" "$STAGE/"
+  ln -s /Applications "$STAGE/Applications"
+  python3 "$ROOT/grok-scripts/mkdsstore.py" "$STAGE/.DS_Store"
+  echo "DMG stage: $STAGE (on macOS: scripts/pack-macos-dmg.sh <stage> <output.dmg>)"
   echo "== $a"; "$RC" print-signature-info "$M/OpenTabletArtist" 2>/dev/null | grep -E "identifier:|flags: Code" | sort -u
   "$RC" print-signature-info "$M/Daemon/$a/OpenTabletDriver.Daemon" 2>/dev/null | grep -E "identifier:" | sort -u
   # Must say "certificate root = H…", never cdhash, or permissions are lost on every update.
