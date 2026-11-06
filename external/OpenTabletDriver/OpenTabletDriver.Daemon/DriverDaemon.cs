@@ -517,6 +517,14 @@ namespace OpenTabletDriver.Daemon
             if (pointer is IPenActionHandler penActionHandler)
                 bindingServiceProvider.AddService(() => penActionHandler);
 
+            if (pointer is IMouseDoubleClickHandler mouseDoubleClickHandler)
+            {
+                mouseDoubleClickHandler.DoubleClickMoveTolerance =
+                    OpenTabletDriver.Desktop.Interop.Input.DoubleClickState.ClampTolerance(settings.TipDoubleClickDistance);
+                bindingServiceProvider.AddService(() => mouseDoubleClickHandler);
+                Log.Write(group, $"Tip Double Click Distance: {mouseDoubleClickHandler.DoubleClickMoveTolerance} px");
+            }
+
             var tip = bindingHandler.Tip = new ThresholdBindingState
             {
                 Binding = settings.TipButton?.Construct<IBinding>(bindingServiceProvider, tabletReference),

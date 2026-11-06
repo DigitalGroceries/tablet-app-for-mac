@@ -389,5 +389,10 @@
   "report.saved_title": "Докладът е запазен",
   "report.saved_text": "Файлът с доклада е запазен тук:\n{path}\n\nЗа да го изпратите, натиснете „Отвори страницата за качване“ и добавете този файл. Страницата пита за вашето име и имейл (правило на Dropbox) — само екипът на Tablet App for Mac ги вижда; не е нужен акаунт в Dropbox. Вашият текст и снимките вече са в него.",
   "report.show_file": "Покажи във Finder",
-  "report.open_upload": "Отвори страницата за качване"
+  "report.open_upload": "Отвори страницата за качване",
+  "tablet.pen.double_click_distance": "Tip Double Click Distance",
+  "tablet.pen.double_click_off": "Off",
+  "tablet.pen.double_click_large": "Large",
+  "tablet.pen.double_click_note": "How far apart two tip taps may be and still count as a double-click, in screen pixels. Default 40.",
+  "binding.mouse.double_click": "Double Click"
 }

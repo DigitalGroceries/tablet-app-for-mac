@@ -36,6 +36,7 @@ public static class PenBindings
     {
         target.TipButton = pen.TipButton;
         target.TipActivationThreshold = pen.TipActivationThreshold;
+        target.TipDoubleClickDistance = pen.TipDoubleClickDistance;
         target.EraserButton = pen.EraserButton;
         target.EraserActivationThreshold = pen.EraserActivationThreshold;
         target.PenButtons = pen.PenButtons;

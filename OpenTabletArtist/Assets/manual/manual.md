@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-App version 24. British English. Screens are real screenshots from a Mac; a few come from earlier versions, so some may differ slightly.
+App version 25. British English. Screens are real screenshots from a Mac; a few come from earlier versions, so some may differ slightly.
 
 ## Before you start
 
@@ -90,9 +90,10 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 |---|---|---|
 | Tilt › Turn tilt off | Off | Stops sending tilt. Shared with the eraser. |
 | Tip Feel | Middle (linear) | Soft to Firm pressure curve. |
+| Tip Double Click Distance | 40 | How far apart two tip taps may be and still count as a double-click, in screen pixels (Off = 8, Large = 64). Two tip taps within the system double-click time and this distance send a double-click. |
 | Customise… | Closed | Shows the curve, presets **Soft**, **Linear (no curve)**, **Hard**, the input range sliders and **Cut below input minimum (dead zone)** (off). |
 | Current pressure | Live | Pressure after the curve; tooltip shows the raw value. |
-| Button 1 / Button 2 cards | Default (right click) / Default (middle click) | **Change…** opens the function editor; **Default** restores it. |
+| Button 1 / Button 2 cards | Default (right click) / Default (middle click) | **Change…** opens the function editor; **Default** restores it. Under **Mouse** you can choose **Double Click** (posts a left-button double-click at the cursor). |
 | Pen button test | Live | Press a barrel button: its number on the pen picture lights while held, and the line above the cards reads "Button 2 pressed." (or 1). |
 | Movement | Normal (Absolute) | Absolute maps the pen to the screen; Mouse (Relative) moves the cursor like a mouse. Mouse-like mode also uses the tablet rotation set under Mapping. |
 | Position smoothing | 0.00 | Steadies the cursor, with some lag. |
@@ -129,7 +130,7 @@ The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable 
 - The enable switch turns all ExpressKey actions off or on; actions are kept.
 - **Default**: clears every ExpressKey action, after asking.
 
-Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left, Right, Middle click, Back and Forward button), **Scroll** (up, down, left, right, or **Move pen to scroll**: hold the button and move the pen to scroll like a mouse wheel; the cursor stays still and the tip does not click), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). **Save**, **Cancel**, **Clear**.
+Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left, Right, Middle click, Back and Forward button, or **Double Click**), **Scroll** (up, down, left, right, or **Move pen to scroll**: hold the button and move the pen to scroll like a mouse wheel; the cursor stays still and the tip does not click), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). **Save**, **Cancel**, **Clear**.
 
 ## Tablet › Functions › Touch ring
 
@@ -329,6 +330,8 @@ Tablet App for Mac is a modified version of OpenTabletArtist by TheSevenPens (GP
 ## Glossary
 
 - **Tip Feel**: the pressure curve, from Soft to Firm.
+- **Tip Double Click Distance**: how far apart two tip taps may be and still count as a double-click (screen pixels; Off … Large).
+- **Double Click**: a pen-button or ExpressKey action that posts a left-button double-click at the cursor.
 - **Touch Ring modes**: up to four sets of ring actions, switched with the centre button.
 - **Touch strip**: the finger strip on Intuos3 and older Cintiqs. It works like the ring, with Up and Down.
 - **Preset**: a named copy of the whole configuration.

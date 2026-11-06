@@ -129,7 +129,7 @@ Read this first. It is short on purpose.
 - The O build has not been run on a real Mac (look, ad-hoc signature, permissions, install steps).
 - Smooth zoom and smooth hardness modifiers after the L fix (Photoshop seeing them); hardness direction; hardness needs Photoshop's "Vary Round Brush Hardness based on HUD vertical movement".
 - **Per-app (Application) settings are missing**: upstream retired its per-app tab; the + / − buttons are disabled.
-- Not supported by OTD, so left out: Radial Menu, Tip Double Click Distance, tilt sensitivity, separate eraser curve.
+- Not supported by OTD, so left out: Radial Menu, tilt sensitivity, separate eraser curve. Tip Double Click Distance and a Double Click pen-button action shipped in Version 25.
 - Whether Wacom's own driver must be removed first.
 
 ## App icon (since 0.91.0-R)

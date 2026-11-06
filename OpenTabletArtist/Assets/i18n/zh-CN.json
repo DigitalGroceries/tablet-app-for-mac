@@ -389,5 +389,10 @@
   "report.saved_title": "报告已保存",
   "report.saved_text": "您的报告文件已保存在：\n{path}\n\n要发送它，请点击“打开上传页面”并添加此文件。该页面会询问您的姓名和电子邮件（Dropbox 的规则）——只有 Tablet App for Mac 团队能看到这些信息；无需 Dropbox 账户。您的文字和图片已包含在其中。",
   "report.show_file": "在访达中显示",
-  "report.open_upload": "打开上传页面"
+  "report.open_upload": "打开上传页面",
+  "tablet.pen.double_click_distance": "笔尖双击距离",
+  "tablet.pen.double_click_off": "关",
+  "tablet.pen.double_click_large": "大",
+  "tablet.pen.double_click_note": "两次笔尖轻点在屏幕像素上可相隔多远仍算双击。默认 40。",
+  "binding.mouse.double_click": "双击"
 }

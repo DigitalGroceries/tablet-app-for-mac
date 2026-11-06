@@ -1,0 +1,463 @@
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Daemon/DriverDaemon.cs b/external/OpenTabletDriver/OpenTabletDriver.Daemon/DriverDaemon.cs
+index c55fc4b..d3fba54 100644
+--- a/external/OpenTabletDriver/OpenTabletDriver.Daemon/DriverDaemon.cs
++++ b/external/OpenTabletDriver/OpenTabletDriver.Daemon/DriverDaemon.cs
+@@ -517,6 +517,14 @@ namespace OpenTabletDriver.Daemon
+             if (pointer is IPenActionHandler penActionHandler)
+                 bindingServiceProvider.AddService(() => penActionHandler);
+ 
++            if (pointer is IMouseDoubleClickHandler mouseDoubleClickHandler)
++            {
++                mouseDoubleClickHandler.DoubleClickMoveTolerance =
++                    OpenTabletDriver.Desktop.Interop.Input.DoubleClickState.ClampTolerance(settings.TipDoubleClickDistance);
++                bindingServiceProvider.AddService(() => mouseDoubleClickHandler);
++                Log.Write(group, $"Tip Double Click Distance: {mouseDoubleClickHandler.DoubleClickMoveTolerance} px");
++            }
++
+             var tip = bindingHandler.Tip = new ThresholdBindingState
+             {
+                 Binding = settings.TipButton?.Construct<IBinding>(bindingServiceProvider, tabletReference),
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Binding/DoubleClickBinding.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Binding/DoubleClickBinding.cs
+new file mode 100644
+index 0000000..a255dc5
+--- /dev/null
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Binding/DoubleClickBinding.cs
+@@ -0,0 +1,50 @@
++using OpenTabletDriver.Plugin;
++using OpenTabletDriver.Plugin.Attributes;
++using OpenTabletDriver.Plugin.DependencyInjection;
++using OpenTabletDriver.Plugin.Platform.Pointer;
++using OpenTabletDriver.Plugin.Tablet;
++
++namespace OpenTabletDriver.Desktop.Binding
++{
++    /// <summary>
++    /// Pen button / ExpressKey action that posts a left-button double-click (click count 1 then 2)
++    /// at the current cursor on press. Release does nothing.
++    /// </summary>
++    [PluginName(PLUGIN_NAME)]
++    public class DoubleClickBinding : IStateBinding
++    {
++        private const string PLUGIN_NAME = "Double Click";
++
++        [Resolved]
++        public IMouseDoubleClickHandler? Pointer { set; get; }
++
++        private bool _warned;
++
++        [OnDependencyLoad]
++        public void VerifyInitialization()
++        {
++            if (Pointer == null)
++                Log.Write(PLUGIN_NAME,
++                    $"{nameof(IMouseDoubleClickHandler)} unavailable. Your selected output mode is incompatible",
++                    LogLevel.Error);
++        }
++
++        public void Press(TabletReference tablet, IDeviceReport report)
++        {
++            if (Pointer == null)
++            {
++                if (!_warned)
++                    Log.Write(PLUGIN_NAME, "No double-click output for this output mode.", LogLevel.Warning);
++                _warned = true;
++                return;
++            }
++            Pointer.PostDoubleClick();
++        }
++
++        public void Release(TabletReference tablet, IDeviceReport report)
++        {
++        }
++
++        public override string ToString() => PLUGIN_NAME;
++    }
++}
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/DoubleClickState.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/DoubleClickState.cs
+new file mode 100644
+index 0000000..7a189fb
+--- /dev/null
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/DoubleClickState.cs
+@@ -0,0 +1,88 @@
++using System;
++using System.Numerics;
++
++namespace OpenTabletDriver.Desktop.Interop.Input
++{
++    /// <summary>
++    /// Counts successive mouse-downs as a double-click without letting hover movement between taps
++    /// invalidate the sequence. Only movement while a button is held (a drag), a second down farther
++    /// than <see cref="MoveTolerance"/>, or an interval timeout starts a new single click.
++    /// </summary>
++    public sealed class DoubleClickState
++    {
++        public const int DefaultMoveTolerance = 40;
++        public const int MinMoveTolerance = 8;
++        public const int MaxMoveTolerance = 64;
++
++        private Vector2 _lastMouseDownPosition;
++        private bool _movedWhileHeld;
++        private int _clickState;
++        private long _lastDownTimestampMs;
++        private bool _hasLastDown;
++
++        public int MoveTolerance { get; set; } = DefaultMoveTolerance;
++
++        /// <summary>System double-click interval in milliseconds.</summary>
++        public double IntervalMs { get; set; } = 500;
++
++        public int ClickState => _clickState;
++
++        public bool MovedWhileHeld => _movedWhileHeld;
++
++        /// <summary>
++        /// Records a pointer position. When <paramref name="buttonHeld"/> is true, movement beyond the
++        /// tolerance marks a drag and breaks the next double-click. Hover (button not held) is ignored.
++        /// </summary>
++        public void OnPosition(Vector2 position, bool buttonHeld)
++        {
++            if (!buttonHeld || !_hasLastDown)
++                return;
++
++            if (Vector2.Distance(_lastMouseDownPosition, position) > MoveTolerance)
++                _movedWhileHeld = true;
++        }
++
++        /// <summary>
++        /// Resolves the click count for a mouse-down at <paramref name="position"/> at
++        /// <paramref name="timestampMs"/>, then stores that down as the new reference.
++        /// </summary>
++        public int OnMouseDown(Vector2 position, long timestampMs)
++        {
++            var timedOut = _hasLastDown && (timestampMs - _lastDownTimestampMs) > IntervalMs;
++            var tooFar = _hasLastDown && Vector2.Distance(_lastMouseDownPosition, position) > MoveTolerance;
++            var invalidated = !_hasLastDown || _clickState == 0 || _movedWhileHeld || timedOut || tooFar;
++
++            if (invalidated)
++                _clickState = 1;
++            else
++                _clickState++;
++
++            _lastMouseDownPosition = position;
++            _lastDownTimestampMs = timestampMs;
++            _hasLastDown = true;
++            _movedWhileHeld = false;
++            return _clickState;
++        }
++
++        /// <summary>
++        /// Updates state on mouse-up. When the sequence was invalidated by a drag or timeout, the
++        /// click count resets so the next down starts at 1.
++        /// </summary>
++        public void OnMouseUp(long timestampMs)
++        {
++            var timedOut = _hasLastDown && (timestampMs - _lastDownTimestampMs) > IntervalMs;
++            if (_movedWhileHeld || timedOut)
++                _clickState = 0;
++        }
++
++        public void Reset()
++        {
++            _clickState = 0;
++            _movedWhileHeld = false;
++            _hasLastDown = false;
++        }
++
++        public static int ClampTolerance(int pixels) =>
++            Math.Clamp(pixels <= 0 ? DefaultMoveTolerance : pixels, MinMoveTolerance, MaxMoveTolerance);
++    }
++}
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/EvdevVirtualMouse.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/EvdevVirtualMouse.cs
+index c6edfea..5aa8344 100644
+--- a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/EvdevVirtualMouse.cs
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/EvdevVirtualMouse.cs
+@@ -1,4 +1,5 @@
+ using System;
++using OpenTabletDriver.Desktop.Interop.Input;
+ using OpenTabletDriver.Native.Linux.Evdev;
+ using OpenTabletDriver.Plugin.Attributes;
+ using OpenTabletDriver.Plugin.Platform.Pointer;
+@@ -6,10 +7,13 @@ using OpenTabletDriver.Plugin.Platform.Pointer;
+ namespace OpenTabletDriver.Desktop.Interop
+ {
+     [PluginIgnore]
+-    public abstract class EvdevVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer, IDisposable
++    public abstract class EvdevVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer, IMouseDoubleClickHandler, IDisposable
+     {
+         public required EvdevDevice Device { init; get; }
+ 
++        /// <inheritdoc />
++        public int DoubleClickMoveTolerance { get; set; } = DoubleClickState.DefaultMoveTolerance;
++
+         public void MouseDown(MouseButton button)
+         {
+             if (GetCode(button) is EventCode code)
+@@ -72,5 +76,20 @@ namespace OpenTabletDriver.Desktop.Interop
+         public virtual void Reset()
+         {
+         }
++
++        /// <inheritdoc />
++        /// <remarks>Best-effort on Linux: two left-button press/release pairs.</remarks>
++        public void PostDoubleClick()
++        {
++            void Click()
++            {
++                Device.Write(EventType.EV_KEY, EventCode.BTN_LEFT, 1);
++                Device.Sync();
++                Device.Write(EventType.EV_KEY, EventCode.BTN_LEFT, 0);
++                Device.Sync();
++            }
++            Click();
++            Click();
++        }
+     }
+ }
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
+index 2b95441..7e9925f 100644
+--- a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
+@@ -10,9 +10,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+ {
+     using static OSX;
+ 
+-    public abstract class MacOSVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer, ITiltHandler, IEraserHandler, IPressureHandler
++    public abstract class MacOSVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer, ITiltHandler, IEraserHandler, IPressureHandler, IMouseDoubleClickHandler
+     {
+-        private const int DoubleClickMoveTolerance = 8;
+         private const int ProximityExpiresDurationInMs = 200;
+ 
+         // The capabilityMask is essential for Adobe software to recognize tablet pressure sensitivity,
+@@ -42,29 +41,57 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+         private Vector2? _tilt;
+         private bool? _isEraser;
+         private CGMouseButton _lastButton;
+-        private Vector2 _lastMouseDownPosition;
+-        private bool _mouseMovedSinceLastDown;
+-
+-        private int _clickState;
++        private readonly DoubleClickState _doubleClick = new();
+         private readonly Stopwatch _stopWatch;
+-        private readonly Stopwatch _doubleClickStopWatch;
++        private readonly Stopwatch _doubleClickClock;
+         private readonly IntPtr _eventSource;
+         private IntPtr _mouseEvent;
+-        private readonly double _doubleClickIntervalInMs;
+         private readonly MacOSVirtualKeyboard _keyboard;
+ 
++        /// <inheritdoc />
++        public int DoubleClickMoveTolerance
++        {
++            get => _doubleClick.MoveTolerance;
++            set => _doubleClick.MoveTolerance = DoubleClickState.ClampTolerance(value);
++        }
++
+         public MacOSVirtualMouse()
+         {
+-            _doubleClickIntervalInMs = GetDoubleClickInterval() * 1000;
+-            _doubleClickStopWatch = new Stopwatch();
++            _doubleClick.IntervalMs = GetDoubleClickInterval() * 1000;
++            _doubleClick.MoveTolerance = DoubleClickState.DefaultMoveTolerance;
+             _stopWatch = new Stopwatch();
+             _stopWatch.Start();
++            _doubleClickClock = Stopwatch.StartNew();
+             _eventSource = CGEventSourceCreate(CGEventSourceStatePrivate);
+             _mouseEvent = CGEventCreate(_eventSource);
+             _keyboard = DesktopInterop.VirtualKeyboard as MacOSVirtualKeyboard
+                         ?? throw new InvalidOperationException("Could not get virtual keyboard");
+         }
+ 
++        /// <inheritdoc />
++        public void PostDoubleClick()
++        {
++            if (!_pendingX.HasValue || !_pendingY.HasValue)
++                QueuePendingPositionFromSystem();
++            var x = _pendingX ?? 0;
++            var y = _pendingY ?? 0;
++            var pos = new CGPoint(x, y);
++            PostClickEvent(CGEventType.kCGEventLeftMouseDown, pos, clickState: 1);
++            PostClickEvent(CGEventType.kCGEventLeftMouseUp, pos, clickState: 1);
++            PostClickEvent(CGEventType.kCGEventLeftMouseDown, pos, clickState: 2);
++            PostClickEvent(CGEventType.kCGEventLeftMouseUp, pos, clickState: 2);
++            // A synthesised double-click must not leave a pending tip double-tap sequence.
++            _doubleClick.Reset();
++        }
++
++        private void PostClickEvent(CGEventType type, CGPoint pos, int clickState)
++        {
++            var evt = CGEventCreateMouseEvent(_eventSource, type, pos, CGMouseButton.kCGMouseButtonLeft);
++            CGEventSetIntegerValueField(evt, CGEventField.mouseEventClickState, clickState);
++            CGEventPost(CGEventTapLocation.kCGHIDEventTap, evt);
++            CFRelease(evt);
++        }
++
+         public void MouseDown(MouseButton button)
+         {
+             if (!_pendingX.HasValue)
+@@ -159,10 +186,9 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+         {
+             _pendingX = x;
+             _pendingY = y;
+-            if (Vector2.Distance(_lastMouseDownPosition, new Vector2(x, y)) > DoubleClickMoveTolerance)
+-            {
+-                _mouseMovedSinceLastDown = true;
+-            }
++            // Hover between taps must not break a double-click; only movement while a button is held
++            // (a drag) invalidates the click count.
++            _doubleClick.OnPosition(new Vector2(x, y), buttonHeld: _currButtonStates != 0);
+         }
+ 
+         public void SetPressure(float percentage)
+@@ -211,28 +237,19 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+ 
+                 if (currState != prevState)
+                 {
+-                    var doubleClickInvalidated = _mouseMovedSinceLastDown || _doubleClickStopWatch.ElapsedMilliseconds > _doubleClickIntervalInMs;
+-
++                    int clickState;
+                     if (currState)
+                     {
+-                        if (_pendingX.HasValue && (_clickState == 0 || doubleClickInvalidated))
+-                        {
+-                            _doubleClickStopWatch.Restart();
+-                            _lastMouseDownPosition = new Vector2(_pendingX.Value, _pendingY!.Value);
+-                            _mouseMovedSinceLastDown = false;
+-                            _clickState = 1;
+-                        }
+-                        else
+-                        {
+-                            _clickState++;
+-                        }
++                        var down = _pendingX.HasValue && _pendingY.HasValue
++                            ? new Vector2(_pendingX.Value, _pendingY.Value)
++                            : Vector2.Zero;
++                        clickState = _doubleClick.OnMouseDown(down, _doubleClickClock.ElapsedMilliseconds);
+                     }
+                     else
+                     {
+-                        if (doubleClickInvalidated)
+-                        {
+-                            _clickState = 0;
+-                        }
++                        // Post the same click count as the matching down, then update invalidation state.
++                        clickState = _doubleClick.ClickState;
++                        _doubleClick.OnMouseUp(_doubleClickClock.ElapsedMilliseconds);
+                     }
+ 
+                     // prepare the mouse event, we reset it here in case
+@@ -247,7 +264,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+                         SetPendingPosition(_mouseEvent, position.X, position.Y);
+                     }
+                     CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventButtonNumber, i);
+-                    CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventClickState, _clickState); // clickState should be set to 1 (or more) during up, down, and drag events
++                    CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventClickState, clickState); // clickState should be set to 1 (or more) during up, down, and drag events
+                     ApplyTabletValues();
+                     PostEvent();
+                     _lastButton = button;
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/WindowsVirtualMouse.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/WindowsVirtualMouse.cs
+index 1710f52..10b1a83 100644
+--- a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/WindowsVirtualMouse.cs
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/WindowsVirtualMouse.cs
+@@ -10,10 +10,13 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+     using static OpenTabletDriver.Native.Windows.Windows;
+ 
+     [PluginIgnore]
+-    public abstract class WindowsVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer
++    public abstract class WindowsVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer, IMouseDoubleClickHandler
+     {
+         private bool _dirty;
+ 
++        /// <inheritdoc />
++        public int DoubleClickMoveTolerance { get; set; } = DoubleClickState.DefaultMoveTolerance;
++
+         protected INPUT[] inputs =
+         [
+             new INPUT
+@@ -109,5 +112,28 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+         public void Reset()
+         {
+         }
++
++        /// <inheritdoc />
++        /// <remarks>Best-effort on Windows: two left-click pairs at the current cursor. Windows has no
++        /// CGEvent-style click-count field; apps that do their own hit-testing still see two clicks.</remarks>
++        public void PostDoubleClick()
++        {
++            Flush();
++            void Send(MOUSEEVENTF flag)
++            {
++                inputs[0].U.mi.dwFlags = flag;
++                inputs[0].U.mi.mouseData = 0;
++                inputs[0].U.mi.dx = 0;
++                inputs[0].U.mi.dy = 0;
++                var result = SendInput(1, inputs, INPUT.Size);
++                if (result != 1)
++                    Log.Write("WindowsMouse", $"SendInput failed during double-click: {result}/1", LogLevel.Error);
++                inputs[0].U.mi.dwFlags = 0;
++            }
++            Send(MOUSEEVENTF.LEFTDOWN);
++            Send(MOUSEEVENTF.LEFTUP);
++            Send(MOUSEEVENTF.LEFTDOWN);
++            Send(MOUSEEVENTF.LEFTUP);
++        }
+     }
+ }
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Profiles/BindingSettings.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Profiles/BindingSettings.cs
+index 3a23217..abfbb91 100644
+--- a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Profiles/BindingSettings.cs
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Profiles/BindingSettings.cs
+@@ -26,6 +26,7 @@ namespace OpenTabletDriver.Desktop.Profiles
+         private List<WheelBindingSettings> wheelBindings = [];
+ 
+         private bool disablePressure, disableTilt, disableRotation, enableDragBindings;
++        private int tipDoubleClickDistance = OpenTabletDriver.Desktop.Interop.Input.DoubleClickState.DefaultMoveTolerance;
+ 
+         [JsonProperty(nameof(TipActivationThreshold))]
+         public float TipActivationThreshold
+@@ -125,6 +126,17 @@ namespace OpenTabletDriver.Desktop.Profiles
+             get => this.enableDragBindings;
+         }
+ 
++        /// <summary>
++        /// Tip Double Click Distance in screen pixels (Wacom: Off … Large). Default 40.
++        /// Off/minimum is 8 (legacy macOS-like); Large/maximum is 64.
++        /// </summary>
++        [JsonProperty(nameof(TipDoubleClickDistance))]
++        public int TipDoubleClickDistance
++        {
++            set => this.RaiseAndSetIfChanged(ref this.tipDoubleClickDistance, value);
++            get => this.tipDoubleClickDistance;
++        }
++
+         public static BindingSettings GetDefaults(TabletSpecifications tabletSpecifications)
+         {
+             var bindingSettings = new BindingSettings
+@@ -135,6 +147,7 @@ namespace OpenTabletDriver.Desktop.Profiles
+                 EraserButton = new PluginSettingStore(
+                     new AdaptiveBinding(PenAction.Eraser)
+                 ),
++                TipDoubleClickDistance = OpenTabletDriver.Desktop.Interop.Input.DoubleClickState.DefaultMoveTolerance,
+                 PenButtons = new PluginSettingStoreCollection(),
+                 AuxButtons = new PluginSettingStoreCollection(),
+                 MouseButtons = new PluginSettingStoreCollection(),
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Plugin/Platform/Pointer/IMouseDoubleClickHandler.cs b/external/OpenTabletDriver/OpenTabletDriver.Plugin/Platform/Pointer/IMouseDoubleClickHandler.cs
+new file mode 100644
+index 0000000..f850b16
+--- /dev/null
++++ b/external/OpenTabletDriver/OpenTabletDriver.Plugin/Platform/Pointer/IMouseDoubleClickHandler.cs
+@@ -0,0 +1,15 @@
++namespace OpenTabletDriver.Plugin.Platform.Pointer
++{
++    /// <summary>
++    /// Posts a left-button double-click (click-count 1 then 2) at the current cursor, and exposes the
++    /// screen-pixel move tolerance used when counting tip double-taps.
++    /// </summary>
++    public interface IMouseDoubleClickHandler
++    {
++        /// <summary>Maximum screen-pixel distance between two tip downs that still count as one double-click.</summary>
++        int DoubleClickMoveTolerance { get; set; }
++
++        /// <summary>Posts left down/up with click count 1, then left down/up with click count 2.</summary>
++        void PostDoubleClick();
++    }
++}

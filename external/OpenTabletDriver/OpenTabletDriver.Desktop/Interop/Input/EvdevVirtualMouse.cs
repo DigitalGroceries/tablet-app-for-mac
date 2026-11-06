@@ -1,4 +1,5 @@
 using System;
+using OpenTabletDriver.Desktop.Interop.Input;
 using OpenTabletDriver.Native.Linux.Evdev;
 using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Platform.Pointer;
@@ -6,9 +7,12 @@ using OpenTabletDriver.Plugin.Platform.Pointer;
 namespace OpenTabletDriver.Desktop.Interop
 {
     [PluginIgnore]
-    public abstract class EvdevVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer, IDisposable
+    public abstract class EvdevVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer, IMouseDoubleClickHandler, IDisposable
     {
         public required EvdevDevice Device { init; get; }
+
+        /// <inheritdoc />
+        public int DoubleClickMoveTolerance { get; set; } = DoubleClickState.DefaultMoveTolerance;
 
         public void MouseDown(MouseButton button)
         {
@@ -71,6 +75,21 @@ namespace OpenTabletDriver.Desktop.Interop
 
         public virtual void Reset()
         {
+        }
+
+        /// <inheritdoc />
+        /// <remarks>Best-effort on Linux: two left-button press/release pairs.</remarks>
+        public void PostDoubleClick()
+        {
+            void Click()
+            {
+                Device.Write(EventType.EV_KEY, EventCode.BTN_LEFT, 1);
+                Device.Sync();
+                Device.Write(EventType.EV_KEY, EventCode.BTN_LEFT, 0);
+                Device.Sync();
+            }
+            Click();
+            Click();
         }
     }
 }

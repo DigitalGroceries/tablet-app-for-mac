@@ -68,9 +68,10 @@
 <table><tr><th>Control</th><th>Default</th><th>Function</th></tr>
 <tr><td>Tilt › Turn tilt off</td><td>Off</td><td>Stops sending tilt. Shared with the eraser.</td></tr>
 <tr><td>Tip Feel</td><td>Middle (linear)</td><td>Soft to Firm pressure curve.</td></tr>
+<tr><td>Tip Double Click Distance</td><td>40</td><td>How far apart two tip taps may be and still count as a double-click, in screen pixels (Off = 8, Large = 64). Two tip taps within the system double-click time and this distance send a double-click.</td></tr>
 <tr><td>Customise…</td><td>Closed</td><td>Shows the curve, presets <strong>Soft</strong>, <strong>Linear (no curve)</strong>, <strong>Hard</strong>, the input range sliders and <strong>Cut below input minimum (dead zone)</strong> (off).</td></tr>
 <tr><td>Current pressure</td><td>Live</td><td>Pressure after the curve; tooltip shows the raw value.</td></tr>
-<tr><td>Button 1 / Button 2 cards</td><td>Default (right click) / Default (middle click)</td><td><strong>Change…</strong> opens the function editor; <strong>Default</strong> restores it.</td></tr>
+<tr><td>Button 1 / Button 2 cards</td><td>Default (right click) / Default (middle click)</td><td><strong>Change…</strong> opens the function editor; <strong>Default</strong> restores it. Under <strong>Mouse</strong> you can choose <strong>Double Click</strong> (posts a left-button double-click at the cursor).</td></tr>
 <tr><td>Pen button test</td><td>Live</td><td>Press a barrel button: its number on the pen picture lights while held, and the line above the cards reads "Button 2 pressed." (or 1).</td></tr>
 <tr><td>Movement</td><td>Normal (Absolute)</td><td>Absolute maps the pen to the screen; Mouse (Relative) moves the cursor like a mouse. Mouse-like mode also uses the tablet rotation set under Mapping.</td></tr>
 <tr><td>Position smoothing</td><td>0.00</td><td>Steadies the cursor, with some lag.</td></tr>
@@ -96,7 +97,7 @@
 <li>The enable switch turns all ExpressKey actions off or on; actions are kept.</li>
 <li><strong>Default</strong>: clears every ExpressKey action, after asking.</li>
 </ul>
-<p>Function editor: <strong>Keyboard</strong> (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), <strong>Mouse</strong> (Left, Right, Middle click, Back and Forward button), <strong>Scroll</strong> (up, down, left, right, or <strong>Move pen to scroll</strong>: hold the button and move the pen to scroll like a mouse wheel; the cursor stays still and the tip does not click), <strong>Media</strong> (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). <strong>Save</strong>, <strong>Cancel</strong>, <strong>Clear</strong>.</p><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
+<p>Function editor: <strong>Keyboard</strong> (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), <strong>Mouse</strong> (Left, Right, Middle click, Back and Forward button, or <strong>Double Click</strong>), <strong>Scroll</strong> (up, down, left, right, or <strong>Move pen to scroll</strong>: hold the button and move the pen to scroll like a mouse wheel; the cursor stays still and the tip does not click), <strong>Media</strong> (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). <strong>Save</strong>, <strong>Cancel</strong>, <strong>Clear</strong>.</p><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
 <section class="chap" id="tablet-functions-touch-ring" aria-labelledby="tablet-functions-touch-ring-h"><h2 id="tablet-functions-touch-ring-h">Tablet › Functions › Touch ring</h2><ul>
 <li><strong>Enable wheels</strong>: On. Pauses all ring actions without deleting them.</li>
 <li><strong>Touch Ring modes</strong>: On. "4 modes. Press the ring's centre button to switch."</li>
@@ -246,6 +247,8 @@
 <section class="chap" id="credits-and-licences" aria-labelledby="credits-and-licences-h"><h2 id="credits-and-licences-h">Credits and licences</h2><p>Tablet App for Mac is a modified version of OpenTabletArtist by TheSevenPens (GPL-3.0) and uses OpenTabletDriver (LGPL-3.0). The full list of packages and licence texts is on the Credits and licences page. Some features (settings backup, the diagnostic file and the running-driver check) use ideas from MockTab by Cyzor (GPL-3).</p><p class="backtop"><a href="#chapters">↑ Back to chapters</a></p></section>
 <section class="chap" id="glossary" aria-labelledby="glossary-h"><h2 id="glossary-h">Glossary</h2><ul>
 <li><strong>Tip Feel</strong>: the pressure curve, from Soft to Firm.</li>
+<li><strong>Tip Double Click Distance</strong>: how far apart two tip taps may be and still count as a double-click (screen pixels; Off … Large).</li>
+<li><strong>Double Click</strong>: a pen-button or ExpressKey action that posts a left-button double-click at the cursor.</li>
 <li><strong>Touch Ring modes</strong>: up to four sets of ring actions, switched with the centre button.</li>
 <li><strong>Touch strip</strong>: the finger strip on Intuos3 and older Cintiqs. It works like the ring, with Up and Down.</li>
 <li><strong>Preset</strong>: a named copy of the whole configuration.</li>

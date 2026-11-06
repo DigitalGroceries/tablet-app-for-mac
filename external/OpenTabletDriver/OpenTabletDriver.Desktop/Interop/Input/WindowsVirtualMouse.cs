@@ -10,9 +10,12 @@ namespace OpenTabletDriver.Desktop.Interop.Input
     using static OpenTabletDriver.Native.Windows.Windows;
 
     [PluginIgnore]
-    public abstract class WindowsVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer
+    public abstract class WindowsVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer, IMouseDoubleClickHandler
     {
         private bool _dirty;
+
+        /// <inheritdoc />
+        public int DoubleClickMoveTolerance { get; set; } = DoubleClickState.DefaultMoveTolerance;
 
         protected INPUT[] inputs =
         [
@@ -108,6 +111,29 @@ namespace OpenTabletDriver.Desktop.Interop.Input
 
         public void Reset()
         {
+        }
+
+        /// <inheritdoc />
+        /// <remarks>Best-effort on Windows: two left-click pairs at the current cursor. Windows has no
+        /// CGEvent-style click-count field; apps that do their own hit-testing still see two clicks.</remarks>
+        public void PostDoubleClick()
+        {
+            Flush();
+            void Send(MOUSEEVENTF flag)
+            {
+                inputs[0].U.mi.dwFlags = flag;
+                inputs[0].U.mi.mouseData = 0;
+                inputs[0].U.mi.dx = 0;
+                inputs[0].U.mi.dy = 0;
+                var result = SendInput(1, inputs, INPUT.Size);
+                if (result != 1)
+                    Log.Write("WindowsMouse", $"SendInput failed during double-click: {result}/1", LogLevel.Error);
+                inputs[0].U.mi.dwFlags = 0;
+            }
+            Send(MOUSEEVENTF.LEFTDOWN);
+            Send(MOUSEEVENTF.LEFTUP);
+            Send(MOUSEEVENTF.LEFTDOWN);
+            Send(MOUSEEVENTF.LEFTUP);
         }
     }
 }

@@ -26,6 +26,7 @@ namespace OpenTabletDriver.Desktop.Profiles
         private List<WheelBindingSettings> wheelBindings = [];
 
         private bool disablePressure, disableTilt, disableRotation, enableDragBindings;
+        private int tipDoubleClickDistance = OpenTabletDriver.Desktop.Interop.Input.DoubleClickState.DefaultMoveTolerance;
 
         [JsonProperty(nameof(TipActivationThreshold))]
         public float TipActivationThreshold
@@ -125,6 +126,17 @@ namespace OpenTabletDriver.Desktop.Profiles
             get => this.enableDragBindings;
         }
 
+        /// <summary>
+        /// Tip Double Click Distance in screen pixels (Wacom: Off … Large). Default 40.
+        /// Off/minimum is 8 (legacy macOS-like); Large/maximum is 64.
+        /// </summary>
+        [JsonProperty(nameof(TipDoubleClickDistance))]
+        public int TipDoubleClickDistance
+        {
+            set => this.RaiseAndSetIfChanged(ref this.tipDoubleClickDistance, value);
+            get => this.tipDoubleClickDistance;
+        }
+
         public static BindingSettings GetDefaults(TabletSpecifications tabletSpecifications)
         {
             var bindingSettings = new BindingSettings
@@ -135,6 +147,7 @@ namespace OpenTabletDriver.Desktop.Profiles
                 EraserButton = new PluginSettingStore(
                     new AdaptiveBinding(PenAction.Eraser)
                 ),
+                TipDoubleClickDistance = OpenTabletDriver.Desktop.Interop.Input.DoubleClickState.DefaultMoveTolerance,
                 PenButtons = new PluginSettingStoreCollection(),
                 AuxButtons = new PluginSettingStoreCollection(),
                 MouseButtons = new PluginSettingStoreCollection(),

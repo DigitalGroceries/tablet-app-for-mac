@@ -389,5 +389,10 @@
   "report.saved_title": "Отчёт сохранён",
   "report.saved_text": "Файл отчёта сохранён здесь:\n{path}\n\nЧтобы отправить его, нажмите «Открыть страницу загрузки» и добавьте этот файл. Страница запрашивает ваше имя и эл. почту (правило Dropbox) — их видит только команда Tablet App for Mac; учётная запись Dropbox не нужна. Ваш текст и изображения уже в нём.",
   "report.show_file": "Показать в Finder",
-  "report.open_upload": "Открыть страницу загрузки"
+  "report.open_upload": "Открыть страницу загрузки",
+  "tablet.pen.double_click_distance": "Расстояние двойного щелчка наконечника",
+  "tablet.pen.double_click_off": "Выкл.",
+  "tablet.pen.double_click_large": "Большое",
+  "tablet.pen.double_click_note": "Насколько далеко могут быть два касания наконечника и всё ещё считаться двойным щелчком, в пикселях экрана. По умолчанию 40.",
+  "binding.mouse.double_click": "Двойной щелчок"
 }

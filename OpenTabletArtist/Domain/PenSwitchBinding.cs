@@ -44,6 +44,7 @@ public static class PenSwitchBinding
         [AdaptiveBindingPath] = "Adaptive Binding",
         [WindowsInkButtonHandlerPath] = "Windows Ink",
         [MouseBindingPath] = "Mouse Button Binding",
+        [AuxKeyBinding.DoubleClickBindingPath] = "Double Click",
         [OwnWindowBindingPath] = "Off (clicks in this app only)",
         [PenScrollBinding.BindingTypeName] = "Pen scroll",
     };
@@ -103,6 +104,7 @@ public static class PenSwitchBinding
         var path = store?.Path;
         if (path == null) return "None";
         if (path == MouseBindingPath) return "Mouse button";
+        if (path == AuxKeyBinding.DoubleClickBindingPath) return "Double Click";
         if (path == OwnWindowBindingPath) return "Off (clicks in this app only)";
         if (path.EndsWith("MouseScrollBinding", StringComparison.Ordinal)) return "Mouse scroll";
         if (path == PenScrollBinding.BindingTypeName) return "Move pen to scroll";

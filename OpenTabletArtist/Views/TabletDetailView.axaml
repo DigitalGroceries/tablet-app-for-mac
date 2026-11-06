@@ -1399,8 +1399,8 @@
         </ctrl:Section>
         <!-- ===== Build O: PEN tab, laid out like Wacom's (Tip Feel Soft–Firm on the left, pen buttons beside a
              drawn pen on the right, Default bottom right). Tip Feel is OTA's pressure curve (Softness, mirrored);
-             Customise… opens the full curve editor. OTD has no tilt-sensitivity or double-click-distance setting,
-             so those Wacom controls are replaced by what OTD can do (tilt on/off) or left out. ===== -->
+             Customise… opens the full curve editor. Tip Double Click Distance is Version 25 (Wacom Off…Large
+             in screen pixels). OTD still has no tilt-sensitivity curve, so tilt is on/off only. ===== -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
                       IsVisible="{Binding #PenTab.IsChecked}">
             <!-- Shared right margin with WacomHeader (+/−): fill the content column, no fixed 720 left strip. -->
@@ -1429,6 +1429,21 @@
                                 <ProgressBar Minimum="0" Maximum="1" Value="{Binding LiveTipPressure, FallbackValue=0, TargetNullValue=0}" Height="10" MinWidth="0" />
                                 <Grid ColumnDefinitions="*,*"><TextBlock x:Name="LblPenClick" Text="Click" FontSize="12" />
                                     <TextBlock x:Name="LblPenFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                            </StackPanel>
+                        </HeaderedContentControl>
+                        <!-- Version 25: Wacom Tip Double Click Distance (Off … Large), screen pixels. -->
+                        <HeaderedContentControl x:Name="PenDoubleClickDistanceGroup" Classes="wacomGroup" Header="Tip Double Click Distance">
+                            <StackPanel Spacing="4">
+                                <Slider x:Name="TipDoubleClickDistanceSlider" Minimum="8" Maximum="64"
+                                        Value="{Binding TipDoubleClickDistance}"
+                                        TickFrequency="8" TickPlacement="BottomRight"
+                                        AutomationProperties.Name="Tip Double Click Distance" />
+                                <Grid ColumnDefinitions="*,*"><TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" />
+                                    <TextBlock x:Name="PenDoubleClickLarge" Grid.Column="1" Text="Large" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <TextBlock x:Name="PenDoubleClickNote"
+                                           Text="How far apart two tip taps may be and still count as a double-click, in screen pixels. Default 40."
+                                           FontSize="11" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>
                         </HeaderedContentControl>
                         <!-- Version 1: the pressure used while pressure sensitivity is off. -->

@@ -168,6 +168,9 @@
                                  IsChecked="{Binding SelectedMouseButton, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=Backward}" />
                     <RadioButton Content="Forward button" GroupName="mb"
                                  IsChecked="{Binding SelectedMouseButton, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=Forward}" />
+                    <RadioButton Content="Double Click" GroupName="mb"
+                                 ToolTip.Tip="Posts a left-button double-click at the cursor (click count 1 then 2)."
+                                 IsChecked="{Binding SelectedMouseButton, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=DoubleClick}" />
                 </StackPanel>
             </StackPanel>
 

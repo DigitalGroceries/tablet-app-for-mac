@@ -389,5 +389,10 @@
   "report.saved_title": "Informe guardado",
   "report.saved_text": "Tu archivo de informe se guardó aquí:\n{path}\n\nPara enviarlo, pulsa «Abrir la página de envío» y añade este archivo. La página pide tu nombre y tu correo (norma de Dropbox) — solo el equipo de Tablet App for Mac los ve; no se necesita una cuenta de Dropbox. Tu texto y tus imágenes ya están dentro.",
   "report.show_file": "Mostrar en Finder",
-  "report.open_upload": "Abrir la página de envío"
+  "report.open_upload": "Abrir la página de envío",
+  "tablet.pen.double_click_distance": "Distancia de doble clic de la punta",
+  "tablet.pen.double_click_off": "Desactivado",
+  "tablet.pen.double_click_large": "Grande",
+  "tablet.pen.double_click_note": "Hasta qué distancia pueden estar dos toques de punta y seguir contando como doble clic, en píxeles de pantalla. Predeterminado 40.",
+  "binding.mouse.double_click": "Doble clic"
 }

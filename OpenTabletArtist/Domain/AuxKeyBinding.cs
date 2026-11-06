@@ -55,7 +55,11 @@ public static class AuxKeyBinding
     public const string KeyBindingPath = "OpenTabletDriver.Desktop.Binding.KeyBinding";
     public const string MultiKeyBindingPath = "OpenTabletDriver.Desktop.Binding.MultiKeyBinding";
     public const string MouseBindingPath = "OpenTabletDriver.Desktop.Binding.MouseBinding";
+    public const string DoubleClickBindingPath = "OpenTabletDriver.Desktop.Binding.DoubleClickBinding";
     public const string MouseScrollBindingPath = "OpenTabletDriver.Desktop.Binding.MouseScrollBinding";
+
+    /// <summary>Picker value for the Double Click pen-button / ExpressKey action.</summary>
+    public const string DoubleClickValue = "DoubleClick";
 
     // One wheel tick (Windows/Linux). Negative scrolls up/left, positive down/right.
     private const int ScrollTick = 120;
@@ -163,6 +167,7 @@ public static class AuxKeyBinding
     /// <summary>The mouse button assigned to an aux store, or "None" when unbound / not a mouse binding.</summary>
     public static string ReadMouseButton(PluginSettingStore? store)
     {
+        if (store?.Path == DoubleClickBindingPath) return DoubleClickValue;
         if (store?.Path != MouseBindingPath) return None;
         var b = store.Settings?.FirstOrDefault(s => s.Property == "Button")?.Value?.ToString();
         return string.IsNullOrEmpty(b) ? None : b;
@@ -172,6 +177,8 @@ public static class AuxKeyBinding
     public static PluginSettingStore? MakeMouseBinding(string? button)
     {
         if (string.IsNullOrEmpty(button) || button == None) return null;
+        if (button == DoubleClickValue)
+            return NewStore(DoubleClickBindingPath);
         var store = NewStore(MouseBindingPath);
         store.Settings.Add(new PluginSetting("Button", button));
         return store;
@@ -210,7 +217,7 @@ public static class AuxKeyBinding
     public static AuxBinding? ReadBinding(PluginSettingStore? store)
     {
         if (store?.Path == null) return AuxBinding.Unbound;
-        if (store.Path == MouseBindingPath)
+        if (store.Path == MouseBindingPath || store.Path == DoubleClickBindingPath)
         {
             var button = ReadMouseButton(store);
             return button == None ? AuxBinding.Unbound
@@ -280,6 +287,7 @@ public static class AuxKeyBinding
         "Middle" => "Middle click",
         "Backward" => "Back button",
         "Forward" => "Forward button",
+        DoubleClickValue => "Double Click",
         _ => button,
     };
 
@@ -302,6 +310,7 @@ public static class AuxKeyBinding
         new("Middle", "Middle"),
         new("Back", "Backward"),
         new("Forward", "Forward"),
+        new("Double Click", DoubleClickValue),
     };
 
     internal static PluginSettingStore NewStore(string path)
