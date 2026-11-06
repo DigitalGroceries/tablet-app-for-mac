@@ -10,8 +10,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input
     /// </summary>
     public sealed class DoubleClickState
     {
-        // Version 25 (Double Click Fix): physical pixel range for an All-displays desktop
-        // (~3360 px over ~157 mm). UI shows 0..100 mapped onto this range; Default is 100 px (UI 50).
+        // Version 25 (Double Click Fix): how far apart (screen pixels) two tip taps may land and still count
+        // as one double-click. UI shows 0..100 mapped onto 8..192 px; Default is 100 px (UI 50).
+        // This only decides the click COUNT; it never holds or moves the pointer (the hold-still tried in
+        // da6e313/9833598 made the cursor stick and jump, so it was removed).
         public const int DefaultMoveTolerance = 100;
         public const int MinMoveTolerance = 8;
         public const int MaxMoveTolerance = 192;
@@ -20,7 +22,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         public const int UiDefault = 50;
 
         private Vector2 _lastMouseDownPosition;
-        private Vector2 _dragOrigin;
         private bool _movedWhileHeld;
         private int _clickState;
         private long _lastDownTimestampMs;
@@ -31,41 +32,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         /// <summary>System double-click interval in milliseconds.</summary>
         public double IntervalMs { get; set; } = 500;
 
-        /// <summary>
-        /// When true, hold-still / deadzone is skipped for the current stroke (tip-down was over our own
-        /// app window). Finder and other apps still get the Double Click Fix.
-        /// </summary>
-        public bool BypassHoldStill { get; set; }
-
         public int ClickState => _clickState;
-
-        /// <summary>Where the current tip-down started (hold-still pin for this stroke).</summary>
-        public Vector2 LastDownPosition => _lastMouseDownPosition;
-
-        /// <summary>
-        /// Version 25: while a button is held and the pen has not yet moved beyond
-        /// <see cref="MoveTolerance"/> from the down point, the pointer stays pinned there so pen-tip
-        /// jitter does not reach macOS as a drag. Once the pen moves farther it is a real drag: further
-        /// movement is followed from the hold point (deadzone, no catch-up teleport to the raw pen).
-        /// </summary>
-        public Vector2 FilterPosition(Vector2 position, bool buttonHeld)
-        {
-            if (!buttonHeld || !_hasLastDown || BypassHoldStill)
-                return position;
-
-            if (!_movedWhileHeld)
-            {
-                if (Vector2.Distance(_lastMouseDownPosition, position) <= MoveTolerance)
-                    return _lastMouseDownPosition;
-
-                _movedWhileHeld = true;
-                _dragOrigin = position;
-                // Stay on the hold point for this sample — no jump to the raw pen.
-                return _lastMouseDownPosition;
-            }
-
-            return _lastMouseDownPosition + (position - _dragOrigin);
-        }
 
         public bool MovedWhileHeld => _movedWhileHeld;
 
@@ -80,13 +47,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         public Vector2 DownPosition(Vector2? pending) => pending ?? LastKnownPosition ?? _lastMouseDownPosition;
 
         /// <summary>
-        /// On mouse-up after a sub-threshold wobble, keep the pointer on the hold point so the click
-        /// lands on the target (no snap to the raw pen). After a real drag, use the raw position.
-        /// </summary>
-        public Vector2 PositionForMouseUp(Vector2 raw) =>
-            _hasLastDown && !_movedWhileHeld && !BypassHoldStill ? _lastMouseDownPosition : raw;
-
-        /// <summary>
         /// Records a pointer position. When <paramref name="buttonHeld"/> is true, movement beyond the
         /// tolerance marks a drag and breaks the next double-click. Hover (button not held) is ignored.
         /// </summary>
@@ -97,17 +57,12 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 return;
 
             if (Vector2.Distance(_lastMouseDownPosition, position) > MoveTolerance)
-            {
-                if (!_movedWhileHeld)
-                    _dragOrigin = position;
                 _movedWhileHeld = true;
-            }
         }
 
         /// <summary>
         /// Resolves the click count for a mouse-down at <paramref name="position"/> at
         /// <paramref name="timestampMs"/>, then stores that down as the new reference.
-        /// Two nearby taps still count as a double-click without moving the pointer to the first pixel.
         /// </summary>
         public int OnMouseDown(Vector2 position, long timestampMs)
         {
@@ -121,7 +76,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             else
                 _clickState++;
 
-            // Always pin hold-still to THIS tap (never relocate to the previous tap's pixel).
             _lastMouseDownPosition = position;
             _lastDownTimestampMs = timestampMs;
             _hasLastDown = true;
@@ -138,7 +92,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             var timedOut = _hasLastDown && (timestampMs - _lastDownTimestampMs) > IntervalMs;
             if (_movedWhileHeld || timedOut)
                 _clickState = 0;
-            BypassHoldStill = false;
         }
 
         public void Reset()
@@ -146,7 +99,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             _clickState = 0;
             _movedWhileHeld = false;
             _hasLastDown = false;
-            BypassHoldStill = false;
         }
 
         public static int ClampTolerance(int pixels) =>

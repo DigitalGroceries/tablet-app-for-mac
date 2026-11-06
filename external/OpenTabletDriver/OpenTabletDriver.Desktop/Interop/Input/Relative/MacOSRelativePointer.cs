@@ -15,8 +15,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Relative
             QueuePendingPosition(delta.X, delta.Y);
         }
 
-        protected override bool PositionsAreAbsolute => false;
-
         protected override void SetPendingPosition(IntPtr mouseEvent, float x, float y)
         {
             CGEventSetLocation(mouseEvent, GetCursorPosition() + new CGPoint(x, y));

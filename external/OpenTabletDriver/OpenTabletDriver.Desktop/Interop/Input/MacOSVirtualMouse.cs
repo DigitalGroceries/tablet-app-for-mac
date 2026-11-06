@@ -188,9 +188,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         /// <summary>Display bounds in macOS global coordinates, when known (used to recognise the Dock overlay).</summary>
         protected virtual System.Collections.Generic.IReadOnlyList<MacOSScreenEdge.Rect>? DisplayRects => null;
 
-        /// <summary>False for relative pointers, whose queued positions are deltas (no pinning/snapping).</summary>
-        protected virtual bool PositionsAreAbsolute => true;
-
         protected abstract void SetPendingPosition(IntPtr mouseEvent, float x, float y);
         protected abstract void ResetPendingPosition(IntPtr mouseEvent);
 
@@ -200,15 +197,11 @@ namespace OpenTabletDriver.Desktop.Interop.Input
 
         protected void QueuePendingPosition(float x, float y)
         {
+            _pendingX = x;
+            _pendingY = y;
             // Hover between taps must not break a double-click; only movement while a button is held
             // (a drag) invalidates the click count.
-            var held = _currButtonStates != 0;
-            _doubleClick.OnPosition(new Vector2(x, y), buttonHeld: held);
-            // Double Click Fix: small jitter while held stays on the down point (no drag reaches macOS).
-            // After the threshold, further movement follows from the hold point (no catch-up jump).
-            var filtered = PositionsAreAbsolute ? _doubleClick.FilterPosition(new Vector2(x, y), held) : new Vector2(x, y);
-            _pendingX = filtered.X;
-            _pendingY = filtered.Y;
+            _doubleClick.OnPosition(new Vector2(x, y), buttonHeld: _currButtonStates != 0);
         }
 
         public void SetPressure(float percentage)
@@ -265,23 +258,12 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                         var down = _doubleClick.DownPosition(_pendingX.HasValue && _pendingY.HasValue
                             ? new Vector2(_pendingX.Value, _pendingY.Value)
                             : null);
-                        // Our own window: skip hold-still so sliders (e.g. Double Click Fix) drag with the pen.
-                        if (PositionsAreAbsolute)
-                            _doubleClick.BypassHoldStill = MacOSAppActivator.IsOurAppAt(down, DisplayRects);
                         clickState = _doubleClick.OnMouseDown(down, _doubleClickClock.ElapsedMilliseconds);
-                        // Do NOT relocate the 2nd tap onto the 1st tap's pixel — that jumped the cursor.
                     }
                     else
                     {
                         // Post the same click count as the matching down, then update invalidation state.
                         clickState = _doubleClick.ClickState;
-                        if (PositionsAreAbsolute && _pendingX.HasValue && _pendingY.HasValue)
-                        {
-                            var raw = new Vector2(_pendingX.Value, _pendingY.Value);
-                            var at = _doubleClick.PositionForMouseUp(raw);
-                            _pendingX = at.X;
-                            _pendingY = at.Y;
-                        }
                         _doubleClick.OnMouseUp(_doubleClickClock.ElapsedMilliseconds);
                     }
 

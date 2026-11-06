@@ -101,62 +101,6 @@ public class DoubleClickStateTests
         Assert.Equal(100, DoubleClickState.PixelsToDisplay(192));
     }
 
-    [Fact]
-    public void Jitter_while_held_is_pinned_to_the_down_point_so_no_drag_reaches_macOS()
-    {
-        var s = New(tolerance: 100);
-        s.OnMouseDown(new Vector2(100, 100), 0);
-        s.OnPosition(new Vector2(130, 120), buttonHeld: true);
-        Assert.Equal(new Vector2(100, 100), s.FilterPosition(new Vector2(130, 120), buttonHeld: true));
-        Assert.False(s.MovedWhileHeld);
-        // Hover is never pinned.
-        Assert.Equal(new Vector2(130, 120), s.FilterPosition(new Vector2(130, 120), buttonHeld: false));
-    }
-
-    [Fact]
-    public void A_real_drag_past_the_value_follows_from_the_hold_point_without_teleport()
-    {
-        var s = New(tolerance: 64);
-        s.OnMouseDown(new Vector2(100, 100), 0);
-        s.OnPosition(new Vector2(200, 100), buttonHeld: true);
-        Assert.True(s.MovedWhileHeld);
-        // First sample after exceed stays at the hold point (no catch-up jump to 200).
-        Assert.Equal(new Vector2(100, 100), s.FilterPosition(new Vector2(200, 100), buttonHeld: true));
-        // Further movement follows by the delta since the exceed point.
-        Assert.Equal(new Vector2(120, 100), s.FilterPosition(new Vector2(220, 100), buttonHeld: true));
-    }
-
-    [Fact]
-    public void Second_tap_on_a_different_pixel_does_not_move_the_pointer_to_the_first_tap()
-    {
-        var s = New(tolerance: 100);
-        s.OnMouseDown(new Vector2(100, 100), 0);
-        s.OnMouseUp(30);
-        Assert.Equal(2, s.OnMouseDown(new Vector2(140, 125), 150));
-        // Hold-still for the second tap pins to the second tap, not the first.
-        Assert.Equal(new Vector2(140, 125), s.LastDownPosition);
-        Assert.Equal(new Vector2(140, 125), s.FilterPosition(new Vector2(150, 130), buttonHeld: true));
-    }
-
-    [Fact]
-    public void Tip_up_after_sub_threshold_wobble_stays_at_the_hold_point()
-    {
-        var s = New(tolerance: 100);
-        s.OnMouseDown(new Vector2(100, 100), 0);
-        s.OnPosition(new Vector2(130, 120), buttonHeld: true);
-        Assert.Equal(new Vector2(100, 100), s.PositionForMouseUp(new Vector2(130, 120)));
-    }
-
-    [Fact]
-    public void Our_app_bypass_disables_hold_still_for_the_stroke()
-    {
-        var s = New(tolerance: 100);
-        s.BypassHoldStill = true;
-        s.OnMouseDown(new Vector2(100, 100), 0);
-        Assert.Equal(new Vector2(130, 120), s.FilterPosition(new Vector2(130, 120), buttonHeld: true));
-        Assert.Equal(new Vector2(130, 120), s.PositionForMouseUp(new Vector2(130, 120)));
-    }
-
     [Theory]
     [InlineData(8, false)]
     [InlineData(64, true)]

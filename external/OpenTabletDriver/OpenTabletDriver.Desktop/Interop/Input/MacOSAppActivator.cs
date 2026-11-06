@@ -25,9 +25,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         private const int CFNumberSInt32Type = 3;
         private const int CFNumberFloat64Type = 13;
         private const long ActivationPolicyRegular = 0;
-        /// <summary>UI app bundle id (daemon posts pointer events; the window owner is this bundle).</summary>
-        public const string OurBundleId = "com.freetabletapp.mac";
-        public const string OurAppName = "Tablet App for Mac";
 
         [StructLayout(LayoutKind.Sequential)]
         private struct Rect { public double X, Y, W, H; }
@@ -56,7 +53,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool SendULongBool(IntPtr obj, IntPtr sel, nuint a);
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern nint SendNInt(IntPtr obj, IntPtr sel);
-        [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern IntPtr SendPtr(IntPtr obj, IntPtr sel);
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool SendBool(IntPtr obj, IntPtr sel);
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)]
@@ -64,44 +60,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input
 
         private static bool _ready, _failed, _warned;
         private static IntPtr _kPid, _kName, _kLayer, _kBounds, _kAlpha;
-
-        /// <summary>
-        /// True when the front-most window under <paramref name="point"/> belongs to Tablet App for Mac
-        /// (so Double Click Fix hold-still can be bypassed for our own sliders).
-        /// </summary>
-        public static bool IsOurAppAt(Vector2 point, IReadOnlyList<MacOSScreenEdge.Rect>? displays)
-        {
-            if (_failed || !OperatingSystem.IsMacOS()) return false;
-            var pool = IntPtr.Zero;
-            try
-            {
-                Init();
-                pool = objc_autoreleasePoolPush();
-                var window = MacOSWindowPick.Pick(Windows(), point, displays);
-                if (window is not { } w) return false;
-                if (string.Equals(w.OwnerName, OurAppName, StringComparison.Ordinal)) return true;
-                var bundleId = BundleIdForPid(w.OwnerPid);
-                return string.Equals(bundleId, OurBundleId, StringComparison.OrdinalIgnoreCase);
-            }
-            catch (Exception ex)
-            {
-                if (ex is DllNotFoundException or EntryPointNotFoundException) _failed = true;
-                return false;
-            }
-            finally
-            {
-                if (pool != IntPtr.Zero) objc_autoreleasePoolPop(pool);
-            }
-        }
-
-        private static string? BundleIdForPid(int pid)
-        {
-            var cls = objc_getClass("NSRunningApplication");
-            if (!Responds(cls, "runningApplicationWithProcessIdentifier:")) return null;
-            var app = SendInt(cls, sel_registerName("runningApplicationWithProcessIdentifier:"), pid);
-            if (app == IntPtr.Zero || !Responds(app, "bundleIdentifier")) return null;
-            return CFString(SendPtr(app, sel_registerName("bundleIdentifier")));
-        }
 
         public static void ActivateAt(Vector2 point, IReadOnlyList<MacOSScreenEdge.Rect>? displays)
         {
