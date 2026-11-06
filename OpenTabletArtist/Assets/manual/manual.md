@@ -90,7 +90,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 |---|---|---|
 | Tilt › Turn tilt off | Off | Stops sending tilt. Shared with the eraser. |
 | Tip Feel | Middle (linear) | Soft to Firm pressure curve. |
-| Tip Double Click Distance | 40 | How far apart two tip taps may be and still count as a double-click, in screen pixels (Off = 8, Large = 64). Two tip taps within the system double-click time and this distance send a double-click. |
+| Double Click Fix | 50 | How far the pen tip may wobble during a click before it counts as a drag. Off (0) turns this off for drawing apps that need every movement; Default (50) is 1 mm; 100 is 2 mm. Two tip taps close together still send a double-click. |
 | Customise… | Closed | Shows the curve, presets **Soft**, **Linear (no curve)**, **Hard**, the input range sliders and **Cut below input minimum (dead zone)** (off). |
 | Current pressure | Live | Pressure after the curve; tooltip shows the raw value. |
 | Button 1 / Button 2 cards | Default (right click) / Default (middle click) | **Change…** opens the function editor; **Default** restores it. Under **Mouse** you can choose **Double Click** (posts a left-button double-click at the cursor). |
@@ -331,7 +331,7 @@ Tablet App for Mac is a modified version of OpenTabletArtist by TheSevenPens (GP
 ## Glossary
 
 - **Tip Feel**: the pressure curve, from Soft to Firm.
-- **Tip Double Click Distance**: how far apart two tip taps may be and still count as a double-click (screen pixels; Off … Large).
+- **Double Click Fix**: how far the pen tip may wobble during a click before it counts as a drag (Off = 0, Default 50 = 1 mm, 100 = 2 mm).
 - **Double Click**: a pen-button or ExpressKey action that posts a left-button double-click at the cursor.
 - **Touch Ring modes**: up to four sets of ring actions, switched with the centre button.
 - **Touch strip**: the finger strip on Intuos3 and older Cintiqs. It works like the ring, with Up and Down.
