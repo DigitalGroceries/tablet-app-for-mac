@@ -1220,7 +1220,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     [NotifyPropertyChangedFor(nameof(PressureDisabledNote))]
     private bool _disablePressure;
     [ObservableProperty] private bool _disableTilt;
-    /// <summary>Version 25: Tip Double Click Distance in screen pixels (8 Off … 64 Large; default 40).</summary>
+    /// <summary>Version 25: Double Click Fix (Tip Double Click Distance) in screen pixels (8 Off … 64 Default … 192 Large).</summary>
     /// <summary>Bound to the Pen-page slider (Avalonia Slider.Value is double); persisted as int pixels.</summary>
     [ObservableProperty] private double _tipDoubleClickDistance = DoubleClickState.DefaultMoveTolerance;
     [ObservableProperty] private bool _dragBindingsEnabled;

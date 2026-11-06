@@ -1378,7 +1378,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         if (displays is not { Count: > 0 }) return;
         var primary = displays.FirstOrDefault(d => d.IsPrimary) ?? displays[0];
 
-        if (!Domain.DisplayMappingApplier.ApplyToProfile(profile, GetTabletDigitizer(tabletName), primary, displays))
+        if (!Domain.DisplayMappingApplier.MapToSingleDisplay(profile, GetTabletDigitizer(tabletName), primary, displays))
             return;
 
         await ApplySettingsAsync(settings);
@@ -1421,11 +1421,15 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         var workspace = _workspace;
         if (workspace is null || !_session.CanEditSettings || SettingsPaused || HasUnsavedChanges
             || workspace.HasPendingApply || CurrentSettings is not { } settings) return false;
+        // Unsaved changes kept at the last shutdown are waiting to be restored: a save now would delete
+        // that snapshot (data loss). Wait until RestoreUnsavedSnapshotOnceAsync has brought them back.
+        if (UnsavedSnapshot.Exists(SnapshotDirectory)) return false;
         displays ??= DisplayEnumerator.Enumerate();
         if (displays is not { Count: > 0 }) return false;
         bool force = AppSettings.Get("AllDisplaysForceProportions") != "0";
 
-        bool changed = false;
+        // Find what needs a re-fit and build the loop-guard key BEFORE touching the live profiles.
+        var stale = new System.Collections.Generic.List<(OpenTabletDriver.Desktop.Profiles.Profile Profile, (float Width, float Height)? Digitizer)>();
         var key = new System.Text.StringBuilder($"{Domain.DisplayMappingApplier.AllDisplaysArea(displays)}|{force}");
         foreach (var profile in settings.Profiles)
         {
@@ -1434,11 +1438,16 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             if (Domain.DisplayMappingApplier.IsAllDisplays(profile, displays)
                 && !Domain.DisplayMappingApplier.NeedsAllDisplaysFit(profile, digitizer, displays, force)) continue;
             key.Append($"|{profile.Tablet}:{digitizer}:{profile.AbsoluteModeSettings?.Tablet?.Rotation}");
-            changed |= Domain.DisplayMappingApplier.ApplyAllDisplays(profile, digitizer, displays, force);
+            stale.Add((profile, digitizer));
         }
-        if (!changed) return false;
+        if (stale.Count == 0) return false;
         var attempt = key.ToString();
         if (attempt == _allDisplaysAutoRefitTried) return false;
+
+        bool changed = false;
+        foreach (var (profile, digitizer) in stale)
+            changed |= Domain.DisplayMappingApplier.ApplyAllDisplays(profile, digitizer, displays, force);
+        if (!changed) return false;
         _allDisplaysAutoRefitTried = attempt;
 
         var generation = workspace.Generation;

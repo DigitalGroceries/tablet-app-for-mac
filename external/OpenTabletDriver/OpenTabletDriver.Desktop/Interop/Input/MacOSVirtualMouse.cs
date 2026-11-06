@@ -188,6 +188,9 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         /// <summary>Display bounds in macOS global coordinates, when known (used to recognise the Dock overlay).</summary>
         protected virtual System.Collections.Generic.IReadOnlyList<MacOSScreenEdge.Rect>? DisplayRects => null;
 
+        /// <summary>False for relative pointers, whose queued positions are deltas (no pinning/snapping).</summary>
+        protected virtual bool PositionsAreAbsolute => true;
+
         protected abstract void SetPendingPosition(IntPtr mouseEvent, float x, float y);
         protected abstract void ResetPendingPosition(IntPtr mouseEvent);
 
@@ -197,11 +200,14 @@ namespace OpenTabletDriver.Desktop.Interop.Input
 
         protected void QueuePendingPosition(float x, float y)
         {
-            _pendingX = x;
-            _pendingY = y;
             // Hover between taps must not break a double-click; only movement while a button is held
             // (a drag) invalidates the click count.
-            _doubleClick.OnPosition(new Vector2(x, y), buttonHeld: _currButtonStates != 0);
+            var held = _currButtonStates != 0;
+            _doubleClick.OnPosition(new Vector2(x, y), buttonHeld: held);
+            // Double Click Fix: small jitter while held stays on the down point (no drag reaches macOS).
+            var filtered = PositionsAreAbsolute ? _doubleClick.FilterPosition(new Vector2(x, y), held) : new Vector2(x, y);
+            _pendingX = filtered.X;
+            _pendingY = filtered.Y;
         }
 
         public void SetPressure(float percentage)
@@ -259,6 +265,13 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                             ? new Vector2(_pendingX.Value, _pendingY.Value)
                             : null);
                         clickState = _doubleClick.OnMouseDown(down, _doubleClickClock.ElapsedMilliseconds);
+                        if (clickState > 1 && PositionsAreAbsolute)
+                        {
+                            // Double Click Fix: post the 2nd tap on the 1st tap's pixel.
+                            var at = _doubleClick.LastDownPosition;
+                            _pendingX = at.X;
+                            _pendingY = at.Y;
+                        }
                     }
                     else
                     {

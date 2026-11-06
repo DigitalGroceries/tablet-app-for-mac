@@ -374,12 +374,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
         };
         // Version 25: All displays is a remembered choice; follow today's desktop (and save it) whenever settings
         // load or are saved, without waiting for the Tablet page to be opened.
-        _session.DataLoaded += () => Avalonia.Threading.Dispatcher.UIThread.Post(RefitAllDisplaysQuietly);
-        // R11: bring back unsaved changes kept at the last system quit, once, as unsaved.
+        // R11 first: bring back unsaved changes kept at the last system quit, once, as unsaved — and only then
+        // re-fit (the re-fit saves, and a save before the restore would delete that snapshot).
         _session.DataLoaded += () => Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
         {
             try { await _session.RestoreUnsavedSnapshotOnceAsync(); }
             catch (Exception ex) { AppLog.Warn("Couldn't restore unsaved changes from before shutdown.", ex); }
+            RefitAllDisplaysQuietly();
         });
         ReportPendingInputTo(_session);
 

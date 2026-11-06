@@ -179,6 +179,69 @@ public class AllDisplaysAutoRefitTests
         }
     }
 
+    [AvaloniaFact]
+    public async Task UnsavedChangesKeptAtShutdown_AreRestored_AndNeverSavedOrDeletedByTheRefit()
+    {
+        var tablet = NewTablet();
+        var (app, _, store) = await Open(tablet, OneMonitor);   // stale box: a re-fit would be due
+        using var lifetime = app;
+        var dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "v25-snap-" + Guid.NewGuid().ToString("N"));
+        System.IO.Directory.CreateDirectory(dir);
+        try
+        {
+            app.SnapshotDirectory = dir;
+            UnsavedSnapshot.Write(dir, Document(tablet, OneMonitor, pressureDisabled: true));
+
+            // Start-up order race: the re-fit runs first. It must not save (that would delete the snapshot).
+            Assert.False(await app.RefitRememberedAllDisplaysAsync(TwoMonitors));
+            Assert.Equal(0, store.Attempts);
+            Assert.True(UnsavedSnapshot.Exists(dir));
+
+            await app.RestoreUnsavedSnapshotOnceAsync();
+            Assert.True(app.HasUnsavedChanges);
+            Assert.True(app.CurrentSettings!.Profiles[0].BindingSettings.DisablePressure);
+            Assert.False(await app.RefitRememberedAllDisplaysAsync(TwoMonitors));
+            Assert.Equal(0, store.Attempts);
+            Assert.True(UnsavedSnapshot.Exists(dir));
+        }
+        finally { System.IO.Directory.Delete(dir, true); }
+    }
+
+    [AvaloniaFact]
+    public async Task HomeFix_MapsToOneMonitor_AndSaveDoesNotBringAllDisplaysBack()
+    {
+        var tablet = NewTablet();
+        var (app, _, store) = await Open(tablet, TwoMonitors);
+        using var lifetime = app;
+        DisplayEnumerator.Use(new FixedDisplays(TwoMonitors));
+        try
+        {
+            await app.MapTabletToPrimaryDisplayAsync(tablet);
+            Assert.Equal("0", AppSettings.Get($"MapAllDisplays:{tablet}"));
+            Assert.True(await app.SaveSettingsAsync());
+            Assert.False(await app.RefitRememberedAllDisplaysAsync(TwoMonitors));
+            Assert.Equal(1, DisplayMappingApplier.CurrentlyMapped(store.Saved!.Profiles[0], TwoMonitors)?.Number);
+            Assert.Equal(1, DisplayMappingApplier.CurrentlyMapped(app.CurrentSettings!.Profiles[0], TwoMonitors)?.Number);
+        }
+        finally { DisplayEnumerator.Use(null); }
+    }
+
+    [AvaloniaFact]
+    public async Task PenMenuSwitchDisplay_MapsToOneMonitor_AndSaveDoesNotBringAllDisplaysBack()
+    {
+        // AppTray.SwitchDisplayAsync and the monitor-cycle hotkey both map through MapToSingleDisplay.
+        var tablet = NewTablet();
+        var (app, _, store) = await Open(tablet, TwoMonitors);
+        using var lifetime = app;
+        var settings = app.CurrentSettings!;
+        Assert.True(DisplayMappingApplier.MapToSingleDisplay(settings.Profiles[0], null, TwoMonitors[1], TwoMonitors));
+        Assert.True((await app.ApplySettingsAsync(settings)).IsLive);
+        Assert.True(await app.SaveSettingsAsync());
+        Assert.False(await app.RefitRememberedAllDisplaysAsync(TwoMonitors));
+        Assert.Equal(2, DisplayMappingApplier.CurrentlyMapped(store.Saved!.Profiles[0], TwoMonitors)?.Number);
+        Assert.Equal("0", AppSettings.Get($"MapAllDisplays:{tablet}"));
+    }
+
     [Fact]
     public void Health_GradesARememberedAllDisplaysTabletClean()
     {

@@ -1431,17 +1431,23 @@
                                     <TextBlock x:Name="LblPenFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
                             </StackPanel>
                         </HeaderedContentControl>
-                        <!-- Version 25: Wacom Tip Double Click Distance (Off … Large), screen pixels. -->
-                        <HeaderedContentControl x:Name="PenDoubleClickDistanceGroup" Classes="wacomGroup" Header="Tip Double Click Distance">
+                        <!-- Version 25: Double Click Fix (Wacom's Tip Double Click Distance), 8 Off … 64 Default … 192 Large. -->
+                        <HeaderedContentControl x:Name="PenDoubleClickDistanceGroup" Classes="wacomGroup" Header="Double Click Fix">
                             <StackPanel Spacing="4">
-                                <Slider x:Name="TipDoubleClickDistanceSlider" Minimum="8" Maximum="64"
-                                        Value="{Binding TipDoubleClickDistance}"
-                                        TickFrequency="8" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
-                                        AutomationProperties.Name="Tip Double Click Distance" />
-                                <Grid ColumnDefinitions="*,*"><TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                                    <Slider x:Name="TipDoubleClickDistanceSlider" Minimum="8" Maximum="192"
+                                            Value="{Binding TipDoubleClickDistance}"
+                                            TickFrequency="8" IsSnapToTickEnabled="True" TickPlacement="BottomRight" VerticalAlignment="Center"
+                                            AutomationProperties.Name="Double Click Fix" />
+                                    <TextBlock x:Name="TipDoubleClickDistanceValue" Grid.Column="1" MinWidth="32" TextAlignment="Right" VerticalAlignment="Center"
+                                               Text="{Binding TipDoubleClickDistance, StringFormat='{}{0:0}'}" FontWeight="SemiBold" />
+                                </Grid>
+                                <!-- Default sits at 64 on an 8..192 scale: (64-8)/(192-8) ≈ 30% across. -->
+                                <Grid ColumnDefinitions="30*,70*" Margin="0,0,38,0"><TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" />
+                                    <TextBlock x:Name="PenDoubleClickDefault" Grid.Column="1" Text="Default" FontSize="12" HorizontalAlignment="Left" Margin="-20,0,0,0" />
                                     <TextBlock x:Name="PenDoubleClickLarge" Grid.Column="1" Text="Large" FontSize="12" HorizontalAlignment="Right" /></Grid>
                                 <TextBlock x:Name="PenDoubleClickNote"
-                                           Text="How far apart two tip taps may be and still count as a double-click, in screen pixels. Default 40."
+                                           Text="Helps the pen tip double-click. Two quick taps that land a little apart still count as a double-click, so folders open instead of sliding around. If folders still move, slide towards Large. Default 64."
                                            FontSize="11" TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>

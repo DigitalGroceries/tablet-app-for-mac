@@ -437,7 +437,7 @@ public sealed class AppTray : IDisposable
         // Re-enumerate so the area is placed against the current monitor layout (the menu the click came
         // from may be a moment stale); the full set is needed for OTD's virtual-screen coordinates.
         var displays = DisplayEnumerator.Enumerate();
-        if (!DisplayMappingApplier.ApplyToProfile(profile, digitizer, display, displays)) return;
+        if (!DisplayMappingApplier.MapToSingleDisplay(profile, digitizer, display, displays)) return;
 
         try { await _settingsCoord.ApplySettingsAsync(settings); }
         catch { /* best-effort; the next data load will resync the menu's checkmark */ }

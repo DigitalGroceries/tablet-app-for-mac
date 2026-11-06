@@ -57,6 +57,19 @@ public class MonitorCycleServiceTests
     }
 
     [Fact]
+    public async Task Cycle_ForgetsTheRememberedAllDisplaysChoice()
+    {
+        var tablet = "Cycle AllDisplays " + System.Guid.NewGuid().ToString("N")[..8];
+        AppSettings.Set($"MapAllDisplays:{tablet}", "1");
+        var coord = new FakeSettingsCoordinator { CurrentSettings = SettingsMappedTo(TwoDisplays[0], tablet) };
+        var device = new FakeDeviceData { ActiveTabletName = tablet };
+
+        await NewService(coord, device).CycleAsync();
+
+        Assert.Equal("0", AppSettings.Get($"MapAllDisplays:{tablet}"));
+    }
+
+    [Fact]
     public async Task Cycle_WrapsFromLastToFirst()
     {
         var coord = new FakeSettingsCoordinator { CurrentSettings = SettingsMappedTo(TwoDisplays[1]) };

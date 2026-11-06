@@ -205,6 +205,7 @@ public sealed partial class DeveloperViewModel : ObservableObject
 
         abs.Display.Width = abs.Display.Width > 0 ? abs.Display.Width : primary.Width;
         abs.Display.Height = abs.Display.Height > 0 ? abs.Display.Height : primary.Height;
+        DisplayMappingApplier.ForgetAllDisplays(tabletName);   // else the All displays re-fit undoes this at once
         abs.Display.X = rightEdge;                                  // centre on the right edge → right half off-screen
         abs.Display.Y = primary.Y - minY + primary.Height / 2f;     // vertically centred on the primary (on-screen)
 

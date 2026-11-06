@@ -60,6 +60,26 @@ public static class DisplayMappingApplier
     /// </summary>
     /// <returns>true if a full mapping was written; false if the profile has no Absolute settings or
     /// the dimensions are degenerate (in which case only the display area may have been set).</returns>
+    /// <summary>Version 25: map to ONE display because the user (or a Fix/hotkey/menu acting for them) chose
+    /// it, and forget the remembered "All displays" choice for this tablet so the automatic All displays
+    /// re-fit does not undo that choice on the next save. Used by the pen-menu Switch display, the
+    /// monitor-cycle hotkey, Home's Fix and the tablet page.</summary>
+    public static bool MapToSingleDisplay(Profile profile, (float Width, float Height)? digitizer,
+        DisplayInfo display, IReadOnlyList<DisplayInfo> displays)
+    {
+        if (!ApplyToProfile(profile, digitizer, display, displays)) return false;
+        ForgetAllDisplays(profile.Tablet);
+        return true;
+    }
+
+    /// <summary>Clear the remembered All displays choice (<c>MapAllDisplays:&lt;tablet&gt;</c>).</summary>
+    public static void ForgetAllDisplays(string? tablet)
+    {
+        if (string.IsNullOrEmpty(tablet)) return;
+        if (Services.AppSettings.Get($"MapAllDisplays:{tablet}") == "1")
+            Services.AppSettings.Set($"MapAllDisplays:{tablet}", "0");
+    }
+
     public static bool ApplyToProfile(Profile profile, (float Width, float Height)? digitizer,
         DisplayInfo display, IReadOnlyList<DisplayInfo> displays)
     {

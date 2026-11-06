@@ -75,10 +75,11 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (PenTipFeelGroup != null) PenTipFeelGroup.Header = Localizer.T("tablet.pen.tip_feel");
         if (PenSoft != null) PenSoft.Text = Localizer.T("tablet.pen.soft");
         if (PenFirm != null) PenFirm.Text = Localizer.T("tablet.pen.firm");
-        if (PenDoubleClickDistanceGroup != null) PenDoubleClickDistanceGroup.Header = Localizer.Te("tablet.pen.double_click_distance", "Tip Double Click Distance");
+        if (PenDoubleClickDistanceGroup != null) PenDoubleClickDistanceGroup.Header = Localizer.Te("tablet.pen.double_click_distance", "Double Click Fix");
+        if (PenDoubleClickDefault != null) PenDoubleClickDefault.Text = Localizer.Te("tablet.pen.double_click_default", "Default");
         if (PenDoubleClickOff != null) PenDoubleClickOff.Text = Localizer.Te("tablet.pen.double_click_off", "Off");
         if (PenDoubleClickLarge != null) PenDoubleClickLarge.Text = Localizer.Te("tablet.pen.double_click_large", "Large");
-        if (PenDoubleClickNote != null) PenDoubleClickNote.Text = Localizer.Te("tablet.pen.double_click_note", "How far apart two tip taps may be and still count as a double-click, in screen pixels. Default 40.");
+        if (PenDoubleClickNote != null) PenDoubleClickNote.Text = Localizer.Te("tablet.pen.double_click_note", "Helps the pen tip double-click. Two quick taps that land a little apart still count as a double-click, so folders open instead of sliding around. If folders still move, slide towards Large. Default 64.");
         if (PenCustomise != null) PenCustomise.Content = Localizer.T("tablet.pen.customise");
         if (ManualTipPressureFrame != null) ManualTipPressureFrame.Header = Localizer.T("tablet.pen.manual_tip_pressure");
         if (PenManualNote != null) PenManualNote.Text = Localizer.T("tablet.pen.manual_tip_note");

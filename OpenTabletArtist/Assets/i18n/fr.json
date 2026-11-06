@@ -393,9 +393,10 @@
   "report.saved_text": "Votre fichier de rapport est enregistré ici :\n{path}\n\nPour l'envoyer, cliquez sur « Ouvrir la page d'envoi » et ajoutez ce fichier. La page demande votre nom et votre e-mail (règle de Dropbox) — seule l'équipe de Tablet App for Mac les voit ; aucun compte Dropbox n'est nécessaire. Votre texte et vos images y sont déjà.",
   "report.show_file": "Afficher dans le Finder",
   "report.open_upload": "Ouvrir la page d'envoi",
-  "tablet.pen.double_click_distance": "Distance de double-clic de la pointe",
+  "tablet.pen.double_click_distance": "Correction du double-clic",
   "tablet.pen.double_click_off": "Désactivé",
+  "tablet.pen.double_click_default": "Par défaut",
   "tablet.pen.double_click_large": "Grand",
-  "tablet.pen.double_click_note": "Distance maximale entre deux appuis de la pointe pour qu’ils comptent encore comme un double-clic, en pixels d’écran. Par défaut 40.",
+  "tablet.pen.double_click_note": "Aide le double-clic avec la pointe du stylet. Deux tapes rapides un peu éloignées comptent quand même comme un double-clic, pour que les dossiers s'ouvrent au lieu de glisser. Si les dossiers bougent encore, glissez vers « Grand ». Par défaut 64.",
   "binding.mouse.double_click": "Double-clic"
 }

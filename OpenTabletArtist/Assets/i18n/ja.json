@@ -393,9 +393,10 @@
   "report.saved_text": "レポートファイルを次の場所に保存しました:\n{path}\n\n送信するには、「アップロードページを開く」をクリックして、このファイルを追加してください。ページでは名前とメールアドレスの入力を求めます（Dropbox の規則）。それらを見るのは Tablet App for Mac のチームだけです。Dropbox のアカウントは不要です。テキストと画像はすでにファイルに含まれています。",
   "report.show_file": "Finder に表示",
   "report.open_upload": "アップロードページを開く",
-  "tablet.pen.double_click_distance": "ペン先のダブルクリック距離",
+  "tablet.pen.double_click_distance": "ダブルクリック補正",
   "tablet.pen.double_click_off": "オフ",
+  "tablet.pen.double_click_default": "標準",
   "tablet.pen.double_click_large": "大",
-  "tablet.pen.double_click_note": "2回のペン先タップがダブルクリックとみなされる画面上の最大距離（ピクセル）。初期値は 40。",
+  "tablet.pen.double_click_note": "ペン先でのダブルクリックを助けます。少し離れた位置への素早い2回のタップもダブルクリックとして扱い、フォルダが動かずに開くようにします。まだフォルダが動く場合は「大」側へ動かしてください。標準 64。",
   "binding.mouse.double_click": "ダブルクリック"
 }

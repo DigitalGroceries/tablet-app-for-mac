@@ -402,9 +402,10 @@
   "report.saved_text": "Your report file is saved here:\n{path}\n\nTo send it, click Open upload page and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file.",
   "report.show_file": "Show in Finder",
   "report.open_upload": "Open upload page",
-  "tablet.pen.double_click_distance": "Tip Double Click Distance",
+  "tablet.pen.double_click_distance": "Double Click Fix",
   "tablet.pen.double_click_off": "Off",
+  "tablet.pen.double_click_default": "Default",
   "tablet.pen.double_click_large": "Large",
-  "tablet.pen.double_click_note": "How far apart two tip taps may be and still count as a double-click, in screen pixels. Default 40.",
+  "tablet.pen.double_click_note": "Helps the pen tip double-click. Two quick taps that land a little apart still count as a double-click, so folders open instead of sliding around. If folders still move, slide towards Large. Default 64.",
   "binding.mouse.double_click": "Double Click"
 }

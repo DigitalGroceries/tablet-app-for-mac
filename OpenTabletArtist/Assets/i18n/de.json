@@ -393,9 +393,10 @@
   "report.saved_text": "Deine Berichtsdatei ist hier gespeichert:\n{path}\n\nUm sie zu senden, klicke auf „Upload-Seite öffnen“ und füge diese Datei hinzu. Die Seite fragt nach deinem Namen und deiner E-Mail (Regel von Dropbox) — nur das Team von Tablet App for Mac sieht sie; kein Dropbox-Konto nötig. Dein Text und deine Bilder sind schon darin.",
   "report.show_file": "Im Finder anzeigen",
   "report.open_upload": "Upload-Seite öffnen",
-  "tablet.pen.double_click_distance": "Doppelklick-Abstand der Spitze",
+  "tablet.pen.double_click_distance": "Doppelklick-Hilfe",
   "tablet.pen.double_click_off": "Aus",
+  "tablet.pen.double_click_default": "Standard",
   "tablet.pen.double_click_large": "Groß",
-  "tablet.pen.double_click_note": "Wie weit zwei Antippvorgänge mit der Spitze auseinanderliegen dürfen, um noch als Doppelklick zu zählen, in Bildschirmpixeln. Standard 40.",
+  "tablet.pen.double_click_note": "Hilft beim Doppelklick mit der Stiftspitze. Zwei schnelle Tipps, die etwas auseinander landen, zählen trotzdem als Doppelklick, damit Ordner sich öffnen statt zu verrutschen. Wenn Ordner noch verrutschen, Richtung „Groß“ schieben. Standard 64.",
   "binding.mouse.double_click": "Doppelklick"
 }

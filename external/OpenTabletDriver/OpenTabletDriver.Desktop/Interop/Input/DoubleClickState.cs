@@ -10,9 +10,12 @@ namespace OpenTabletDriver.Desktop.Interop.Input
     /// </summary>
     public sealed class DoubleClickState
     {
-        public const int DefaultMoveTolerance = 40;
+        // Version 25 (Double Click Fix): the old 8..64 scale was too tight for a tablet mapped across a
+        // large All-displays desktop (~3360 px over ~157 mm, about 21 px per mm: 64 px is only ~3 mm).
+        // Default 64 px is ~3 mm of tip travel there; Large 192 px is ~9 mm.
+        public const int DefaultMoveTolerance = 64;
         public const int MinMoveTolerance = 8;
-        public const int MaxMoveTolerance = 64;
+        public const int MaxMoveTolerance = 192;
 
         private Vector2 _lastMouseDownPosition;
         private bool _movedWhileHeld;
@@ -26,6 +29,23 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         public double IntervalMs { get; set; } = 500;
 
         public int ClickState => _clickState;
+
+        /// <summary>Where the current click sequence started (the position posted for every down in it).</summary>
+        public Vector2 LastDownPosition => _lastMouseDownPosition;
+
+        /// <summary>
+        /// Version 25 (Double Click Fix): while a button is held and the pen has not yet moved beyond
+        /// <see cref="MoveTolerance"/> from the down point, the pointer stays pinned there, so pen-tip jitter
+        /// does not reach macOS as a drag (Finder used to slide folders instead of opening them).
+        /// Once the pen moves farther it is a real drag and the raw position is used.
+        /// </summary>
+        public Vector2 FilterPosition(Vector2 position, bool buttonHeld)
+        {
+            if (buttonHeld && _hasLastDown && !_movedWhileHeld
+                && Vector2.Distance(_lastMouseDownPosition, position) <= MoveTolerance)
+                return _lastMouseDownPosition;
+            return position;
+        }
 
         public bool MovedWhileHeld => _movedWhileHeld;
 
@@ -65,11 +85,16 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             var invalidated = !_hasLastDown || _clickState == 0 || _movedWhileHeld || timedOut || tooFar;
 
             if (invalidated)
+            {
                 _clickState = 1;
+                _lastMouseDownPosition = position;
+            }
             else
+            {
+                // Keep the first down's position so every click in the sequence lands on the same pixel.
                 _clickState++;
+            }
 
-            _lastMouseDownPosition = position;
             _lastDownTimestampMs = timestampMs;
             _hasLastDown = true;
             _movedWhileHeld = false;
