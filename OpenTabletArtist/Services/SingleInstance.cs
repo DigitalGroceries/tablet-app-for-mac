@@ -133,6 +133,13 @@ public sealed class SingleInstance : IDisposable
             if (_documents.Length > 0)
                 client.Send(EncodePaths(_documents));
             client.Shutdown(SocketShutdown.Send);
+            // Version 25: wait (briefly) for the primary to finish reading and close its end before closing ours.
+            // Closing straight away can reset the connection on macOS before the primary has read the paths.
+            if (_documents.Length > 0)
+            {
+                client.ReceiveTimeout = 2000;
+                try { client.Receive(new byte[1]); } catch { /* timeout or reset: the payload has been sent */ }
+            }
         }
         catch { /* primary not listening (yet) — worst case the user surfaces the window themselves */ }
     }
@@ -243,11 +250,33 @@ public sealed class SingleInstance : IDisposable
     // Reads the (optional) payload with a short timeout, so an old-style pathless nudge never stalls the loop.
     private static IReadOnlyList<string> ReadPaths(Socket client)
     {
+        // macOS (BSD) accept() hands back a socket that inherits the listener's non-blocking mode, unlike Linux;
+        // a non-blocking read before the second copy's bytes land fails at once with "would block". Ask for a
+        // blocking socket, and wait for data with a deadline either way.
+        try { client.Blocking = true; } catch { }
         client.ReceiveTimeout = 1000;
+        var deadline = DateTime.UtcNow.AddSeconds(1);
         var buf = new byte[MaxPayload];
-        int total = 0, n;
-        while (total < buf.Length && (n = client.Receive(buf, total, buf.Length - total, SocketFlags.None)) > 0)
+        int total = 0;
+        while (total < buf.Length)
+        {
+            int n;
+            var left = deadline - DateTime.UtcNow;
+            if (left <= TimeSpan.Zero) break;
+            try { if (!client.Poll((int)Math.Max(1, left.TotalMicroseconds), SelectMode.SelectRead)) break; }
+            catch { break; }
+            // Version 25 (CI, macOS): a read that fails AFTER the payload arrived — the second copy has already
+            // closed its end, or the 1 s timeout — used to throw away the paths already received, so the primary
+            // surfaced but never got the file. Keep what was read; only a read with nothing yet is a plain nudge.
+            try { n = client.Receive(buf, total, buf.Length - total, SocketFlags.None); }
+            catch (Exception ex)
+            {
+                if (total == 0) AppLog.Debug($"Single instance: no settings file read from the second copy ({ex.Message}).");
+                break;
+            }
+            if (n <= 0) break;
             total += n;
+        }
         return total == 0 ? Array.Empty<string>() : DecodePaths(buf, total);
     }
 

@@ -32,6 +32,27 @@ public class SettingsFileHandoffTests
     }
 
     [Fact]
+    public void SecondCopy_ForwardsSeveralFiles_WithSpaces_InOrder()
+    {
+        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS()) return;
+        var key = "T" + Guid.NewGuid().ToString("N")[..8];   // short: macOS caps socket paths at 104 bytes
+        using var first = new SingleInstance(key);
+        Assert.True(first.TryAcquire());
+        var got = new BlockingCollection<string>();
+        first.ListenForActivation(() => { }, p => got.Add(p));
+        var dir = System.IO.Directory.CreateTempSubdirectory().FullName;
+        var files = new[] { System.IO.Path.Combine(dir, "My backup.tabletsettings"), System.IO.Path.Combine(dir, "Ünï two.tabletsettings") };
+        foreach (var f in files) System.IO.File.WriteAllText(f, "{}");
+        using var second = new SingleInstance(key);
+        Assert.False(second.TryAcquire(files));
+        foreach (var f in files)
+        {
+            Assert.True(got.TryTake(out var path, TimeSpan.FromSeconds(30)));
+            Assert.Equal(f, path);
+        }
+    }
+
+    [Fact]
     public void PathlessNudge_StillJustSurfaces()
     {
         if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS()) return;
