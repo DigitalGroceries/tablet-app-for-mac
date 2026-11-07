@@ -34,7 +34,15 @@ button.copy{font:inherit;font-size:14px;background:#3A3A3A;color:var(--head);bor
 .uc{background:repeating-linear-gradient(135deg,#2A2112 0 14px,#231C10 14px 28px);border-bottom:1px solid #5A4520;color:#E4E4E4;text-align:center;font-weight:600;letter-spacing:.08em;padding:8px 12px;font-size:14px}
 .dl{background:#1E1E1E;border:1px solid #3A3A3A;border-radius:12px;padding:20px 24px;margin:8px 0 24px}.dl .big{font-size:22px;padding:14px 28px;margin:4px 0 14px}.dl ol{font-size:17px;line-height:1.7;padding-left:22px;margin:6px 0}
 .pending{border:1px dashed #8C8C8C;border-radius:8px;padding:8px 12px;color:#D0D0D0;font-size:14px}
-@media (max-width:700px){h1{font-size:25px}.docs{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid var(--line);padding:0 0 12px}.heroimg{margin:0 auto}.heroimg img{width:70vw;max-width:320px}body{font-size:15px}}
+@media (max-width:700px){h1{font-size:25px}.docs{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid var(--line);padding:0 0 12px}.heroimg{margin:0 auto}.heroimg img{width:70vw;max-width:320px}body{font-size:15px}
+.pay{grid-template-columns:1fr;gap:10px}
+.pay .card{display:grid;grid-template-columns:auto 1fr;column-gap:12px;row-gap:8px;align-items:center}
+.pay .card>*{grid-column:2;min-width:0}
+.pay img.qr{grid-column:1;grid-row:1 / span 8;width:92px;max-width:92px;height:auto;align-self:center}
+.pay .card h2{margin:0;text-align:left;justify-self:start}
+.pay .addr{word-break:normal;overflow-wrap:anywhere}
+.pay .card .btn{margin:0}
+}
 .attn{background:#1F1A12;border:2px solid #C98A1B;border-left-width:8px;border-radius:12px;padding:20px 24px;margin:20px 0 28px;color:#E4E4E4}
 .attn h2{color:#E4B04A;border:0;margin:0 0 10px;font-size:1.35rem;letter-spacing:.02em}
 .attn ol{padding-left:1.4em}.attn li{margin:0 0 18px;font-size:1.05rem;line-height:1.5}
