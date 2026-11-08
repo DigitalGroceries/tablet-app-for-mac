@@ -397,6 +397,11 @@
   "tablet.pen.double_click_off": "Выкл.",
   "tablet.pen.double_click_default": "По умолчанию",
   "tablet.pen.double_click_large": "Большое",
-  "tablet.pen.double_click_note": "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.",
-  "binding.mouse.double_click": "Двойной щелчок"
+  "tablet.pen.double_click_note": "Насколько может сместиться кончик пера во время щелчка, прежде чем это будет считаться перетаскиванием. «Выкл.» — для программ рисования, которым важно каждое движение.",
+  "binding.mouse.double_click": "Двойной щелчок",
+  "binding.mouse.left": "Левый щелчок",
+  "binding.mouse.right": "Правый щелчок",
+  "binding.mouse.middle": "Средний щелчок",
+  "binding.mouse.back": "Кнопка «Назад»",
+  "binding.mouse.forward": "Кнопка «Вперёд»"
 }

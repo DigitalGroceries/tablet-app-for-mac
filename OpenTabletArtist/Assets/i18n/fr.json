@@ -397,6 +397,11 @@
   "tablet.pen.double_click_off": "Désactivé",
   "tablet.pen.double_click_default": "Par défaut",
   "tablet.pen.double_click_large": "Grand",
-  "tablet.pen.double_click_note": "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.",
-  "binding.mouse.double_click": "Double-clic"
+  "tablet.pen.double_click_note": "Jusqu’où la pointe du stylet peut bouger pendant un clic avant que cela compte comme un glissement. Désactivé pour les apps de dessin qui ont besoin de chaque mouvement.",
+  "binding.mouse.double_click": "Double-clic",
+  "binding.mouse.left": "Clic gauche",
+  "binding.mouse.right": "Clic droit",
+  "binding.mouse.middle": "Clic du milieu",
+  "binding.mouse.back": "Bouton Précédent",
+  "binding.mouse.forward": "Bouton Suivant"
 }

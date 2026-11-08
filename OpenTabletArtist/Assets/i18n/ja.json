@@ -397,6 +397,11 @@
   "tablet.pen.double_click_off": "オフ",
   "tablet.pen.double_click_default": "標準",
   "tablet.pen.double_click_large": "大",
-  "tablet.pen.double_click_note": "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.",
-  "binding.mouse.double_click": "ダブルクリック"
+  "tablet.pen.double_click_note": "クリック中にペン先がどれだけぶれてもドラッグと見なさないかを決めます。すべての動きが必要な描画アプリではオフにします。",
+  "binding.mouse.double_click": "ダブルクリック",
+  "binding.mouse.left": "左クリック",
+  "binding.mouse.right": "右クリック",
+  "binding.mouse.middle": "中クリック",
+  "binding.mouse.back": "戻るボタン",
+  "binding.mouse.forward": "進むボタン"
 }

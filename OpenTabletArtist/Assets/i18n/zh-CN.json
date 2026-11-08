@@ -397,6 +397,11 @@
   "tablet.pen.double_click_off": "关",
   "tablet.pen.double_click_default": "默认",
   "tablet.pen.double_click_large": "大",
-  "tablet.pen.double_click_note": "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.",
-  "binding.mouse.double_click": "双击"
+  "tablet.pen.double_click_note": "点击时笔尖可以晃动多远仍不算拖动。需要每个细微动作的绘图应用请选择“关”。",
+  "binding.mouse.double_click": "双击",
+  "binding.mouse.left": "左键单击",
+  "binding.mouse.right": "右键单击",
+  "binding.mouse.middle": "中键单击",
+  "binding.mouse.back": "后退按钮",
+  "binding.mouse.forward": "前进按钮"
 }

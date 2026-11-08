@@ -52,6 +52,10 @@ public partial class TabletDetailViewModel
         if (!string.IsNullOrEmpty(SelectedAppBundleId)
             && PerAppBindingStore.Find(_profile.Tablet ?? "", SelectedAppBundleId!) is { } app)
             return app.Bindings;
+        // #74: while another app's bindings are live, All shows All's own table, not the overlay.
+        if (!PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared)
+            && PerAppBindingRuntime.StashedAllBindings(_profile.Tablet ?? "") is { } all)
+            return all;
         return _profile.BindingSettings;
     }
 
@@ -63,8 +67,9 @@ public partial class TabletDetailViewModel
         OnPropertyChanged(nameof(HasAppProfiles));
         OnPropertyChanged(nameof(AllAppLabel));
         MigrateLegacyAppRingModes();
-        // Keep All bindings stash fresh on first open.
-        PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);
+        // Keep All bindings stash fresh on first open, but never from a live app overlay (#74).
+        if (PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared))
+            PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);
     }
 
     /// <summary>Version 16 BETA 2: an app's table with ring modes written by Version 16 BETA 1 or earlier runs
