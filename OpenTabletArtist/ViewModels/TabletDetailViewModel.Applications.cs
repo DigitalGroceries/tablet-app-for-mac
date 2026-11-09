@@ -188,7 +188,7 @@ public partial class TabletDetailViewModel
             mutate(copy);
             PerPenStore.SaveBindings(tablet, SelectedPenKey!, copy);
             RefreshBindingEditorsFromSelection();
-            PerAppBindingRuntime.Shared?.Kick();
+            PerAppBindingRuntime.Shared?.Reapply();   // the pen may be live already
             return;
         }
         if (!string.IsNullOrEmpty(SelectedAppBundleId))

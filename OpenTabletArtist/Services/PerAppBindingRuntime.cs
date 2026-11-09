@@ -87,6 +87,15 @@ public sealed class PerAppBindingRuntime : IDisposable
     /// <summary>Re-evaluate now (e.g. after the user edits a listed app's bindings).</summary>
     public void Kick() => _ = TickAsync();
 
+    private bool _reapply;
+
+    /// <summary>Apply the current target again even if it hasn't changed (its saved settings did).</summary>
+    public void Reapply()
+    {
+        _reapply = true;
+        Kick();
+    }
+
     private async Task TickAsync()
     {
         if (_busy || _disposed || !OperatingSystem.IsMacOS()) return;
@@ -107,7 +116,7 @@ public sealed class PerAppBindingRuntime : IDisposable
 
         if (string.Equals(target, _appliedBundleId, StringComparison.OrdinalIgnoreCase)
             && _pendingBundleId == null
-            && penTarget == _appliedPenKey && !_penPending)
+            && penTarget == _appliedPenKey && !_penPending && !_reapply)
             return;
 
         // Defer while the tip is down so we don't SetSettings mid-stroke.
@@ -122,6 +131,7 @@ public sealed class PerAppBindingRuntime : IDisposable
         _pendingBundleId = null;
         _pendingPenKey = null;
         _penPending = false;
+        _reapply = false;
         await ApplyTargetAsync(target, penTarget).ConfigureAwait(true);
     }
 
