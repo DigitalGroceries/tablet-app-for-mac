@@ -139,7 +139,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         private static bool Responds(IntPtr obj, string selector) =>
             obj != IntPtr.Zero && RespondsTo(obj, sel_registerName("respondsToSelector:"), sel_registerName(selector));
 
-        private static readonly HashSet<string> Described = new();
+        private static string Where(MacOSWindowPick.Window w) =>
+            $"layer {w.Layer} alpha {w.Alpha:0.###} at {w.X:0},{w.Y:0} size {w.Width:0}x{w.Height:0}";
+
+                private static readonly HashSet<string> Described = new();
 
         /// <summary>#73: what a picked non-app window is (layer, alpha, bounds), once per owner, layer and size,
         /// so a report shows which window sits under the pen.</summary>
@@ -164,11 +167,21 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 return;
             }
             var app = SendInt(cls, sel_registerName("runningApplicationWithProcessIdentifier:"), pid);
-            if (app == IntPtr.Zero) { Note($"No running application for {who}; not activated."); DescribeOnce(w); return; }
+            if (app == IntPtr.Zero)
+            {
+                Note($"No running application for {who}; not activated ({Where(w)}).");
+                DescribeOnce(w);
+                return;
+            }
             if (Responds(app, "activationPolicy"))
             {
                 var policy = SendNInt(app, sel_registerName("activationPolicy"));
-                if (policy != ActivationPolicyRegular) { Note($"Skipped {who}: not a regular app (activationPolicy {policy})."); DescribeOnce(w); return; }
+                if (policy != ActivationPolicyRegular)
+                {
+                    Note($"Skipped {who}: not a regular app (activationPolicy {policy}); {Where(w)}.");
+                    DescribeOnce(w);
+                    return;
+                }
             }
             if (Responds(app, "isActive") && SendBool(app, sel_registerName("isActive")))
             {
