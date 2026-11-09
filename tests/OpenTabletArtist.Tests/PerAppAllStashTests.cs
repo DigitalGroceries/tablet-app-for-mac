@@ -63,4 +63,14 @@ public class PerAppAllStashTests
         PerAppBindingRuntime.SyncAllBindings(tablet, all);
         Assert.Equal(80, PerAppBindingRuntime.StashedAllBindings(tablet)!.DoubleClickFix);
     }
+
+    [Fact]
+    public void AnExtraPenWithoutItsOwnDoubleClickFix_KeepsTheAppsValue_Tasks15()
+    {
+        var target = new BindingSettings { DoubleClickFix = 50 };
+        PenBindings.Overlay(target, new BindingSettings { DoubleClickFix = null });
+        Assert.Equal(50, target.DoubleClickFix);
+        PenBindings.Overlay(target, new BindingSettings { DoubleClickFix = 70 });
+        Assert.Equal(70, target.DoubleClickFix);
+    }
 }
