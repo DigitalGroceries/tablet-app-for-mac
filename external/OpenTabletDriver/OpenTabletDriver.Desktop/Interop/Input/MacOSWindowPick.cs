@@ -50,15 +50,19 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         private static bool IsOverlay(Window w, Vector2 point, IReadOnlyList<MacOSScreenEdge.Rect>? displays)
         {
             if (displays is not { Count: > 0 }) return true;
+            var inAny = false;
+            // A point on a shared edge is inside both displays: the window counts if it covers either.
             foreach (var d in displays)
             {
                 var inside = point.X >= d.Position.X && point.Y >= d.Position.Y
                     && point.X <= d.Position.X + d.Size.X && point.Y <= d.Position.Y + d.Size.Y;
                 if (!inside) continue;
-                return w.X <= d.Position.X + 1 && w.Y <= d.Position.Y + 1
-                    && w.X + w.Width >= d.Position.X + d.Size.X - 1 && w.Y + w.Height >= d.Position.Y + d.Size.Y - 1;
+                inAny = true;
+                if (w.X <= d.Position.X + 1 && w.Y <= d.Position.Y + 1
+                    && w.X + w.Width >= d.Position.X + d.Size.X - 1 && w.Y + w.Height >= d.Position.Y + d.Size.Y - 1)
+                    return true;
             }
-            return true;
+            return !inAny;
         }
     }
 }

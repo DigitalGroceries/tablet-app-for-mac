@@ -123,6 +123,14 @@ public class MacOSEdgeAndActivationTests
     }
 
     [Fact]
+    public void A_full_screen_Window_Server_window_on_the_next_display_is_skipped_at_the_shared_edge_issue_73()
+    {
+        var shield = new W(458, MacOSWindowPick.WindowServerName, 2147483630, 1512, -200, 2560, 1440);
+        var app = new W(70, "Preview", 0, 1512, 0, 800, 600);
+        Assert.Equal(app, MacOSWindowPick.Pick(new List<W> { shield, app }, new Vector2(1512, 300), new[] { Main, Right }));
+    }
+
+    [Fact]
     public void A_display_sized_Window_Server_window_that_only_overlaps_is_kept_issue_73()
     {
         // Same size as the display but shifted: it doesn't cover the display, so it still stops the search.
