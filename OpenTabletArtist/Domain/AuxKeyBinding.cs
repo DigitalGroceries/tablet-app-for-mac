@@ -1,3 +1,4 @@
+using OpenTabletArtist.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -282,12 +283,12 @@ public static class AuxKeyBinding
 
     private static string DescribeMouse(string button) => button switch
     {
-        "Left" => "Left click",
-        "Right" => "Right click",
-        "Middle" => "Middle click",
-        "Backward" => "Back button",
-        "Forward" => "Forward button",
-        DoubleClickValue => "Double Click",
+        "Left" => Localizer.Te("binding.mouse.left", "Left click"),
+        "Right" => Localizer.Te("binding.mouse.right", "Right click"),
+        "Middle" => Localizer.Te("binding.mouse.middle", "Middle click"),
+        "Backward" => Localizer.Te("binding.mouse.back", "Back button"),
+        "Forward" => Localizer.Te("binding.mouse.forward", "Forward button"),
+        DoubleClickValue => Localizer.Te("binding.mouse.double_click", "Double Click"),
         _ => button,
     };
 
@@ -303,14 +304,14 @@ public static class AuxKeyBinding
 
     /// <summary>Mouse buttons offered in the picker (OTD's MouseButton enum names; "Back" reads nicer
     /// than the stored "Backward"). No "None" — unbinding is the explicit None binding type.</summary>
-    public static IReadOnlyList<KeyOption> MouseButtonOptions { get; } = new List<KeyOption>
+    public static IReadOnlyList<KeyOption> MouseButtonOptions => new List<KeyOption>
     {
         new("Left", "Left"),
         new("Right", "Right"),
         new("Middle", "Middle"),
         new("Back", "Backward"),
         new("Forward", "Forward"),
-        new("Double Click", DoubleClickValue),
+        new(Localizer.Te("binding.mouse.double_click", "Double Click"), DoubleClickValue),
     };
 
     internal static PluginSettingStore NewStore(string path)

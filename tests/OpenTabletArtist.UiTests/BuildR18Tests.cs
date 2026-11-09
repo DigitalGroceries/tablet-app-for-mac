@@ -89,7 +89,7 @@ public class BuildR18Tests
         if (about is null || !about.IsEffectivelyVisible) { w.Close(); return; }   // no ring on a bare profile
         var texts = about.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
         Assert.Contains("About the touch ring", texts);
-        Assert.Contains("Turning off Enable wheels pauses all ring actions without deleting them.", texts);
+        Assert.Contains("Turn off Enable wheels to pause the ring. Your settings are kept.", texts);
         w.Close();
     }
 

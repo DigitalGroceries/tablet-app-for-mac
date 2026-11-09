@@ -9,6 +9,7 @@ using Avalonia.LogicalTree;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 using OpenTabletArtist.Controls;
 using OpenTabletArtist.Services;
 using OpenTabletArtist.ViewModels;
@@ -38,9 +39,46 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         EraserTab.IsCheckedChanged += OnLiveTabChanged;
         SyncToolChips();
         ApplyLanguage();
+        // Zak 9 Nov: About ExpressKeys beside the key list when there is room, under it when there is not.
+        ExpressKeysPage.SizeChanged += (_, e) => LayoutExpressKeysPage(e.NewSize.Width);
+        // Touch ring: About sits over the top right of the page; keep the ring table below it, however many
+        // lines the About text wraps to in the chosen language.
+        WheelsPage.LayoutUpdated += (_, _) => KeepRingTableClearOfAbout();
         Localizer.LanguageChanged += ApplyLanguage;
         DetachedFromLogicalTree += (_, _) => Localizer.LanguageChanged -= ApplyLanguage;
     }
+
+    /// <summary>The key list is 600 wide; About needs about 300 beside it (plus the 40 gutter) to read well.</summary>
+    internal const double ExpressKeysSideBySideWidth = 600 + 40 + 300;
+
+    /// <summary>Zak 9 Nov: put About ExpressKeys to the right of the key list (filling the page up to a readable
+    /// line length), or under the list at the list's width when the page is too narrow for both.</summary>
+    internal void LayoutExpressKeysPage(double width)
+    {
+        var beside = width >= ExpressKeysSideBySideWidth;
+        Grid.SetRow(AboutExpressKeys, beside ? 0 : 1);
+        Grid.SetColumn(AboutExpressKeys, beside ? 1 : 0);
+        Grid.SetColumnSpan(AboutExpressKeys, beside ? 1 : 2);
+        AboutExpressKeys.MaxWidth = beside ? 520 : 600;
+    }
+
+    /// <summary>Zak 9 Nov: the Touch ring table (Toggle | Function | Speed) spans the full page width, under the
+    /// About block in the top right. Push it down when About is taller than the controls beside it.</summary>
+    void KeepRingTableClearOfAbout()
+    {
+        if (!WheelsPage.IsEffectivelyVisible || !AboutTouchRing.IsVisible) return;
+        var aboutBottom = AboutTouchRing.Bounds.Bottom;
+        foreach (var d in WheelsPage.GetVisualDescendants().OfType<Grid>())
+        {
+            if (d.Name != "RingDiagram" || !d.IsEffectivelyVisible) continue;
+            if (d.TranslatePoint(new Point(0, 0), WheelsPage) is not { } at) continue;
+            var naturalTop = at.Y - d.Margin.Top + RingDiagramTopMargin;
+            var top = RingDiagramTopMargin + Math.Max(0, aboutBottom + 12 - naturalTop);
+            if (Math.Abs(d.Margin.Top - top) > 0.5) d.Margin = new Thickness(d.Margin.Left, top, d.Margin.Right, d.Margin.Bottom);
+        }
+    }
+
+    const double RingDiagramTopMargin = 8;
 
     /// <summary>Version 8: refresh high-visibility Tablet chrome when the language preference changes.</summary>
     void ApplyLanguage()
@@ -77,6 +115,9 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (PenFirm != null) PenFirm.Text = Localizer.T("tablet.pen.firm");
         if (PenDoubleClickDistanceGroup != null) PenDoubleClickDistanceGroup.Header = Localizer.Te("tablet.pen.double_click_distance", "Double Click Fix");
         if (PenDoubleClickDefault != null) PenDoubleClickDefault.Text = Localizer.Te("tablet.pen.double_click_default", "Default");
+        if (PenDoubleClickDefaultButton != null)
+            Avalonia.Automation.AutomationProperties.SetName(PenDoubleClickDefaultButton,
+                Localizer.Te("tablet.pen.double_click_default", "Default"));
         if (PenDoubleClickOff != null) PenDoubleClickOff.Text = Localizer.Te("tablet.pen.double_click_off", "Off");
         if (PenDoubleClickLarge != null) PenDoubleClickLarge.Text = Localizer.Te("tablet.pen.double_click_large", "Large");
         if (PenDoubleClickNote != null) PenDoubleClickNote.Text = Localizer.Te("tablet.pen.double_click_note", "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.");
@@ -122,6 +163,16 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (LblExpressKeysBody != null) LblExpressKeysBody.Text = Localizer.T("tablet.expresskeys.body");
         if (LblExpressKeysPress != null) LblExpressKeysPress.Text = Localizer.T("tablet.expresskeys.press_hint");
         if (LblExpressKeysEnableNote != null) LblExpressKeysEnableNote.Text = Localizer.T("tablet.expresskeys.enable_note");
+        if (LblExpressKeysChoose != null) LblExpressKeysChoose.Text = Localizer.Te("tablet.expresskeys.choose_hint",
+            "Click ••• next to a key to choose what it does: a keyboard shortcut, a mouse click or scrolling.");
+        if (LblExpressKeysPerApp != null) LblExpressKeysPerApp.Text = Localizer.Te("tablet.expresskeys.per_app",
+            "Your key settings are saved for this tablet. Each application can have its own: pick it in the Application row above.");
+        if (LblRingAboutTurns != null) LblRingAboutTurns.Text = Localizer.Te("tablet.ring.about_turns",
+            "Clockwise and anticlockwise turns can do different things. So can the centre button.");
+        if (LblRingAboutDial != null) LblRingAboutDial.Text = Localizer.Te("tablet.ring.about_dial",
+            "The ring picture on screen moves when you touch the ring, so you can check that it works.");
+        if (LblRingAboutEnable != null) LblRingAboutEnable.Text = Localizer.Te("tablet.ring.about_enable",
+            "Turn off Enable wheels to pause the ring. Your settings are kept.");
         if (KeysDefaultButton != null) KeysDefaultButton.Content = Localizer.T("tablet.pen.default");
 
         if (LblPenCurrentPressure != null) LblPenCurrentPressure.Text = Localizer.T("tablet.pen.current_pressure");

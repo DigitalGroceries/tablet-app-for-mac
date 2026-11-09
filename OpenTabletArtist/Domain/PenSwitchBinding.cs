@@ -1,3 +1,4 @@
+using OpenTabletArtist.Services;
 using System.Collections.ObjectModel;
 using Newtonsoft.Json;
 using OpenTabletDriver.Desktop.Binding;
@@ -104,7 +105,7 @@ public static class PenSwitchBinding
         var path = store?.Path;
         if (path == null) return "None";
         if (path == MouseBindingPath) return "Mouse button";
-        if (path == AuxKeyBinding.DoubleClickBindingPath) return "Double Click";
+        if (path == AuxKeyBinding.DoubleClickBindingPath) return Localizer.Te("binding.mouse.double_click", "Double Click");
         if (path == OwnWindowBindingPath) return "Off (clicks in this app only)";
         if (path.EndsWith("MouseScrollBinding", StringComparison.Ordinal)) return "Mouse scroll";
         if (path == PenScrollBinding.BindingTypeName) return "Move pen to scroll";

@@ -52,6 +52,15 @@ public partial class TabletDetailViewModel
         if (!string.IsNullOrEmpty(SelectedAppBundleId)
             && PerAppBindingStore.Find(_profile.Tablet ?? "", SelectedAppBundleId!) is { } app)
             return app.Bindings;
+        return EditorAllBindings();
+    }
+
+    /// <summary>All's own table. #74: while another app's bindings are live, that is the stash, not the overlay.</summary>
+    internal BindingSettings EditorAllBindings()
+    {
+        if (!PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared)
+            && PerAppBindingRuntime.StashedAllBindings(_profile.Tablet ?? "") is { } all)
+            return all;
         return _profile.BindingSettings;
     }
 
@@ -63,8 +72,12 @@ public partial class TabletDetailViewModel
         OnPropertyChanged(nameof(HasAppProfiles));
         OnPropertyChanged(nameof(AllAppLabel));
         MigrateLegacyAppRingModes();
-        // Keep All bindings stash fresh on first open.
-        PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);
+        // The cleared copies may be live already (an app or extra pen overlay), so put them on again.
+        if (PerAppBindingStore.ClearCopiedDoubleClickFixOnce(_profile.Tablet ?? ""))
+            PerAppBindingRuntime.Shared?.Reapply();
+        // Keep All bindings stash fresh on first open, but never from a live app overlay (#74).
+        if (PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared))
+            PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);
     }
 
     /// <summary>Version 16 BETA 2: an app's table with ring modes written by Version 16 BETA 1 or earlier runs
@@ -98,6 +111,9 @@ public partial class TabletDetailViewModel
     {
         // Reuse the existing refresh paths; they call WorkingBindings via the patched Effective* helpers.
         RefreshPenSwitchRows();
+        // TASKS #15: the Double Click Fix slider belongs to the selected profile too (it used to keep
+        // showing the previous profile's value, so All and every app looked like one shared value).
+        LoadDoubleClickFixFromSelection();
         // ExpressKeys + wheels are rebuilt inside RefreshFromProfile's binding section — call the
         // narrow pieces we can reach without resetting mapping/dynamics.
         RebuildAuxButtonsFromWorking();
@@ -183,7 +199,7 @@ public partial class TabletDetailViewModel
             mutate(copy);
             PerPenStore.SaveBindings(tablet, SelectedPenKey!, copy);
             RefreshBindingEditorsFromSelection();
-            PerAppBindingRuntime.Shared?.Kick();
+            PerAppBindingRuntime.Shared?.Reapply();   // the pen may be live already
             return;
         }
         if (!string.IsNullOrEmpty(SelectedAppBundleId))
