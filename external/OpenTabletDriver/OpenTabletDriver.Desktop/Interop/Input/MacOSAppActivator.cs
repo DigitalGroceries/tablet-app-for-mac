@@ -142,7 +142,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         private static string Where(MacOSWindowPick.Window w) =>
             $"layer {w.Layer} alpha {w.Alpha:0.###} at {w.X:0},{w.Y:0} size {w.Width:0}x{w.Height:0}";
 
-                private static readonly HashSet<string> Described = new();
+        private static readonly HashSet<string> Described = new();
 
         /// <summary>#73: what a picked non-app window is (layer, alpha, bounds), once per owner, layer and size,
         /// so a report shows which window sits under the pen.</summary>
