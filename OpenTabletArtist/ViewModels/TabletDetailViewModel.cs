@@ -1350,10 +1350,11 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             TipDoubleClickDistance = display;
             return;
         }
-        _ = ApplySettingsChange(p =>
+        // TASKS #15 (Zak, option B): the slider edits the selected profile's own copy (All, an app or a pen).
+        _ = ApplyBindingMutationAsync(b =>
         {
-            p.BindingSettings.DoubleClickFix = display;
-            p.BindingSettings.TipDoubleClickDistance = DoubleClickState.DefaultMoveTolerance;
+            b.DoubleClickFix = display;
+            b.TipDoubleClickDistance = DoubleClickState.DefaultMoveTolerance;
         });
     }
 
@@ -1442,10 +1443,11 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _legacyFlatPending = !manual.On && pcRead is { } r1 && IsFixedPressureCurve(r1.Dynamics.Curve);
         DisableEraser = PenSwitchBinding.IsOff(bindings.EraserButton);
         DisableTilt = bindings.DisableTilt;
-        // Double Click Fix is one setting for the whole pen (edits go to All), so show All's value on every profile.
+        // TASKS #15: each profile shows its own Double Click Fix; one without its own value shows All's.
         var allTable = !PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared)
             && PerAppBindingRuntime.StashedAllBindings(_profile.Tablet ?? "") is { } stashed ? stashed : _profile.BindingSettings;
-        TipDoubleClickDistance = ClickJitterGate.ResolveSavedDisplay(allTable.DoubleClickFix);
+        TipDoubleClickDistance = ClickJitterGate.ResolveSavedDisplay(
+            PerAppBindingRuntime.EffectiveDoubleClickFix(bindings.DoubleClickFix, allTable.DoubleClickFix));
         DragBindingsEnabled = bindings.EnableDragBindings;
         // The tip is disabled when it has no binding (#493). Derived from the profile so it stays in
         // sync when the tip binding is edited directly on the pen-switch card.

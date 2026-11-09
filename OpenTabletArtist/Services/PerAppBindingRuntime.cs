@@ -190,6 +190,9 @@ public sealed class PerAppBindingRuntime : IDisposable
                 var app = PerAppBindingStore.Find(tablet, bundleId);
                 if (app is null) return;
                 bindings = PerAppBindingStore.CloneBindings(app.Bindings);
+                // TASKS #15 (Zak, option B): Double Click Fix is per app; an app without its own value uses All's.
+                bindings.DoubleClickFix = EffectiveDoubleClickFix(bindings.DoubleClickFix,
+                    StashedAllBindings(tablet)?.DoubleClickFix ?? profile.BindingSettings.DoubleClickFix);
             }
 
             // Version 14: an extra pen's own tip / eraser / side-button settings win over All and the app.
@@ -251,6 +254,9 @@ public sealed class PerAppBindingRuntime : IDisposable
 
     /// <summary>Persist the All binding table whenever the user edits All (so focus-restore is accurate
     /// even if the workspace draft briefly held an overlay).</summary>
+    /// <summary>TASKS #15: a profile's own Double Click Fix, or All's when it has none.</summary>
+    internal static int? EffectiveDoubleClickFix(int? own, int? all) => own ?? all;
+
     public static void SyncAllBindings(string tablet, BindingSettings bindings) =>
         AppSettings.Set(AllBindingsKey(tablet),
             Newtonsoft.Json.JsonConvert.SerializeObject(PerAppBindingStore.CloneBindings(bindings)));

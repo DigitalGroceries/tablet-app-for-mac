@@ -44,4 +44,23 @@ public class PerAppAllStashTests
         Assert.Equal("Left click", AuxKeyBinding.Describe(AuxBinding.Unbound with { Kind = AuxKind.Mouse, MouseButton = "Left" }));
         Assert.Contains(AuxKeyBinding.MouseButtonOptions, o => o.Value == AuxKeyBinding.DoubleClickValue);
     }
+
+    [Fact]
+    public void DoubleClickFix_IsPerApp_WithAllAsFallback_Tasks15()
+    {
+        Assert.Equal(80, PerAppBindingRuntime.EffectiveDoubleClickFix(80, 50));
+        Assert.Equal(50, PerAppBindingRuntime.EffectiveDoubleClickFix(null, 50));
+        Assert.Null(PerAppBindingRuntime.EffectiveDoubleClickFix(null, null));
+    }
+
+    [Fact]
+    public void AnAllEdit_IsKeptInTheStash_Tasks15()
+    {
+        var tablet = Tablet;
+        var all = new BindingSettings { DoubleClickFix = 50 };
+        PerAppBindingRuntime.SyncAllBindings(tablet, all);
+        all.DoubleClickFix = 80;
+        PerAppBindingRuntime.SyncAllBindings(tablet, all);
+        Assert.Equal(80, PerAppBindingRuntime.StashedAllBindings(tablet)!.DoubleClickFix);
+    }
 }
