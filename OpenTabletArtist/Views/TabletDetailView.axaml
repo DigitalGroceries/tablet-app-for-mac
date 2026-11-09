@@ -1447,27 +1447,19 @@
                                 </Grid>
                                 <!-- Default at 50% (UI 50 = 1.0 mm). -->
                                 <Grid ColumnDefinitions="*,*,*" Margin="0,0,54,0">
-                                    <TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" />
-                                    <!-- Zak 9 Nov: "Default" is a button: one click sets the selected profile to 50. -->
+                                    <TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" VerticalAlignment="Center" />
+                                    <!-- Zak 9 Nov: "Default" is a button: one click sets the selected profile to 50. Same
+                                         theme Button as the pen buttons' Default (PenSwitchCard penAction), in a compact size
+                                         so the Off / Default / Large row keeps its height. -->
                                     <Button x:Name="PenDoubleClickDefaultButton" Grid.Column="1" HorizontalAlignment="Center"
-                                            Padding="0" MinHeight="0" MinWidth="0" Background="Transparent" BorderThickness="0"
-                                            Cursor="Hand" Command="{Binding ResetDoubleClickFixCommand}"
-                                            AutomationProperties.Name="Default">
-                                        <Button.Styles>
-                                            <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                <Setter Property="Background" Value="Transparent" />
-                                            </Style>
-                                            <Style Selector="Button:pressed /template/ ContentPresenter">
-                                                <Setter Property="Background" Value="Transparent" />
-                                            </Style>
-                                            <Style Selector="Button:pointerover TextBlock">
-                                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-                                                <Setter Property="TextDecorations" Value="Underline" />
-                                            </Style>
-                                        </Button.Styles>
+                                            VerticalAlignment="Center" MinWidth="64" MinHeight="0" Height="22" Padding="10,0"
+                                            FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                            Command="{Binding ResetDoubleClickFixCommand}"
+                                            AutomationProperties.Name="Default"
+                                            ToolTip.Tip="50">
                                         <TextBlock x:Name="PenDoubleClickDefault" Text="Default" FontSize="12" />
                                     </Button>
-                                    <TextBlock x:Name="PenDoubleClickLarge" Grid.Column="2" Text="Large" FontSize="12" HorizontalAlignment="Right" />
+                                    <TextBlock x:Name="PenDoubleClickLarge" Grid.Column="2" Text="Large" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                 </Grid>
                                 <TextBlock x:Name="PenDoubleClickNote"
                                            Text="How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement."
