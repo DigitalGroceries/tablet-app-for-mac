@@ -23,10 +23,7 @@ public partial class SettingsFooterView : UserControl
         }
         if (RevertButton != null) RevertButton.Content = Localizer.T("save.revert");
         if (RevertToDefaultButton != null)
-        {
             RevertToDefaultButton.Content = Localizer.T("save.default.revert");
-            ToolTip.SetTip(RevertToDefaultButton, Localizer.T("save.default.revert_tip"));
-        }
         if (RestoreFactoryButton != null)
         {
             RestoreFactoryButton.Content = Localizer.T("save.factory.button");

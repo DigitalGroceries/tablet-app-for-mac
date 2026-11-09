@@ -440,5 +440,10 @@
   "save.factory.tip": "Reset everything to the original factory defaults. Asks for confirmation first. Your own saved default is kept.",
   "save.factory.confirm_title": "Restore factory settings?",
   "save.factory.confirm_body": "Your current settings will be replaced with the factory settings. Your own saved default is kept, so you can still use Revert to default afterwards.",
-  "save.factory.confirm_action": "Restore Factory Settings"
+  "save.factory.confirm_action": "Restore Factory Settings",
+  "save.default.saved": "Saved as your default",
+  "save.factory.done": "Restored factory settings",
+  "save.revert_tip": "Replace live settings with the driver’s saved file, discarding unsaved changes.",
+  "save.revert_tip_disabled": "Nothing to revert — live settings already match the driver’s saved file.",
+  "save.default.revert_tip_matches": "Already matching your saved default."
 }

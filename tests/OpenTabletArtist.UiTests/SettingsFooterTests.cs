@@ -64,6 +64,10 @@ public class SettingsFooterTests
         public ICommand RevertToDefaultCommand => RevertToDefault;
         public ICommand RestoreFactorySettingsCommand => RestoreFactory;
         public bool CanRevertToDefault { get; init; } = true;
+        public bool CanRevertToSaved { get; init; } = true;
+        public string RevertToSavedTip { get; init; } = "Replace live settings with the driver’s saved file, discarding unsaved changes.";
+        public string RevertToDefaultTip { get; init; } = "Restore your saved default.";
+        public string FooterStatusText => SettingsSession.SaveStatusText;
     }
 
     private sealed class SessionState : System.ComponentModel.INotifyPropertyChanged
@@ -114,6 +118,7 @@ public class SettingsFooterTests
             },
             Connection = new ConnectionState { DiscardedChangeNotice = notice, SettingsRefreshedNotice = refreshed },
             CanRevertToDefault = canEdit && canRevertToDefault,
+            CanRevertToSaved = canEdit && unsaved,
         };
         var footer = new SettingsFooterView();
         var window = new Window { Content = footer, DataContext = state, Width = width };
@@ -409,4 +414,16 @@ public class SettingsFooterTests
         Assert.Equal(0, state.Revert.Ran);
         window.Close();
     }
+    [AvaloniaFact]
+    public void RestoreFactorySettings_UsesGhostButton_LikeTheOtherFooterActions()
+    {
+        var (window, _, buttons) = Footer(canEdit: true, unsaved: true);
+        var factory = Named(buttons, "Restore factory settings");
+        var ghost = Application.Current!.FindResource("GhostButton");
+        Assert.Same(ghost, factory.Theme);
+        // Same padding family as Save as default / Revert (not the old link-style 8,5).
+        Assert.Equal(Named(buttons, "Save as default").Padding, factory.Padding);
+        window.Close();
+    }
+
 }

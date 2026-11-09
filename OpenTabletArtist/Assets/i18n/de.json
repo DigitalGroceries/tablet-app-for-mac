@@ -431,5 +431,10 @@
   "save.factory.tip": "Setzt alles auf die ursprünglichen Werkseinstellungen zurück. Fragt zuerst nach. Ihr eigener Standard bleibt erhalten.",
   "save.factory.confirm_title": "Werkseinstellungen wiederherstellen?",
   "save.factory.confirm_body": "Ihre aktuellen Einstellungen werden durch die Werkseinstellungen ersetzt. Ihr eigener gespeicherter Standard bleibt erhalten, sodass Sie danach weiterhin „Standard wiederherstellen“ nutzen können.",
-  "save.factory.confirm_action": "Werkseinstellungen wiederherstellen"
+  "save.factory.confirm_action": "Werkseinstellungen wiederherstellen",
+  "save.default.saved": "Als Ihre Standardeinstellung gespeichert",
+  "save.factory.done": "Werkseinstellungen wiederhergestellt",
+  "save.revert_tip": "Live-Einstellungen durch die gespeicherte Treiberdatei ersetzen und ungespeicherte Änderungen verwerfen.",
+  "save.revert_tip_disabled": "Nichts zurückzusetzen — die Live-Einstellungen entsprechen bereits der gespeicherten Treiberdatei.",
+  "save.default.revert_tip_matches": "Entspricht bereits Ihrer gespeicherten Standardeinstellung."
 }

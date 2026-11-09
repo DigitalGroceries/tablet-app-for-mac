@@ -578,6 +578,9 @@
                 <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
             </Style>
+            <Style Selector="^:disabled">
+                <Setter Property="Opacity" Value="0.45" />
+            </Style>
         </ControlTheme>
 
         <!-- IconButton (#616): the GhostButton look at a fixed compact size with a single centred, color-

@@ -33,7 +33,7 @@
             BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="0,1,0,0">
         <Grid ColumnDefinitions="*,Auto">
             <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
-                <TextBlock Text="{Binding SettingsSession.SaveStatusText}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding FooterStatusText}" TextWrapping="Wrap" />
                 <!-- The two notices describe something that already happened and ask for nothing, which
                      is the opposite of what text beside Save usually means. They leave when the artist
                      says so, or when they become history (an edit, a save, a reload, a reconnect). -->
@@ -70,9 +70,9 @@
                  chevron with it, and so does letting its command report it cannot execute; disabling
                  only the primary template part leaves the keyboard and automation paths still firing
                  Save, which Codex reproduced and I confirmed. Independent buttons have none of that. -->
-            <!-- Save / Save as default / Revert to saved / Revert to default, then a quieter
-                 Restore factory settings. Affirmative actions first (#502). Factory is separate
-                 and always asks for confirmation (#22). -->
+            <!-- Save / Save as default / Revert to saved / Revert to default / Restore factory
+                 settings. Affirmative actions first (#502). Factory is a real GhostButton (same hover
+                 as the others) and always asks for confirmation (#22). -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
                         IsVisible="{Binding !SettingsSession.SettingsPaused}"
                         IsEnabled="{Binding !SettingsSession.SettingsBusy}">
@@ -87,16 +87,16 @@
                         ToolTip.Tip="Store the current settings as your own default. They survive a restart, and Revert to default brings them back." />
                 <Button x:Name="RevertButton" Content="Revert to saved" Command="{Binding RevertSettingsCommand}"
                         Theme="{StaticResource GhostButton}" Padding="16,5"
-                        IsEnabled="{Binding SettingsSession.CanEditSettings}"
-                        ToolTip.Tip="Replace live settings with the driver’s saved file, discarding unsaved changes." />
+                        IsEnabled="{Binding CanRevertToSaved}"
+                        ToolTip.Tip="{Binding RevertToSavedTip}" />
                 <Button x:Name="RevertToDefaultButton" Content="Revert to default"
                         Command="{Binding RevertToDefaultCommand}"
                         Theme="{StaticResource GhostButton}" Padding="16,5"
                         IsEnabled="{Binding CanRevertToDefault}"
-                        ToolTip.Tip="Restore your saved default. If you have not saved one, restores the factory settings." />
+                        ToolTip.Tip="{Binding RevertToDefaultTip}" />
                 <Button x:Name="RestoreFactoryButton" Content="Restore factory settings"
                         Command="{Binding RestoreFactorySettingsCommand}"
-                        Theme="{StaticResource LinkButton}" Padding="8,5"
+                        Theme="{StaticResource GhostButton}" Padding="16,5"
                         IsEnabled="{Binding SettingsSession.CanEditSettings}"
                         ToolTip.Tip="Reset everything to the original factory defaults. Asks for confirmation first. Your own saved default is kept." />
             </StackPanel>

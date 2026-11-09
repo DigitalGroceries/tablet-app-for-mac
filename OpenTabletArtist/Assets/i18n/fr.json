@@ -431,5 +431,10 @@
   "save.factory.tip": "Remet tout aux réglages d’usine d’origine. Demande confirmation d’abord. Vos valeurs par défaut enregistrées sont conservées.",
   "save.factory.confirm_title": "Restaurer les réglages d’usine ?",
   "save.factory.confirm_body": "Vos réglages actuels seront remplacés par les réglages d’usine. Vos propres valeurs par défaut enregistrées sont conservées, vous pourrez donc encore utiliser « Rétablir les valeurs par défaut » ensuite.",
-  "save.factory.confirm_action": "Restaurer les réglages d’usine"
+  "save.factory.confirm_action": "Restaurer les réglages d’usine",
+  "save.default.saved": "Enregistré comme valeur par défaut",
+  "save.factory.done": "Réglages d’usine restaurés",
+  "save.revert_tip": "Remplace les réglages en direct par le fichier enregistré du pilote et ignore les modifications non enregistrées.",
+  "save.revert_tip_disabled": "Rien à rétablir — les réglages en direct correspondent déjà au fichier enregistré du pilote.",
+  "save.default.revert_tip_matches": "Correspond déjà à votre valeur par défaut enregistrée."
 }

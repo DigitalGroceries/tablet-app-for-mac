@@ -431,5 +431,10 @@
   "save.factory.tip": "Restablece todo a los ajustes de fábrica originales. Pide confirmación primero. Tu predeterminado guardado se conserva.",
   "save.factory.confirm_title": "¿Restaurar ajustes de fábrica?",
   "save.factory.confirm_body": "Tus ajustes actuales se sustituirán por los de fábrica. Tu propio predeterminado guardado se conserva, así que aún puedes usar «Volver a lo predeterminado» después.",
-  "save.factory.confirm_action": "Restaurar ajustes de fábrica"
+  "save.factory.confirm_action": "Restaurar ajustes de fábrica",
+  "save.default.saved": "Guardado como tu valor predeterminado",
+  "save.factory.done": "Ajustes de fábrica restaurados",
+  "save.revert_tip": "Sustituye los ajustes en vivo por el archivo guardado del controlador y descarta los cambios sin guardar.",
+  "save.revert_tip_disabled": "Nada que revertir: los ajustes en vivo ya coinciden con el archivo guardado del controlador.",
+  "save.default.revert_tip_matches": "Ya coincide con tu valor predeterminado guardado."
 }

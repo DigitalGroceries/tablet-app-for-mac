@@ -431,5 +431,10 @@
   "save.factory.tip": "すべてを工場出荷時の設定に戻します。先に確認します。自分用のデフォルトは残ります。",
   "save.factory.confirm_title": "工場出荷時の設定に戻しますか？",
   "save.factory.confirm_body": "現在の設定は工場出荷時の設定に置き換えられます。自分用のデフォルトは残るので、あとから「デフォルトに戻す」も使えます。",
-  "save.factory.confirm_action": "工場出荷時の設定に戻す"
+  "save.factory.confirm_action": "工場出荷時の設定に戻す",
+  "save.default.saved": "既定として保存しました",
+  "save.factory.done": "工場出荷時の設定に戻しました",
+  "save.revert_tip": "ドライバーの保存済みファイルでライブ設定を置き換え、未保存の変更を破棄します。",
+  "save.revert_tip_disabled": "戻すものはありません。ライブ設定はすでにドライバーの保存済みファイルと一致しています。",
+  "save.default.revert_tip_matches": "すでに保存済みの既定と一致しています。"
 }

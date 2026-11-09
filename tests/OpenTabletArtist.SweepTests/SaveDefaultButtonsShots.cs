@@ -37,6 +37,10 @@ public class SaveDefaultButtonsShots
         public Recording RevertToDefaultCommand { get; } = new();
         public Recording RestoreFactorySettingsCommand { get; } = new();
         public bool CanRevertToDefault => true;
+        public bool CanRevertToSaved => true;
+        public string RevertToSavedTip => "Revert tip";
+        public string RevertToDefaultTip => "Default tip";
+        public string FooterStatusText => SettingsSession.SaveStatusText;
     }
 
     private sealed class SessionState
