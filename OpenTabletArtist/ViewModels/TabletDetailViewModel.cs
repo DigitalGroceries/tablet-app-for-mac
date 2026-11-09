@@ -1350,13 +1350,43 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             TipDoubleClickDistance = display;
             return;
         }
-        // TASKS #15 (Zak, option B): the slider edits the selected profile's own copy (All, an app or a pen).
-        _ = ApplyBindingMutationAsync(b =>
+        PersistDoubleClickFix(display);
+    }
+
+    /// <summary>TASKS #15 (Zak, option B): the slider edits the selected profile's own copy (All, an app or a pen).</summary>
+    private Task PersistDoubleClickFix(int display) =>
+        ApplyBindingMutationAsync(b =>
         {
             b.DoubleClickFix = display;
             b.TipDoubleClickDistance = DoubleClickState.DefaultMoveTolerance;
         });
+
+    /// <summary>Zak 9 Nov: the "Default" label under the Double Click Fix slider is a button. It gives the
+    /// selected profile its own value of 50 (Default), even when it already showed 50 from All.</summary>
+    [RelayCommand]
+    private Task ResetDoubleClickFix()
+    {
+        if (_applyAction == null) return Task.CompletedTask;
+        _skipPenInputPersist = true;
+        try { TipDoubleClickDistance = ClickJitterGate.UiDefault; }
+        finally { _skipPenInputPersist = false; }
+        return PersistDoubleClickFix(ClickJitterGate.UiDefault);
     }
+
+    /// <summary>TASKS #15: show the selected profile's (All, app or extra pen) own Double Click Fix, or All's
+    /// when it has none. Called on load and on every profile switch; never writes anything back.</summary>
+    internal void LoadDoubleClickFixFromSelection()
+    {
+        var was = _skipPenInputPersist;
+        _skipPenInputPersist = true;
+        try { TipDoubleClickDistance = DoubleClickFixDisplay(WorkingBindings(), EditorAllBindings()); }
+        finally { _skipPenInputPersist = was; }
+    }
+
+    /// <summary>TASKS #15: the slider value for a profile's table, with All's table as the fallback.</summary>
+    internal static int DoubleClickFixDisplay(BindingSettings working, BindingSettings all) =>
+        ClickJitterGate.ResolveSavedDisplay(
+            PerAppBindingRuntime.EffectiveDoubleClickFix(working.DoubleClickFix, all.DoubleClickFix));
 
     partial void OnDragBindingsEnabledChanged(bool value)
     {
@@ -1444,10 +1474,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         DisableEraser = PenSwitchBinding.IsOff(bindings.EraserButton);
         DisableTilt = bindings.DisableTilt;
         // TASKS #15: each profile shows its own Double Click Fix; one without its own value shows All's.
-        var allTable = !PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared)
-            && PerAppBindingRuntime.StashedAllBindings(_profile.Tablet ?? "") is { } stashed ? stashed : _profile.BindingSettings;
-        TipDoubleClickDistance = ClickJitterGate.ResolveSavedDisplay(
-            PerAppBindingRuntime.EffectiveDoubleClickFix(bindings.DoubleClickFix, allTable.DoubleClickFix));
+        LoadDoubleClickFixFromSelection();
         DragBindingsEnabled = bindings.EnableDragBindings;
         // The tip is disabled when it has no binding (#493). Derived from the profile so it stays in
         // sync when the tip binding is edited directly on the pen-switch card.

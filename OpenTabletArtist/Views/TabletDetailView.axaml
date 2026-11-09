@@ -1448,7 +1448,25 @@
                                 <!-- Default at 50% (UI 50 = 1.0 mm). -->
                                 <Grid ColumnDefinitions="*,*,*" Margin="0,0,54,0">
                                     <TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" />
-                                    <TextBlock x:Name="PenDoubleClickDefault" Grid.Column="1" Text="Default" FontSize="12" HorizontalAlignment="Center" />
+                                    <!-- Zak 9 Nov: "Default" is a button: one click sets the selected profile to 50. -->
+                                    <Button x:Name="PenDoubleClickDefaultButton" Grid.Column="1" HorizontalAlignment="Center"
+                                            Padding="0" MinHeight="0" MinWidth="0" Background="Transparent" BorderThickness="0"
+                                            Cursor="Hand" Command="{Binding ResetDoubleClickFixCommand}"
+                                            AutomationProperties.Name="Default">
+                                        <Button.Styles>
+                                            <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                <Setter Property="Background" Value="Transparent" />
+                                            </Style>
+                                            <Style Selector="Button:pressed /template/ ContentPresenter">
+                                                <Setter Property="Background" Value="Transparent" />
+                                            </Style>
+                                            <Style Selector="Button:pointerover TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                                                <Setter Property="TextDecorations" Value="Underline" />
+                                            </Style>
+                                        </Button.Styles>
+                                        <TextBlock x:Name="PenDoubleClickDefault" Text="Default" FontSize="12" />
+                                    </Button>
                                     <TextBlock x:Name="PenDoubleClickLarge" Grid.Column="2" Text="Large" FontSize="12" HorizontalAlignment="Right" />
                                 </Grid>
                                 <TextBlock x:Name="PenDoubleClickNote"

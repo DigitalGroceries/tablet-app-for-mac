@@ -54,6 +54,8 @@ public static class PerAppBindingStore
             AppPath = appPath ?? "",
             Bindings = CloneBindings(fromAll),
         };
+        // TASKS #15: a new app follows All's Double Click Fix until the user gives it its own value.
+        profile.Bindings.DoubleClickFix = null;
         list.Add(profile);
         Save(tablet, list);
         return profile;
@@ -77,6 +79,31 @@ public static class PerAppBindingStore
         if (i < 0) return;
         list[i].Bindings = CloneBindings(bindings);
         Save(tablet, list);
+    }
+
+    static string DoubleClickFixMigratedKey(string tablet) => $"DoubleClickFixPerApp:{tablet}";
+
+    /// <summary>TASKS #15: up to Version 25 the Double Click Fix slider only ever wrote All, so the value an
+    /// app or extra pen holds is just a copy of All taken when the app was added or the pen first seen.
+    /// Clear those copies once per tablet, so the app (or pen) follows All until the user gives it its own
+    /// value. Returns true when it ran.</summary>
+    public static bool ClearCopiedDoubleClickFixOnce(string tablet)
+    {
+        if (string.IsNullOrEmpty(tablet) || AppSettings.Get(DoubleClickFixMigratedKey(tablet)) == "1") return false;
+        foreach (var app in List(tablet).Where(a => a.Bindings.DoubleClickFix != null))
+        {
+            var copy = CloneBindings(app.Bindings);
+            copy.DoubleClickFix = null;
+            SaveBindings(tablet, app.BundleId, copy);
+        }
+        foreach (var pen in PerPenStore.List(tablet).Where(p => p.Bindings.DoubleClickFix != null))
+        {
+            var copy = CloneBindings(pen.Bindings);
+            copy.DoubleClickFix = null;
+            PerPenStore.SaveBindings(tablet, pen.Key, copy);
+        }
+        AppSettings.Set(DoubleClickFixMigratedKey(tablet), "1");
+        return true;
     }
 
     /// <summary>Bindings for the frontmost app, or null when All / All-other should apply.</summary>

@@ -77,6 +77,9 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (PenFirm != null) PenFirm.Text = Localizer.T("tablet.pen.firm");
         if (PenDoubleClickDistanceGroup != null) PenDoubleClickDistanceGroup.Header = Localizer.Te("tablet.pen.double_click_distance", "Double Click Fix");
         if (PenDoubleClickDefault != null) PenDoubleClickDefault.Text = Localizer.Te("tablet.pen.double_click_default", "Default");
+        if (PenDoubleClickDefaultButton != null)
+            Avalonia.Automation.AutomationProperties.SetName(PenDoubleClickDefaultButton,
+                Localizer.Te("tablet.pen.double_click_default", "Default"));
         if (PenDoubleClickOff != null) PenDoubleClickOff.Text = Localizer.Te("tablet.pen.double_click_off", "Off");
         if (PenDoubleClickLarge != null) PenDoubleClickLarge.Text = Localizer.Te("tablet.pen.double_click_large", "Large");
         if (PenDoubleClickNote != null) PenDoubleClickNote.Text = Localizer.Te("tablet.pen.double_click_note", "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.");

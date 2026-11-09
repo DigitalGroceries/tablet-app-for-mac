@@ -52,7 +52,12 @@ public partial class TabletDetailViewModel
         if (!string.IsNullOrEmpty(SelectedAppBundleId)
             && PerAppBindingStore.Find(_profile.Tablet ?? "", SelectedAppBundleId!) is { } app)
             return app.Bindings;
-        // #74: while another app's bindings are live, All shows All's own table, not the overlay.
+        return EditorAllBindings();
+    }
+
+    /// <summary>All's own table. #74: while another app's bindings are live, that is the stash, not the overlay.</summary>
+    internal BindingSettings EditorAllBindings()
+    {
         if (!PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared)
             && PerAppBindingRuntime.StashedAllBindings(_profile.Tablet ?? "") is { } all)
             return all;
@@ -67,6 +72,7 @@ public partial class TabletDetailViewModel
         OnPropertyChanged(nameof(HasAppProfiles));
         OnPropertyChanged(nameof(AllAppLabel));
         MigrateLegacyAppRingModes();
+        PerAppBindingStore.ClearCopiedDoubleClickFixOnce(_profile.Tablet ?? "");
         // Keep All bindings stash fresh on first open, but never from a live app overlay (#74).
         if (PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared))
             PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);
@@ -103,6 +109,9 @@ public partial class TabletDetailViewModel
     {
         // Reuse the existing refresh paths; they call WorkingBindings via the patched Effective* helpers.
         RefreshPenSwitchRows();
+        // TASKS #15: the Double Click Fix slider belongs to the selected profile too (it used to keep
+        // showing the previous profile's value, so All and every app looked like one shared value).
+        LoadDoubleClickFixFromSelection();
         // ExpressKeys + wheels are rebuilt inside RefreshFromProfile's binding section — call the
         // narrow pieces we can reach without resetting mapping/dynamics.
         RebuildAuxButtonsFromWorking();

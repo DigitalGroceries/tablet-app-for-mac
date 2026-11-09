@@ -2,6 +2,7 @@ using OpenTabletArtist.Domain;
 using OpenTabletArtist.Services;
 using OpenTabletDriver.Desktop.Profiles;
 using OpenTabletDriver.Desktop.Reflection;
+using OpenTabletArtist.ViewModels;
 using Xunit;
 
 namespace OpenTabletArtist.Tests;
@@ -72,5 +73,66 @@ public class PerAppAllStashTests
         Assert.Equal(50, target.DoubleClickFix);
         PenBindings.Overlay(target, new BindingSettings { DoubleClickFix = 70 });
         Assert.Equal(70, target.DoubleClickFix);
+    }
+}
+
+/// <summary>TASKS #15: per-app / per-pen Double Click Fix storage (Zak, 9 Nov, test build 3).</summary>
+public class DoubleClickFixPerAppStoreTests
+{
+    private static string Tablet => "TestTablet-DcfStore-" + Guid.NewGuid().ToString("N")[..8];
+
+    [Fact]
+    public void ANewApp_FollowsAll_UntilGivenItsOwnValue()
+    {
+        var tablet = Tablet;
+        var app = PerAppBindingStore.Add(tablet, "com.example.app", "App", "", new BindingSettings { DoubleClickFix = 50 });
+        Assert.Null(app.Bindings.DoubleClickFix);
+        Assert.Null(PerAppBindingStore.Find(tablet, "com.example.app")!.Bindings.DoubleClickFix);
+    }
+
+    [Fact]
+    public void AnAppsOwnValue_RoundTripsThroughTheStore_AndBeatsAll()
+    {
+        var tablet = Tablet;
+        PerAppBindingStore.Add(tablet, "com.example.app", "App", "", new BindingSettings { DoubleClickFix = 50 });
+        var copy = PerAppBindingStore.CloneBindings(PerAppBindingStore.Find(tablet, "com.example.app")!.Bindings);
+        copy.DoubleClickFix = 80;
+        PerAppBindingStore.SaveBindings(tablet, "com.example.app", copy);
+        PerAppBindingRuntime.SyncAllBindings(tablet, new BindingSettings { DoubleClickFix = 50 });
+
+        var app = PerAppBindingStore.Find(tablet, "com.example.app")!.Bindings;
+        var all = PerAppBindingRuntime.StashedAllBindings(tablet)!;
+        Assert.Equal(80, TabletDetailViewModel.DoubleClickFixDisplay(app, all));
+        Assert.Equal(50, TabletDetailViewModel.DoubleClickFixDisplay(all, all));
+        Assert.Equal(80, PerAppBindingRuntime.EffectiveDoubleClickFix(app.DoubleClickFix, all.DoubleClickFix));
+    }
+
+    [Fact]
+    public void CopiedValues_AreClearedOnce_LaterOwnValuesStay()
+    {
+        var tablet = Tablet;
+        PerAppBindingStore.Add(tablet, "com.example.app", "App", "", new BindingSettings());
+        var copy = PerAppBindingStore.CloneBindings(PerAppBindingStore.Find(tablet, "com.example.app")!.Bindings);
+        copy.DoubleClickFix = 50;   // what Version 25 and earlier copied from All
+        PerAppBindingStore.SaveBindings(tablet, "com.example.app", copy);
+
+        Assert.True(PerAppBindingStore.ClearCopiedDoubleClickFixOnce(tablet));
+        Assert.Null(PerAppBindingStore.Find(tablet, "com.example.app")!.Bindings.DoubleClickFix);
+
+        copy.DoubleClickFix = 70;   // the user's own value, after the migration
+        PerAppBindingStore.SaveBindings(tablet, "com.example.app", copy);
+        Assert.False(PerAppBindingStore.ClearCopiedDoubleClickFixOnce(tablet));
+        Assert.Equal(70, PerAppBindingStore.Find(tablet, "com.example.app")!.Bindings.DoubleClickFix);
+    }
+
+    [Fact]
+    public void ANewExtraPen_KeepsTheAppsOrAllsValue()
+    {
+        var tablet = Tablet;
+        var main = new BindingSettings { DoubleClickFix = 50 };
+        PerPenStore.Seen(tablet, new PenToolSignal(1, 0x802, false), main, out _);
+        PerPenStore.Seen(tablet, new PenToolSignal(2, 0x802, false), main, out var added);
+        Assert.NotNull(added);
+        Assert.Null(added!.Bindings.DoubleClickFix);
     }
 }
