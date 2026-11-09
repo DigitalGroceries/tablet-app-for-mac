@@ -92,9 +92,9 @@ public sealed class PerAppBindingRuntime : IDisposable
     /// <summary>Apply the current target again even if it hasn't changed (its saved settings did).</summary>
     public void Reapply()
     {
-        // Only a live pen overlay needs it. Without an overlay the All stash may be older than the profile,
-        // and re-applying would put that old All back.
-        _reapply = _appliedPenKey != null;
+        // Only a live app or pen overlay needs it. Without an overlay the All stash may be older than the
+        // profile, and re-applying would put that old All back.
+        _reapply = OverlayLive;
         Kick();
     }
 

@@ -1379,14 +1379,28 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         var was = _skipPenInputPersist;
         _skipPenInputPersist = true;
-        try { TipDoubleClickDistance = DoubleClickFixDisplay(WorkingBindings(), EditorAllBindings()); }
+        try { TipDoubleClickDistance = DoubleClickFixDisplay(WorkingBindings(), DoubleClickFixFallback()); }
         finally { _skipPenInputPersist = was; }
+    }
+
+    /// <summary>What a profile without its own Double Click Fix uses, as the runtime resolves it: an extra
+    /// pen falls back to the selected app (then All), an app falls back to All.</summary>
+    private int? DoubleClickFixFallback()
+    {
+        var all = EditorAllBindings().DoubleClickFix;
+        if (!string.IsNullOrEmpty(SelectedPenKey) && !string.IsNullOrEmpty(SelectedAppBundleId)
+            && PerAppBindingStore.Find(_profile.Tablet ?? "", SelectedAppBundleId!) is { } app)
+            return PerAppBindingRuntime.EffectiveDoubleClickFix(app.Bindings.DoubleClickFix, all);
+        return all;
     }
 
     /// <summary>TASKS #15: the slider value for a profile's table, with All's table as the fallback.</summary>
     internal static int DoubleClickFixDisplay(BindingSettings working, BindingSettings all) =>
-        ClickJitterGate.ResolveSavedDisplay(
-            PerAppBindingRuntime.EffectiveDoubleClickFix(working.DoubleClickFix, all.DoubleClickFix));
+        DoubleClickFixDisplay(working, all.DoubleClickFix);
+
+    /// <summary>TASKS #15: the slider value for a profile's table, with <paramref name="fallback"/> when it has none.</summary>
+    internal static int DoubleClickFixDisplay(BindingSettings working, int? fallback) =>
+        ClickJitterGate.ResolveSavedDisplay(PerAppBindingRuntime.EffectiveDoubleClickFix(working.DoubleClickFix, fallback));
 
     partial void OnDragBindingsEnabledChanged(bool value)
     {

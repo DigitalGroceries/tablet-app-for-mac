@@ -72,7 +72,9 @@ public partial class TabletDetailViewModel
         OnPropertyChanged(nameof(HasAppProfiles));
         OnPropertyChanged(nameof(AllAppLabel));
         MigrateLegacyAppRingModes();
-        PerAppBindingStore.ClearCopiedDoubleClickFixOnce(_profile.Tablet ?? "");
+        // The cleared copies may be live already (an app or extra pen overlay), so put them on again.
+        if (PerAppBindingStore.ClearCopiedDoubleClickFixOnce(_profile.Tablet ?? ""))
+            PerAppBindingRuntime.Shared?.Reapply();
         // Keep All bindings stash fresh on first open, but never from a live app overlay (#74).
         if (PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared))
             PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);

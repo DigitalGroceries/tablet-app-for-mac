@@ -141,4 +141,23 @@ public class DoubleClickFixPerAppTests
         await Settle();
         Assert.Equal(50, settings.Profiles[0].BindingSettings.DoubleClickFix);
     }
+
+    [AvaloniaFact]
+    public async Task AnExtraPenWithoutItsOwnValue_ShowsTheSelectedAppsValue()
+    {
+        var tablet = NewTablet();
+        var settings = SettingsFor(tablet, 50);
+        PerAppBindingStore.Add(tablet, Affinity, "Affinity", "", settings.Profiles[0].BindingSettings);
+        PerPenStore.Seen(tablet, new OpenTabletArtist.Domain.PenToolSignal(1, 0x802, false), settings.Profiles[0].BindingSettings, out _);
+        PerPenStore.Seen(tablet, new OpenTabletArtist.Domain.PenToolSignal(2, 0x802, false), settings.Profiles[0].BindingSettings, out var pen);
+        var vm = Editor(settings);
+
+        vm.SelectedAppBundleId = Affinity;
+        vm.TipDoubleClickDistance = 80;
+        await Settle();
+        vm.SelectedPenKey = pen!.Key;
+        Assert.Equal(80, vm.TipDoubleClickDistance);   // the runtime keeps the app's value for this pen
+        vm.SelectedAppBundleId = null;
+        Assert.Equal(50, vm.TipDoubleClickDistance);   // ... and All's on All
+    }
 }
