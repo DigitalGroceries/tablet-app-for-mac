@@ -173,7 +173,9 @@ public static class Localizer
         catch (Exception ex)
         {
             // Warn once per language: before Avalonia starts, EnsureLoaded retries on every lookup.
-            if (Warned.Add(code)) AppLog.Warn($"Localizer: couldn't load {code}.json", ex);
+            bool first;
+            lock (Warned) first = Warned.Add(code);   // unit tests look labels up from several threads
+            if (first) AppLog.Warn($"Localizer: couldn't load {code}.json", ex);
             return null;
         }
     }
