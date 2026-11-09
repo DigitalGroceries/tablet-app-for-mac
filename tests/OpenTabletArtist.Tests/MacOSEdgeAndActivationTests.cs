@@ -100,4 +100,25 @@ public class MacOSEdgeAndActivationTests
         Assert.Equal(Safari, MacOSWindowPick.Pick(new List<W> { clear, empty, Safari }, new Vector2(200, 200), new[] { Main }));
         Assert.Null(MacOSWindowPick.Pick(new List<W> { Safari }, new Vector2(5, 5), new[] { Main }));
     }
+
+    static readonly W ServerShield = new(458, MacOSWindowPick.WindowServerName, 2147483630, 0, 0, 1512, 982);
+    static readonly W ServerMenuBar = new(458, MacOSWindowPick.WindowServerName, 24, 0, 0, 1512, 33);
+
+    [Fact]
+    public void A_full_screen_Window_Server_window_is_skipped_issue_73()
+    {
+        var list = new List<W> { ServerShield, Safari, Mail, Desktop };
+        Assert.Equal(Safari, MacOSWindowPick.Pick(list, new Vector2(200, 200), new[] { Main }));
+        Assert.Equal(Desktop, MacOSWindowPick.Pick(list, new Vector2(1400, 900), new[] { Main }));
+    }
+
+    [Fact]
+    public void A_small_Window_Server_window_still_stops_the_search_issue_73()
+    {
+        // A tap on the menu bar must not activate the app behind it.
+        var list = new List<W> { ServerMenuBar, Desktop };
+        Assert.Equal(ServerMenuBar, MacOSWindowPick.Pick(list, new Vector2(5, 5), new[] { Main }));
+        // Without display bounds nothing tells a full-screen window from a small one: keep it.
+        Assert.Equal(ServerShield, MacOSWindowPick.Pick(new List<W> { ServerShield, Safari }, new Vector2(200, 200)));
+    }
 }
