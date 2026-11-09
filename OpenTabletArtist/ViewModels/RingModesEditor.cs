@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
 
 namespace OpenTabletArtist.ViewModels;
 
@@ -294,22 +295,66 @@ public partial class RingModeRow : ObservableObject
         _ => RingMode.SpeedOfDegrees(_step),
     };
 
-    public string SpeedHint => Action switch
+    /// <summary>Zak 9 Nov: what turning the ring does in this mode and where it works, in one or two plain
+    /// sentences. The app-specific tip is the separate <see cref="ModeSetup"/> line.</summary>
+    public string ModeNote => Action switch
     {
-        RingAction.SmoothHardness => "Photoshop: Control + Option + vertical drag. Needs Preferences › Tools › \"Vary Round Brush Hardness based on HUD vertical movement\"; without it the drag changes opacity. Round brushes only.",
-        RingAction.SmoothSize => "Photoshop: Control + Option + horizontal drag. Needs a brush tool and Use Graphics Processor.",
-        RingAction.SmoothRotate => "Photoshop: holds R and drags (Rotate View). Affinity: ⌘ + scroll wheel; turn on \"Enable canvas rotation with ⌘+scroll wheel\" in Affinity's Settings › Tools.",
-        RingAction.SmoothZoom => "Photoshop and Affinity: Option + scroll wheel. If Photoshop pans instead, untick \"Zoom with Scroll Wheel\" in Photoshop's Settings › Tools, or use Keystroke… with ⌘= / ⌘−.",
-        RingAction.Keys => $"Sends the keys below once every {FormatDegrees(_step < 5 ? 5 : _step)}° of turn.",
+        RingAction.SmoothRotate => Localizer.Te("tablet.ring.note.rotate",
+            "Turn the ring to rotate the canvas smoothly (experimental). Works in Photoshop and Affinity. Other apps get this mode's keys instead."),
+        RingAction.SmoothZoom => Localizer.Te("tablet.ring.note.zoom",
+            "Turn the ring to zoom in and out smoothly (experimental). Works in Photoshop and Affinity. Other apps get this mode's keys instead."),
+        RingAction.SmoothSize => Localizer.Te("tablet.ring.note.size",
+            "Turn the ring to make the brush bigger or smaller smoothly (experimental). Works in Photoshop only. Other apps get this mode's keys instead."),
+        RingAction.SmoothHardness => Localizer.Te("tablet.ring.note.hardness",
+            "Turn the ring to make the brush harder or softer smoothly (experimental). Works in Photoshop only, with round brushes. Other apps get this mode's keys instead."),
+        RingAction.Keys => KeysNote(),
         _ => "",
     };
+
+    /// <summary>Zak 9 Nov: the app setting a smooth mode needs, on its own "Setup:" line. Empty for keys.</summary>
+    public string ModeSetup => Action switch
+    {
+        RingAction.SmoothRotate => Localizer.Te("tablet.ring.setup.rotate",
+            "Setup: in Affinity, turn on \"Enable canvas rotation with ⌘+scroll wheel\" in Settings › Tools. Photoshop needs no setup."),
+        RingAction.SmoothZoom => Localizer.Te("tablet.ring.setup.zoom",
+            "Setup: if Photoshop moves the picture up and down instead of zooming, untick \"Zoom with Scroll Wheel\" in Photoshop's Settings › Tools. Or choose Keystroke… and use ⌘= and ⌘−."),
+        RingAction.SmoothSize => Localizer.Te("tablet.ring.setup.size",
+            "Setup: in Photoshop, pick a brush tool and turn on \"Use Graphics Processor\" in Settings › Performance."),
+        RingAction.SmoothHardness => Localizer.Te("tablet.ring.setup.hardness",
+            "Setup: in Photoshop, turn on \"Vary Round Brush Hardness based on HUD vertical movement\" in Settings › Tools. Without it, the ring changes opacity instead."),
+        _ => "",
+    };
+
+    public bool HasModeSetup => ModeSetup.Length > 0;
+
+    /// <summary>The Function menu's tooltip: how a smooth mode does its job, for anyone who wants the detail.</summary>
+    public string ModeHow => Action switch
+    {
+        RingAction.SmoothRotate => "How it works: in Photoshop the app holds R and drags (Rotate View); in Affinity it sends ⌘ + scroll wheel. " + HeldKeys,
+        RingAction.SmoothZoom => "How it works: the app sends Option + scroll wheel. " + HeldKeys,
+        RingAction.SmoothSize => "How it works: in Photoshop the app holds Control + Option and drags sideways. " + HeldKeys,
+        RingAction.SmoothHardness => "How it works: in Photoshop the app holds Control + Option and drags up and down. " + HeldKeys,
+        _ => "Smooth actions work in Photoshop (zoom and rotate also in Affinity) while the pointer is over its window. In other apps, a mode sends its keys.",
+    };
+
+    private const string HeldKeys = "Any keys it holds are let go 0.3 s after the ring stops (3 s at most).";
+
+    private string KeysNote()
+    {
+        var degrees = FormatDegrees(_step < 5 ? 5 : _step);
+        var t = Localizer.Tf("tablet.ring.note.keys", ("degrees", degrees));
+        return t == "tablet.ring.note.keys" ? $"Turning the ring sends the keys below, once every {degrees}°." : t;
+    }
 
     private void RefreshSpeed()
     {
         var v = Speed;
         SetQuietly(() => { SpeedText = v.ToString(System.Globalization.CultureInfo.InvariantCulture); SpeedSlider = v; });
         OnPropertyChanged(nameof(Speed));
-        OnPropertyChanged(nameof(SpeedHint));
+        OnPropertyChanged(nameof(ModeNote));
+        OnPropertyChanged(nameof(ModeSetup));
+        OnPropertyChanged(nameof(HasModeSetup));
+        OnPropertyChanged(nameof(ModeHow));
     }
 
     public static bool TryParseSpeed(string? text, out int speed)

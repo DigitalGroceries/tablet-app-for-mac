@@ -987,12 +987,13 @@
         <!-- Buttons tab: the tablet's auxiliary (express-key) buttons. -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
                       IsVisible="{Binding #ButtonsTab.IsChecked}">
-            <!-- Definite-width blocks in a WrapPanel, the layout the rest of the app uses: the list
-                 stops stretching the full window (which put a row's "…" most of a screen from the label
-                 it acts on) and the about column gets to sit beside it, dropping underneath when the
-                 window is too narrow for both. -->
-            <WrapPanel ItemSpacing="32" LineSpacing="28">
-            <StackPanel Width="600">
+            <!-- The key list keeps a definite width (so a row's "…" stays near its label), and the About
+                 text fills the rest of the page beside it, capped at a readable line length (about 70
+                 characters). Zak 9 Nov: the old 300 px About column sat squeezed in a corner, or dropped
+                 under the list, while half the page stayed empty. When the window is too narrow for both,
+                 the code-behind (LayoutExpressKeysPage) moves About under the list at the list's width. -->
+            <Grid x:Name="ExpressKeysPage" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="40" RowSpacing="28">
+            <StackPanel x:Name="ExpressKeysList" Width="600">
                 <!-- Just the master enable toggle. There is no heading: the tab is already called
                      "buttons" in 40 px an inch above, and "TABLET BUTTONS" only said it again in small
                      caps — the about tab's headings name SECTIONS within a tab, which this single list
@@ -1009,7 +1010,7 @@
                                Foreground="{DynamicResource TextSecondaryBrush}" />
                     <ToggleSwitch IsChecked="{Binding AuxButtonsEnabled}" OnContent="" OffContent=""
                                   MinWidth="0" VerticalAlignment="Center"
-                                  ToolTip.Tip="Turn all express keys on or off. Your mappings are kept and restored when you turn them back on." />
+                                  ToolTip.Tip="Turn all ExpressKeys on or off. Your settings are kept." />
                 </StackPanel>
 
                 <!-- Two columns of cards so a dozen keys stay on one screen; the shared card template
@@ -1048,23 +1049,28 @@
             </StackPanel>
 
             <!-- What express keys are, for anyone who opened this tab unsure. Hidden when the tablet has
-                 none: explaining keys you do not have is noise. -->
-            <StackPanel Width="300" VerticalAlignment="Top" IsVisible="{Binding !NoAuxButtons}">
+                 none: explaining keys you do not have is noise. Zak 9 Nov: plain, short sentences. -->
+            <StackPanel x:Name="AboutExpressKeys" Grid.Column="1" MaxWidth="520" HorizontalAlignment="Left"
+                        VerticalAlignment="Top" IsVisible="{Binding !NoAuxButtons}">
                 <TextBlock x:Name="LblAboutExpressKeys" Classes="Display section" Text="About ExpressKeys" Margin="0,0,0,8" />
                 <TextBlock x:Name="LblPerAppBindingsNote" IsVisible="{Binding ShowPerAppBindingsOnlyNote}"
                            TextWrapping="Wrap" Margin="0,0,0,8" Opacity="0.85" />
                 <StackPanel Spacing="10">
                     <TextBlock x:Name="LblExpressKeysBody" TextWrapping="Wrap"
-                               Text="The keys on the tablet itself, not on the pen. Each one can hold a keyboard shortcut, a mouse button or a scroll, and they belong to this tablet's profile." />
+                               Text="ExpressKeys are the buttons on your tablet (not the ones on your pen)." />
+                    <TextBlock x:Name="LblExpressKeysChoose" TextWrapping="Wrap"
+                               Text="Click ••• next to a key to choose what it does: a keyboard shortcut, a mouse click or scrolling." />
                     <!-- The live highlight is the answer to "which key is Button 3?", and nothing on the
                          tab said it was there. Saying so is the cheapest version of that fix. -->
                     <TextBlock x:Name="LblExpressKeysPress" TextWrapping="Wrap"
-                               Text="Press a key on the tablet to light its row here." />
+                               Text="Press a key on your tablet to see which row it is." />
                     <TextBlock x:Name="LblExpressKeysEnableNote" TextWrapping="Wrap"
-                               Text="Enable buttons switches every key off without deleting anything, for when one sits where your hand rests. Turn it back on and your mappings return." />
+                               Text="Turn off Enable buttons to stop all the keys working, for example if your hand keeps pressing one by accident. Your settings are kept, and the keys work again when you turn it back on." />
+                    <TextBlock x:Name="LblExpressKeysPerApp" TextWrapping="Wrap"
+                               Text="Your key settings are saved for this tablet. Each application can have its own: pick it in the Application row above." />
                 </StackPanel>
             </StackPanel>
-            </WrapPanel>
+            </Grid>
         </ScrollViewer>
 
         <!-- Wheels tab: per-wheel rotation bindings (CW/CCW) + sensitivity + wheel buttons. Reuses the
@@ -1285,12 +1291,13 @@
             <StackPanel x:Name="AboutTouchRing" Width="340" HorizontalAlignment="Right" VerticalAlignment="Top">
                 <TextBlock x:Name="LblAboutTouchRing" Classes="Display section" Text="About the touch ring" Margin="0,0,0,8" />
                 <StackPanel Spacing="10">
-                    <TextBlock TextWrapping="Wrap"
-                               Text="Clockwise and anticlockwise turns can have different actions, and the centre button can have its own." />
-                    <TextBlock TextWrapping="Wrap"
-                               Text="The dial on screen follows the ring live, so you can check it&apos;s working before you set anything up." />
-                    <TextBlock TextWrapping="Wrap"
-                               Text="Turning off Enable wheels pauses all ring actions without deleting them." />
+                    <!-- Zak 9 Nov: plain, short sentences. -->
+                    <TextBlock x:Name="LblRingAboutTurns" TextWrapping="Wrap"
+                               Text="Clockwise and anticlockwise turns can do different things. So can the centre button." />
+                    <TextBlock x:Name="LblRingAboutDial" TextWrapping="Wrap"
+                               Text="The ring picture on screen moves when you touch the ring, so you can check that it works." />
+                    <TextBlock x:Name="LblRingAboutEnable" TextWrapping="Wrap"
+                               Text="Turn off Enable wheels to pause the ring. Your settings are kept." />
                 </StackPanel>
             </StackPanel>
             </Grid>

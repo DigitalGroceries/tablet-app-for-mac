@@ -264,11 +264,11 @@ public sealed class PerAppBindingRuntime : IDisposable
         return _settings.CurrentSettings?.Profiles.FirstOrDefault(p => p.Tablet == tablet)?.BindingSettings;
     }
 
-    /// <summary>Persist the All binding table whenever the user edits All (so focus-restore is accurate
-    /// even if the workspace draft briefly held an overlay).</summary>
     /// <summary>TASKS #15: a profile's own Double Click Fix, or All's when it has none.</summary>
     internal static int? EffectiveDoubleClickFix(int? own, int? all) => own ?? all;
 
+    /// <summary>Persist the All binding table whenever the user edits All (so focus-restore is accurate
+    /// even if the workspace draft briefly held an overlay).</summary>
     public static void SyncAllBindings(string tablet, BindingSettings bindings) =>
         AppSettings.Set(AllBindingsKey(tablet),
             Newtonsoft.Json.JsonConvert.SerializeObject(PerAppBindingStore.CloneBindings(bindings)));
