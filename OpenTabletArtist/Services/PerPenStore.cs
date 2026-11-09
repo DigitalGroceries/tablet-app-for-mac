@@ -72,6 +72,8 @@ public static class PerPenStore
             DisplayName = PenBindings.UniqueName(pen.RawToolId, list.Select(p => p.DisplayName)),
             Bindings = PerAppBindingStore.CloneBindings(mainPenBindings),
         };
+        // TASKS #15: a new pen keeps the app's / All's Double Click Fix until it is given its own.
+        added.Bindings.DoubleClickFix = null;
         list.Add(added);
         Save(tablet, list);
         return SeenResult.Added;

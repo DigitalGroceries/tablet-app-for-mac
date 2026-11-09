@@ -45,6 +45,9 @@ public sealed class PerAppBindingRuntime : IDisposable
     /// <summary>Version 14: the extra pen whose settings are on the daemon, or null for the main pen.</summary>
     public string? AppliedPenKey => _appliedPenKey;
 
+    /// <summary>True while an app's or extra pen's bindings (not All) are on the daemon and in the workspace.</summary>
+    public bool OverlayLive => _appliedBundleId != null || _appliedPenKey != null;
+
     /// <summary>Version 14: the last pen that came near the tablet (from the pen-dynamics plugin).</summary>
     public PenToolSignal? LastPen { get; private set; }
 
@@ -84,6 +87,17 @@ public sealed class PerAppBindingRuntime : IDisposable
     /// <summary>Re-evaluate now (e.g. after the user edits a listed app's bindings).</summary>
     public void Kick() => _ = TickAsync();
 
+    private bool _reapply;
+
+    /// <summary>Apply the current target again even if it hasn't changed (its saved settings did).</summary>
+    public void Reapply()
+    {
+        // Only a live app or pen overlay needs it. Without an overlay the All stash may be older than the
+        // profile, and re-applying would put that old All back.
+        _reapply = OverlayLive;
+        Kick();
+    }
+
     private async Task TickAsync()
     {
         if (_busy || _disposed || !OperatingSystem.IsMacOS()) return;
@@ -104,7 +118,7 @@ public sealed class PerAppBindingRuntime : IDisposable
 
         if (string.Equals(target, _appliedBundleId, StringComparison.OrdinalIgnoreCase)
             && _pendingBundleId == null
-            && penTarget == _appliedPenKey && !_penPending)
+            && penTarget == _appliedPenKey && !_penPending && !_reapply)
             return;
 
         // Defer while the tip is down so we don't SetSettings mid-stroke.
@@ -119,6 +133,7 @@ public sealed class PerAppBindingRuntime : IDisposable
         _pendingBundleId = null;
         _pendingPenKey = null;
         _penPending = false;
+        _reapply = false;
         await ApplyTargetAsync(target, penTarget).ConfigureAwait(true);
     }
 
@@ -161,6 +176,10 @@ public sealed class PerAppBindingRuntime : IDisposable
             var profile = clone.Profiles.FirstOrDefault(p => p.Tablet == tablet);
             if (profile is null) return;
 
+            // #74: the workspace still holds All here, so stash it before the first overlay replaces it.
+            if (ShouldStashAllBeforeApply(_appliedBundleId, _appliedPenKey, bundleId, penKey))
+                SyncAllBindings(tablet, profile.BindingSettings);
+
             // The clone currently may already hold a previous overlay. Rebuild BindingSettings from
             // the store / the All values we keep in sync via the editor (see SyncAllBindings).
             BindingSettings bindings;
@@ -183,6 +202,9 @@ public sealed class PerAppBindingRuntime : IDisposable
                 var app = PerAppBindingStore.Find(tablet, bundleId);
                 if (app is null) return;
                 bindings = PerAppBindingStore.CloneBindings(app.Bindings);
+                // TASKS #15 (Zak, option B): Double Click Fix is per app; an app without its own value uses All's.
+                bindings.DoubleClickFix = EffectiveDoubleClickFix(bindings.DoubleClickFix,
+                    StashedAllBindings(tablet)?.DoubleClickFix ?? profile.BindingSettings.DoubleClickFix);
             }
 
             // Version 14: an extra pen's own tip / eraser / side-button settings win over All and the app.
@@ -209,6 +231,24 @@ public sealed class PerAppBindingRuntime : IDisposable
 
     public static string AllBindingsKey(string tablet) => $"PerAppAllBindings:{tablet}";
 
+    /// <summary>#74: going from All to an app or extra pen. The workspace holds All only at that moment.</summary>
+    internal static bool ShouldStashAllBeforeApply(string? appliedBundleId, string? appliedPenKey,
+        string? targetBundleId, string? targetPenKey) =>
+        appliedBundleId == null && appliedPenKey == null && (targetBundleId != null || targetPenKey != null);
+
+    /// <summary>#74: the editor may copy its profile into the All stash only when no overlay is live,
+    /// otherwise it would store the front app's bindings as All (e.g. Finder's Left click at launch).</summary>
+    internal static bool EditorProfileIsAll(PerAppBindingRuntime? runtime) => runtime?.OverlayLive != true;
+
+    /// <summary>The stashed All binding table, or null when none is stored or it can't be read.</summary>
+    internal static BindingSettings? StashedAllBindings(string tablet)
+    {
+        var allJson = AppSettings.Get(AllBindingsKey(tablet));
+        if (string.IsNullOrEmpty(allJson)) return null;
+        try { return Newtonsoft.Json.JsonConvert.DeserializeObject<BindingSettings>(allJson); }
+        catch { return null; }
+    }
+
     /// <summary>The All binding table (kept in sync by the editor), else the live profile's.</summary>
     private BindingSettings? AllBindings(string tablet)
     {
@@ -223,6 +263,9 @@ public sealed class PerAppBindingRuntime : IDisposable
         }
         return _settings.CurrentSettings?.Profiles.FirstOrDefault(p => p.Tablet == tablet)?.BindingSettings;
     }
+
+    /// <summary>TASKS #15: a profile's own Double Click Fix, or All's when it has none.</summary>
+    internal static int? EffectiveDoubleClickFix(int? own, int? all) => own ?? all;
 
     /// <summary>Persist the All binding table whenever the user edits All (so focus-restore is accurate
     /// even if the workspace draft briefly held an overlay).</summary>

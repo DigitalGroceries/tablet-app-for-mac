@@ -41,6 +41,7 @@ public static class Localizer
     static string _resolved = "en";
     static string _preference = SystemCode;
     static bool _loaded;
+    static readonly HashSet<string> Warned = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Raised after a language change so views/view-models can refresh bound text.</summary>
     public static event Action? LanguageChanged;
@@ -54,10 +55,29 @@ public static class Localizer
     public static void EnsureLoaded()
     {
         if (_loaded) return;
+        var en = LoadTable("en");
+        // #74 CI: before Avalonia starts (a plain unit test, or a domain label read very early) the asset
+        // loader isn't there yet. Don't mark the tables loaded then, or every later lookup returns raw keys
+        // such as "update.downloading". Try again on the next call. Once the app runs, a missing en.json is
+        // a broken build: stop retrying.
+        if (en == null && Avalonia.Application.Current == null) return;
         _loaded = true;
-        _en = LoadTable("en") ?? new Dictionary<string, string>(StringComparer.Ordinal);
+        _en = en ?? new Dictionary<string, string>(StringComparer.Ordinal);
         _preference = AppSettings.Get(PreferenceKey) ?? SystemCode;
         ApplyPreference(_preference, raise: false);
+    }
+
+    /// <summary>True once the string tables were read (tests only).</summary>
+    internal static bool IsLoaded => _loaded;
+
+    /// <summary>Forget the loaded tables so the next lookup reads them again (tests only).</summary>
+    internal static void ResetForTests()
+    {
+        _loaded = false;
+        _en = new Dictionary<string, string>(StringComparer.Ordinal);
+        _cur = _en;
+        _resolved = "en";
+        _preference = SystemCode;
     }
 
     /// <summary>Sets and persists the preference, then reloads strings. Pass "system" or a code from
@@ -152,7 +172,10 @@ public static class Localizer
         }
         catch (Exception ex)
         {
-            AppLog.Warn($"Localizer: couldn't load {code}.json", ex);
+            // Warn once per language: before Avalonia starts, EnsureLoaded retries on every lookup.
+            bool first;
+            lock (Warned) first = Warned.Add(code);   // unit tests look labels up from several threads
+            if (first) AppLog.Warn($"Localizer: couldn't load {code}.json", ex);
             return null;
         }
     }

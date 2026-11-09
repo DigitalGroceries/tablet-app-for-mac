@@ -37,7 +37,7 @@ public static class PenBindings
         target.TipButton = pen.TipButton;
         target.TipActivationThreshold = pen.TipActivationThreshold;
         target.TipDoubleClickDistance = pen.TipDoubleClickDistance;
-        target.DoubleClickFix = pen.DoubleClickFix;
+        target.DoubleClickFix = pen.DoubleClickFix ?? target.DoubleClickFix;   // TASKS #15: no own value = keep the app's/All's
         target.EraserButton = pen.EraserButton;
         target.EraserActivationThreshold = pen.EraserActivationThreshold;
         target.PenButtons = pen.PenButtons;
