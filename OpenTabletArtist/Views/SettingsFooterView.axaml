@@ -70,6 +70,9 @@
                  chevron with it, and so does letting its command report it cannot execute; disabling
                  only the primary template part leaves the keyboard and automation paths still firing
                  Save, which Codex reproduced and I confirmed. Independent buttons have none of that. -->
+            <!-- Save / Save as default / Revert to saved / Revert to default, then a quieter
+                 Restore factory settings. Affirmative actions first (#502). Factory is separate
+                 and always asks for confirmation (#22). -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
                         IsVisible="{Binding !SettingsSession.SettingsPaused}"
                         IsEnabled="{Binding !SettingsSession.SettingsBusy}">
@@ -77,10 +80,25 @@
                         Classes="save" Classes.unsaved="{Binding SettingsSession.HasUnsavedChanges}"
                         Theme="{StaticResource AccentButton}" Padding="22,5"
                         IsEnabled="{Binding SettingsSession.CanEditSettings}" />
+                <Button x:Name="SaveAsDefaultButton" Content="Save as default"
+                        Command="{Binding SaveAsDefaultCommand}"
+                        Theme="{StaticResource GhostButton}" Padding="16,5"
+                        IsEnabled="{Binding SettingsSession.CanEditSettings}"
+                        ToolTip.Tip="Store the current settings as your own default. They survive a restart, and Revert to default brings them back." />
                 <Button x:Name="RevertButton" Content="Revert to saved" Command="{Binding RevertSettingsCommand}"
                         Theme="{StaticResource GhostButton}" Padding="16,5"
                         IsEnabled="{Binding SettingsSession.CanEditSettings}"
                         ToolTip.Tip="Replace live settings with the driver’s saved file, discarding unsaved changes." />
+                <Button x:Name="RevertToDefaultButton" Content="Revert to default"
+                        Command="{Binding RevertToDefaultCommand}"
+                        Theme="{StaticResource GhostButton}" Padding="16,5"
+                        IsEnabled="{Binding CanRevertToDefault}"
+                        ToolTip.Tip="Restore your saved default. If you have not saved one, restores the factory settings." />
+                <Button x:Name="RestoreFactoryButton" Content="Restore factory settings"
+                        Command="{Binding RestoreFactorySettingsCommand}"
+                        Theme="{StaticResource LinkButton}" Padding="8,5"
+                        IsEnabled="{Binding SettingsSession.CanEditSettings}"
+                        ToolTip.Tip="Reset everything to the original factory defaults. Asks for confirmation first. Your own saved default is kept." />
             </StackPanel>
         </Grid>
     </Border>

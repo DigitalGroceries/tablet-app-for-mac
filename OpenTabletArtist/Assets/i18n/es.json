@@ -417,5 +417,18 @@
   "binding.mouse.right": "Clic derecho",
   "binding.mouse.middle": "Clic central",
   "binding.mouse.back": "Botón Atrás",
-  "binding.mouse.forward": "Botón Adelante"
+  "binding.mouse.forward": "Botón Adelante",
+  "save.default.button": "Guardar como predeterminado",
+  "save.default.tip": "Guarda los ajustes actuales como tu propio predeterminado. Se conservan al reiniciar, y «Revertir al predeterminado» los recupera.",
+  "save.default.revert": "Revertir al predeterminado",
+  "save.default.revert_tip": "Restaura tu predeterminado guardado. Si aún no has guardado uno, restaura los ajustes de fábrica.",
+  "save.default.revert_tip_no_user": "Aún no has guardado tu propio predeterminado. Esto restaura los ajustes de fábrica.",
+  "save.default.revert_confirm_title": "¿Revertir al predeterminado?",
+  "save.default.revert_confirm_body": "Esto sustituye los ajustes actuales por tu predeterminado guardado (o los de fábrica si no has guardado uno) y los guarda. Se perderán los cambios sin guardar.",
+  "save.default.failed_title": "No se pudo guardar como predeterminado",
+  "save.default.failed_body": "No se pudieron guardar los ajustes actuales como predeterminado. Inténtalo de nuevo después de Guardar.",
+  "save.factory.button": "Restaurar ajustes de fábrica",
+  "save.factory.tip": "Restablece todo a los ajustes de fábrica originales. Pide confirmación primero. Tu predeterminado guardado se conserva.",
+  "save.factory.confirm_title": "¿Restaurar ajustes de fábrica?",
+  "save.factory.confirm_body": "Esto sustituye tus ajustes actuales por los de fábrica originales y los guarda. Tu predeterminado (si lo hay) se conserva, así que aún puedes usar «Revertir al predeterminado». Se perderán los cambios sin guardar."
 }

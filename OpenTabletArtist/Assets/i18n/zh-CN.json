@@ -417,5 +417,18 @@
   "binding.mouse.right": "右键单击",
   "binding.mouse.middle": "中键单击",
   "binding.mouse.back": "后退按钮",
-  "binding.mouse.forward": "前进按钮"
+  "binding.mouse.forward": "前进按钮",
+  "save.default.button": "保存为默认",
+  "save.default.tip": "将当前设置保存为你自己的默认。重启后仍然保留，可用“恢复默认”取回。",
+  "save.default.revert": "恢复默认",
+  "save.default.revert_tip": "恢复你保存的默认设置。若尚未保存过，则恢复出厂设置。",
+  "save.default.revert_tip_no_user": "你还没有保存自己的默认。这将恢复出厂设置。",
+  "save.default.revert_confirm_title": "恢复默认？",
+  "save.default.revert_confirm_body": "将用你保存的默认（若没有则用出厂设置）替换当前设置并保存。未保存的更改将丢失。",
+  "save.default.failed_title": "无法保存为默认",
+  "save.default.failed_body": "无法将当前设置存为默认。请在保存后再试。",
+  "save.factory.button": "恢复出厂设置",
+  "save.factory.tip": "将所有设置重置为原始出厂默认。会先要求确认。你自己保存的默认会保留。",
+  "save.factory.confirm_title": "恢复出厂设置？",
+  "save.factory.confirm_body": "将用原始出厂设置替换当前设置并保存。你自己的默认（如有）会保留，之后仍可使用“恢复默认”。未保存的更改将丢失。"
 }

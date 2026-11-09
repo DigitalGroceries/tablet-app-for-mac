@@ -344,6 +344,28 @@ internal sealed class SettingsCoordinator : IOtdSettingsSession, IDisposable
             : SettingsRestoreOutcome.Failed(applied.Error);
     }, SettingsRestoreOutcome.Disconnected);
 
+    public Task<SettingsRestoreOutcome> RestoreFactoryAsync() => RunAsync(async () =>
+    {
+        if (Published.Current is null) return SettingsRestoreOutcome.Disconnected;
+        try
+        {
+            if (!await _channel.ResetSettingsAsync().ConfigureAwait(false))
+                return IsConnected ? SettingsRestoreOutcome.Failed(null) : SettingsRestoreOutcome.Disconnected;
+            var confirmed = await ReadAsync().ConfigureAwait(false);
+            if (confirmed is null)
+                return IsConnected ? SettingsRestoreOutcome.Failed(null) : SettingsRestoreOutcome.Disconnected;
+            ProfileSanitizer.EnsureValidAbsoluteAreas(confirmed);
+            // Keep the previous saved baseline so HasUnsavedChanges is true until the host Saves —
+            // factory is live but not yet the driver's saved file.
+            Publish(confirmed);
+            return SettingsRestoreOutcome.Restored with { Prepared = GetCurrent() };
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return IsConnected ? SettingsRestoreOutcome.Failed(ex) : SettingsRestoreOutcome.Disconnected;
+        }
+    }, SettingsRestoreOutcome.Disconnected);
+
     internal async Task<bool> CloseAsync(TimeSpan within)
     {
         Dispose();

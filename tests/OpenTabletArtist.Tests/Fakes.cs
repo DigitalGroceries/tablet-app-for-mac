@@ -363,4 +363,11 @@ internal sealed class FakeSettingsCoordinator : ISettingsCoordinator
         RestoreCalls++;
         return Task.FromResult(RestoreResult);
     }
+    public int FactoryCalls { get; private set; }
+    public SettingsRestoreOutcome FactoryResult { get; set; } = SettingsRestoreOutcome.Restored;
+    public Task<SettingsRestoreOutcome> RestoreFactoryAsync()
+    {
+        FactoryCalls++;
+        return Task.FromResult(FactoryResult);
+    }
 }

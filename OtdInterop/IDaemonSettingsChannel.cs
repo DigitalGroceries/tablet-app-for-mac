@@ -15,6 +15,8 @@ internal interface IDaemonSettingsBinding
     int Incarnation { get; }
     Task<Settings?> GetSettingsAsync();
     Task<bool> SetSettingsAsync(Settings settings);
+    /// <summary>Ask the daemon to replace live settings with factory defaults (Settings.GetDefaults). Does not write the saved file.</summary>
+    Task<bool> ResetSettingsAsync();
     /// <summary>The tablets the daemon has detected, as it returns them (TabletReference[]). Empty when there is no transport.</summary>
     Task<JArray> GetTabletsAsync();
 }

@@ -134,6 +134,8 @@ public interface ISettingsCoordinator
     Settings? CurrentSettings { get; }
     Task<SettingsApplyOutcome> ApplySettingsAsync(Settings settings);
     Task<SettingsRestoreOutcome> RestoreDefaultAsync();
+    /// <summary>Replace live settings with the daemon's factory defaults. Does not write the saved file.</summary>
+    Task<SettingsRestoreOutcome> RestoreFactoryAsync();
 }
 
 /// <summary>Tablet/device data produced by the session's data load (#41 PR 2).</summary>
@@ -1319,6 +1321,27 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         SettingsBusy = true;
         SettingsRestoreOutcome outcome;
         try { outcome = await workspace.RestoreAsync(); }
+        finally { SettingsBusy = false; }
+        if (!ReferenceEquals(workspace, _workspace) || Abandoned) return SettingsRestoreOutcome.Disconnected;
+        if (outcome.IsRestored)
+        {
+            SettingsReplaced?.Invoke();
+            PublishSettings();
+            SaveState = SettingsSaveState.None;
+        }
+        UpdateSettingsState();
+        return outcome;
+    }
+
+    public async Task<SettingsRestoreOutcome> RestoreFactoryAsync()
+    {
+        Dispatcher.UIThread.VerifyAccess();
+        var workspace = _workspace;
+        if (workspace is null) return SettingsRestoreOutcome.Disconnected;
+        if (SettingsBusy) return SettingsRestoreOutcome.Failed(null);
+        SettingsBusy = true;
+        SettingsRestoreOutcome outcome;
+        try { outcome = await workspace.RestoreFactoryAsync(); }
         finally { SettingsBusy = false; }
         if (!ReferenceEquals(workspace, _workspace) || Abandoned) return SettingsRestoreOutcome.Disconnected;
         if (outcome.IsRestored)
