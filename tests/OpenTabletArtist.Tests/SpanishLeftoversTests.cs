@@ -27,13 +27,6 @@ public class SpanishLeftoversTests
         ["scribble.azal"] = "azimuth / altitude abbreviation",
     };
 
-    /// <summary>Texts PR #75 (Version 26) rewrites in Spanish. They are left alone here so the two pull requests
-    /// merge without a conflict; remove this list once #75 is in v16-source (the tests then cover them too).</summary>
-    public static readonly HashSet<string> FixedInPr75 = new()
-    {
-        "tablet.pen.double_click_note", "tablet.expresskeys.body", "tablet.expresskeys.press_hint",
-    };
-
     static string I18nDir()
     {
         var d = new DirectoryInfo(System.AppContext.BaseDirectory);
@@ -52,7 +45,7 @@ public class SpanishLeftoversTests
         var es = Load("es");
         var missing = en.Keys.Where(k => !es.ContainsKey(k)).ToList();
         Assert.True(missing.Count == 0, "es.json lacks: " + string.Join(", ", missing));
-        var leftovers = en.Where(p => es.TryGetValue(p.Key, out var v) && v == p.Value && !SameAsEnglish.ContainsKey(p.Key) && !FixedInPr75.Contains(p.Key))
+        var leftovers = en.Where(p => es.TryGetValue(p.Key, out var v) && v == p.Value && !SameAsEnglish.ContainsKey(p.Key))
             .Select(p => $"{p.Key} = \"{p.Value}\"").ToList();
         Assert.True(leftovers.Count == 0, "es.json still English: " + string.Join("; ", leftovers));
     }
@@ -64,7 +57,6 @@ public class SpanishLeftoversTests
         string[] names = { "Tablet App for Mac", "Wacom Tablet Utility", "Tablet Software" };
         foreach (var (k, v) in Load("es"))
         {
-            if (FixedInPr75.Contains(k)) continue;
             var text = names.Aggregate(v, (t, n) => t.Replace(n, ""));
             Assert.False(System.Text.RegularExpressions.Regex.IsMatch(text, @"\b[Tt]ablets?\b"), $"{k}: {v}");
         }
