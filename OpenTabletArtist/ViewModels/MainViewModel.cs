@@ -747,9 +747,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         if (!await _dialogs.ShowConfirmAsync(
             Localizer.Te("save.factory.confirm_title", "Restore factory settings?"),
             Localizer.Te("save.factory.confirm_body",
-                "This replaces your current settings with the original factory defaults and saves them. "
-                + "Your own saved default (if any) is kept, so you can still use Revert to default afterwards. "
-                + "Unsaved edits will be lost.")))
+                "Your current settings will be replaced with the factory settings. "
+                + "Your own saved default is kept, so you can still use Revert to default afterwards."),
+            Localizer.Te("save.factory.confirm_action", "Restore Factory Settings"),
+            Localizer.Te("app.cancel", "Cancel"),
+            cancelIsDefault: true))
             return;
         await RestoreFactoryCoreAsync();
     }

@@ -1,9 +1,10 @@
 using Avalonia;
-using Avalonia.Headless;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using OpenTabletArtist.Services;
 using OpenTabletArtist.Views;
@@ -11,7 +12,9 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>#22 headless shots (real Skia) of the footer button row and the factory confirm dialog.</summary>
+/// <summary>#22 headless shots (real Skia) of the footer button row and the factory confirm dialog.
+/// The confirm shot uses the same elevated dark sheet chrome as <c>InWindowSheet</c> (BgElevatedBrush +
+/// TextPrimaryBrush), not a white page — an earlier white mock made light theme text unreadable.</summary>
 public class SaveDefaultButtonsShots
 {
     private sealed class Recording : System.Windows.Input.ICommand
@@ -57,6 +60,12 @@ public class SaveDefaultButtonsShots
 
     private static void Pump() { for (int i = 0; i < 10; i++) Dispatcher.UIThread.RunJobs(); }
 
+    private static IBrush Brush(string key, IBrush fallback) =>
+        Application.Current?.TryFindResource(key, out var v) == true && v is IBrush b ? b : fallback;
+
+    private static ControlTheme? Theme(string key) =>
+        Application.Current?.TryFindResource(key, out var v) == true ? v as ControlTheme : null;
+
     private static void SaveFrame(Window window, string path)
     {
         Pump();
@@ -80,7 +89,7 @@ public class SaveDefaultButtonsShots
             Width = 1200,
             Height = 140,
             Title = "Save default buttons",
-            Background = Brushes.White,
+            Background = Brush("BgBaseBrush", Brushes.Black),
         };
         window.Show();
         Pump();
@@ -94,29 +103,51 @@ public class SaveDefaultButtonsShots
     [AvaloniaFact]
     public void FactoryConfirm_Screenshot()
     {
-        var panel = new Border
+        var yesBtn = new Button
         {
-            Background = Brushes.White,
+            Content = Localizer.Te("save.factory.confirm_action", "Restore Factory Settings"),
+            Padding = new Thickness(24, 8),
+            FontSize = 13,
+        };
+        var noBtn = new Button
+        {
+            Content = Localizer.Te("app.cancel", "Cancel"),
+            Padding = new Thickness(24, 8),
+            FontSize = 13,
+            IsCancel = true,
+            IsDefault = true,
+        };
+        if (Theme("AccentButton") is { } accent) yesBtn.Theme = accent;
+        if (Theme("GhostButton") is { } ghost) noBtn.Theme = ghost;
+
+        // Mirror InWindowSheet: elevated dark panel + primary text (not a white page).
+        var sheet = new Border
+        {
+            Background = Brush("BgElevatedBrush", new SolidColorBrush(Color.Parse("#2A2A2A"))),
+            BorderBrush = Brush("GlassBorderBrush", new SolidColorBrush(Color.Parse("#444444"))),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(10),
             Padding = new Thickness(24),
+            Width = 420,
             Child = new StackPanel
             {
-                Width = 420,
                 Children =
                 {
                     new TextBlock
                     {
                         Text = Localizer.Te("save.factory.confirm_title", "Restore factory settings?"),
-                        FontSize = 16,
+                        FontSize = 15,
                         FontWeight = FontWeight.SemiBold,
+                        Foreground = Brush("TextPrimaryBrush", Brushes.White),
                         Margin = new Thickness(0, 0, 0, 12),
                     },
                     new TextBlock
                     {
                         Text = Localizer.Te("save.factory.confirm_body",
-                            "This replaces your current settings with the original factory defaults and saves them. "
-                            + "Your own saved default (if any) is kept, so you can still use Revert to default afterwards. "
-                            + "Unsaved edits will be lost."),
+                            "Your current settings will be replaced with the factory settings. "
+                            + "Your own saved default is kept, so you can still use Revert to default afterwards."),
                         TextWrapping = TextWrapping.Wrap,
+                        Foreground = Brush("TextPrimaryBrush", Brushes.White),
                         Margin = new Thickness(0, 0, 0, 20),
                         FontSize = 13,
                     },
@@ -125,27 +156,28 @@ public class SaveDefaultButtonsShots
                         Orientation = Orientation.Horizontal,
                         HorizontalAlignment = HorizontalAlignment.Right,
                         Spacing = 8,
-                        Children =
-                        {
-                            new Button { Content = "Yes", Padding = new Thickness(24, 8), FontSize = 13 },
-                            new Button { Content = "No", Padding = new Thickness(24, 8), FontSize = 13 },
-                        }
+                        Children = { yesBtn, noBtn },
                     }
                 }
             }
         };
+
         var window = new Window
         {
-            Content = panel,
-            Width = 480,
-            Height = 300,
-            Background = Brushes.White,
+            Content = new Grid
+            {
+                Background = Brush("BgBaseBrush", Brushes.Black),
+                Children = { sheet },
+            },
+            Width = 520,
+            Height = 320,
             Title = Localizer.Te("save.factory.confirm_title", "Restore factory settings?"),
+            Background = Brush("BgBaseBrush", Brushes.Black),
         };
         window.Show();
         Pump();
-        window.Measure(new Size(480, 300));
-        window.Arrange(new Rect(0, 0, 480, 300));
+        window.Measure(new Size(520, 320));
+        window.Arrange(new Rect(0, 0, 520, 320));
         Pump();
         SaveFrame(window, "/workspace/factory-confirm.png");
         window.Close();

@@ -427,8 +427,9 @@
   "save.default.revert_confirm_body": "現在の設定を、保存したデフォルト（未保存の場合は工場出荷時の設定）に置き換えて保存します。未保存の変更は失われます。",
   "save.default.failed_title": "デフォルトとして保存できませんでした",
   "save.default.failed_body": "現在の設定をデフォルトとして保存できませんでした。保存のあとでもう一度お試しください。",
-  "save.factory.button": "工場出荷時に戻す",
+  "save.factory.button": "工場出荷時の設定に戻す",
   "save.factory.tip": "すべてを工場出荷時の設定に戻します。先に確認します。自分用のデフォルトは残ります。",
   "save.factory.confirm_title": "工場出荷時の設定に戻しますか？",
-  "save.factory.confirm_body": "現在の設定を工場出荷時の初期値に置き換えて保存します。自分用のデフォルト（あれば）は残るので、あとから「デフォルトに戻す」も使えます。未保存の変更は失われます。"
+  "save.factory.confirm_body": "現在の設定は工場出荷時の設定に置き換えられます。自分用のデフォルトは残るので、あとから「デフォルトに戻す」も使えます。",
+  "save.factory.confirm_action": "工場出荷時の設定に戻す"
 }

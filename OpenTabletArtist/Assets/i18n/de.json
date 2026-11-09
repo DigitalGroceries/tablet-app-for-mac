@@ -430,5 +430,6 @@
   "save.factory.button": "Werkseinstellungen wiederherstellen",
   "save.factory.tip": "Setzt alles auf die ursprünglichen Werkseinstellungen zurück. Fragt zuerst nach. Ihr eigener Standard bleibt erhalten.",
   "save.factory.confirm_title": "Werkseinstellungen wiederherstellen?",
-  "save.factory.confirm_body": "Damit werden Ihre aktuellen Einstellungen durch die ursprünglichen Werkseinstellungen ersetzt und gespeichert. Ihr eigener Standard (falls vorhanden) bleibt erhalten, sodass Sie danach weiterhin „Standard wiederherstellen“ nutzen können. Nicht gespeicherte Änderungen gehen verloren."
+  "save.factory.confirm_body": "Ihre aktuellen Einstellungen werden durch die Werkseinstellungen ersetzt. Ihr eigener gespeicherter Standard bleibt erhalten, sodass Sie danach weiterhin „Standard wiederherstellen“ nutzen können.",
+  "save.factory.confirm_action": "Werkseinstellungen wiederherstellen"
 }

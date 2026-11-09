@@ -34,6 +34,8 @@ public interface IDialogService
 
     /// <summary>Shows a yes/no confirmation; returns true if confirmed.</summary>
     Task<bool> ShowConfirmAsync(string title, string message);
+    /// <summary>Confirm with custom button words. <paramref name="cancelIsDefault"/> makes Cancel the Enter default (destructive confirms).</summary>
+    Task<bool> ShowConfirmAsync(string title, string message, string yesText, string noText, bool cancelIsDefault = false);
 
     /// <summary>Prompts for a line of text; returns null if cancelled.</summary>
     Task<string?> ShowInputAsync(string title, string prompt, string defaultValue = "");
@@ -178,6 +180,8 @@ public class DialogService : IDialogService
     // Avalonia dialog building. Routing them through the interface is what makes them fakeable.
     public Task ShowMessageAsync(string title, string message) => Dialogs.ShowMessageAsync(title, message);
     public Task<bool> ShowConfirmAsync(string title, string message) => Dialogs.ShowConfirmAsync(title, message);
+    public Task<bool> ShowConfirmAsync(string title, string message, string yesText, string noText, bool cancelIsDefault = false) =>
+        Dialogs.ShowConfirmAsync(title, message, yesText, noText, cancelIsDefault: cancelIsDefault);
     public Task<string?> ShowInputAsync(string title, string prompt, string defaultValue = "")
         => Dialogs.ShowInputAsync(title, prompt, defaultValue);
 

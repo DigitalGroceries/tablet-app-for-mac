@@ -61,6 +61,8 @@ internal sealed class FakeDialogService : IDialogService
     }
 
     public Task<bool> ShowConfirmAsync(string title, string message) => Task.FromResult(ConfirmResult);
+    public Task<bool> ShowConfirmAsync(string title, string message, string yesText, string noText, bool cancelIsDefault = false) =>
+        Task.FromResult(ConfirmResult);
 
     public Task<string?> ShowInputAsync(string title, string prompt, string defaultValue = "")
         => Task.FromResult(InputResult);
