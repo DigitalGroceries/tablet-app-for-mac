@@ -1178,13 +1178,18 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         // If a per-app or extra-pen overlay is on the daemon/workspace, restore All bindings first so this
         // edit (mapping, dynamics, All bindings) lands on the All table — not the transient overlay.
         // #74: an extra pen's overlay counts too (it was missed when only AppliedBundleId was checked).
-        if (PerAppBindingRuntime.Shared?.OverlayLive == true)
+        var overlayLive = PerAppBindingRuntime.Shared?.OverlayLive == true;
+        if (overlayLive)
         {
-            await PerAppBindingRuntime.Shared.EnsureAllOnDaemonAsync();
+            await PerAppBindingRuntime.Shared!.EnsureAllOnDaemonAsync();
             RestoreAllBindingsOntoProfile();
         }
         var draft = NoteDraftEdit();
         modify(_profile);
+        // TASKS #15: the edit landed on All, so the All stash must hold it too. Otherwise the page (which
+        // shows the stash while an overlay is live) and the next All restore bring back the old value,
+        // e.g. the Double Click Fix slider jumping back to 50.
+        if (overlayLive) PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);
         var outcome = await SubmitAsync(_settings);
         if (draft != _draftGeneration || _unsubmitted != DraftGroup.None) return;
         if (!TakeOutcome(outcome, draft)) RefreshFromProfile();
@@ -1437,7 +1442,10 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _legacyFlatPending = !manual.On && pcRead is { } r1 && IsFixedPressureCurve(r1.Dynamics.Curve);
         DisableEraser = PenSwitchBinding.IsOff(bindings.EraserButton);
         DisableTilt = bindings.DisableTilt;
-        TipDoubleClickDistance = ClickJitterGate.ResolveSavedDisplay(bindings.DoubleClickFix);
+        // Double Click Fix is one setting for the whole pen (edits go to All), so show All's value on every profile.
+        var allTable = !PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared)
+            && PerAppBindingRuntime.StashedAllBindings(_profile.Tablet ?? "") is { } stashed ? stashed : _profile.BindingSettings;
+        TipDoubleClickDistance = ClickJitterGate.ResolveSavedDisplay(allTable.DoubleClickFix);
         DragBindingsEnabled = bindings.EnableDragBindings;
         // The tip is disabled when it has no binding (#493). Derived from the profile so it stays in
         // sync when the tip binding is edited directly on the pen-switch card.
