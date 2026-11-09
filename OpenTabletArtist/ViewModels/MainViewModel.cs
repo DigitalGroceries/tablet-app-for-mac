@@ -721,7 +721,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             bool hadUnsaved = _session.HasUnsavedChanges;
-            if (PerAppBindingRuntime.Shared?.AppliedBundleId != null) await PerAppBindingRuntime.Shared.EnsureAllOnDaemonAsync();
+            if (PerAppBindingRuntime.Shared?.OverlayLive == true) await PerAppBindingRuntime.Shared.EnsureAllOnDaemonAsync();
             if (_session.CurrentSettings is not { } fresh || !Domain.TouchTrackpad.AutoAdd(fresh, connected)) return;
             await _session.ApplySettingsAsync(fresh);
             if (!hadUnsaved) await _session.SaveSettingsAsync();
@@ -734,7 +734,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// layout that version reads (see <see cref="RingDowngrade"/>) and save it.</summary>
     private async Task PrepareRingsForOlderVersionAsync()
     {
-        if (PerAppBindingRuntime.Shared?.AppliedBundleId != null) await PerAppBindingRuntime.Shared.EnsureAllOnDaemonAsync();
+        if (PerAppBindingRuntime.Shared?.OverlayLive == true) await PerAppBindingRuntime.Shared.EnsureAllOnDaemonAsync();
         if (_session.CurrentSettings is not { } settings) return;
         if (!RingDowngrade.Convert(settings)) return;
         await _session.ApplySettingsAsync(settings);

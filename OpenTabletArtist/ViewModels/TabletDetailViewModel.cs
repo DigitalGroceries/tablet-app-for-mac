@@ -1175,9 +1175,10 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     private async Task ApplySettingsChange(Action<Profile> modify)
     {
         if (_applyAction == null || _settings == null) return;
-        // If a per-app overlay is on the daemon/workspace, restore All bindings first so this edit
-        // (mapping, dynamics, All bindings) lands on the All table — not the transient overlay.
-        if (PerAppBindingRuntime.Shared?.AppliedBundleId != null)
+        // If a per-app or extra-pen overlay is on the daemon/workspace, restore All bindings first so this
+        // edit (mapping, dynamics, All bindings) lands on the All table — not the transient overlay.
+        // #74: an extra pen's overlay counts too (it was missed when only AppliedBundleId was checked).
+        if (PerAppBindingRuntime.Shared?.OverlayLive == true)
         {
             await PerAppBindingRuntime.Shared.EnsureAllOnDaemonAsync();
             RestoreAllBindingsOntoProfile();
