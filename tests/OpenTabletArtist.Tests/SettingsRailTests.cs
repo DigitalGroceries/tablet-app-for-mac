@@ -38,6 +38,7 @@ public class SettingsRailTests
     [InlineData(SettingsTab.Presets)]
     [InlineData(SettingsTab.Theme)]
     [InlineData(SettingsTab.Hotkeys)]
+    [InlineData(SettingsTab.Troubleshooting)]
     public void CrossPlatformTabs_ShownOnEveryOs(SettingsTab tab)
     {
         Assert.True(SettingsViewModel.TabAppliesToOs(tab, isWindows: true, isLinux: false));
@@ -60,6 +61,7 @@ public class SettingsRailTests
     [InlineData(SettingsTab.Theme)]
     [InlineData(SettingsTab.System)]
     [InlineData(SettingsTab.Drivers)]
+    [InlineData(SettingsTab.Troubleshooting)]
     [InlineData(SettingsTab.Developer)]
     public void OtherTabs_DoNotRescan(SettingsTab tab)
         => Assert.False(SettingsViewModel.TabRescansPresets(tab));

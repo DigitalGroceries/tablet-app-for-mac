@@ -417,5 +417,17 @@
   "binding.mouse.right": "Правый щелчок",
   "binding.mouse.middle": "Средний щелчок",
   "binding.mouse.back": "Кнопка «Назад»",
-  "binding.mouse.forward": "Кнопка «Вперёд»"
+  "binding.mouse.forward": "Кнопка «Вперёд»",
+  "settings.tab.troubleshoot": "УСТРАНЕНИЕ НЕИСПРАВНОСТЕЙ",
+  "settings.troubleshoot.title": "Устранение неисправностей",
+  "settings.troubleshoot.intro": "Быстрые действия, когда планшет не отвечает, настройка не сохраняется или нужен отчёт.",
+  "settings.troubleshoot.restart_title": "Перезапустить драйвер",
+  "settings.troubleshoot.restart_body": "Останавливает драйвер планшета и запускает его снова. Нужно, когда перо перестаёт двигаться или планшет не определяется.",
+  "settings.troubleshoot.restart_button": "Перезапустить драйвер",
+  "settings.troubleshoot.diag_title": "Диагностический отчёт",
+  "settings.troubleshoot.diag_body": "Сохраняет zip на рабочем столе с журналами, настройками и сведениями о планшете — его можно приложить к запросу о помощи.",
+  "settings.troubleshoot.diag_button": "Создать диагностический файл",
+  "settings.troubleshoot.perm_title": "Сбросить разрешения",
+  "settings.troubleshoot.perm_body": "Удаляет записи Input Monitoring и Универсального доступа этого приложения, чтобы macOS спросил снова. Только macOS.",
+  "settings.troubleshoot.perm_button": "Сбросить разрешения"
 }

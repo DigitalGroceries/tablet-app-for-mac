@@ -426,5 +426,17 @@
   "binding.mouse.right": "Right click",
   "binding.mouse.middle": "Middle click",
   "binding.mouse.back": "Back button",
-  "binding.mouse.forward": "Forward button"
+  "binding.mouse.forward": "Forward button",
+  "settings.tab.troubleshoot": "TROUBLESHOOTING",
+  "settings.troubleshoot.title": "Troubleshooting",
+  "settings.troubleshoot.intro": "Quick fixes when the tablet stops responding, a setting will not stick, or you need to send a report.",
+  "settings.troubleshoot.restart_title": "Restart driver",
+  "settings.troubleshoot.restart_body": "Stops the tablet driver and starts it again. Use this when the pen stops moving or a tablet is not detected.",
+  "settings.troubleshoot.restart_button": "Restart driver",
+  "settings.troubleshoot.diag_title": "Diagnostic report",
+  "settings.troubleshoot.diag_body": "Saves a zip on your Desktop with logs, settings and tablet info you can attach when asking for help.",
+  "settings.troubleshoot.diag_button": "Create diagnostic file",
+  "settings.troubleshoot.perm_title": "Reset permissions",
+  "settings.troubleshoot.perm_body": "Clears this app’s Input Monitoring and Accessibility entries so macOS will ask again. macOS only.",
+  "settings.troubleshoot.perm_button": "Reset permissions"
 }

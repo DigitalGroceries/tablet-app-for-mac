@@ -417,5 +417,17 @@
   "binding.mouse.right": "Дясно кликане",
   "binding.mouse.middle": "Средно кликане",
   "binding.mouse.back": "Бутон „Назад“",
-  "binding.mouse.forward": "Бутон „Напред“"
+  "binding.mouse.forward": "Бутон „Напред“",
+  "settings.tab.troubleshoot": "ОТСТРАНЯВАНЕ НА ПРОБЛЕМИ",
+  "settings.troubleshoot.title": "Отстраняване на проблеми",
+  "settings.troubleshoot.intro": "Бързи поправки, когато таблетът спре да реагира, настройка не се запазва или ти трябва доклад.",
+  "settings.troubleshoot.restart_title": "Рестартирай драйвера",
+  "settings.troubleshoot.restart_body": "Спира драйвера на таблета и го стартира отново. Ползвай го, когато писалката спре да се движи или таблетът не се открива.",
+  "settings.troubleshoot.restart_button": "Рестартирай драйвера",
+  "settings.troubleshoot.diag_title": "Диагностичен доклад",
+  "settings.troubleshoot.diag_body": "Записва zip на Бюрото с логове, настройки и информация за таблета, който можеш да прикачиш, когато искаш помощ.",
+  "settings.troubleshoot.diag_button": "Създай диагностичен файл",
+  "settings.troubleshoot.perm_title": "Нулирай разрешенията",
+  "settings.troubleshoot.perm_body": "Изчиства записите за Input Monitoring и Accessibility на това приложение, за да пита macOS отново. Само macOS.",
+  "settings.troubleshoot.perm_button": "Нулирай разрешенията"
 }

@@ -1,0 +1,58 @@
+<UserControl x:Class="OpenTabletArtist.Views.TroubleshootingView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls">
+
+    <!-- DataContext: TroubleshootingViewModel. One box gathering restart / diagnostic zip / permission reset (#25). -->
+    <StackPanel MaxWidth="720" HorizontalAlignment="Left" Spacing="16">
+        <c:Section x:Name="TroubleshootingBox" Title="{Binding Title}" Description="{Binding Intro}">
+            <StackPanel Spacing="20">
+
+                <!-- Restart driver -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{Binding RestartTitle}" FontWeight="SemiBold" FontSize="15" />
+                    <TextBlock Text="{Binding RestartBody}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <Button x:Name="RestartDriverButton" Content="{Binding RestartButton}"
+                            Command="{Binding RestartDaemonCommand}"
+                            Theme="{StaticResource GhostButton}" HorizontalAlignment="Left"
+                            Padding="16,5" AutomationProperties.Name="Restart driver" />
+                </StackPanel>
+
+                <!-- Diagnostic report zip -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{Binding DiagTitle}" FontWeight="SemiBold" FontSize="15" />
+                    <TextBlock Text="{Binding DiagBody}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button x:Name="DiagnosticZipButton" Content="{Binding DiagButton}"
+                                Command="{Binding CreateDiagnosticFileCommand}"
+                                Theme="{StaticResource GhostButton}" Padding="16,5"
+                                AutomationProperties.Name="Create diagnostic file" />
+                        <Button Content="{Binding DiagReveal}" Command="{Binding RevealDiagnosticFileCommand}"
+                                IsVisible="{Binding HasDiagnosticFile}"
+                                Theme="{StaticResource LinkButton}" Padding="8,5" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding DiagnosticStatus}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <SelectableTextBlock Text="{Binding DiagnosticFilePath}" IsVisible="{Binding HasDiagnosticFile}"
+                                         TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!-- Permission reset (macOS) -->
+                <StackPanel Spacing="8" IsVisible="{Binding ShowPermissionReset}">
+                    <TextBlock Text="{Binding PermTitle}" FontWeight="SemiBold" FontSize="15" />
+                    <TextBlock Text="{Binding PermBody}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <Button x:Name="ResetPermissionsButton" Content="{Binding PermButton}"
+                            Command="{Binding ResetPermissionsCommand}"
+                            Theme="{StaticResource GhostButton}" HorizontalAlignment="Left"
+                            Padding="16,5" AutomationProperties.Name="Reset permissions" />
+                    <TextBlock Text="{Binding PermissionsResetStatus}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                </StackPanel>
+
+            </StackPanel>
+        </c:Section>
+    </StackPanel>
+</UserControl>

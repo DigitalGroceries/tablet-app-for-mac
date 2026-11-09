@@ -417,5 +417,17 @@
   "binding.mouse.right": "右键单击",
   "binding.mouse.middle": "中键单击",
   "binding.mouse.back": "后退按钮",
-  "binding.mouse.forward": "前进按钮"
+  "binding.mouse.forward": "前进按钮",
+  "settings.tab.troubleshoot": "故障排除",
+  "settings.troubleshoot.title": "故障排除",
+  "settings.troubleshoot.intro": "当数位板无响应、设置无法保存，或需要发送报告时，可在这里快速处理。",
+  "settings.troubleshoot.restart_title": "重启驱动程序",
+  "settings.troubleshoot.restart_body": "停止数位板驱动程序并重新启动。笔无法移动或未检测到数位板时使用。",
+  "settings.troubleshoot.restart_button": "重启驱动程序",
+  "settings.troubleshoot.diag_title": "诊断报告",
+  "settings.troubleshoot.diag_body": "在桌面保存包含日志、设置和数位板信息的 zip，求助时可附上。",
+  "settings.troubleshoot.diag_button": "创建诊断文件",
+  "settings.troubleshoot.perm_title": "重置权限",
+  "settings.troubleshoot.perm_body": "清除本应用的输入监控与辅助功能记录，让 macOS 再次询问。仅限 macOS。",
+  "settings.troubleshoot.perm_button": "重置权限"
 }

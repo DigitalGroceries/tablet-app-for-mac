@@ -417,5 +417,17 @@
   "binding.mouse.right": "Clic derecho",
   "binding.mouse.middle": "Clic central",
   "binding.mouse.back": "Botón Atrás",
-  "binding.mouse.forward": "Botón Adelante"
+  "binding.mouse.forward": "Botón Adelante",
+  "settings.tab.troubleshoot": "SOLUCIÓN DE PROBLEMAS",
+  "settings.troubleshoot.title": "Solución de problemas",
+  "settings.troubleshoot.intro": "Arreglos rápidos cuando la tableta deja de responder, un ajuste no se guarda o necesitas enviar un informe.",
+  "settings.troubleshoot.restart_title": "Reiniciar el controlador",
+  "settings.troubleshoot.restart_body": "Detiene el controlador de la tableta y lo vuelve a iniciar. Úsalo cuando el lápiz deje de moverse o no se detecte la tableta.",
+  "settings.troubleshoot.restart_button": "Reiniciar el controlador",
+  "settings.troubleshoot.diag_title": "Informe de diagnóstico",
+  "settings.troubleshoot.diag_body": "Guarda un zip en el Escritorio con registros, ajustes e información de la tableta para adjuntarlo al pedir ayuda.",
+  "settings.troubleshoot.diag_button": "Crear archivo de diagnóstico",
+  "settings.troubleshoot.perm_title": "Restablecer permisos",
+  "settings.troubleshoot.perm_body": "Borra las entradas de Monitorización de entrada y Accesibilidad de esta app para que macOS vuelva a pedirlas. Solo macOS.",
+  "settings.troubleshoot.perm_button": "Restablecer permisos"
 }

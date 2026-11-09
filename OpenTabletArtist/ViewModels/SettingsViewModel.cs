@@ -45,7 +45,8 @@ public partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel(StartupViewModel startup, HotkeysViewModel hotkeys, ThemeViewModel theme,
         ShortcutViewModel shortcut, DesktopEntryViewModel desktopEntry, DriverCleanupViewModel driverCleanup,
-        VMultiViewModel vmulti, PresetsViewModel presets, DeveloperViewModel developer)
+        VMultiViewModel vmulti, PresetsViewModel presets, DeveloperViewModel developer,
+        TroubleshootingViewModel troubleshooting)
     {
         _hotkeys = hotkeys;
         // The "System" pivot holds each OS's own integration capabilities, kept deliberately separate so
@@ -74,6 +75,7 @@ public partial class SettingsViewModel : ObservableObject
             new(Localizer.T("settings.tab.theme"), SettingsTab.Theme, theme),
             new(Localizer.T("settings.tab.system"), SettingsTab.System, system),
             new(Localizer.T("settings.tab.drivers"), SettingsTab.Drivers, drivers),
+            new(Localizer.T("settings.tab.troubleshoot"), SettingsTab.Troubleshooting, troubleshooting),
             new(Localizer.T("settings.tab.dev"), SettingsTab.Developer, developer),
         }.Where(t => TabAppliesToOs(t.Tab, OperatingSystem.IsWindows(), OperatingSystem.IsLinux())).ToArray();
         Tabs = tabs;
@@ -171,6 +173,7 @@ public partial class SettingsViewModel : ObservableObject
                 SettingsTab.Theme => Localizer.T("settings.tab.theme"),
                 SettingsTab.System => Localizer.T("settings.tab.system"),
                 SettingsTab.Drivers => Localizer.T("settings.tab.drivers"),
+                SettingsTab.Troubleshooting => Localizer.T("settings.tab.troubleshoot"),
                 SettingsTab.Developer => Localizer.T("settings.tab.dev"),
                 _ => t.Label,
             };

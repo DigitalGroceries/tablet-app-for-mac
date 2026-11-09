@@ -15,4 +15,5 @@ public enum SettingsTab
     System = 4,        // Zune merge: Startup + Shortcut.
     Drivers = 5,       // Driver Cleanup, out of System's right column (#drivers-tab).
     Developer = 6,     // labelled "DEV"; always shown (#572).
+    Troubleshooting = 7, // restart / diagnostic zip / permission reset (#25).
 }

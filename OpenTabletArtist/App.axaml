@@ -150,6 +150,7 @@
         <DataTemplate DataType="{x:Type vm:PluginsViewModel}"><views:PluginsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:AdvancedViewModel}"><views:AdvancedView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TroubleshootingViewModel}"><views:TroubleshootingView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:CompositeSectionViewModel}"><views:CompositeSectionView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:TwoColumnSectionViewModel}"><views:TwoColumnSectionView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:StartupViewModel}"><views:StartupView /></DataTemplate>
