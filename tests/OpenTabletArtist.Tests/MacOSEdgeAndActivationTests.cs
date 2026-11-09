@@ -121,4 +121,12 @@ public class MacOSEdgeAndActivationTests
         // Without display bounds nothing tells a full-screen window from a small one: keep it.
         Assert.Equal(ServerShield, MacOSWindowPick.Pick(new List<W> { ServerShield, Safari }, new Vector2(200, 200)));
     }
+
+    [Fact]
+    public void A_display_sized_Window_Server_window_that_only_overlaps_is_kept_issue_73()
+    {
+        // Same size as the display but shifted: it doesn't cover the display, so it still stops the search.
+        var shifted = new W(458, MacOSWindowPick.WindowServerName, 2147483630, 700, 0, 1512, 982);
+        Assert.Equal(shifted, MacOSWindowPick.Pick(new List<W> { shifted, Safari }, new Vector2(800, 200), new[] { Main }));
+    }
 }

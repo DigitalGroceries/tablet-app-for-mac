@@ -55,7 +55,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 var inside = point.X >= d.Position.X && point.Y >= d.Position.Y
                     && point.X <= d.Position.X + d.Size.X && point.Y <= d.Position.Y + d.Size.Y;
                 if (!inside) continue;
-                return w.Width >= d.Size.X - 1 && w.Height >= d.Size.Y - 1;
+                return w.X <= d.Position.X + 1 && w.Y <= d.Position.Y + 1
+                    && w.X + w.Width >= d.Position.X + d.Size.X - 1 && w.Y + w.Height >= d.Position.Y + d.Size.Y - 1;
             }
             return true;
         }
