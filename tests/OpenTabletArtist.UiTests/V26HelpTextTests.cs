@@ -164,6 +164,12 @@ public class V26HelpTextTests
                 if (!f.EndsWith("en.json")) Assert.NotEqual(en[k], v);
             }
             Assert.Contains("{degrees}", t["tablet.ring.note.keys"]);
+            if (f.EndsWith("es.json"))   // the rest of es.json says "tableta" (feminine) and quotes labels with «»
+                foreach (var k in keys)
+                {
+                    Assert.DoesNotMatch(@"\btablet\b", t[k]);
+                    Assert.DoesNotContain("Desactiva Activar", t[k]);
+                }
             // the old wording is gone (en source phrases and the old Bulgarian one)
             Assert.DoesNotContain("The keys on the tablet itself", raw);
             Assert.DoesNotContain("for when one sits where your hand rests", raw);
