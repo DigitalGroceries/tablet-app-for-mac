@@ -186,9 +186,26 @@
                                  IsChecked="{Binding SelectedScroll, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=Left}" />
                     <RadioButton Content="Scroll right" GroupName="sc"
                                  IsChecked="{Binding SelectedScroll, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=Right}" />
-                    <RadioButton Content="Move pen to scroll" GroupName="sc"
-                                 ToolTip.Tip="Hold the button and move the pen to scroll, like a mouse wheel. The cursor stays still."
+                    <RadioButton Content="{Binding PenScrollLabel}" GroupName="sc"
+                                 ToolTip.Tip="{Binding PenScrollTip}"
                                  IsChecked="{Binding SelectedScroll, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=Pen}" />
+                    <RadioButton Content="{Binding PenZoomLabel}" GroupName="sc"
+                                 ToolTip.Tip="{Binding PenZoomTip}"
+                                 IsChecked="{Binding SelectedScroll, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=Zoom}" />
+                    <RadioButton Content="{Binding PenPanZoomLabel}" GroupName="sc"
+                                 ToolTip.Tip="{Binding PenPanZoomTip}"
+                                 IsChecked="{Binding SelectedScroll, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=PanZoom}" />
+                </StackPanel>
+                <StackPanel Spacing="6" Margin="0,8,0,0" IsVisible="{Binding ShowGestureSpeed}">
+                    <TextBlock Text="{Binding SpeedLabel}" Classes="caption" />
+                    <Grid ColumnDefinitions="Auto,*,Auto,52" ColumnSpacing="8">
+                        <TextBlock Text="{Binding SpeedSlowLabel}" VerticalAlignment="Center" />
+                        <Slider Grid.Column="1" Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
+                                Value="{Binding GestureSpeed}" AutomationProperties.Name="Speed"
+                                ToolTip.Tip="{Binding SpeedTip}" />
+                        <TextBlock Grid.Column="2" Text="{Binding SpeedFastLabel}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="3" Text="{Binding GestureSpeed}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
                 </StackPanel>
             </StackPanel>
 

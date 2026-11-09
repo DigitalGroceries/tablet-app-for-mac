@@ -417,5 +417,15 @@
   "binding.mouse.right": "Дясно кликане",
   "binding.mouse.middle": "Средно кликане",
   "binding.mouse.back": "Бутон „Назад“",
-  "binding.mouse.forward": "Бутон „Напред“"
+  "binding.mouse.forward": "Бутон „Напред“",
+  "binding.scroll.pen": "Мести писалката за превъртане",
+  "binding.scroll.pen_tip": "Задръж бутона и мести писалката, за да превърташ — като с колелцето на мишката. Курсорът остава на място.",
+  "binding.scroll.pen_zoom": "Мести писалката за мащаб",
+  "binding.scroll.pen_zoom_tip": "Задръж бутона и мести писалката нагоре или надолу за мащаб. Използва Option+превъртане, както режимът Zoom на пръстена.",
+  "binding.scroll.pen_pan_zoom": "Мести писалката за местене и мащаб",
+  "binding.scroll.pen_pan_zoom_tip": "Задръж бутона и мести писалката: настрани за местене, нагоре или надолу за мащаб.",
+  "binding.scroll.speed": "Скорост",
+  "binding.scroll.speed_slow": "Бавно",
+  "binding.scroll.speed_fast": "Бързо",
+  "binding.scroll.speed_tip": "1–100. По-високо е по-бързо. 50 е средата, както при превъртане с писалката."
 }

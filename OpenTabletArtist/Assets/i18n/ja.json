@@ -417,5 +417,15 @@
   "binding.mouse.right": "右クリック",
   "binding.mouse.middle": "中クリック",
   "binding.mouse.back": "戻るボタン",
-  "binding.mouse.forward": "進むボタン"
+  "binding.mouse.forward": "進むボタン",
+  "binding.scroll.pen": "ペンを動かしてスクロール",
+  "binding.scroll.pen_tip": "ボタンを押しながらペンを動かすと、マウスホイールのようにスクロールします。カーソルはそのままです。",
+  "binding.scroll.pen_zoom": "ペンを動かしてズーム",
+  "binding.scroll.pen_zoom_tip": "ボタンを押しながらペンを上下に動かすとズームします。タッチリングのズームと同じく Option+スクロールを使います。",
+  "binding.scroll.pen_pan_zoom": "ペンを動かしてパンとズーム",
+  "binding.scroll.pen_pan_zoom_tip": "ボタンを押しながらペンを動かします。左右でパン、上下でズームです。",
+  "binding.scroll.speed": "速度",
+  "binding.scroll.speed_slow": "遅い",
+  "binding.scroll.speed_fast": "速い",
+  "binding.scroll.speed_tip": "1～100。大きいほど速い。50は中央で、ペンスクロールと同じです。"
 }

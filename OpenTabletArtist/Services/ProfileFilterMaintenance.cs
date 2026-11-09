@@ -27,6 +27,7 @@ public static class ProfileFilterMaintenance
         CalibrationProfile.FilterTypeName,   // OpenTabletArtist.Dynamics.CalibrationFilter
         Domain.RingModeBinding.GateTypeName, // OpenTabletArtist.Dynamics.RingGestureGate (build J)
         Domain.PenScrollBinding.FilterTypeName, // OpenTabletArtist.Dynamics.PenScrollFilter (pen scroll)
+        Domain.PenZoomBinding.FilterTypeName,   // OpenTabletArtist.Dynamics.PenZoomFilter (TASKS #24)
         Domain.TouchTrackpad.FilterTypeName,    // OpenTabletArtist.Dynamics.TouchTrackpadFilter (Discussion #31)
     };
 
@@ -36,7 +37,7 @@ public static class ProfileFilterMaintenance
     private static readonly HashSet<string> OurClassNames = new(StringComparer.Ordinal)
     {
         "DynamicsFilter", "HoverFilter", "CalibrationFilter", "PressureCurveFilter", "RingGestureGate",
-        "PenScrollFilter", "TouchTrackpadFilter",
+        "PenScrollFilter", "PenZoomFilter", "TouchTrackpadFilter",
     };
 
     /// <summary>Namespace prefixes this app's plugin has used across renames. Anything we write has

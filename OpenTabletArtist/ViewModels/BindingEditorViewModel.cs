@@ -4,6 +4,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
 
 namespace OpenTabletArtist.ViewModels;
 
@@ -35,6 +36,23 @@ public partial class BindingEditorViewModel : ObservableObject
     public IReadOnlyList<KeyOption> MouseButtonOptions => AuxKeyBinding.MouseButtonOptions;
     public IReadOnlyList<KeyOption> ScrollOptions => AuxKeyBinding.ScrollOptions;
 
+    // Localized labels for pen gesture scroll options (TASKS #24).
+    public string PenScrollLabel => Localizer.Te("binding.scroll.pen", "Move pen to scroll");
+    public string PenScrollTip => Localizer.Te("binding.scroll.pen_tip",
+        "Hold the button and move the pen to scroll, like a mouse wheel. The cursor stays still.");
+    public string PenZoomLabel => Localizer.Te("binding.scroll.pen_zoom", "Move pen to zoom");
+    public string PenZoomTip => Localizer.Te("binding.scroll.pen_zoom_tip",
+        "Hold the button and move the pen up or down to zoom. Uses Option+scroll, like the touch ring Zoom mode.");
+    public string PenPanZoomLabel => Localizer.Te("binding.scroll.pen_pan_zoom", "Move pen to pan and zoom");
+    public string PenPanZoomTip => Localizer.Te("binding.scroll.pen_pan_zoom_tip",
+        "Hold the button and move the pen: sideways to pan, up or down to zoom.");
+    public string SpeedLabel => Localizer.Te("binding.scroll.speed", "Speed");
+    public string SpeedSlowLabel => Localizer.Te("binding.scroll.speed_slow", "Slow");
+    public string SpeedFastLabel => Localizer.Te("binding.scroll.speed_fast", "Fast");
+    public string SpeedTip => Localizer.Te("binding.scroll.speed_tip",
+        "1–100. Higher is faster. 50 is the middle, same as Pen scroll.");
+
+
     [ObservableProperty] private int _selectedTabIndex;
     [ObservableProperty] private bool _ctrl;
     [ObservableProperty] private bool _shift;
@@ -50,6 +68,9 @@ public partial class BindingEditorViewModel : ObservableObject
     [ObservableProperty] private string? _selectedMouseButton;
     [ObservableProperty] private string? _selectedScroll;
     [ObservableProperty] private string? _selectedMediaKey;
+    /// <summary>Slow–Fast (1–100) for Move pen to scroll / zoom / pan+zoom. Same scale as Pen scroll.</summary>
+    [ObservableProperty] private int _gestureSpeed = PenScrollMath.DefaultSpeed;
+
 
     public BindingEditorViewModel(AuxBinding initial, string title)
     {
@@ -77,6 +98,7 @@ public partial class BindingEditorViewModel : ObservableObject
             case AuxKind.Scroll:
                 SelectedTabIndex = ScrollTab;
                 SelectedScroll = initial.Scroll == AuxKeyBinding.None ? null : initial.Scroll;
+                GestureSpeed = initial.GestureSpeed ?? PenScrollMath.DefaultSpeed;
                 break;
             default:
                 SelectedTabIndex = KeyboardTab;   // an unbound button opens on Keyboard
@@ -113,7 +135,15 @@ public partial class BindingEditorViewModel : ObservableObject
 
     partial void OnSelectedKeyOptionChanged(KeyOption? value) { SaveCommand.NotifyCanExecuteChanged(); UpdateCombo(); }
     partial void OnSelectedMouseButtonChanged(string? value) => SaveCommand.NotifyCanExecuteChanged();
-    partial void OnSelectedScrollChanged(string? value) => SaveCommand.NotifyCanExecuteChanged();
+    partial void OnSelectedScrollChanged(string? value)
+    {
+        SaveCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(ShowGestureSpeed));
+    }
+
+    /// <summary>Speed slider visible for pen scroll / zoom / pan+zoom.</summary>
+    public bool ShowGestureSpeed => AuxKeyBinding.IsPenGestureScroll(SelectedScroll);
+
     partial void OnSelectedMediaKeyChanged(string? value) => SaveCommand.NotifyCanExecuteChanged();
 
     [RelayCommand(CanExecute = nameof(CanSave))]
@@ -124,7 +154,8 @@ public partial class BindingEditorViewModel : ObservableObject
             KeyboardTab => new AuxBinding(AuxKind.Keyboard, new AuxCombo(Ctrl, Shift, Alt, SelectedKeyOption!.Value, Cmd),
                                           AuxKeyBinding.None, AuxKeyBinding.None),
             MouseTab => new AuxBinding(AuxKind.Mouse, AuxCombo.Unbound, SelectedMouseButton!, AuxKeyBinding.None),
-            ScrollTab => new AuxBinding(AuxKind.Scroll, AuxCombo.Unbound, AuxKeyBinding.None, SelectedScroll!),
+            ScrollTab => new AuxBinding(AuxKind.Scroll, AuxCombo.Unbound, AuxKeyBinding.None, SelectedScroll!,
+                AuxKeyBinding.IsPenGestureScroll(SelectedScroll) ? GestureSpeed : null),
             // A media key is a keyboard binding with no modifiers.
             MediaTab => new AuxBinding(AuxKind.Keyboard, new AuxCombo(false, false, false, SelectedMediaKey!),
                                        AuxKeyBinding.None, AuxKeyBinding.None),

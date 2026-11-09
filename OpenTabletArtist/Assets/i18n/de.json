@@ -417,5 +417,15 @@
   "binding.mouse.right": "Rechtsklick",
   "binding.mouse.middle": "Mittelklick",
   "binding.mouse.back": "Zurück-Taste",
-  "binding.mouse.forward": "Vorwärts-Taste"
+  "binding.mouse.forward": "Vorwärts-Taste",
+  "binding.scroll.pen": "Stift bewegen zum Scrollen",
+  "binding.scroll.pen_tip": "Taste halten und den Stift bewegen, um zu scrollen — wie mit dem Mausrad. Der Zeiger bleibt stehen.",
+  "binding.scroll.pen_zoom": "Stift bewegen zum Zoomen",
+  "binding.scroll.pen_zoom_tip": "Taste halten und den Stift nach oben oder unten bewegen zum Zoomen. Nutzt Option+Scrollen, wie der Zoom-Modus am Touch-Ring.",
+  "binding.scroll.pen_pan_zoom": "Stift bewegen zum Verschieben und Zoomen",
+  "binding.scroll.pen_pan_zoom_tip": "Taste halten und den Stift bewegen: seitwärts zum Verschieben, nach oben oder unten zum Zoomen.",
+  "binding.scroll.speed": "Geschwindigkeit",
+  "binding.scroll.speed_slow": "Langsam",
+  "binding.scroll.speed_fast": "Schnell",
+  "binding.scroll.speed_tip": "1–100. Höher ist schneller. 50 ist die Mitte, wie beim Stift-Scrollen."
 }

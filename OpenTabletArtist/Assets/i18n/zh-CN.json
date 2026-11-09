@@ -417,5 +417,15 @@
   "binding.mouse.right": "右键单击",
   "binding.mouse.middle": "中键单击",
   "binding.mouse.back": "后退按钮",
-  "binding.mouse.forward": "前进按钮"
+  "binding.mouse.forward": "前进按钮",
+  "binding.scroll.pen": "移动笔尖滚动",
+  "binding.scroll.pen_tip": "按住按钮并移动笔尖即可滚动，就像鼠标滚轮。光标保持不动。",
+  "binding.scroll.pen_zoom": "移动笔尖缩放",
+  "binding.scroll.pen_zoom_tip": "按住按钮并上下移动笔尖即可缩放。使用 Option+滚动，与触控环的缩放模式相同。",
+  "binding.scroll.pen_pan_zoom": "移动笔尖平移并缩放",
+  "binding.scroll.pen_pan_zoom_tip": "按住按钮并移动笔尖：左右平移，上下缩放。",
+  "binding.scroll.speed": "速度",
+  "binding.scroll.speed_slow": "慢",
+  "binding.scroll.speed_fast": "快",
+  "binding.scroll.speed_tip": "1–100。数值越大越快。50 为中间值，与笔尖滚动相同。"
 }

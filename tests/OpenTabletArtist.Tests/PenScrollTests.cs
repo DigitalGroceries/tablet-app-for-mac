@@ -80,7 +80,10 @@ public class PenScrollTests
         var binding = new AuxBinding(AuxKind.Scroll, AuxCombo.Unbound, AuxKeyBinding.None, PenScrollBinding.ScrollValue);
         var store = AuxKeyBinding.MakeBinding(binding);
         Assert.Equal(PenScrollBinding.BindingTypeName, store!.Path);
-        Assert.Equal(binding, AuxKeyBinding.ReadBinding(store));
+        var back = AuxKeyBinding.ReadBinding(store)!;
+        Assert.Equal(binding.Kind, back.Kind);
+        Assert.Equal(binding.Scroll, back.Scroll);
+        Assert.Equal(PenScrollMath.DefaultSpeed, back.GestureSpeed);
         Assert.Equal("Move pen to scroll", AuxKeyBinding.Describe(binding));
         Assert.Equal(PenScrollMath.DefaultSpeed, PenScrollBinding.ReadSpeed(store));
     }

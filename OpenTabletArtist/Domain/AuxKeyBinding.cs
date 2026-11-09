@@ -30,7 +30,7 @@ public enum AuxKind { None, Keyboard, Mouse, Scroll }
 /// <summary>A full express-key binding the editor can model: nothing, a keyboard <see cref="AuxCombo"/>,
 /// a mouse button, or a scroll direction. Carries each value so the UI keeps every editor's state
 /// while switching type.</summary>
-public sealed record AuxBinding(AuxKind Kind, AuxCombo Combo, string MouseButton, string Scroll)
+public sealed record AuxBinding(AuxKind Kind, AuxCombo Combo, string MouseButton, string Scroll, int? GestureSpeed = null)
 {
     public static readonly AuxBinding Unbound =
         new(AuxKind.None, AuxCombo.Unbound, AuxKeyBinding.None, AuxKeyBinding.None);
@@ -190,6 +190,9 @@ public static class AuxKeyBinding
     public static string ReadScroll(PluginSettingStore? store)
     {
         if (PenScrollBinding.Is(store)) return PenScrollBinding.ScrollValue;
+        if (PenZoomBinding.Is(store))
+            return PenZoomBinding.ReadMode(store) == PenZoomBinding.ModePanZoom
+                ? PenZoomBinding.PanZoomValue : PenZoomBinding.ZoomValue;
         if (store?.Path != MouseScrollBindingPath) return None;
         var direction = store.Settings?.FirstOrDefault(s => s.Property == "Direction")?.Value?.ToString();
         var amount = store.Settings?.FirstOrDefault(s => s.Property == "Amount") is { HasValue: true } s
@@ -199,10 +202,13 @@ public static class AuxKeyBinding
     }
 
     /// <summary>A Mouse Scroll Binding store for a direction, or null (unbound) for "None".</summary>
-    public static PluginSettingStore? MakeScrollBinding(string? scroll)
+    public static PluginSettingStore? MakeScrollBinding(string? scroll, int? gestureSpeed = null)
     {
         if (string.IsNullOrEmpty(scroll) || scroll == None) return null;
-        if (scroll == PenScrollBinding.ScrollValue) return PenScrollBinding.Make();
+        var speed = gestureSpeed ?? PenScrollMath.DefaultSpeed;
+        if (scroll == PenScrollBinding.ScrollValue) return PenScrollBinding.Make(speed);
+        if (scroll == PenZoomBinding.ZoomValue) return PenZoomBinding.MakeZoom(speed);
+        if (scroll == PenZoomBinding.PanZoomValue) return PenZoomBinding.MakePanZoom(speed);
         var horizontal = scroll is Left or Right;
         var amount = scroll is Up or Left ? -ScrollTick : ScrollTick;
         var store = NewStore(MouseScrollBindingPath);
@@ -224,8 +230,12 @@ public static class AuxKeyBinding
             return button == None ? AuxBinding.Unbound
                 : new AuxBinding(AuxKind.Mouse, AuxCombo.Unbound, button, None);
         }
-        if (store.Path == MouseScrollBindingPath || PenScrollBinding.Is(store))
-            return new AuxBinding(AuxKind.Scroll, AuxCombo.Unbound, None, ReadScroll(store));
+        if (store.Path == MouseScrollBindingPath || PenScrollBinding.Is(store) || PenZoomBinding.Is(store))
+        {
+            int? speed = PenScrollBinding.Is(store) ? PenScrollBinding.ReadSpeed(store)
+                : PenZoomBinding.Is(store) ? PenZoomBinding.ReadSpeed(store) : null;
+            return new AuxBinding(AuxKind.Scroll, AuxCombo.Unbound, None, ReadScroll(store), speed);
+        }
         var combo = ReadCombo(store);
         if (combo == null) return null;                       // a binding the editor can't model
         return combo.IsBound ? new AuxBinding(AuxKind.Keyboard, combo, None, None) : AuxBinding.Unbound;
@@ -237,7 +247,7 @@ public static class AuxKeyBinding
     {
         AuxKind.Keyboard => MakeBinding(binding.Combo),
         AuxKind.Mouse => MakeMouseBinding(binding.MouseButton),
-        AuxKind.Scroll => MakeScrollBinding(binding.Scroll),
+        AuxKind.Scroll => MakeScrollBinding(binding.Scroll, binding.GestureSpeed),
         _ => null,
     };
 
@@ -247,8 +257,19 @@ public static class AuxKeyBinding
     {
         AuxKind.Keyboard => binding.Combo.IsBound ? DescribeCombo(binding.Combo) : "Do nothing",
         AuxKind.Mouse => IsBoundValue(binding.MouseButton) ? DescribeMouse(binding.MouseButton) : "Do nothing",
-        AuxKind.Scroll => binding.Scroll == PenScrollBinding.ScrollValue ? "Move pen to scroll"
-            : IsBoundValue(binding.Scroll) ? $"Scroll {binding.Scroll.ToLowerInvariant()}" : "Do nothing",
+        AuxKind.Scroll => DescribeScroll(binding.Scroll),
+        _ => "Do nothing",
+    };
+
+    private static string DescribeScroll(string scroll) => scroll switch
+    {
+        _ when scroll == PenScrollBinding.ScrollValue =>
+            Localizer.Te("binding.scroll.pen", "Move pen to scroll"),
+        _ when scroll == PenZoomBinding.ZoomValue =>
+            Localizer.Te("binding.scroll.pen_zoom", "Move pen to zoom"),
+        _ when scroll == PenZoomBinding.PanZoomValue =>
+            Localizer.Te("binding.scroll.pen_pan_zoom", "Move pen to pan and zoom"),
+        _ when IsBoundValue(scroll) => $"Scroll {scroll.ToLowerInvariant()}",
         _ => "Do nothing",
     };
 
@@ -300,7 +321,15 @@ public static class AuxKeyBinding
         new("Left", Left),
         new("Right", Right),
         new("Move pen to scroll", PenScrollBinding.ScrollValue),
+        new("Move pen to zoom", PenZoomBinding.ZoomValue),
+        new("Move pen to pan and zoom", PenZoomBinding.PanZoomValue),
     };
+
+    /// <summary>True when the scroll picker value needs a Slow–Fast speed slider (pen gestures).</summary>
+    public static bool IsPenGestureScroll(string? scroll) =>
+        scroll == PenScrollBinding.ScrollValue
+        || scroll == PenZoomBinding.ZoomValue
+        || scroll == PenZoomBinding.PanZoomValue;
 
     /// <summary>Mouse buttons offered in the picker (OTD's MouseButton enum names; "Back" reads nicer
     /// than the stored "Backward"). No "None" — unbinding is the explicit None binding type.</summary>

@@ -107,6 +107,24 @@ public class PluginTypeNameGuardTests
         Assert.Contains(filter!.GetInterfaces(), i => i.Name.StartsWith("IPositionedPipelineElement"));
     }
 
+    [Fact]
+    public void PenZoomTypeNames_ResolveToTheBuiltBindingAndFilter_WithTheSettingsTheAppWrites()
+    {
+        var dll = FindPluginDll();
+        Assert.True(dll != null, "Plugin DLL not found — build the solution (it compiles the plugin).");
+        var asm = Assembly.LoadFrom(dll!);
+
+        var binding = asm.GetType(PenZoomBinding.BindingTypeName);
+        Assert.True(binding != null, $"'{PenZoomBinding.BindingTypeName}' matches no type in the plugin assembly.");
+        Assert.Contains(binding!.GetInterfaces(), i => i.Name == "IStateBinding");
+        foreach (var s in PenZoomBinding.MakeZoom().Settings)
+            Assert.NotNull(binding.GetProperty(s.Property));
+
+        var filter = asm.GetType(PenZoomBinding.FilterTypeName);
+        Assert.True(filter != null, $"'{PenZoomBinding.FilterTypeName}' matches no type in the plugin assembly.");
+        Assert.Contains(filter!.GetInterfaces(), i => i.Name.StartsWith("IPositionedPipelineElement"));
+    }
+
     private const string PluginDll = "OpenTabletArtist.Dynamics.dll";
 
     // Walk up from the test output dir and locate the built plugin DLL (the test project doesn't
@@ -138,4 +156,6 @@ public class PluginTypeNameGuardTests
         }
         return null;
     }
+
+
 }

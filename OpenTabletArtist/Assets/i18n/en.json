@@ -426,5 +426,15 @@
   "binding.mouse.right": "Right click",
   "binding.mouse.middle": "Middle click",
   "binding.mouse.back": "Back button",
-  "binding.mouse.forward": "Forward button"
+  "binding.mouse.forward": "Forward button",
+  "binding.scroll.pen": "Move pen to scroll",
+  "binding.scroll.pen_tip": "Hold the button and move the pen to scroll, like a mouse wheel. The cursor stays still.",
+  "binding.scroll.pen_zoom": "Move pen to zoom",
+  "binding.scroll.pen_zoom_tip": "Hold the button and move the pen up or down to zoom. Uses Option+scroll, like the touch ring Zoom mode.",
+  "binding.scroll.pen_pan_zoom": "Move pen to pan and zoom",
+  "binding.scroll.pen_pan_zoom_tip": "Hold the button and move the pen: sideways to pan, up or down to zoom.",
+  "binding.scroll.speed": "Speed",
+  "binding.scroll.speed_slow": "Slow",
+  "binding.scroll.speed_fast": "Fast",
+  "binding.scroll.speed_tip": "1–100. Higher is faster. 50 is the middle, same as Pen scroll."
 }
