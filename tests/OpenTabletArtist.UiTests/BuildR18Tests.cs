@@ -88,8 +88,8 @@ public class BuildR18Tests
         var about = view.FindControl<Control>("AboutTouchRing");
         if (about is null || !about.IsEffectivelyVisible) { w.Close(); return; }   // no ring on a bare profile
         var texts = about.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
-        Assert.Contains("About the touch ring", texts);
-        Assert.Contains("Turn Touch ring Off to pause the ring. Your settings are kept.", texts);
+        Assert.Contains("About the Touch Ring", texts);
+        Assert.Contains("Turn Touch Ring Off to pause the ring. Your settings are kept.", texts);
         w.Close();
     }
 

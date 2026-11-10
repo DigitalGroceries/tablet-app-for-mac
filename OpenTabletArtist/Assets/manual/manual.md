@@ -23,7 +23,7 @@ Tested only on an Apple silicon Mac with macOS 27.0.1 and a Wacom Intuos4 Small 
 - On **Home**, check the tablet card shows your tablet as connected.
 - Open the tablet, choose **Pen** in the Tool row, and set **Tip Feel**.
 - Set **Mapping** to the display you draw on.
-- Under **Functions**, set the ExpressKeys and the **Touch ring** modes.
+- Under **Functions**, set the ExpressKeys and the **Touch Ring** modes.
 - Click **Save** in the footer. Unsaved changes are kept and offered again after a shutdown.
 - Test in **Scribble**.
 
@@ -134,7 +134,7 @@ Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held 
 
 ## Tablet › Functions › Touch ring
 
-- **Touch ring** (a tablet with one ring) or **All touch rings** (two rings, for example Cintiq 24HD), an Off / On switch: On. Off pauses the ring actions without deleting them.
+- **Touch Ring** (a tablet with one ring), **Touch Rings** (two rings, for example Cintiq 24HD), or **Touch Strip** / **Touch Strips** (tablets with touch strips, for example Intuos3 or Cintiq 22HD): an Off / On switch, On. Off pauses the ring or strip actions without deleting them. With two rings or strips, each one also has its own Off / On switch next to its name; it works only while the main switch is On, and the main switch never changes it.
 - **Touch Ring modes**: On. "4 modes. Press the ring's centre button to switch."
 - **Show touch ring setting (on-screen mode display)**: On. Shows the mode name when you switch.
 - The dial follows the ring live: the dot sits under your finger. The angle and turn direction show under the ring, for example "0° · Clockwise". 12 o'clock is 0° and 3 o'clock is 90°.

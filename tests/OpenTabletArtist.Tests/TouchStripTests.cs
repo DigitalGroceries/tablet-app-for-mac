@@ -85,9 +85,9 @@ public class TouchStripTests
     }
 
     [Theory]
-    [InlineData(0, 1, "Touch strip")]
-    [InlineData(0, 2, "Left touch strip")]
-    [InlineData(1, 2, "Right touch strip")]
+    [InlineData(0, 1, "Touch Strip")]
+    [InlineData(0, 2, "Left Touch Strip")]
+    [InlineData(1, 2, "Right Touch Strip")]
     public void Strip_Titles(int index, int count, string expected)
     {
         Assert.Equal(expected, TabletDetailViewModel.StripTitle(index, count));

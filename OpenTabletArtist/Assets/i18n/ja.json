@@ -424,6 +424,14 @@
   "tablet.expresskeys.key_turn_on": "オンにする",
   "tablet.expresskeys.key_needs_all": "先に「すべてのボタン」をオンにしてください",
   "tablet.expresskeys.key_note": "キーを1つだけオフにするには、そのキーの横の ••• をクリックして「オフにする」を選びます。「すべてのボタン」とそのキーの両方がオンのときだけ、キーは動作します。",
-  "tablet.ring.enable_all": "すべてのタッチリング",
-  "tablet.ring.about_enable_all": "「すべてのタッチリング」をオフにすると、リングを一時停止します。設定は残ります。"
+  "tablet.ring.enable_all": "タッチリング",
+  "tablet.ring.about_enable_all": "「タッチリング」をオフにすると、すべてのリングを一時停止します。リングごとのオン/オフも使えます。設定は残ります。",
+  "tablet.strip.enable": "タッチストリップ",
+  "tablet.strip.enable_all": "タッチストリップ",
+  "tablet.strip.about_enable": "「タッチストリップ」をオフにすると、ストリップを一時停止します。設定は残ります。",
+  "tablet.strip.about_enable_all": "「タッチストリップ」をオフにすると、すべてのストリップを一時停止します。ストリップごとのオン/オフも使えます。設定は残ります。",
+  "tablet.ring.needs_all": "先に「タッチリング」をオンにしてください",
+  "tablet.strip.needs_all": "先に「タッチストリップ」をオンにしてください",
+  "tablet.ring.one": "タッチリング",
+  "tablet.ring.n": "タッチリング {number}"
 }

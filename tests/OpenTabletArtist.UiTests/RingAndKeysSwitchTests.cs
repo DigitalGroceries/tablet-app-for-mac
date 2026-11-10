@@ -16,16 +16,21 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>TASKS #28 / #29: "All buttons" and the touch ring switch read "Off [switch] On", and the ring's label follows
-/// the tablet: "Touch ring" for one ring (Intuos4 PTK-440), "All touch rings" for two (Cintiq 24HD).</summary>
+/// <summary>TASKS #28 / #29: "All buttons" and the Touch Ring switch read "Off [switch] On", and the ring's label follows
+/// the tablet in Wacom's words (Zak, 10 Nov 2026): "Touch Ring" for one ring (Intuos4 PTK-440), "Touch Rings" for two
+/// (Cintiq 24HD), "Touch Strip" / "Touch Strips" for strip tablets. With two, each card has its own On/Off.</summary>
 public class RingAndKeysSwitchTests
 {
-    private static WheelEditor Wheel(int i)
+    private static WheelEditor Wheel(int i) => Wheel(i, strip: false);
+
+    private static WheelEditor Wheel(int i, bool strip, bool showOnOff = false, bool canToggle = true, bool isOn = true)
     {
         ButtonBinding Row(string l) => new(0, AuxBinding.Unbound, isOtherBinding: false, otherLabel: "", canEdit: true, applyBinding: null, label: l);
         var ed = new RingModesEditor(i, RingModeBinding.Defaults, true, true, true, null, null, _ => Task.CompletedTask);
-        return new WheelEditor(i, "Ring " + (i + 1), false, Row("Clockwise"), Row("Anticlockwise"),
-            new List<ButtonBinding> { Row("Centre button") }, 30, 30, 5, null) { RingModes = ed };
+        return new WheelEditor(i, "Touch Ring " + (i + 1), true, Row("Clockwise"), Row("Anticlockwise"),
+            new List<ButtonBinding> { Row("Centre button") }, 30, 30, 5, null, isStrip: strip, isOn: isOn,
+            setOn: _ => Task.CompletedTask)
+        { RingModes = ed, ShowOnOff = showOnOff, CanToggleOn = canToggle };
     }
 
     private static (TabletDetailViewModel, TabletDetailView, Window) Open(string tablet, int rings, string tab)
@@ -58,18 +63,19 @@ public class RingAndKeysSwitchTests
     public void OneRing_ShowsTouchRing_WithOffOnEitherSideOfTheSwitch()
     {
         var (vm, view, w) = Open("Wacom Intuos4 PTK-440", 1, "WheelsTab");
-        Assert.Equal(new[] { "Touch ring", "Off", "[switch]", "On" }, Row(view, "LblEnableWheels"));
-        Assert.Equal("Turn Touch ring Off to pause the ring. Your settings are kept.", view.FindControl<TextBlock>("LblRingAboutEnable")!.Text);
+        Assert.Equal(new[] { "Touch Ring", "Off", "[switch]", "On" }, Row(view, "LblEnableWheels"));
+        Assert.Equal("Turn Touch Ring Off to pause the ring. Your settings are kept.", view.FindControl<TextBlock>("LblRingAboutEnable")!.Text);
         w.Close();
     }
 
     [AvaloniaFact]
-    public void TwoRings_ShowAllTouchRings_WithOffOnEitherSideOfTheSwitch()
+    public void TwoRings_ShowTouchRings_WithOffOnEitherSideOfTheSwitch()
     {
         var (vm, view, w) = Open("Wacom Cintiq 24HD", 2, "WheelsTab");
-        Assert.Equal(new[] { "All touch rings", "Off", "[switch]", "On" }, Row(view, "LblEnableWheels"));
-        Assert.Equal("Turn All touch rings Off to pause the rings. Your settings are kept.", view.FindControl<TextBlock>("LblRingAboutEnable")!.Text);
-        // and no extra button next to the switch (that part is on hold)
+        Assert.Equal(new[] { "Touch Rings", "Off", "[switch]", "On" }, Row(view, "LblEnableWheels"));
+        Assert.Equal("Turn Touch Rings Off to pause every ring, or use each ring's own On/Off. Your settings are kept.",
+            view.FindControl<TextBlock>("LblRingAboutEnable")!.Text);
+        // and no extra button next to the switch (Zak, 10 Nov: there is none)
         var panel = (StackPanel)view.FindControl<TextBlock>("LblEnableWheels")!.Parent!;
         Assert.Empty(panel.Children.Where(c => c is Button and not ToggleSwitch));
         w.Close();
@@ -81,10 +87,63 @@ public class RingAndKeysSwitchTests
         var (vm, view, w) = Open("Wacom Intuos4 PTK-440", 1, "WheelsTab");
         vm.Wheels = new[] { Wheel(0), Wheel(1) }.ToList();
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal("All touch rings", view.FindControl<TextBlock>("LblEnableWheels")!.Text);
+        Assert.Equal("Touch Rings", view.FindControl<TextBlock>("LblEnableWheels")!.Text);
         vm.Wheels = new[] { Wheel(0) }.ToList();
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal("Touch ring", view.FindControl<TextBlock>("LblEnableWheels")!.Text);
+        Assert.Equal("Touch Ring", view.FindControl<TextBlock>("LblEnableWheels")!.Text);
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void StripTablets_SayTouchStrip_OrTouchStrips()
+    {
+        var (vm, view, w) = Open("Wacom Cintiq 22HD", 1, "WheelsTab");
+        vm.Wheels = new[] { Wheel(0, strip: true) }.ToList();
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(new[] { "Touch Strip", "Off", "[switch]", "On" }, Row(view, "LblEnableWheels"));
+        Assert.Equal("Turn Touch Strip Off to pause the strip. Your settings are kept.", view.FindControl<TextBlock>("LblRingAboutEnable")!.Text);
+        vm.Wheels = new[] { Wheel(0, strip: true), Wheel(1, strip: true) }.ToList();
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("Touch Strips", view.FindControl<TextBlock>("LblEnableWheels")!.Text);
+        Assert.DoesNotContain("wheel", vm.WheelEnableLabel, System.StringComparison.OrdinalIgnoreCase);
+        w.Close();
+    }
+
+    /// <summary>The Off / switch / On row inside each ring card (its own On/Off).</summary>
+    private static List<string[]> CardSwitchRows(TabletDetailView view) =>
+        view.GetVisualDescendants().OfType<ToggleSwitch>()
+            .Where(t => t.Name == "RingOwnSwitch" && ((Control)t.Parent!).IsVisible)
+            .Select(t => ((StackPanel)t.Parent!).Children
+                .Select(c => c switch { TextBlock tb => tb.Text ?? "", ToggleSwitch => "[switch]", _ => "?" }).ToArray())
+            .ToList();
+
+    [AvaloniaFact]
+    public void TwoRings_EachCardHasItsOwnOffOnSwitch_GreyedWhileTheMainSwitchIsOff()
+    {
+        var (vm, view, w) = Open("Wacom Cintiq 24HD", 2, "WheelsTab");
+        vm.Wheels = new[] { Wheel(0, false, showOnOff: true), Wheel(1, false, showOnOff: true, isOn: false) }.ToList();
+        for (int i = 0; i < 3; i++) { Dispatcher.UIThread.RunJobs(); w.UpdateLayout(); }
+        var rows = CardSwitchRows(view);
+        Assert.Equal(2, rows.Count);
+        Assert.All(rows, r => Assert.Equal(new[] { "Off", "[switch]", "On" }, r));
+        var switches = view.GetVisualDescendants().OfType<ToggleSwitch>().Where(t => t.Name == "RingOwnSwitch").ToList();
+        Assert.Equal(new bool?[] { true, false }, switches.Select(s => s.IsChecked).ToArray());
+        Assert.All(switches, s => Assert.True(s.IsEnabled));
+
+        // main switch Off: each card's switch is greyed and keeps its own state
+        vm.Wheels = new[] { Wheel(0, false, showOnOff: true, canToggle: false), Wheel(1, false, showOnOff: true, canToggle: false, isOn: false) }.ToList();
+        for (int i = 0; i < 3; i++) { Dispatcher.UIThread.RunJobs(); w.UpdateLayout(); }
+        switches = view.GetVisualDescendants().OfType<ToggleSwitch>().Where(t => t.Name == "RingOwnSwitch").ToList();
+        Assert.All(switches, s => Assert.False(s.IsEnabled));
+        Assert.Equal(new bool?[] { true, false }, switches.Select(s => s.IsChecked).ToArray());
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void OneRing_HasNoSwitchOfItsOwn()
+    {
+        var (vm, view, w) = Open("Wacom Intuos4 PTK-440", 1, "WheelsTab");
+        Assert.Empty(CardSwitchRows(view));
         w.Close();
     }
 
@@ -116,7 +175,8 @@ public class RingAndKeysSwitchTests
             "tablet.expresskeys.enable", "tablet.switch.off", "tablet.switch.on", "tablet.expresskeys.key_turn_off",
             "tablet.expresskeys.key_turn_on", "tablet.expresskeys.key_needs_all", "tablet.expresskeys.enable_note",
             "tablet.expresskeys.key_note", "tablet.ring.enable", "tablet.ring.enable_all", "tablet.ring.about_enable",
-            "tablet.ring.about_enable_all",
+            "tablet.ring.about_enable_all", "tablet.ring.needs_all", "tablet.ring.n",
+            "tablet.strip.about_enable", "tablet.strip.about_enable_all", "tablet.strip.needs_all",
         };
         var dir = I18nDir();
         var files = Directory.GetFiles(dir, "*.json");

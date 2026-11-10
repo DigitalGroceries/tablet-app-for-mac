@@ -463,7 +463,7 @@
                 <!-- Build O: tabs follow the selected Tool tile, like Wacom. -->
                 <RadioButton Content="expresskeys" x:Name="ButtonsTab" IsVisible="{Binding #ToolFunctionsButton.IsChecked}"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
-                <RadioButton Content="touch ring" x:Name="WheelsTab"
+                <RadioButton Content="Touch Ring" x:Name="WheelsTab"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3">
                     <RadioButton.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -1120,8 +1120,21 @@
                         <DataTemplate>
                             <ctrl:Entity>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Title}" Classes="SectionLabel"
-                                               IsVisible="{Binding ShowTitle}" Margin="0,0,0,6" />
+                                    <!-- TASKS #29: on a tablet with two rings or strips, each card has its own On/Off
+                                         (Off left, On right, like the main switch); greyed while the main switch is Off. -->
+                                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
+                                        <TextBlock Text="{Binding Title}" Classes="SectionLabel"
+                                                   IsVisible="{Binding ShowTitle}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowOnOff}"
+                                                    ToolTip.Tip="{Binding OnOffTip}">
+                                            <TextBlock Text="{Binding OffText}" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                            <ToggleSwitch x:Name="RingOwnSwitch" IsChecked="{Binding IsOn}" IsEnabled="{Binding CanToggleOn}"
+                                                          OnContent="" OffContent="" MinWidth="0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding OnText}" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        </StackPanel>
+                                    </StackPanel>
 
                                     <Grid x:Name="WheelTopBand" ColumnDefinitions="Auto,*" ColumnSpacing="16" Margin="0,0,364,0">
                                         <!-- Live gauge: marker + fading trail + current angle. -->
@@ -1209,7 +1222,7 @@
                                                       AutomationProperties.Name="Ring modes"
                                                       ToolTip.Tip="Up to four ring modes, each with its own keys. The centre button switches mode." />
                                     </Grid>
-                                    <CheckBox x:Name="ChkShowTouchRing" Content="Show touch ring setting (on-screen mode display)"
+                                    <CheckBox x:Name="ChkShowTouchRing" Content="Show Touch Ring setting (on-screen mode display)"
                                               IsChecked="{Binding RingModes.ShowOnScreen}"
                                               IsVisible="{Binding RingModes.IsOn, FallbackValue=False}"
                                               Margin="0,0,0,4" />
@@ -1306,7 +1319,7 @@
             <!-- What the touch ring is (R18: rewritten; top right corner, level with Enable wheels). Always shown:
                  the pivot itself is hidden when the tablet reports no wheel, so reaching this tab means there is one. -->
             <StackPanel x:Name="AboutTouchRing" Width="340" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <TextBlock x:Name="LblAboutTouchRing" Classes="Display section" Text="About the touch ring" Margin="0,0,0,8" />
+                <TextBlock x:Name="LblAboutTouchRing" Classes="Display section" Text="About the Touch Ring" Margin="0,0,0,8" />
                 <StackPanel Spacing="10">
                     <!-- Zak 9 Nov: plain, short sentences. -->
                     <TextBlock x:Name="LblRingAboutTurns" TextWrapping="Wrap"

@@ -424,6 +424,14 @@
   "tablet.expresskeys.key_turn_on": "开启",
   "tablet.expresskeys.key_needs_all": "请先开启“所有按键”",
   "tablet.expresskeys.key_note": "只想关闭某一个按键时，点击它旁边的 •••，选择“关闭”。只有“所有按键”和该按键都处于开启状态时，按键才会工作。",
-  "tablet.ring.enable_all": "所有触控环",
-  "tablet.ring.about_enable_all": "关闭“所有触控环”可暂停所有触控环。设置会保留。"
+  "tablet.ring.enable_all": "触控环",
+  "tablet.ring.about_enable_all": "关闭“触控环”可暂停所有触控环，也可以使用每个触控环自己的开关。设置会保留。",
+  "tablet.strip.enable": "触控条",
+  "tablet.strip.enable_all": "触控条",
+  "tablet.strip.about_enable": "关闭“触控条”可暂停触控条。设置会保留。",
+  "tablet.strip.about_enable_all": "关闭“触控条”可暂停所有触控条，也可以使用每个触控条自己的开关。设置会保留。",
+  "tablet.ring.needs_all": "请先打开“触控环”",
+  "tablet.strip.needs_all": "请先打开“触控条”",
+  "tablet.ring.one": "触控环",
+  "tablet.ring.n": "触控环 {number}"
 }

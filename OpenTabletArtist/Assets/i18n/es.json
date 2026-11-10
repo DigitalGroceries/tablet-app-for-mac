@@ -424,6 +424,14 @@
   "tablet.expresskeys.key_turn_on": "Activar",
   "tablet.expresskeys.key_needs_all": "Activa primero «Todos los botones»",
   "tablet.expresskeys.key_note": "Para desactivar solo una tecla, haz clic en ••• junto a ella y elige «Desactivar». Una tecla solo funciona si «Todos los botones» y la propia tecla están activados.",
-  "tablet.ring.enable_all": "Todos los anillos táctiles",
-  "tablet.ring.about_enable_all": "Desactiva «Todos los anillos táctiles» para pausar los anillos. Tus ajustes se guardan."
+  "tablet.ring.enable_all": "Anillos táctiles",
+  "tablet.ring.about_enable_all": "Desactiva «Anillos táctiles» para pausar todos los anillos, o usa el interruptor propio de cada anillo. Tus ajustes se guardan.",
+  "tablet.strip.enable": "Tira táctil",
+  "tablet.strip.enable_all": "Tiras táctiles",
+  "tablet.strip.about_enable": "Desactiva «Tira táctil» para pausar la tira. Tus ajustes se guardan.",
+  "tablet.strip.about_enable_all": "Desactiva «Tiras táctiles» para pausar todas las tiras, o usa el interruptor propio de cada tira. Tus ajustes se guardan.",
+  "tablet.ring.needs_all": "Activa primero «Anillos táctiles»",
+  "tablet.strip.needs_all": "Activa primero «Tiras táctiles»",
+  "tablet.ring.one": "Anillo táctil",
+  "tablet.ring.n": "Anillo táctil {number}"
 }

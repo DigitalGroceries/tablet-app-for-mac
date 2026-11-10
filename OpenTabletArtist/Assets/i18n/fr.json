@@ -424,6 +424,14 @@
   "tablet.expresskeys.key_turn_on": "Activer",
   "tablet.expresskeys.key_needs_all": "Activez d'abord « Tous les boutons »",
   "tablet.expresskeys.key_note": "Pour désactiver une seule touche, cliquez sur ••• à côté d'elle et choisissez « Désactiver ». Une touche ne fonctionne que si « Tous les boutons » et la touche elle-même sont activés.",
-  "tablet.ring.enable_all": "Tous les anneaux tactiles",
-  "tablet.ring.about_enable_all": "Désactivez « Tous les anneaux tactiles » pour mettre les anneaux en pause. Vos réglages sont conservés."
+  "tablet.ring.enable_all": "Anneaux tactiles",
+  "tablet.ring.about_enable_all": "Désactivez « Anneaux tactiles » pour mettre tous les anneaux en pause, ou utilisez l'interrupteur propre à chaque anneau. Vos réglages sont conservés.",
+  "tablet.strip.enable": "Bande tactile",
+  "tablet.strip.enable_all": "Bandes tactiles",
+  "tablet.strip.about_enable": "Désactivez « Bande tactile » pour mettre la bande en pause. Vos réglages sont conservés.",
+  "tablet.strip.about_enable_all": "Désactivez « Bandes tactiles » pour mettre toutes les bandes en pause, ou utilisez l'interrupteur propre à chaque bande. Vos réglages sont conservés.",
+  "tablet.ring.needs_all": "Activez d'abord « Anneaux tactiles »",
+  "tablet.strip.needs_all": "Activez d'abord « Bandes tactiles »",
+  "tablet.ring.one": "Anneau tactile",
+  "tablet.ring.n": "Anneau tactile {number}"
 }

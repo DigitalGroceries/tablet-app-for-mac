@@ -66,6 +66,42 @@ public partial class WheelEditor : ObservableObject
     /// <summary>The ring picture only makes sense for a ring.</summary>
     public bool IsRing => !IsStrip;
 
+    // ── TASKS #29 (Zak, 10 Nov 2026): this ring's / strip's own On/Off ──────────────────────────────
+    // Shown only on a tablet with two or more rings or strips (with one, the main switch is the same thing).
+    // The ring works only when the main switch AND this switch are On (Services.WheelOffStore.Works); while the
+    // main switch is Off this switch is greyed (CanToggleOn false) and keeps its own state.
+    private readonly Func<bool, Task>? _setOn;
+    private bool _suppressOn;
+
+    /// <summary>This ring's own On/Off (true = On).</summary>
+    [ObservableProperty] private bool _isOn = true;
+
+    /// <summary>Show the Off / switch / On row next to the title.</summary>
+    public bool ShowOnOff { get; init; }
+
+    /// <summary>False while the main switch is Off: the switch is greyed and can't be changed.</summary>
+    public bool CanToggleOn { get; init; } = true;
+
+    /// <summary>The switch's tip ("Turn on Touch Rings first" while the main switch is Off).</summary>
+    public string OnOffTip { get; init; } = "";
+
+    public string OffText => Services.Localizer.Te("tablet.switch.off", "Off");
+    public string OnText => Services.Localizer.Te("tablet.switch.on", "On");
+
+    partial void OnIsOnChanged(bool value)
+    {
+        if (_suppressOn || _setOn == null) return;
+        _ = _setOn(value);
+    }
+
+    /// <summary>Sets the switch without telling the page (used when the change is refused).</summary>
+    public void SetOnQuietly(bool on)
+    {
+        _suppressOn = true;
+        IsOn = on;
+        _suppressOn = false;
+    }
+
     public string LiveReadout
     {
         get
@@ -87,8 +123,11 @@ public partial class WheelEditor : ObservableObject
     public WheelEditor(int wheelIndex, string title, bool showTitle,
         ButtonBinding clockwise, ButtonBinding counterClockwise, IReadOnlyList<ButtonBinding> buttons,
         double clockwiseThreshold, double counterClockwiseThreshold, double? stepSizeDegrees,
-        Func<int, bool, double, Task>? applyThreshold, bool isStrip = false)
+        Func<int, bool, double, Task>? applyThreshold, bool isStrip = false,
+        bool isOn = true, Func<bool, Task>? setOn = null)
     {
+        _isOn = isOn;
+        _setOn = setOn;
         WheelIndex = wheelIndex;
         IsStrip = isStrip;
         Title = title;

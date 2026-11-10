@@ -424,6 +424,14 @@
   "tablet.expresskeys.key_turn_on": "Einschalten",
   "tablet.expresskeys.key_needs_all": "Schalte zuerst „Alle Tasten“ ein",
   "tablet.expresskeys.key_note": "Um nur eine Taste auszuschalten, klicke neben ihr auf ••• und wähle „Ausschalten“. Eine Taste funktioniert nur, wenn „Alle Tasten“ und die Taste selbst eingeschaltet sind.",
-  "tablet.ring.enable_all": "Alle Touch-Ringe",
-  "tablet.ring.about_enable_all": "Schalte „Alle Touch-Ringe“ aus, um die Ringe zu pausieren. Deine Einstellungen bleiben erhalten."
+  "tablet.ring.enable_all": "Touch-Ringe",
+  "tablet.ring.about_enable_all": "Schalte „Touch-Ringe“ aus, um alle Ringe zu pausieren, oder nutze den eigenen Ein/Aus-Schalter jedes Rings. Deine Einstellungen bleiben erhalten.",
+  "tablet.strip.enable": "Touch Strip",
+  "tablet.strip.enable_all": "Touch Strips",
+  "tablet.strip.about_enable": "Schalte „Touch Strip“ aus, um den Strip zu pausieren. Deine Einstellungen bleiben erhalten.",
+  "tablet.strip.about_enable_all": "Schalte „Touch Strips“ aus, um alle Strips zu pausieren, oder nutze den eigenen Ein/Aus-Schalter für jeden Strip. Deine Einstellungen bleiben erhalten.",
+  "tablet.ring.needs_all": "Schalte zuerst „Touch-Ringe“ ein",
+  "tablet.strip.needs_all": "Schalte zuerst „Touch Strips“ ein",
+  "tablet.ring.one": "Touch-Ring",
+  "tablet.ring.n": "Touch-Ring {number}"
 }
