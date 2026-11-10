@@ -70,7 +70,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 Init();
                 pool = objc_autoreleasePoolPush();
                 var window = MacOSWindowPick.Pick(Windows(), point, displays);
-                if (window is { } w) Activate(w.OwnerPid, w.OwnerName);
+                if (window is { } w) Activate(w.OwnerPid, w.OwnerName, w);
                 else Note($"No window found under the pen at ({point.X:0}, {point.Y:0}); nothing to activate.");
             }
             catch (Exception ex)
@@ -139,11 +139,25 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         private static bool Responds(IntPtr obj, string selector) =>
             obj != IntPtr.Zero && RespondsTo(obj, sel_registerName("respondsToSelector:"), sel_registerName(selector));
 
+        private static string Where(MacOSWindowPick.Window w) =>
+            $"layer {w.Layer} alpha {w.Alpha:0.###} at {w.X:0},{w.Y:0} size {w.Width:0}x{w.Height:0}";
+
+        private static readonly HashSet<string> Described = new();
+
+        /// <summary>#73: what a picked non-app window is (layer, alpha, bounds), once per owner, layer and size,
+        /// so a report shows which window sits under the pen.</summary>
+        private static void DescribeOnce(MacOSWindowPick.Window w)
+        {
+            var key = $"{w.OwnerName}|{w.Layer}|{w.Width:0}x{w.Height:0}";
+            lock (Described) if (!Described.Add(key)) return;
+            Note($"Window under the pen: {w.OwnerName ?? "?"} (pid {w.OwnerPid}) layer {w.Layer} alpha {w.Alpha:0.##} at {w.X:0},{w.Y:0} size {w.Width:0}x{w.Height:0}.");
+        }
+
         private static void Note(string message) => Log.Write("MacOSAppActivator", message, LogLevel.Info);
 
         /// <summary>Activates a regular app that isn't already active (NSRunningApplication activateWithOptions:0).
         /// Every outcome is logged so diagnostics can show why an app did or didn't come forward.</summary>
-        private static void Activate(int pid, string? name)
+        private static void Activate(int pid, string? name, MacOSWindowPick.Window w)
         {
             var who = $"{name ?? "unknown app"} (pid {pid})";
             var cls = objc_getClass("NSRunningApplication");
@@ -153,11 +167,21 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 return;
             }
             var app = SendInt(cls, sel_registerName("runningApplicationWithProcessIdentifier:"), pid);
-            if (app == IntPtr.Zero) { Note($"No running application for {who}; not activated."); return; }
+            if (app == IntPtr.Zero)
+            {
+                Note($"No running application for {who}; not activated ({Where(w)}).");
+                DescribeOnce(w);
+                return;
+            }
             if (Responds(app, "activationPolicy"))
             {
                 var policy = SendNInt(app, sel_registerName("activationPolicy"));
-                if (policy != ActivationPolicyRegular) { Note($"Skipped {who}: not a regular app (activationPolicy {policy})."); return; }
+                if (policy != ActivationPolicyRegular)
+                {
+                    Note($"Skipped {who}: not a regular app (activationPolicy {policy}); {Where(w)}.");
+                    DescribeOnce(w);
+                    return;
+                }
             }
             if (Responds(app, "isActive") && SendBool(app, sel_registerName("isActive")))
             {

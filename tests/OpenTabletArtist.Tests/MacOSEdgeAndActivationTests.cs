@@ -100,4 +100,41 @@ public class MacOSEdgeAndActivationTests
         Assert.Equal(Safari, MacOSWindowPick.Pick(new List<W> { clear, empty, Safari }, new Vector2(200, 200), new[] { Main }));
         Assert.Null(MacOSWindowPick.Pick(new List<W> { Safari }, new Vector2(5, 5), new[] { Main }));
     }
+
+    static readonly W ServerShield = new(458, MacOSWindowPick.WindowServerName, 2147483630, 0, 0, 1512, 982);
+    static readonly W ServerMenuBar = new(458, MacOSWindowPick.WindowServerName, 24, 0, 0, 1512, 33);
+
+    [Fact]
+    public void A_full_screen_Window_Server_window_is_skipped_issue_73()
+    {
+        var list = new List<W> { ServerShield, Safari, Mail, Desktop };
+        Assert.Equal(Safari, MacOSWindowPick.Pick(list, new Vector2(200, 200), new[] { Main }));
+        Assert.Equal(Desktop, MacOSWindowPick.Pick(list, new Vector2(1400, 900), new[] { Main }));
+    }
+
+    [Fact]
+    public void A_small_Window_Server_window_still_stops_the_search_issue_73()
+    {
+        // A tap on the menu bar must not activate the app behind it.
+        var list = new List<W> { ServerMenuBar, Desktop };
+        Assert.Equal(ServerMenuBar, MacOSWindowPick.Pick(list, new Vector2(5, 5), new[] { Main }));
+        // Without display bounds nothing tells a full-screen window from a small one: keep it.
+        Assert.Equal(ServerShield, MacOSWindowPick.Pick(new List<W> { ServerShield, Safari }, new Vector2(200, 200)));
+    }
+
+    [Fact]
+    public void A_full_screen_Window_Server_window_on_the_next_display_is_skipped_at_the_shared_edge_issue_73()
+    {
+        var shield = new W(458, MacOSWindowPick.WindowServerName, 2147483630, 1512, -200, 2560, 1440);
+        var app = new W(70, "Preview", 0, 1512, 0, 800, 600);
+        Assert.Equal(app, MacOSWindowPick.Pick(new List<W> { shield, app }, new Vector2(1512, 300), new[] { Main, Right }));
+    }
+
+    [Fact]
+    public void A_display_sized_Window_Server_window_that_only_overlaps_is_kept_issue_73()
+    {
+        // Same size as the display but shifted: it doesn't cover the display, so it still stops the search.
+        var shifted = new W(458, MacOSWindowPick.WindowServerName, 2147483630, 700, 0, 1512, 982);
+        Assert.Equal(shifted, MacOSWindowPick.Pick(new List<W> { shifted, Safari }, new Vector2(800, 200), new[] { Main }));
+    }
 }
