@@ -61,6 +61,8 @@ internal sealed class FakeDialogService : IDialogService
     }
 
     public Task<bool> ShowConfirmAsync(string title, string message) => Task.FromResult(ConfirmResult);
+    public Task<bool> ShowConfirmAsync(string title, string message, string yesText, string noText, bool cancelIsDefault = false) =>
+        Task.FromResult(ConfirmResult);
 
     public Task<string?> ShowInputAsync(string title, string prompt, string defaultValue = "")
         => Task.FromResult(InputResult);
@@ -362,5 +364,12 @@ internal sealed class FakeSettingsCoordinator : ISettingsCoordinator
     {
         RestoreCalls++;
         return Task.FromResult(RestoreResult);
+    }
+    public int FactoryCalls { get; private set; }
+    public SettingsRestoreOutcome FactoryResult { get; set; } = SettingsRestoreOutcome.Restored;
+    public Task<SettingsRestoreOutcome> RestoreFactoryAsync()
+    {
+        FactoryCalls++;
+        return Task.FromResult(FactoryResult);
     }
 }

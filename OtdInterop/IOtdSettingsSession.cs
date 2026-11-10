@@ -24,4 +24,6 @@ public interface IOtdSettingsSession
     Task<SettingsReloadOutcome> ReloadAsync();
     /// <summary>Apply the saved file (or its last good backup). Never writes the saved file.</summary>
     Task<SettingsRestoreOutcome> RestoreSavedAsync();
+    /// <summary>Ask the daemon for factory defaults (ResetSettings) and adopt them live. Never writes the saved file.</summary>
+    Task<SettingsRestoreOutcome> RestoreFactoryAsync();
 }

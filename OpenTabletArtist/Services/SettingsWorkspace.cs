@@ -219,4 +219,27 @@ public sealed class SettingsWorkspace
         }
         finally { _saving = false; }
     }
+    public async Task<SettingsRestoreOutcome> RestoreFactoryAsync()
+    {
+        if (_saving || IsPaused) return SettingsRestoreOutcome.Failed(null);
+        _saving = true;
+        try
+        {
+            await _pending;
+            if (IsPaused) return SettingsRestoreOutcome.Failed(null);
+            var outcome = await _session.RestoreFactoryAsync();
+            if (!outcome.IsRestored)
+            {
+                _failed = true;
+                return outcome;
+            }
+            ++_edit;
+            _draft = outcome.Prepared?.Settings ?? _session.GetCurrent()?.Settings;
+            _failed = false;
+            Generation++;
+            return SettingsRestoreOutcome.Restored;
+        }
+        finally { _saving = false; }
+    }
 }
+

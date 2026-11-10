@@ -200,6 +200,9 @@ internal sealed class FakeDaemonTransport : IDaemonTransport, IDaemonSettingsCha
         public Task<bool> SetSettingsAsync(Settings settings) =>
             Live ? daemon.SetSettingsAsync(settings) : Task.FromResult(false);
 
+        public Task<bool> ResetSettingsAsync() =>
+            Live ? daemon.ResetSettingsAsync() : Task.FromResult(false);
+
         public Task<JArray> GetTabletsAsync() =>
             Live ? daemon.GetTabletsAsync() : Task.FromResult(new JArray());
     }
@@ -221,6 +224,21 @@ internal sealed class FakeDaemonTransport : IDaemonTransport, IDaemonSettingsCha
 
         if (ok) Settings = Readback?.Invoke(settings) ?? SettingsCodec.Clone(settings);   // the daemon now holds it
         return ok;
+    }
+
+    public int ResetSettingsCalls { get; private set; }
+    /// <summary>What ResetSettings installs when no handler is set. Defaults to an empty Settings document.</summary>
+    public Settings FactorySettings { get; set; } = new Settings();
+    public Func<Task<bool>>? ResetSettingsHandler { get; set; }
+
+    public async Task<bool> ResetSettingsAsync()
+    {
+        ResetSettingsCalls++;
+        if (ResetSettingsHandler is { } handler) return await handler();
+        if (!SetSettingsSucceeds) return false;
+        Settings = SettingsCodec.Clone(FactorySettings);
+        Applied.Add(Settings);
+        return true;
     }
 
     /// <summary>

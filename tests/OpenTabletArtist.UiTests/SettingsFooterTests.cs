@@ -54,9 +54,20 @@ public class SettingsFooterTests
         public Recording Save { get; } = new();
         public Recording Reload { get; } = new();
         public Recording Revert { get; } = new();
+        public Recording SaveAsDefault { get; } = new();
+        public Recording RevertToDefault { get; } = new();
+        public Recording RestoreFactory { get; } = new();
         public ICommand SaveSettingsCommand => Save;
         public ICommand ReloadSettingsCommand => Reload;
         public ICommand RevertSettingsCommand => Revert;
+        public ICommand SaveAsDefaultCommand => SaveAsDefault;
+        public ICommand RevertToDefaultCommand => RevertToDefault;
+        public ICommand RestoreFactorySettingsCommand => RestoreFactory;
+        public bool CanRevertToDefault { get; init; } = true;
+        public bool CanRevertToSaved { get; init; } = true;
+        public string RevertToSavedTip { get; init; } = "Replace live settings with the driver’s saved file, discarding unsaved changes.";
+        public string RevertToDefaultTip { get; init; } = "Restore your saved default.";
+        public string FooterStatusText => SettingsSession.SaveStatusText;
     }
 
     private sealed class SessionState : System.ComponentModel.INotifyPropertyChanged
@@ -93,7 +104,7 @@ public class SettingsFooterTests
 
     private static (Window Window, FooterState State, Button[] Buttons) Footer(
         bool canEdit, bool busy = false, bool paused = false, string status = "", double width = 1100,
-        bool unsaved = false, string notice = "", string refreshed = "")
+        bool unsaved = false, string notice = "", string refreshed = "", bool canRevertToDefault = true)
     {
         var state = new FooterState
         {
@@ -106,6 +117,8 @@ public class SettingsFooterTests
                 HasUnsavedChanges = unsaved,
             },
             Connection = new ConnectionState { DiscardedChangeNotice = notice, SettingsRefreshedNotice = refreshed },
+            CanRevertToDefault = canEdit && canRevertToDefault,
+            CanRevertToSaved = canEdit && unsaved,
         };
         var footer = new SettingsFooterView();
         var window = new Window { Content = footer, DataContext = state, Width = width };
@@ -228,7 +241,16 @@ public class SettingsFooterTests
     {
         var (_, _, buttons) = Footer(canEdit: true);
 
-        Assert.Equal(["Save", "Revert to saved"], buttons.Select(b => b.Content as string));
+        Assert.Equal(
+            ["Save", "Save as default", "Revert to saved", "Revert to default", "Restore factory settings"],
+            buttons.Select(b => b.Content as string));
+    }
+
+    [AvaloniaFact]
+    public void RevertToDefaultIsDisabledWhenNothingDiffers()
+    {
+        var (_, _, buttons) = Footer(canEdit: true, canRevertToDefault: false);
+        Assert.False(Named(buttons, "Revert to default").IsEffectivelyEnabled);
     }
 
     /// <summary>
@@ -392,4 +414,16 @@ public class SettingsFooterTests
         Assert.Equal(0, state.Revert.Ran);
         window.Close();
     }
+    [AvaloniaFact]
+    public void RestoreFactorySettings_UsesGhostButton_LikeTheOtherFooterActions()
+    {
+        var (window, _, buttons) = Footer(canEdit: true, unsaved: true);
+        var factory = Named(buttons, "Restore factory settings");
+        var ghost = Application.Current!.FindResource("GhostButton");
+        Assert.Same(ghost, factory.Theme);
+        // Same padding family as Save as default / Revert (not the old link-style 8,5).
+        Assert.Equal(Named(buttons, "Save as default").Padding, factory.Padding);
+        window.Close();
+    }
+
 }

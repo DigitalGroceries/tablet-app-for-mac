@@ -7,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Styling;
 using OpenTabletArtist.Domain;
 using OpenTabletArtist.Views;
 
@@ -143,11 +144,22 @@ public static class Dialogs
     public static Task<bool> ShowConfirmAsync(string title, string message, Window? parent = null)
         => ShowConfirmAsync(title, message, "Yes", "No", parent);
 
-    /// <summary>Version 14: the same confirm with its own button words (e.g. "Tablet configs" / "Close").</summary>
-    public static async Task<bool> ShowConfirmAsync(string title, string message, string yesText, string noText, Window? parent = null)
+    /// <summary>Version 14: the same confirm with its own button words (e.g. "Tablet configs" / "Close").
+    /// <paramref name="cancelIsDefault"/> makes the No/Cancel button the Enter default (and Escape still
+    /// cancels via <see cref="Button.IsCancel"/>) — use for destructive confirms like Restore factory.</summary>
+    public static async Task<bool> ShowConfirmAsync(string title, string message, string yesText, string noText,
+        Window? parent = null, bool cancelIsDefault = false)
     {
         parent ??= GetMainWindow();
         bool result = false;
+
+        var yesBtn = new Button { Content = yesText, Padding = new Thickness(24, 8), FontSize = 13, IsDefault = !cancelIsDefault };
+        var noBtn = new Button { Content = noText, Padding = new Thickness(24, 8), FontSize = 13, IsCancel = true, IsDefault = cancelIsDefault };
+        // Same chrome as the rest of the app's sheets: accent for the action, ghost for cancel (#22).
+        if (Application.Current?.TryFindResource("AccentButton", out var accent) == true && accent is ControlTheme accentTheme)
+            yesBtn.Theme = accentTheme;
+        if (Application.Current?.TryFindResource("GhostButton", out var ghost) == true && ghost is ControlTheme ghostTheme)
+            noBtn.Theme = ghostTheme;
 
         var dialog = new AppWindow
         {
@@ -173,21 +185,12 @@ public static class Dialogs
                         Orientation = Orientation.Horizontal,
                         HorizontalAlignment = HorizontalAlignment.Right,
                         Spacing = 8,
-                        Children =
-                        {
-                            // Windows convention: the affirmative action goes first/left (#502).
-                            new Button { Content = yesText, Padding = new Thickness(24, 8), FontSize = 13 },
-                            new Button { Content = noText, Padding = new Thickness(24, 8), FontSize = 13 }
-                        }
+                        // Affirmative / destructive first (#502); Cancel on the right as Escape/default when asked.
+                        Children = { yesBtn, noBtn }
                     }
                 }
             }
         };
-
-        var panel = (StackPanel)dialog.Content;
-        var btnPanel = (StackPanel)panel.Children[1];
-        var yesBtn = (Button)btnPanel.Children[0];
-        var noBtn = (Button)btnPanel.Children[1];
 
         noBtn.Click += (_, _) => { result = false; dialog.Close(); };
         yesBtn.Click += (_, _) => { result = true; dialog.Close(); };

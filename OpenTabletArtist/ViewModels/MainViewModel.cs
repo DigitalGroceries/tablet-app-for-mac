@@ -49,6 +49,30 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>Active-profile override state (#320) — the shell binds this for the "Profile override" cue.</summary>
     public ProfileSwitchService ProfileSwitch => _profileSwitch;
 
+    /// <summary>True when the artist has saved their own default (#22).</summary>
+    [ObservableProperty] private bool _hasUserDefault;
+
+    /// <summary>True when Revert to default would change something (#22).</summary>
+    [ObservableProperty] private bool _canRevertToDefault;
+
+    /// <summary>True when Revert to saved has unsaved live changes to discard.</summary>
+    [ObservableProperty] private bool _canRevertToSaved;
+
+    /// <summary>Tooltip for Revert to saved (explains the disabled state when already saved).</summary>
+    [ObservableProperty] private string _revertToSavedTip = "";
+
+    /// <summary>Tooltip for Revert to default (explains when already matching / no user default).</summary>
+    [ObservableProperty] private string _revertToDefaultTip = "";
+
+    /// <summary>Short footer confirmation after Save as default (clears itself).</summary>
+    [ObservableProperty] private string _footerFlashMessage = "";
+
+    /// <summary>Status line: flash confirmation wins over the ordinary save-status text.</summary>
+    public string FooterStatusText =>
+        !string.IsNullOrEmpty(FooterFlashMessage) ? FooterFlashMessage : _session.SaveStatusText;
+
+    partial void OnFooterFlashMessageChanged(string value) => OnPropertyChanged(nameof(FooterStatusText));
+
     /// <summary>Monitor-cycle switch events (#89) — the shell subscribes to show a toast on cycle.</summary>
     public MonitorCycleService MonitorCycle => _monitorCycle;
 
@@ -248,6 +272,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _profileSwitch = new ProfileSwitchService(_session, _presetStore, () => _session.PresetDirectory);
         _profileSwitch.BeforeReplaceAsync = restoring => restoring
             ? ConfirmRevertAsync() : ResolveUnsavedSettingsAsync();
+        RefreshDefaultButtons();
+        _session.SettingsReplaced += RefreshDefaultButtons;
+        _session.PropertyChanged += OnSessionPropertyChangedForDefaults;
         _profileHotkeys = new ProfileHotkeyManager(_globalHotkeys, _profileSwitch);
         _monitorCycle = new MonitorCycleService(_session, _session);
         _monitorHotkeys = new MonitorCycleHotkeys(_globalHotkeys, _monitorCycle);
@@ -654,7 +681,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 await editor.FlushPendingEditsAsync();
             if (_perAppBindings is not null)
                 await _perAppBindings.EnsureAllOnDaemonAsync();
-            return await _session.SaveSettingsAsync();
+            var saved = await _session.SaveSettingsAsync();
+            // Save can leave live == disk while still differing from the user default (Zak: DCF 50→60).
+            RefreshDefaultButtons();
+            OnPropertyChanged(nameof(FooterStatusText));
+            return saved;
         }
         catch (Exception ex)
         {
@@ -667,6 +698,189 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private async Task RevertSettings() => await _profileSwitch.RestoreDefaultAsync();
+
+    /// <summary>Persist the current settings document as the artist's own default (#22). Same scope as Save.</summary>
+    [RelayCommand]
+    private async Task SaveAsDefault()
+    {
+        if (_session.SettingsBusy || !_session.CanEditSettings) return;
+        _session.SettingsBusy = true;
+        try
+        {
+            foreach (var editor in _tabletDetails.Values.ToArray())
+                await editor.FlushPendingEditsAsync();
+            if (_perAppBindings is not null)
+                await _perAppBindings.EnsureAllOnDaemonAsync();
+            if (_session.CurrentSettings is not { } settings) return;
+            UserDefaultSettings.Save(settings, _presetStore);
+            RefreshDefaultButtons();
+            ShowFooterFlash(Localizer.Te("save.default.saved", "Saved as your default"));
+            AppLog.Info("Saved the current settings as the user default.");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn("Couldn't save the user default.", ex);
+            await _dialogs.ShowMessageAsync(
+                Localizer.Te("save.default.failed_title", "Couldn't save as default"),
+                Localizer.Te("save.default.failed_body", "The current settings could not be stored as your default. Try again after Save."));
+        }
+        finally { _session.SettingsBusy = false; }
+    }
+
+    /// <summary>Restore the artist's saved default, or factory settings when they never saved one (#22).</summary>
+    [RelayCommand(CanExecute = nameof(CanRevertToDefault))]
+    private async Task RevertToDefault()
+    {
+        if (_session.SettingsBusy || !_session.CanEditSettings || !CanRevertToDefault) return;
+        if (_session.HasUnsavedChanges || HasPendingInput)
+        {
+            if (!await _dialogs.ShowConfirmAsync(
+                Localizer.Te("save.default.revert_confirm_title", "Revert to default?"),
+                Localizer.Te("save.default.revert_confirm_body",
+                    "This replaces the current settings with your saved default (or the factory settings if you have not saved one) and saves them. Unsaved edits will be lost.")))
+                return;
+        }
+        if (UserDefaultSettings.TryLoad(_presetStore, out var defaults) && defaults is not null)
+        {
+            _session.SettingsBusy = true;
+            try
+            {
+                ResetEditorInput();
+                var outcome = await _session.ApplySettingsAsync(defaults);
+                if (!outcome.IsLive)
+                {
+                    AppLog.Warn($"User default did not reach the daemon ({outcome.Status}).");
+                    return;
+                }
+                if (_session.CurrentSettings is { } live)
+                    FactorySettingsMerge.SyncAllStashes(live);
+                await _session.SaveSettingsAsync();
+                ReconcileOpenTabletDetails();
+                foreach (var editor in _tabletDetails.Values)
+                    editor.ResetPendingEdits();
+                RefreshDefaultButtons();
+            }
+            finally { _session.SettingsBusy = false; }
+            return;
+        }
+        await RestoreFactoryCoreAsync();
+    }
+
+    /// <summary>Reset to the daemon's factory defaults after an explicit confirmation (#22).</summary>
+    [RelayCommand]
+    private async Task RestoreFactorySettings()
+    {
+        if (_session.SettingsBusy || !_session.CanEditSettings) return;
+        if (!await _dialogs.ShowConfirmAsync(
+            Localizer.Te("save.factory.confirm_title", "Restore factory settings?"),
+            Localizer.Te("save.factory.confirm_body",
+                "Your current settings will be replaced with the factory settings. "
+                + "Your own saved default is kept, so you can still use Revert to default afterwards."),
+            Localizer.Te("save.factory.confirm_action", "Restore Factory Settings"),
+            Localizer.Te("app.cancel", "Cancel"),
+            cancelIsDefault: true))
+            return;
+        await RestoreFactoryCoreAsync();
+    }
+
+    private async Task RestoreFactoryCoreAsync()
+    {
+        if (_session.SettingsBusy || !_session.CanEditSettings) return;
+        ResetEditorInput();
+        // Snapshot before the daemon wipe: ResetSettings only rebuilds connected tablets, so a
+        // not-detected tablet's Double Click Fix would otherwise stay in the open editor / All stash.
+        var before = _session.CurrentSettings is { } prior ? SettingsCodec.Clone(prior) : null;
+        // Build 7 (Zak, 10 Nov 2026: "Restore factory settings ... stays to the custom value"): the session's
+        // RestoreFactoryAsync holds SettingsBusy itself and refuses while it is already held, and this method used
+        // to set it first, so every restore failed (app.log: "Factory restore failed (ApplyFailed)" three times).
+        // Take the busy flag only after the session has finished its own part.
+        var outcome = await _session.RestoreFactoryAsync();
+        if (!outcome.IsRestored)
+        {
+            AppLog.Warn($"Factory restore failed ({outcome.Status}).");
+            await _dialogs.ShowMessageAsync(
+                Localizer.Te("save.factory.failed_title", "Couldn't restore factory settings"),
+                Localizer.Te("save.factory.failed_body",
+                    "Nothing was changed. Try again. If it fails again, restart the driver in Settings › Troubleshooting and try once more."));
+            return;
+        }
+        _session.SettingsBusy = true;
+        try
+        {
+            if (_session.CurrentSettings is not { } after)
+            {
+                AppLog.Warn("Factory restore returned no settings.");
+                return;
+            }
+            var merged = FactorySettingsMerge.Apply(before, after);
+            var applied = await _session.ApplySettingsAsync(merged);
+            if (!applied.IsLive)
+            {
+                AppLog.Warn($"Factory settings did not reach the daemon ({applied.Status}).");
+                return;
+            }
+            // Persist so Revert to saved does not undo the factory reset. Keeps the user-default file.
+            if (!await _session.SaveSettingsAsync())
+                AppLog.Warn("Factory settings are live but could not be saved to the driver file.");
+            // Force every open tablet page to adopt the factory profile (including re-added ones).
+            ReconcileOpenTabletDetails();
+            foreach (var editor in _tabletDetails.Values)
+                editor.ResetPendingEdits();
+            RefreshDefaultButtons();
+            ShowFooterFlash(Localizer.Te("save.factory.done", "Restored factory settings"));
+            AppLog.Info("Restored factory settings and saved them.");
+        }
+        finally { _session.SettingsBusy = false; }
+    }
+
+    /// <summary>Brief confirmation in the footer status area; clears itself after a few seconds.</summary>
+    private void ShowFooterFlash(string message)
+    {
+        FooterFlashMessage = message;
+        var expected = message;
+        Avalonia.Threading.DispatcherTimer.RunOnce(() =>
+        {
+            if (FooterFlashMessage == expected)
+                FooterFlashMessage = "";
+        }, TimeSpan.FromSeconds(3));
+    }
+
+    private void OnSessionPropertyChangedForDefaults(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(AppSession.CanEditSettings) or nameof(AppSession.HasUnsavedChanges))
+            RefreshDefaultButtons();
+        if (e.PropertyName is nameof(AppSession.SaveStatusText) or nameof(AppSession.HasUnsavedChanges)
+            or nameof(AppSession.CanEditSettings))
+            OnPropertyChanged(nameof(FooterStatusText));
+    }
+
+    /// <summary>Refresh HasUserDefault / CanRevertToDefault / Revert-to-saved from disk + live settings.</summary>
+    public void RefreshDefaultButtons()
+    {
+        HasUserDefault = UserDefaultSettings.Exists;
+        var live = _session.CurrentSettings;
+        if (!HasUserDefault)
+            CanRevertToDefault = _session.CanEditSettings; // factory path always available when editable
+        else
+            CanRevertToDefault = _session.CanEditSettings && !UserDefaultSettings.Matches(live, _presetStore);
+        RevertToDefaultCommand.NotifyCanExecuteChanged();
+
+        CanRevertToSaved = _session.CanEditSettings && (_session.HasUnsavedChanges || HasPendingInput);
+        RevertToSavedTip = CanRevertToSaved
+            ? Localizer.Te("save.revert_tip",
+                "Replace live settings with the driver’s saved file, discarding unsaved changes.")
+            : Localizer.Te("save.revert_tip_disabled",
+                "Nothing to revert — live settings already match the driver’s saved file.");
+        if (!HasUserDefault)
+            RevertToDefaultTip = Localizer.Te("save.default.revert_tip_no_user",
+                "You have not saved your own default yet. This restores the factory settings.");
+        else if (!CanRevertToDefault)
+            RevertToDefaultTip = Localizer.Te("save.default.revert_tip_matches",
+                "Already matching your saved default.");
+        else
+            RevertToDefaultTip = Localizer.Te("save.default.revert_tip",
+                "Restore your saved default. If you have not saved one, restores the factory settings.");
+    }
 
     private async Task<bool> ConfirmRevertAsync()
     {
@@ -851,6 +1065,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// call threw ObjectDisposedException from the child view models' cancellation sources.</summary>
     public void Dispose()
     {
+        _session.SettingsReplaced -= RefreshDefaultButtons;
+        _session.PropertyChanged -= OnSessionPropertyChangedForDefaults;
         if (_disposed) return;
         _disposed = true;
         _session.DataLoaded -= RebuildTablets;
