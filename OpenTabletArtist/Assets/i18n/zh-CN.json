@@ -417,5 +417,6 @@
   "binding.mouse.right": "右键单击",
   "binding.mouse.middle": "中键单击",
   "binding.mouse.back": "后退按钮",
-  "binding.mouse.forward": "前进按钮"
+  "binding.mouse.forward": "前进按钮",
+  "home.version_test": "测试版（构建 {build}）"
 }

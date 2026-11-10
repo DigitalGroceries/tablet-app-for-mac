@@ -417,5 +417,6 @@
   "binding.mouse.right": "Правый щелчок",
   "binding.mouse.middle": "Средний щелчок",
   "binding.mouse.back": "Кнопка «Назад»",
-  "binding.mouse.forward": "Кнопка «Вперёд»"
+  "binding.mouse.forward": "Кнопка «Вперёд»",
+  "home.version_test": "Тестовая версия (сборка {build})"
 }

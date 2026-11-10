@@ -22,4 +22,22 @@ public class AppVersionInfoTests
     [InlineData("+onlymetadata")]
     public void Format_MissingOrEmpty_ReturnsPlaceholder(string? input)
         => Assert.Equal("Version ?", AppVersionInfo.Format(input));
+
+    // Build 8 (Zak, 10 Nov 2026): an unpublished test build says which build it is.
+    [Theory]
+    [InlineData("26-test8", "8", "26 test build 8", "Test version (build 8)")]
+    [InlineData("26-test8+abc1234", "8", "26 test build 8", "Test version (build 8)")]
+    [InlineData("26-test", "", "26 test build", "Test version")]
+    [InlineData("26", null, "26", "Version 26")]
+    [InlineData("26-beta", null, "26 BETA", "Version 26 BETA")]
+    public void TestBuilds_SayTestVersion(string info, string? build, string number, string format)
+    {
+        Assert.Equal(build, AppVersionInfo.TestBuild(info));
+        Assert.Equal(number, AppVersionInfo.Number(info));
+        Assert.Equal(format, AppVersionInfo.Format(info));
+    }
+
+    [Fact]
+    public void ATestBuild_IsStillVersion26_ForTheUpdater() =>
+        Assert.Equal(26, OpenTabletArtist.Services.Updater.ParseVersion("26-test8"));
 }

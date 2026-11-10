@@ -417,5 +417,6 @@
   "binding.mouse.right": "Clic droit",
   "binding.mouse.middle": "Clic du milieu",
   "binding.mouse.back": "Bouton Précédent",
-  "binding.mouse.forward": "Bouton Suivant"
+  "binding.mouse.forward": "Bouton Suivant",
+  "home.version_test": "Version de test (build {build})"
 }

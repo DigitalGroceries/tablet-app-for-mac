@@ -417,5 +417,6 @@
   "binding.mouse.right": "右クリック",
   "binding.mouse.middle": "中クリック",
   "binding.mouse.back": "戻るボタン",
-  "binding.mouse.forward": "進むボタン"
+  "binding.mouse.forward": "進むボタン",
+  "home.version_test": "テスト版（ビルド {build}）"
 }

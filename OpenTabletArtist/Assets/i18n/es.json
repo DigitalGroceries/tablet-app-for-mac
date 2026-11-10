@@ -417,5 +417,6 @@
   "binding.mouse.right": "Clic derecho",
   "binding.mouse.middle": "Clic central",
   "binding.mouse.back": "Botón Atrás",
-  "binding.mouse.forward": "Botón Adelante"
+  "binding.mouse.forward": "Botón Adelante",
+  "home.version_test": "Versión de prueba (compilación {build})"
 }

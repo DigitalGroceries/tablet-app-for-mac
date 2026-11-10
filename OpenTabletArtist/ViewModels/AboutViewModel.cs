@@ -117,12 +117,15 @@ public partial class AboutViewModel : ObservableObject
     private void OpenHelp() => ManualRequested?.Invoke();   // Version 19 BETA 2: always the offline manual, in the main window
 
     /// <summary>Bare version token from the assembly (release workflow stamps the tag at build).</summary>
-    readonly string _versionNumber = AppVersionInfo.Number(
-        Assembly.GetExecutingAssembly()
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
+    static readonly string? InfoVersion = Assembly.GetExecutingAssembly()
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+    readonly string _versionNumber = AppVersionInfo.Number(InfoVersion);
 
-    /// <summary>Localised "Version N" for Home's About line.</summary>
-    public string AppVersion => Services.Localizer.Tf("home.version", ("version", _versionNumber));
+    /// <summary>Localised "Version N" for Home's About line; an unpublished test build says "Test version (build N)"
+    /// (Zak, 10 Nov 2026), so he can see which build he is testing.</summary>
+    public string AppVersion => AppVersionInfo.TestBuild(InfoVersion) is { } build
+        ? Services.Localizer.Tf("home.version_test", ("build", build))
+        : Services.Localizer.Tf("home.version", ("version", _versionNumber));
 
     /// <summary>"Version N." — a closing sentence for the About paragraph rather than a line or
     /// a heading suffix of its own. The version is reference matter: worth having to hand when reporting a

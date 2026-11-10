@@ -417,5 +417,6 @@
   "binding.mouse.right": "Дясно кликане",
   "binding.mouse.middle": "Средно кликане",
   "binding.mouse.back": "Бутон „Назад“",
-  "binding.mouse.forward": "Бутон „Напред“"
+  "binding.mouse.forward": "Бутон „Напред“",
+  "home.version_test": "Тестова версия (компилация {build})"
 }

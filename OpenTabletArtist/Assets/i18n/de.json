@@ -417,5 +417,6 @@
   "binding.mouse.right": "Rechtsklick",
   "binding.mouse.middle": "Mittelklick",
   "binding.mouse.back": "Zurück-Taste",
-  "binding.mouse.forward": "Vorwärts-Taste"
+  "binding.mouse.forward": "Vorwärts-Taste",
+  "home.version_test": "Testversion (Build {build})"
 }

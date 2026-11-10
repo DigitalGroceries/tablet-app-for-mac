@@ -426,5 +426,6 @@
   "binding.mouse.right": "Right click",
   "binding.mouse.middle": "Middle click",
   "binding.mouse.back": "Back button",
-  "binding.mouse.forward": "Forward button"
+  "binding.mouse.forward": "Forward button",
+  "home.version_test": "Test version (build {build})"
 }
