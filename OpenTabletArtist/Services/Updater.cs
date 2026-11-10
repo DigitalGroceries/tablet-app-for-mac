@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 namespace OpenTabletArtist.Services;
 
-/// <summary>Version 7: in-app updater. Checks GitHub Releases (public API, no token) once a week at launch and on
-/// request. Downloads the release zip, checks its SHA-256 against the release's SHA256SUMS, swaps the app in
+/// <summary>Version 7: in-app updater. Checks GitHub Releases (public API, no token) every time the app starts (Version 26,
+/// Zak 10 Nov 2026; once a week before) and on request. Downloads the release zip, checks its SHA-256 against the release's SHA256SUMS, swaps the app in
 /// /Applications after this app quits normally, and reopens it. Files this app downloads are not quarantined
 /// (it does not set LSFileQuarantineEnabled and is not sandboxed), so Gatekeeper does not ask again; and the
 /// app is ad-hoc signed (a self-signed certificate is refused by macOS at launch), so macOS may ask for the
@@ -24,7 +24,6 @@ public static class Updater
     /// <summary>The app's zip. Apple silicon only (the owner, 4 Nov 2026: no Intel builds, ever).</summary>
     public const string ZipName = "Tablet-App-for-Mac.zip";
     public const string SumsName = "SHA256SUMS";
-    public static readonly TimeSpan Every = TimeSpan.FromDays(7);
 
     /// <summary>A release. <paramref name="Beta"/> 0 = stable; 1, 2, … = BETA number (a GitHub pre-release).
     /// <paramref name="Numbered"/> false for a BETA tagged without a number ("v23-beta"): from Version 23 on, the
@@ -76,9 +75,6 @@ public static class Updater
     /// <summary>"Update automatically": off by default.</summary>
     public static bool Automatic { get => Load().Automatic; set { var s = Load(); s.Automatic = value; Save(s); } }
 
-    /// <summary>Weekly check due? Pure, unit-tested.</summary>
-    public static bool IsDue(DateTime lastCheck, DateTime now) => now - lastCheck >= Every;
-    public static bool IsDueNow() => IsDue(Load().LastCheck, DateTime.UtcNow);
 
     /// <summary>"v7", "V7", "7" → 7; anything else → 0. Pure, unit-tested.</summary>
     public static int ParseVersion(string? tag)
