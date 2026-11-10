@@ -448,5 +448,17 @@
   "binding.scroll.speed": "Geschwindigkeit",
   "binding.scroll.speed_slow": "Langsam",
   "binding.scroll.speed_fast": "Schnell",
-  "binding.scroll.speed_tip": "1–100. Höher ist schneller. 50 ist die Mitte, wie beim Stift-Scrollen."
+  "binding.scroll.speed_tip": "1–100. Höher ist schneller. 50 ist die Mitte, wie beim Stift-Scrollen.",
+  "settings.tab.troubleshoot": "PROBLEMBEHEBUNG",
+  "settings.troubleshoot.title": "Problembehebung",
+  "settings.troubleshoot.intro": "Schnelle Hilfe, wenn das Tablet nicht reagiert, eine Einstellung nicht bleibt oder du einen Bericht brauchst.",
+  "settings.troubleshoot.restart_title": "Treiber neu starten",
+  "settings.troubleshoot.restart_body": "Stoppt den Tablettreiber und startet ihn neu. Nützlich, wenn der Stift stehen bleibt oder kein Tablet erkannt wird.",
+  "settings.troubleshoot.restart_button": "Treiber neu starten",
+  "settings.troubleshoot.diag_title": "Diagnosebericht",
+  "settings.troubleshoot.diag_body": "Speichert ein Zip auf dem Schreibtisch mit Protokollen, Einstellungen und Tablet-Infos zum Anhängen bei Hilfsanfragen.",
+  "settings.troubleshoot.diag_button": "Diagnosedatei erstellen",
+  "settings.troubleshoot.perm_title": "Berechtigungen zurücksetzen",
+  "settings.troubleshoot.perm_body": "Löscht die Input-Monitoring- und Bedienungshilfen-Einträge dieser App, damit macOS erneut fragt.",
+  "settings.troubleshoot.perm_button": "Berechtigungen zurücksetzen"
 }

@@ -448,5 +448,17 @@
   "binding.scroll.speed": "Vitesse",
   "binding.scroll.speed_slow": "Lent",
   "binding.scroll.speed_fast": "Rapide",
-  "binding.scroll.speed_tip": "1–100. Plus élevé = plus rapide. 50 est le milieu, comme pour le défilement au stylet."
+  "binding.scroll.speed_tip": "1–100. Plus élevé = plus rapide. 50 est le milieu, comme pour le défilement au stylet.",
+  "settings.tab.troubleshoot": "DÉPANNAGE",
+  "settings.troubleshoot.title": "Dépannage",
+  "settings.troubleshoot.intro": "Correctifs rapides quand la tablette ne répond plus, qu’un réglage ne tient pas ou qu’il faut envoyer un rapport.",
+  "settings.troubleshoot.restart_title": "Redémarrer le pilote",
+  "settings.troubleshoot.restart_body": "Arrête le pilote de la tablette puis le relance. À utiliser si le stylet ne bouge plus ou si la tablette n’est pas détectée.",
+  "settings.troubleshoot.restart_button": "Redémarrer le pilote",
+  "settings.troubleshoot.diag_title": "Rapport de diagnostic",
+  "settings.troubleshoot.diag_body": "Enregistre un zip sur le Bureau avec les journaux, les réglages et les infos tablette à joindre pour demander de l’aide.",
+  "settings.troubleshoot.diag_button": "Créer le fichier de diagnostic",
+  "settings.troubleshoot.perm_title": "Réinitialiser les autorisations",
+  "settings.troubleshoot.perm_body": "Efface les entrées Surveillance des entrées et Accessibilité de cette app pour que macOS redemande.",
+  "settings.troubleshoot.perm_button": "Réinitialiser les autorisations"
 }

@@ -142,6 +142,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>The SETTINGS page: OTA's own preferences as tabs — Presets / Hotkeys / Theme / System /
     /// Drivers / Dev — split out of ADVANCED into their own page.</summary>
     public SettingsViewModel Settings { get; }
+    public TroubleshootingViewModel Troubleshooting { get; }
+
     public StartupViewModel Startup { get; } = new();
     /// <summary>The DEVELOPER content, hosted as the SETTINGS → Dev tab. Assigned in the constructor (not a field
     /// initializer) so its break-config commands can reach the session's settings coordinator + device data.</summary>
@@ -351,8 +353,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
         Diagnostics.ConflictLabels = () => _conflicts.Drivers.Select(d => d.Name).ToList();
         Diagnostics.DaemonVersion = () => _session.DaemonVersion;
         Startup.Backup.Diagnostics = Diagnostics;
+        Troubleshooting = new TroubleshootingViewModel(_session, Diagnostics,
+            () => _conflicts.Drivers.Select(d => d.Name).ToList());
         Settings = new SettingsViewModel(Startup, Hotkeys, Theme, Shortcut, DesktopEntry, DriverCleanup,
-            VMulti, Presets, Developer);
+            VMulti, Presets, Developer, Troubleshooting);
 
         // The single TABLET page (#542): a switcher dropdown over the selected tablet's headerless detail
         // view. It resolves detail VMs through the shell (which owns the per-tablet cache + daemon plumbing).

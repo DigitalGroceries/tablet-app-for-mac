@@ -448,5 +448,17 @@
   "binding.scroll.speed": "速度",
   "binding.scroll.speed_slow": "遅い",
   "binding.scroll.speed_fast": "速い",
-  "binding.scroll.speed_tip": "1～100。大きいほど速い。50は中央で、ペンスクロールと同じです。"
+  "binding.scroll.speed_tip": "1～100。大きいほど速い。50は中央で、ペンスクロールと同じです。",
+  "settings.tab.troubleshoot": "トラブルシューティング",
+  "settings.troubleshoot.title": "トラブルシューティング",
+  "settings.troubleshoot.intro": "タブレットが反応しないとき、設定が保存されないとき、報告を送るときに使う短い手順です。",
+  "settings.troubleshoot.restart_title": "ドライバーを再起動",
+  "settings.troubleshoot.restart_body": "タブレットのドライバーを一度止めてから起動し直します。ペンが動かないときやタブレットが検出されないときに使います。",
+  "settings.troubleshoot.restart_button": "ドライバーを再起動",
+  "settings.troubleshoot.diag_title": "診断レポート",
+  "settings.troubleshoot.diag_body": "ログ・設定・タブレット情報をまとめた zip をデスクトップに保存します。問い合わせのときに添付できます。",
+  "settings.troubleshoot.diag_button": "診断ファイルを作成",
+  "settings.troubleshoot.perm_title": "権限をリセット",
+  "settings.troubleshoot.perm_body": "このアプリの入力監視とアクセシビリティの記録を消し、macOS に再度確認させます。",
+  "settings.troubleshoot.perm_button": "権限をリセット"
 }

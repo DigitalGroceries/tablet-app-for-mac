@@ -448,5 +448,17 @@
   "binding.scroll.speed": "Скорост",
   "binding.scroll.speed_slow": "Бавно",
   "binding.scroll.speed_fast": "Бързо",
-  "binding.scroll.speed_tip": "1–100. По-високо е по-бързо. 50 е средата, както при превъртане с писалката."
+  "binding.scroll.speed_tip": "1–100. По-високо е по-бързо. 50 е средата, както при превъртане с писалката.",
+  "settings.tab.troubleshoot": "ОТСТРАНЯВАНЕ НА ПРОБЛЕМИ",
+  "settings.troubleshoot.title": "Отстраняване на проблеми",
+  "settings.troubleshoot.intro": "Бързи поправки, когато таблетът спре да реагира, настройка не се запазва или ти трябва доклад.",
+  "settings.troubleshoot.restart_title": "Рестартирай драйвера",
+  "settings.troubleshoot.restart_body": "Спира драйвера на таблета и го стартира отново. Ползвай го, когато писалката спре да се движи или таблетът не се открива.",
+  "settings.troubleshoot.restart_button": "Рестартирай драйвера",
+  "settings.troubleshoot.diag_title": "Диагностичен доклад",
+  "settings.troubleshoot.diag_body": "Записва zip на Бюрото с логове, настройки и информация за таблета, който можеш да прикачиш, когато искаш помощ.",
+  "settings.troubleshoot.diag_button": "Създай диагностичен файл",
+  "settings.troubleshoot.perm_title": "Нулирай разрешенията",
+  "settings.troubleshoot.perm_body": "Изчиства записите за Input Monitoring и Accessibility на това приложение, за да пита macOS отново.",
+  "settings.troubleshoot.perm_button": "Нулирай разрешенията"
 }
