@@ -529,5 +529,6 @@
   "tablet.ring.needs_all": "Activa primero «Anillos táctiles»",
   "tablet.strip.needs_all": "Activa primero «Tiras táctiles»",
   "tablet.ring.one": "Anillo táctil",
-  "tablet.ring.n": "Anillo táctil {number}"
+  "tablet.ring.n": "Anillo táctil {number}",
+  "home.version_test": "Versión de prueba (compilación {build})"
 }

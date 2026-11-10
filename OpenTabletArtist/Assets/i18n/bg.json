@@ -520,5 +520,6 @@
   "tablet.ring.needs_all": "Първо включи „Сензорни пръстени“",
   "tablet.strip.needs_all": "Първо включи „Сензорни ленти“",
   "tablet.ring.one": "Сензорен пръстен",
-  "tablet.ring.n": "Сензорен пръстен {number}"
+  "tablet.ring.n": "Сензорен пръстен {number}",
+  "home.version_test": "Тестова версия (компилация {build})"
 }

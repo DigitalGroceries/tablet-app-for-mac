@@ -520,5 +520,6 @@
   "tablet.ring.needs_all": "Сначала включите «Тач-ринги»",
   "tablet.strip.needs_all": "Сначала включите «Сенсорные полосы»",
   "tablet.ring.one": "Тач-ринг",
-  "tablet.ring.n": "Тач-ринг {number}"
+  "tablet.ring.n": "Тач-ринг {number}",
+  "home.version_test": "Тестовая версия (сборка {build})"
 }

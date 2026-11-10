@@ -520,5 +520,6 @@
   "tablet.ring.needs_all": "请先打开“触控环”",
   "tablet.strip.needs_all": "请先打开“触控条”",
   "tablet.ring.one": "触控环",
-  "tablet.ring.n": "触控环 {number}"
+  "tablet.ring.n": "触控环 {number}",
+  "home.version_test": "测试版（构建 {build}）"
 }

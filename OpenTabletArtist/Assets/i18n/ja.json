@@ -520,5 +520,6 @@
   "tablet.ring.needs_all": "先に「タッチリング」をオンにしてください",
   "tablet.strip.needs_all": "先に「タッチストリップ」をオンにしてください",
   "tablet.ring.one": "タッチリング",
-  "tablet.ring.n": "タッチリング {number}"
+  "tablet.ring.n": "タッチリング {number}",
+  "home.version_test": "テスト版（ビルド {build}）"
 }

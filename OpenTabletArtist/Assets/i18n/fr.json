@@ -520,5 +520,6 @@
   "tablet.ring.needs_all": "Activez d'abord « Anneaux tactiles »",
   "tablet.strip.needs_all": "Activez d'abord « Bandes tactiles »",
   "tablet.ring.one": "Anneau tactile",
-  "tablet.ring.n": "Anneau tactile {number}"
+  "tablet.ring.n": "Anneau tactile {number}",
+  "home.version_test": "Version de test (build {build})"
 }

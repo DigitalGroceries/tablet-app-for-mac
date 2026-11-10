@@ -529,5 +529,6 @@
   "tablet.ring.needs_all": "Turn on Touch Rings first",
   "tablet.strip.needs_all": "Turn on Touch Strips first",
   "tablet.ring.one": "Touch Ring",
-  "tablet.ring.n": "Touch Ring {number}"
+  "tablet.ring.n": "Touch Ring {number}",
+  "home.version_test": "Test version (build {build})"
 }
