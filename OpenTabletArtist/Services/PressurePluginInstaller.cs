@@ -55,10 +55,19 @@ public class PressurePluginInstaller
         catch { return PluginInstallOutcome.None; }
     }
 
-    private static bool IsStale(string source, string dest)
+    /// <summary>Stale = the installed copy is not byte-for-byte the bundled one.
+    /// Build 7 (10 Nov 2026): test builds are packed with every file's date set to the same fixed day, so "the
+    /// bundled file is newer" never held, and the driver kept loading an older plugin without the new pen-zoom
+    /// types (Zak's OTD log: "Unable to find plugin matching name 'OpenTabletArtist.Dynamics.PenZoomBinding'").
+    /// Compare the content instead; the file is small (≈80 KB).</summary>
+    internal static bool IsStale(string source, string dest)
     {
         var s = new FileInfo(source);
         var d = new FileInfo(dest);
-        return s.Length != d.Length || s.LastWriteTimeUtc > d.LastWriteTimeUtc;
+        if (s.Length != d.Length) return true;
+        using var a = File.OpenRead(source);
+        using var b = File.OpenRead(dest);
+        return !System.Security.Cryptography.SHA256.HashData(a).AsSpan()
+            .SequenceEqual(System.Security.Cryptography.SHA256.HashData(b));
     }
 }
