@@ -996,6 +996,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         RefreshAbout();
         OnPropertyChanged(nameof(PenButtonTestText));
+        OnPropertyChanged(nameof(WheelEnableLabel));
+        OnPropertyChanged(nameof(WheelAboutEnableText));
     }
 
     // ── ABOUT tab's active-area diagram ─────────────────────────────────────────────────────────────
@@ -1498,27 +1500,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
         // ExpressKeys — editable single-key bindings. While mapping is suspended we show the stashed
         // bindings (greyed) so the user still sees what will come back.
-        var auxStores = EffectiveAuxStores();
-        AuxButtonCount = auxStores.Count.ToString();
-        var canEditAux = _applyAction != null && AuxButtonsEnabled;
-
-        var newAuxButtons = new List<ButtonBinding>();
-        for (int i = 0; i < auxStores.Count; i++)
-        {
-            var store = auxStores[i];
-            var binding = AuxKeyBinding.ReadBinding(store); // null = a binding this editor can't model
-            newAuxButtons.Add(new ButtonBinding(
-                index: i + 1,
-                binding: binding ?? AuxBinding.Unbound,
-                isOtherBinding: binding == null,
-                otherLabel: binding == null ? GetBindingName(store) : "",
-                canEdit: canEditAux,
-                applyBinding: ApplyAuxBindingAsync,
-                editBinding: _editBinding));
-        }
-        AuxButtons = newAuxButtons;
-        NoAuxButtons = newAuxButtons.Count == 0;
-        ShowAuxControls = newAuxButtons.Count > 0 && _applyAction != null;
+        RebuildAuxButtonsFromWorking();
 
         // Wheel bindings — rotation (CW/CCW) + wheel buttons + thresholds per wheel.
         RefreshWheels();
@@ -1748,7 +1730,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// suspended set is still visible) falling back to the profile.</summary>
     private PluginSettingStoreCollection EffectiveAuxStores()
     {
-        if (!AuxButtonsEnabled)
+        // The stash is All's own table; an application's (or extra pen's) table is never emptied by the switch
+        // (the driver just gets nothing from it while All buttons is Off), so it is shown as it is.
+        if (!AuxButtonsEnabled && AuxScopeIsAll())
         {
             var backup = AppSettings.Get(AuxBackupKey);
             if (!string.IsNullOrEmpty(backup))
@@ -1768,11 +1752,42 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         if (!AuxButtonsEnabled) return; // editing is locked while suspended
         var store = AuxKeyBinding.MakeBinding(binding); // null = unbound
+        var scope = AuxKeyOffScope();
+        var off = AuxKeyOffStore.Load(scope);
         await ApplyBindingMutationAsync(b =>
         {
-            var aux = b.AuxButtons;
-            if (buttonIndex >= 1 && buttonIndex <= aux.Count)
-                aux[buttonIndex - 1] = store!;
+            // An Off key keeps the new binding aside (the driver still gets nothing for it).
+            AuxKeyOffStore.SetBinding(b.AuxButtons, off, buttonIndex, store);
+            AuxKeyOffStore.Save(scope, off);
+        });
+    }
+
+    // ── TASKS #28: each ExpressKey's own On/Off (see AuxKeyOffStore for how it is stored) ──────────
+
+    /// <summary>The table the ExpressKeys page shows is All's own (not an application's or an extra pen's).</summary>
+    private bool AuxScopeIsAll() => AuxKeyOffScope() == AuxKeyOffStore.ScopeKey(_profile.Tablet ?? "");
+
+    /// <summary>Where this table's Off keys are kept: the same table <see cref="WorkingBindings"/> picks.</summary>
+    private string AuxKeyOffScope()
+    {
+        var tablet = _profile.Tablet ?? "";
+        if (!string.IsNullOrEmpty(SelectedPenKey) && PerPenStore.Find(tablet, SelectedPenKey) != null)
+            return AuxKeyOffStore.ScopeKey(tablet, penKey: SelectedPenKey);
+        if (!string.IsNullOrEmpty(SelectedAppBundleId) && PerAppBindingStore.Find(tablet, SelectedAppBundleId!) != null)
+            return AuxKeyOffStore.ScopeKey(tablet, appBundleId: SelectedAppBundleId);
+        return AuxKeyOffStore.ScopeKey(tablet);
+    }
+
+    private async Task SetAuxKeyOnAsync(int buttonIndex, bool on)
+    {
+        if (!AuxButtonsEnabled) return; // greyed in the menu; Turn on All buttons first
+        var scope = AuxKeyOffScope();
+        var off = AuxKeyOffStore.Load(scope);
+        await ApplyBindingMutationAsync(b =>
+        {
+            if (on) AuxKeyOffStore.TurnOn(b.AuxButtons, off, buttonIndex);
+            else AuxKeyOffStore.TurnOff(b.AuxButtons, off, buttonIndex);
+            AuxKeyOffStore.Save(scope, off);   // before the page refreshes from the new table
         });
     }
 
@@ -1791,8 +1806,23 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _wheelEnabled = true;
     private bool _suppressWheelEnabledApply;
 
+    /// <summary>TASKS #29: the switch's label follows the tablet. One touch ring (Intuos4 PTK-440): "Touch ring";
+    /// two or more (Cintiq 24HD): "All touch rings".</summary>
+    public bool HasSeveralRings => Wheels.Count > 1;
+    public string WheelEnableLabel => HasSeveralRings
+        ? Localizer.Te("tablet.ring.enable_all", "All touch rings")
+        : Localizer.Te("tablet.ring.enable", "Touch ring");
+
+    /// <summary>The About line that says how to pause the ring(s), worded for the same label.</summary>
+    public string WheelAboutEnableText => HasSeveralRings
+        ? Localizer.Te("tablet.ring.about_enable_all", "Turn All touch rings Off to pause the rings. Your settings are kept.")
+        : Localizer.Te("tablet.ring.about_enable", "Turn Touch ring Off to pause the ring. Your settings are kept.");
+
     partial void OnWheelsChanged(List<WheelEditor> value)
     {
+        OnPropertyChanged(nameof(HasSeveralRings));
+        OnPropertyChanged(nameof(WheelEnableLabel));
+        OnPropertyChanged(nameof(WheelAboutEnableText));
         OnPropertyChanged(nameof(HasWheels));
         OnPropertyChanged(nameof(NoWheels));
         OnPropertyChanged(nameof(ShowWheelControls));
@@ -2040,10 +2070,12 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     public async Task ResetExpressKeysToDefaultsAsync()
     {
         if (!AuxButtonsEnabled) return;
+        var scope = AuxKeyOffScope();
+        var off = AuxKeyOffStore.Load(scope);
         await ApplyBindingMutationAsync(b =>
         {
-            var aux = b.AuxButtons;
-            for (int i = 0; i < aux.Count; i++) aux[i] = null!;
+            AuxKeyOffStore.ClearAll(b.AuxButtons, off);
+            AuxKeyOffStore.Save(scope, off);
         });
     }
 
@@ -2276,6 +2308,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             });
             AppSettings.Set(AuxBackupKey, "");
         }
+        // The cards' On/Off items and edit buttons follow All buttons.
+        RebuildAuxButtonsFromWorking();
     }
 
     // A "Clear all" command lived here, wiping every express-key binding and dropping the suspend stash

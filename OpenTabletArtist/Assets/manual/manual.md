@@ -126,15 +126,15 @@ The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable 
 ![ExpressKeys](img/25-functions-tool.png)
 
 - Press a key on the tablet to light its row.
-- Row **⋯**: **Edit…** opens the function editor, **Clear** removes the action.
-- The enable switch turns all ExpressKey actions off or on; actions are kept.
+- Row **⋯**: **Edit…** opens the function editor, **Clear** removes the action, **Turn off** / **Turn on** switches just that key (an Off key is greyed and keeps its shortcut). Each application keeps its own On/Off for every key.
+- **All buttons** (Off / On switch) turns every ExpressKey off or on; actions and each key's own On/Off are kept. A key works only when **All buttons** and the key are both On. While **All buttons** is Off, the per-key item is greyed ("Turn on All buttons first").
 - **Default**: clears every ExpressKey action, after asking.
 
 Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left, Right, Middle click, Back and Forward button, or **Double Click**), **Scroll** (up, down, left, right, or **Move pen to scroll**: hold the button and move the pen to scroll like a mouse wheel; the cursor stays still and the tip does not click), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). **Save**, **Cancel**, **Clear**.
 
 ## Tablet › Functions › Touch ring
 
-- **Enable wheels**: On. Pauses all ring actions without deleting them.
+- **Touch ring** (a tablet with one ring) or **All touch rings** (two rings, for example Cintiq 24HD), an Off / On switch: On. Off pauses the ring actions without deleting them.
 - **Touch Ring modes**: On. "4 modes. Press the ring's centre button to switch."
 - **Show touch ring setting (on-screen mode display)**: On. Shows the mode name when you switch.
 - The dial follows the ring live: the dot sits under your finger. The angle and turn direction show under the ring, for example "0° · Clockwise". 12 o'clock is 0° and 3 o'clock is 90°.

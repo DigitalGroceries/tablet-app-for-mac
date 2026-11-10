@@ -125,10 +125,12 @@ public partial class TabletDetailViewModel
         var auxStores = EffectiveAuxStores();
         AuxButtonCount = auxStores.Count.ToString();
         var canEditAux = _applyAction != null && AuxButtonsEnabled;
+        // TASKS #28: an Off key's table entry is empty; what it will do again once it is On is kept aside.
+        var off = AuxKeyOffStore.Load(AuxKeyOffScope());
         var newAuxButtons = new System.Collections.Generic.List<ButtonBinding>();
         for (int i = 0; i < auxStores.Count; i++)
         {
-            var store = auxStores[i];
+            var store = AuxKeyOffStore.Shown(auxStores, off, i + 1);
             var binding = AuxKeyBinding.ReadBinding(store);
             newAuxButtons.Add(new ButtonBinding(
                 index: i + 1,
@@ -137,7 +139,10 @@ public partial class TabletDetailViewModel
                 otherLabel: binding == null ? GetBindingName(store) : "",
                 canEdit: canEditAux,
                 applyBinding: ApplyAuxBindingAsync,
-                editBinding: _editBinding));
+                editBinding: _editBinding,
+                keyOn: AuxKeyOffStore.IsOn(off, i + 1),
+                allButtonsOn: AuxButtonsEnabled,
+                applyKeyOn: SetAuxKeyOnAsync));
         }
         AuxButtons = newAuxButtons;
         NoAuxButtons = newAuxButtons.Count == 0;
@@ -162,8 +167,12 @@ public partial class TabletDetailViewModel
     {
         if (string.IsNullOrWhiteSpace(candidate.BundleId)) return;
         var tablet = _profile.Tablet ?? "";
+        var isNew = PerAppBindingStore.Find(tablet, candidate.BundleId) == null;
         PerAppBindingStore.Add(tablet, candidate.BundleId, candidate.DisplayName, candidate.AppPath,
             _profile.BindingSettings);
+        // TASKS #28: the new application starts as a copy of All, so All's Off keys are Off there too.
+        if (isNew)
+            AuxKeyOffStore.CopyScope(AuxKeyOffStore.ScopeKey(tablet), AuxKeyOffStore.ScopeKey(tablet, appBundleId: candidate.BundleId));
         LoadAppProfiles();
         SelectedAppBundleId = candidate.BundleId;
         PerAppBindingRuntime.Shared?.Kick();
@@ -181,6 +190,7 @@ public partial class TabletDetailViewModel
                 Localizer.T("tablet.app.remove_body").Replace("{name}", name)))
             return;
         PerAppBindingStore.Remove(tablet, SelectedAppBundleId!);
+        AuxKeyOffStore.Save(AuxKeyOffStore.ScopeKey(tablet, appBundleId: SelectedAppBundleId), new());
         SelectedAppBundleId = null;
         LoadAppProfiles();
         PerAppBindingRuntime.Shared?.Kick();

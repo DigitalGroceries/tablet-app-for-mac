@@ -16,11 +16,18 @@ public partial class ButtonBinding : ObservableObject
     private readonly Func<int, AuxBinding, Task>? _applyBinding;
     private readonly Func<AuxBinding, string, Task<AuxBinding?>>? _editBinding;
     private AuxBinding _applied;
+    private readonly Func<int, bool, Task>? _applyKeyOn;
+    private bool _keyOn;
 
     public ButtonBinding(int index, AuxBinding binding, bool isOtherBinding, string otherLabel,
         bool canEdit, Func<int, AuxBinding, Task>? applyBinding, string? label = null,
-        Func<AuxBinding, string, Task<AuxBinding?>>? editBinding = null)
+        Func<AuxBinding, string, Task<AuxBinding?>>? editBinding = null,
+        bool? keyOn = null, bool allButtonsOn = true, Func<int, bool, Task>? applyKeyOn = null)
     {
+        _keyOn = keyOn ?? true;
+        ShowKeyToggle = keyOn != null;
+        AllButtonsOn = allButtonsOn;
+        _applyKeyOn = applyKeyOn;
         Index = index;
         _label = label;
         IsOtherBinding = isOtherBinding;
@@ -29,7 +36,46 @@ public partial class ButtonBinding : ObservableObject
         _applyBinding = applyBinding;
         _editBinding = editBinding;
         _applied = binding;
-        Localizer.LanguageChanged += () => OnPropertyChanged(nameof(Label));
+        Localizer.LanguageChanged += () =>
+        {
+            OnPropertyChanged(nameof(Label));
+            OnPropertyChanged(nameof(KeyToggleHeader));
+            OnPropertyChanged(nameof(KeyToggleTip));
+        };
+    }
+
+    // ── TASKS #28: this key's own On/Off (ExpressKeys only; wheel rows pass no keyOn and show no item) ──
+
+    /// <summary>The "•••" menu has the On/Off item (ExpressKeys cards only).</summary>
+    public bool ShowKeyToggle { get; }
+
+    /// <summary>The "All buttons" switch is On. While it is Off the per-key item is greyed.</summary>
+    public bool AllButtonsOn { get; }
+
+    /// <summary>This key is On. An Off key keeps its shortcut but does nothing.</summary>
+    public bool IsKeyOn => _keyOn;
+
+    /// <summary>An Off key is drawn greyed.</summary>
+    public double CardOpacity => _keyOn ? 1.0 : 0.45;
+
+    /// <summary>The menu item turns the key the other way: "Turn off" on an On key, "Turn on" on an Off key.</summary>
+    public string KeyToggleHeader => Localizer.Te(_keyOn ? "tablet.expresskeys.key_turn_off" : "tablet.expresskeys.key_turn_on",
+        _keyOn ? "Turn off" : "Turn on");
+
+    /// <summary>Tooltip of the item while All buttons is Off (the item is disabled then).</summary>
+    public string KeyToggleTip => AllButtonsOn ? "" : Localizer.Te("tablet.expresskeys.key_needs_all", "Turn on All buttons first");
+
+    private bool CanToggleKey => AllButtonsOn && ShowKeyToggle && CanEdit;
+
+    [RelayCommand(CanExecute = nameof(CanToggleKey))]
+    private async Task ToggleKey()
+    {
+        if (!CanToggleKey) return;
+        _keyOn = !_keyOn;
+        OnPropertyChanged(nameof(IsKeyOn));
+        OnPropertyChanged(nameof(CardOpacity));
+        OnPropertyChanged(nameof(KeyToggleHeader));
+        if (_applyKeyOn != null) await _applyKeyOn(Index, _keyOn);
     }
 
     public int Index { get; }

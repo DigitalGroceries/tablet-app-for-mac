@@ -207,6 +207,15 @@ public sealed class PerAppBindingRuntime : IDisposable
                     StashedAllBindings(tablet)?.DoubleClickFix ?? profile.BindingSettings.DoubleClickFix);
             }
 
+            // TASKS #28: a key works only when All buttons is On. The switch empties All's own table; an
+            // application's table keeps its bindings, so the driver is given nothing from it while the switch is Off.
+            // (An Off key is already empty in the table, with its binding kept aside: see AuxKeyOffStore.)
+            if (bundleId is not null && AppSettings.Get($"AuxEnabled:{tablet}") == "false")
+            {
+                bindings = PerAppBindingStore.CloneBindings(bindings);
+                AuxKeyOffStore.ApplyAllButtons(bindings.AuxButtons, allButtonsOn: false);
+            }
+
             // Version 14: an extra pen's own tip / eraser / side-button settings win over All and the app.
             if (penKey is not null && PerPenStore.Find(tablet, penKey) is { } pen)
             {

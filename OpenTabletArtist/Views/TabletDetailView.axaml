@@ -151,7 +151,7 @@
              a flat row for the direction/button rows that live directly inside a single wheel card. -->
         <DataTemplate x:Key="ButtonBindingCard">
             <ctrl:Entity Classes="expressCard" Classes.pressed="{Binding IsPressed}"
-                    Icon="{StaticResource IconButtonPointer}">
+                    Icon="{StaticResource IconButtonPointer}" Opacity="{Binding CardOpacity}">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
                         <TextBlock Text="{Binding Label}" FontWeight="SemiBold"
@@ -174,6 +174,10 @@
                             <MenuFlyout>
                                 <MenuItem Header="Edit…" Command="{Binding EditCommand}" />
                                 <MenuItem Header="Clear" Command="{Binding ClearCommand}" />
+                                <!-- TASKS #28: this key's own On/Off. Greyed, with a tooltip, while All buttons is Off. -->
+                                <MenuItem Header="{Binding KeyToggleHeader}" Command="{Binding ToggleKeyCommand}"
+                                          IsVisible="{Binding ShowKeyToggle}"
+                                          ToolTip.Tip="{Binding KeyToggleTip}" ToolTip.ShowOnDisabled="True" />
                             </MenuFlyout>
                         </ctrl:IconButton.Flyout>
                     </ctrl:IconButton>
@@ -1006,11 +1010,16 @@
                      stop halfway through. -->
                 <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,10"
                             HorizontalAlignment="Left" IsVisible="{Binding ShowAuxControls}">
-                    <TextBlock x:Name="LblEnableButtons" Text="Enable buttons" VerticalAlignment="Center"
+                    <TextBlock x:Name="LblEnableButtons" Text="All buttons" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,6,0" />
+                    <!-- TASKS #28: "All buttons", with Off on the switch's left and On on its right. -->
+                    <TextBlock x:Name="LblButtonsOff" Text="Off" VerticalAlignment="Center"
                                Foreground="{DynamicResource TextSecondaryBrush}" />
                     <ToggleSwitch IsChecked="{Binding AuxButtonsEnabled}" OnContent="" OffContent=""
                                   MinWidth="0" VerticalAlignment="Center"
                                   ToolTip.Tip="Turn all ExpressKeys on or off. Your settings are kept." />
+                    <TextBlock x:Name="LblButtonsOn" Text="On" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
                 </StackPanel>
 
                 <!-- Two columns of cards so a dozen keys stay on one screen; the shared card template
@@ -1065,7 +1074,9 @@
                     <TextBlock x:Name="LblExpressKeysPress" TextWrapping="Wrap"
                                Text="Press a key on your tablet to see which row it is." />
                     <TextBlock x:Name="LblExpressKeysEnableNote" TextWrapping="Wrap"
-                               Text="Turn off Enable buttons to stop all the keys working, for example if your hand keeps pressing one by accident. Your settings are kept, and the keys work again when you turn it back on." />
+                               Text="Use the All buttons switch to stop every key working, for example if your hand keeps pressing one by accident. Your settings are kept, and the keys work again when you turn it back On." />
+                    <TextBlock x:Name="LblExpressKeysKeyNote" TextWrapping="Wrap"
+                               Text="To turn off just one key, click ••• next to it and choose Turn off. A key works only when All buttons and the key are both On." />
                     <TextBlock x:Name="LblExpressKeysPerApp" TextWrapping="Wrap"
                                Text="Your key settings are saved for this tablet. Each application can have its own: pick it in the Application row above." />
                 </StackPanel>
@@ -1088,11 +1099,17 @@
                      #wheel-row-actions.) Each wheel still labels itself, when there is more than one. -->
                 <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,10"
                             HorizontalAlignment="Left" IsVisible="{Binding ShowWheelControls}">
-                    <TextBlock x:Name="LblEnableWheels" Text="Enable wheels" VerticalAlignment="Center"
+                    <!-- TASKS #29: "Touch ring" on a tablet with one ring, "All touch rings" on one with two or more
+                         (the view model's WheelEnableLabel); Off on the switch's left and On on its right. -->
+                    <TextBlock x:Name="LblEnableWheels" Text="{Binding WheelEnableLabel}" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,6,0" />
+                    <TextBlock x:Name="LblWheelsOff" Text="Off" VerticalAlignment="Center"
                                Foreground="{DynamicResource TextSecondaryBrush}" />
                     <ToggleSwitch IsChecked="{Binding WheelEnabled}" OnContent="" OffContent=""
                                   MinWidth="0" VerticalAlignment="Center"
                                   ToolTip.Tip="Pauses or resumes all ring actions. Your actions are kept." />
+                    <TextBlock x:Name="LblWheelsOn" Text="On" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
                 </StackPanel>
 
                 <!-- One card per wheel: the live gauge on the left, and every mapping for that wheel
@@ -1297,7 +1314,7 @@
                     <TextBlock x:Name="LblRingAboutDial" TextWrapping="Wrap"
                                Text="The ring picture on screen moves when you touch the ring, so you can check that it works." />
                     <TextBlock x:Name="LblRingAboutEnable" TextWrapping="Wrap"
-                               Text="Turn off Enable wheels to pause the ring. Your settings are kept." />
+                               Text="{Binding WheelAboutEnableText}" />
                 </StackPanel>
             </StackPanel>
             </Grid>

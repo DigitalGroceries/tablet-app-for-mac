@@ -143,7 +143,12 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (LblMapAspect != null) LblMapAspect.Text = Localizer.T("tablet.mapping.aspect");
         if (BtnDisplaySettings != null) BtnDisplaySettings.Content = Localizer.T("tablet.mapping.display_settings");
 
-        if (LblEnableWheels != null) LblEnableWheels.Text = Localizer.T("tablet.ring.enable");
+        // TASKS #28/#29: "Touch ring" / "All touch rings" (follows the tablet; bound to the view model) and the
+        // Off / On words either side of both switches.
+        if (LblWheelsOff != null) LblWheelsOff.Text = Localizer.Te("tablet.switch.off", "Off");
+        if (LblWheelsOn != null) LblWheelsOn.Text = Localizer.Te("tablet.switch.on", "On");
+        if (LblButtonsOff != null) LblButtonsOff.Text = Localizer.Te("tablet.switch.off", "Off");
+        if (LblButtonsOn != null) LblButtonsOn.Text = Localizer.Te("tablet.switch.on", "On");
         if (LblAboutTouchRing != null) LblAboutTouchRing.Text = Localizer.T("tablet.ring.about");
         if (LblAboutExpressKeys != null) LblAboutExpressKeys.Text = Localizer.T("tablet.expresskeys.about");
         if (LblPerAppBindingsNote != null) LblPerAppBindingsNote.Text = Localizer.T("tablet.app.bindings_only_note");
@@ -159,7 +164,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (LblOrClickOne != null) LblOrClickOne.Text = Localizer.T("tablet.mapping.or_click_one");
         if (ChkForceProportions != null) ChkForceProportions.Content = Localizer.T("tablet.mapping.force_proportions");
 
-        if (LblEnableButtons != null) LblEnableButtons.Text = Localizer.T("tablet.expresskeys.enable");
+        if (LblEnableButtons != null) LblEnableButtons.Text = Localizer.Te("tablet.expresskeys.enable", "All buttons");
         if (LblExpressKeysBody != null) LblExpressKeysBody.Text = Localizer.T("tablet.expresskeys.body");
         if (LblExpressKeysPress != null) LblExpressKeysPress.Text = Localizer.T("tablet.expresskeys.press_hint");
         if (LblExpressKeysEnableNote != null) LblExpressKeysEnableNote.Text = Localizer.T("tablet.expresskeys.enable_note");
@@ -171,8 +176,9 @@ public partial class TabletDetailView : UserControl, ITabbedContent
             "Clockwise and anticlockwise turns can do different things. So can the centre button.");
         if (LblRingAboutDial != null) LblRingAboutDial.Text = Localizer.Te("tablet.ring.about_dial",
             "The ring picture on screen moves when you touch the ring, so you can check that it works.");
-        if (LblRingAboutEnable != null) LblRingAboutEnable.Text = Localizer.Te("tablet.ring.about_enable",
-            "Turn off Enable wheels to pause the ring. Your settings are kept.");
+        if (LblExpressKeysKeyNote != null) LblExpressKeysKeyNote.Text = Localizer.Te("tablet.expresskeys.key_note",
+            "To turn off just one key, click ••• next to it and choose Turn off. A key works only when All buttons and the key are both On.");
+        // LblRingAboutEnable is bound to the view model's WheelAboutEnableText (one ring or several).
         if (KeysDefaultButton != null) KeysDefaultButton.Content = Localizer.T("tablet.pen.default");
 
         if (LblPenCurrentPressure != null) LblPenCurrentPressure.Text = Localizer.T("tablet.pen.current_pressure");
