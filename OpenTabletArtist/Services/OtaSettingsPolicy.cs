@@ -16,6 +16,7 @@ public static class OtaSettingsPolicy
                 if (profile != null)
                 {
                     Domain.PenScrollBinding.SyncFilter(profile);
+                    Domain.PenZoomBinding.SyncFilter(profile);  // TASKS #24: pen zoom / pan+zoom
                     Domain.TouchTrackpad.SyncFilter(profile);   // Discussion #31: finger touch as a trackpad
                     SyncRelativeRotation(profile);              // Issue #69: Mouse-like reads RelativeRotation
                 }

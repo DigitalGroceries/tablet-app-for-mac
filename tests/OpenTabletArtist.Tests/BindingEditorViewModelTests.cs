@@ -181,4 +181,36 @@ public class BindingEditorViewModelTests
         var vm = new BindingEditorViewModel(AuxBinding.Unbound, "x");
         Assert.Contains(vm.NumpadRows.SelectMany(r => r), c => c.Value == "KeypadEqual" && c.Display == "=");
     }
+    [Fact]
+    public void PenZoom_ShowsSpeedAndSavesWithGestureSpeed()
+    {
+        var binding = new AuxBinding(AuxKind.Scroll, AuxCombo.Unbound, AuxKeyBinding.None,
+            PenZoomBinding.ZoomValue, 60);
+        var vm = new BindingEditorViewModel(binding, "Pen button 1");
+        Assert.Equal(BindingEditorViewModel.ScrollTab, vm.SelectedTabIndex);
+        Assert.Equal(PenZoomBinding.ZoomValue, vm.SelectedScroll);
+        Assert.True(vm.ShowGestureSpeed);
+        Assert.Equal(60, vm.GestureSpeed);
+        vm.GestureSpeed = 80;
+        vm.SaveCommand.Execute(null);
+        Assert.Equal(PenZoomBinding.ZoomValue, vm.Result!.Scroll);
+        Assert.Equal(80, vm.Result.GestureSpeed);
+    }
+
+    [Fact]
+    public void PenPanZoom_RoundTripsThroughSave()
+    {
+        var vm = new BindingEditorViewModel(AuxBinding.Unbound, "Pen button 2")
+        {
+            SelectedTabIndex = BindingEditorViewModel.ScrollTab,
+            SelectedScroll = PenZoomBinding.PanZoomValue,
+            GestureSpeed = 35,
+        };
+        Assert.True(vm.ShowGestureSpeed);
+        vm.SaveCommand.Execute(null);
+        var store = AuxKeyBinding.MakeBinding(vm.Result!);
+        Assert.True(PenZoomBinding.IsPanZoom(store));
+        Assert.Equal(35, PenZoomBinding.ReadSpeed(store));
+    }
+
 }

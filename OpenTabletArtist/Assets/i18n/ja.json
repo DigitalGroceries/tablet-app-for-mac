@@ -438,5 +438,15 @@
   "save.revert_tip_disabled": "戻すものはありません。ライブ設定はすでにドライバーの保存済みファイルと一致しています。",
   "save.default.revert_tip_matches": "すでに保存済みの既定と一致しています。",
   "save.factory.failed_title": "工場出荷時の設定に戻せませんでした",
-  "save.factory.failed_body": "何も変更されていません。もう一度お試しください。再び失敗する場合は、「設定 › トラブルシューティング」でサービスを再起動してから、もう一度お試しください。"
+  "save.factory.failed_body": "何も変更されていません。もう一度お試しください。再び失敗する場合は、「設定 › トラブルシューティング」でサービスを再起動してから、もう一度お試しください。",
+  "binding.scroll.pen": "ペンを動かしてスクロール",
+  "binding.scroll.pen_tip": "ボタンを押しながらペンを動かすと、マウスホイールのようにスクロールします。カーソルはそのままです。",
+  "binding.scroll.pen_zoom": "ペンを動かしてズーム",
+  "binding.scroll.pen_zoom_tip": "ボタンを押しながらペンを上下に動かすとズームします。タッチリングのズームと同じく Option+スクロールを使います。Photoshop と Affinity で使えます。",
+  "binding.scroll.pen_pan_zoom": "ペンを動かしてパンとズーム",
+  "binding.scroll.pen_pan_zoom_tip": "ボタンを押しながらペンを動かします。左右でパン、上下でズームです。Photoshop と Affinity で使えます。",
+  "binding.scroll.speed": "速度",
+  "binding.scroll.speed_slow": "遅い",
+  "binding.scroll.speed_fast": "速い",
+  "binding.scroll.speed_tip": "1～100。大きいほど速い。50は中央で、ペンスクロールと同じです。"
 }
