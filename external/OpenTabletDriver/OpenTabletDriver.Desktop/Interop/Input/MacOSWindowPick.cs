@@ -13,6 +13,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
     {
         public const string DockBundleId = "com.apple.dock";
         public const string WindowServerName = "Window Server";
+        public const string NotificationCenterName = "Notification Center";
 
         public readonly record struct Window(int OwnerPid, string? OwnerName, int Layer, float X, float Y, float Width, float Height, float Alpha = 1f)
         {
@@ -21,11 +22,12 @@ namespace OpenTabletDriver.Desktop.Interop.Input
 
         /// <summary>
         /// The front-most window whose bounds contain <paramref name="point"/>. Skips the Dock's full-screen
-        /// overlay (a Dock-owned window that covers the whole display under the point), fully transparent
-        /// windows and windows with no size. The Dock bar itself is kept (tapping an icon there activates
-        /// nothing of ours). Does NOT skip other layers (panels, popovers) or desktop elements: the desktop
-        /// window is Finder's. With no <paramref name="displays"/>, every Dock-owned window is skipped.
-        /// A Window Server window that covers the display under the point is skipped too (only when displays are known).
+        /// overlay, a Window Server window that covers the display under the point (#73), and a Notification
+        /// Center window that covers the display under the point (Kert Gartner, V25 — banners, the open panel
+        /// and widgets are kept). Fully transparent windows and windows with no size are skipped. The Dock bar
+        /// itself is kept. Does NOT skip other layers (panels, popovers) or desktop elements: the desktop
+        /// window is Finder's. With no <paramref name="displays"/>, every Dock-owned and Notification Center
+        /// window is treated as an overlay and skipped; Window Server is only skipped when displays are known.
         /// </summary>
         public static Window? Pick(IReadOnlyList<Window> frontToBack, Vector2 point,
             IReadOnlyList<MacOSScreenEdge.Rect>? displays = null)
@@ -39,6 +41,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 // picked Window Server and no app was activated. Skip it like the Dock overlay. Smaller
                 // Window Server windows (menu bar, cursor) still stop the search, so nothing behind them is activated.
                 if (string.Equals(w.OwnerName, WindowServerName, StringComparison.Ordinal) && CoversDisplay(w, point, displays)) continue;
+                // Kert (V25, PTH-851): a Notification Center overlay won Pick; the activator refused it
+                // (Accessory) and never tried the app underneath. Skip only full-display NC overlays —
+                // banners, the open panel and widgets stay so a tap on them does not raise the app behind.
+                if (string.Equals(w.OwnerName, NotificationCenterName, StringComparison.Ordinal) && IsOverlay(w, point, displays)) continue;
                 return w;
             }
             return null;

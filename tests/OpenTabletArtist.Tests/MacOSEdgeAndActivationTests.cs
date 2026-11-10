@@ -60,6 +60,10 @@ public class MacOSEdgeAndActivationTests
     static readonly W Safari = new(30, "Safari", 0, 100, 100, 900, 700);
     static readonly W Mail = new(40, "Mail", 0, 50, 50, 1200, 800);
     static readonly W Desktop = new(50, "Finder", -2147483603, 0, 0, 1512, 982);
+    static readonly W NotificationOverlay = new(771, MacOSWindowPick.NotificationCenterName, 25, 0, 0, 1512, 982);
+    static readonly W NotificationBanner = new(771, MacOSWindowPick.NotificationCenterName, 25, 1160, 40, 320, 80);
+    static readonly W NotificationPanel = new(771, MacOSWindowPick.NotificationCenterName, 25, 1100, 0, 412, 982);
+    static readonly W NotificationClear = new(771, MacOSWindowPick.NotificationCenterName, 25, 0, 0, 1512, 982, Alpha: 0);
 
     [Fact]
     public void Picks_the_front_most_window_under_the_point_skipping_the_Dock_overlay()
@@ -136,5 +140,32 @@ public class MacOSEdgeAndActivationTests
         // Same size as the display but shifted: it doesn't cover the display, so it still stops the search.
         var shifted = new W(458, MacOSWindowPick.WindowServerName, 2147483630, 700, 0, 1512, 982);
         Assert.Equal(shifted, MacOSWindowPick.Pick(new List<W> { shifted, Safari }, new Vector2(800, 200), new[] { Main }));
+    }
+
+    [Fact]
+    public void A_full_screen_Notification_Center_overlay_lets_Pick_continue_to_the_app_below()
+    {
+        // Kert Gartner (V25, PTH-851): a display-covering NC window won Pick; the activator skipped it
+        // (not a regular app) and never activated the app under the tap. His log had no bounds/layer/alpha.
+        var list = new List<W> { NotificationOverlay, Safari, Mail, Desktop };
+        Assert.Equal(Safari, MacOSWindowPick.Pick(list, new Vector2(200, 200), new[] { Main }));
+        Assert.Equal(Mail, MacOSWindowPick.Pick(list, new Vector2(1100, 600), new[] { Main }));
+        Assert.Equal(Desktop, MacOSWindowPick.Pick(list, new Vector2(1400, 900), new[] { Main }));
+    }
+
+    [Fact]
+    public void A_transparent_Notification_Center_window_lets_Pick_continue_to_the_app_below()
+    {
+        var list = new List<W> { NotificationClear, Safari, Desktop };
+        Assert.Equal(Safari, MacOSWindowPick.Pick(list, new Vector2(200, 200), new[] { Main }));
+    }
+
+    [Fact]
+    public void A_banner_sized_opaque_Notification_Center_window_is_not_skipped()
+    {
+        // Banners, the open panel and widgets must stay: a tap on them must not activate the app underneath.
+        var list = new List<W> { NotificationBanner, Safari, Desktop };
+        Assert.Equal(NotificationBanner, MacOSWindowPick.Pick(list, new Vector2(1200, 60), new[] { Main }));
+        Assert.Equal(NotificationPanel, MacOSWindowPick.Pick(new List<W> { NotificationPanel, Safari, Desktop }, new Vector2(1200, 200), new[] { Main }));
     }
 }
