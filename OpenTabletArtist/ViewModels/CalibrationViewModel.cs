@@ -495,7 +495,12 @@ public partial class CalibrationViewModel : ObservableObject
     {
         if (!IsConfirming || IsWorking) return Task.CompletedTask;
         _closing = true;
-        return Closing(() => { Close(); return Task.CompletedTask; });
+        return Closing(() =>
+        {
+            Close();
+            Services.ActionConfirmation.Show("confirm.calibration_applied", "Calibration applied");
+            return Task.CompletedTask;
+        });
     }
 
     [RelayCommand]
@@ -560,6 +565,7 @@ public partial class CalibrationViewModel : ObservableObject
         CalibrationProfile.Clear(_ctx.Settings, _ctx.TabletName);
         if (!await WriteAsync()) return;
         Close();
+        Services.ActionConfirmation.Show("confirm.calibration_cleared", "Calibration cleared");
     }
 
     /// <summary>

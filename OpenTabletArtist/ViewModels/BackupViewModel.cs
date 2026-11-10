@@ -92,6 +92,7 @@ public partial class BackupViewModel : ObservableObject
         {
             SettingsBundle.Export(path, portable: true);
             Say(Localizer.Te("backup.export.done", "Settings saved to {path}").Replace("{path}", path));
+            ActionConfirmation.Show("confirm.settings_exported", "Settings exported");
         }
         catch (Exception ex)
         {
@@ -185,6 +186,7 @@ public partial class BackupViewModel : ObservableObject
             Say(Localizer.Te("backup.import.done",
                 "Settings imported. Your previous settings were backed up first ({file}). Quit and reopen the app to finish.")
                 .Replace("{file}", Path.GetFileName(safety)));
+            ActionConfirmation.Show("confirm.settings_imported", "Settings imported");
         }
         catch (IOException ex)
         {

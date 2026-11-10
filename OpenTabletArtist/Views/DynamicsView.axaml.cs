@@ -93,7 +93,9 @@ public partial class DynamicsView : UserControl
     private void OnCopyPreview(object? sender, RoutedEventArgs e)
     {
         if (PreviewCanvas.Snapshot() is not { } snap) return;
-        if (!ClipboardImage.CopyBgra(snap.Bgra, snap.Width, snap.Height))
+        if (ClipboardImage.CopyBgra(snap.Bgra, snap.Width, snap.Height))
+            OpenTabletArtist.Services.ActionConfirmation.Show("confirm.image_copied", "Image copied");
+        else
             ProfileToast.Show(ClipboardImage.FailureHint, "IconAlert");
     }
 }

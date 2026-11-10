@@ -45,5 +45,6 @@ public partial class ThemeView : UserControl, ITabbedContent
         if (DataContext is not ThemeViewModel vm) return;
         if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
         await clipboard.SetTextAsync(vm.Gradients.SettingsText);
+        OpenTabletArtist.Services.ActionConfirmation.Show("confirm.copied", "Copied");
     }
 }

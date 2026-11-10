@@ -673,7 +673,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         session.HasPendingEditorInput = () => HasPendingInput;
 
     [RelayCommand]
-    private async Task SaveSettings() => await SaveNowAsync();
+    private async Task SaveSettings()
+    {
+        if (await SaveNowAsync())
+            ActionConfirmation.Show("confirm.settings_saved", "Settings saved");
+    }
 
     private async Task<bool> SaveNowAsync()
     {
@@ -701,7 +705,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task RevertSettings() => await _profileSwitch.RestoreDefaultAsync();
+    private async Task RevertSettings()
+    {
+        if (await _profileSwitch.RestoreDefaultAsync())
+            ActionConfirmation.Show("confirm.settings_reverted", "Settings reverted");
+    }
 
     /// <summary>Persist the current settings document as the artist's own default (#22). Same scope as Save.</summary>
     [RelayCommand]
@@ -919,6 +927,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             ResetEditorInput();
             await _session.ReloadSettingsAsync();
+            if (!_session.SettingsPaused && _session.SaveState != SettingsSaveState.CouldNotCheck)
+                ActionConfirmation.Show("confirm.settings_reloaded", "Settings reloaded");
         }
         finally { _session.SettingsBusy = false; }
     }

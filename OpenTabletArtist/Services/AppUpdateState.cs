@@ -77,9 +77,10 @@ public sealed class AppUpdateState : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <summary>Checks GitHub; updates the offers and <see cref="Status"/>.</summary>
-    public async Task CheckAsync()
+    /// <summary>Returns true when a check ran and reached GitHub (false when one was already running or it failed).</summary>
+    public async Task<bool> CheckAsync()
     {
-        if (_busy) return;
+        if (_busy) return false;
         _busy = true;
         Notify(nameof(IsBusy));
         SetLocalizedStatus("update.checking");
@@ -88,6 +89,7 @@ public sealed class AppUpdateState : INotifyPropertyChanged
             _choices = await Updater.CheckChoicesAsync();
             NotifyChoices();
             SetChoiceStatus();
+            return !Updater.LastCheckFailed;
         }
         finally
         {

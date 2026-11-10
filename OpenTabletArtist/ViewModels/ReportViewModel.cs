@@ -196,6 +196,7 @@ public partial class ReportViewModel : ObservableObject
             DeleteWindowPicture();   // it is in the zip now
             Status = "";
             SavedPath = target;
+            ActionConfirmation.Show("confirm.report_saved", "Report saved");
         }
         catch (Exception ex) { Failed(ex); }
         finally

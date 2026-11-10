@@ -571,13 +571,17 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (HasCalibrationFit) sb.Append('\n').AppendLine(CalibrationFitText);
         if (HasCalibrationFitWarning) sb.AppendLine(CalibrationFitWarning);
         if (HasCalibrationTilt) sb.AppendLine(CalibrationTiltText);
-        ClipboardText.TrySet(sb.ToString());
+        if (ClipboardText.TrySet(sb.ToString()))
+            ActionConfirmation.Show("confirm.report_copied", "Report copied");
     }
 
     /// <summary>Remove the calibration filter, returning the pointer to its uncorrected default.</summary>
     [RelayCommand]
     private async Task ClearCalibration()
-        => await ApplySettingsChange(p => CalibrationProfile.Clear(_settings, p.Tablet ?? ""));
+    {
+        if (await ApplySettingsChange(p => CalibrationProfile.Clear(_settings, p.Tablet ?? "")))
+            ActionConfirmation.Show("confirm.calibration_cleared", "Calibration cleared");
+    }
 
     /// <summary>Fingerprint of the profile's current Absolute mapping (input + output area + mapped
     /// display), matching how <see cref="CalibrationProfile.Fingerprint"/> was written at calibration.</summary>
@@ -630,7 +634,11 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         return CalibrationCaptureService.Build(TabletName, ctx.Digi, ctx.Input, ctx.Output, ctx.Display, cal).ToJson();
     }
 
-    public void NoteCaptureExported(string path) => CaptureStatus = $"Exported calibration to {path}.";
+    public void NoteCaptureExported(string path)
+    {
+        CaptureStatus = $"Exported calibration to {path}.";
+        ActionConfirmation.Show("confirm.calibration_exported", "Calibration exported");
+    }
 
     /// <summary>Import a previously exported calibration and apply it to this tablet. Matching-only — it
     /// applies only when the tablet's current mapping matches the capture; otherwise it explains why.</summary>
@@ -657,8 +665,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (data == null)
         { CaptureStatus = "That file has no solved calibration model to apply."; return; }
 
-        await ApplySettingsChange(p => CalibrationProfile.Write(_settings, p.Tablet ?? "", data));
+        var applied = await ApplySettingsChange(p => CalibrationProfile.Write(_settings, p.Tablet ?? "", data));
         CaptureStatus = $"Imported {fileName} and applied it to {TabletName}.";
+        if (applied) ActionConfirmation.Show("confirm.calibration_imported", "Calibration imported");
     }
 
     // This tablet's calibration mapping context (digitizer + input/output areas + the mapped display),
@@ -762,10 +771,10 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _ = SetOutputMode(ModePath(wantAbsolute, DisableWindowsInk));
     }
 
-    private async Task SetOutputMode(string path)
+    private async Task<bool> SetOutputMode(string path)
     {
         // Never re-apply the mode we're already on (also makes a redundant card click a no-op).
-        if (OutputModePath.Equals(path, StringComparison.OrdinalIgnoreCase)) return;
+        if (OutputModePath.Equals(path, StringComparison.OrdinalIgnoreCase)) return false;
 
         // Record the Windows-Ink opt-out BEFORE applying, not after. The apply triggers a daemon reload
         // whose WindowsInkAutoSetup re-enables Windows Ink on every detected tablet that isn't opted out
@@ -777,7 +786,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         else
             WinInkAutoOptOut.OptOut(_profile.Tablet);
 
-        await ApplySettingsChange(p =>
+        return await ApplySettingsChange(p =>
         {
             p.OutputMode ??= new PluginSettingStore(path, true);
             p.OutputMode.Path = path;
@@ -1174,9 +1183,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         catch (Exception ex) { AppLog.Warn("Couldn't restore All bindings onto the editor profile.", ex); }
     }
 
-    private async Task ApplySettingsChange(Action<Profile> modify)
+    private async Task<bool> ApplySettingsChange(Action<Profile> modify)
     {
-        if (_applyAction == null || _settings == null) return;
+        if (_applyAction == null || _settings == null) return false;
         // If a per-app or extra-pen overlay is on the daemon/workspace, restore All bindings first so this
         // edit (mapping, dynamics, All bindings) lands on the All table — not the transient overlay.
         // #74: an extra pen's overlay counts too (it was missed when only AppliedBundleId was checked).
@@ -1193,9 +1202,11 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         // e.g. the Double Click Fix slider jumping back to 50.
         if (overlayLive) PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);
         var outcome = await SubmitAsync(_settings);
-        if (draft != _draftGeneration || _unsubmitted != DraftGroup.None) return;
-        if (!TakeOutcome(outcome, draft)) RefreshFromProfile();
+        if (draft != _draftGeneration || _unsubmitted != DraftGroup.None) return false;
+        var adopted = TakeOutcome(outcome, draft);
+        if (!adopted) RefreshFromProfile();
         PerAppBindingRuntime.Shared?.Kick();
+        return adopted;
     }
 
     private Task<SettingsApplyOutcome> SubmitAsync(Settings settings) => _applyAction!(settings);
@@ -1356,7 +1367,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>TASKS #15 (Zak, option B): the slider edits the selected profile's own copy (All, an app or a pen).</summary>
-    private Task PersistDoubleClickFix(int display) =>
+    private Task<bool> PersistDoubleClickFix(int display) =>
         ApplyBindingMutationAsync(b =>
         {
             b.DoubleClickFix = display;
@@ -1366,13 +1377,14 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// <summary>Zak 9 Nov: the "Default" label under the Double Click Fix slider is a button. It gives the
     /// selected profile its own value of 50 (Default), even when it already showed 50 from All.</summary>
     [RelayCommand]
-    private Task ResetDoubleClickFix()
+    private async Task ResetDoubleClickFix()
     {
-        if (_applyAction == null) return Task.CompletedTask;
+        if (_applyAction == null) return;
         _skipPenInputPersist = true;
         try { TipDoubleClickDistance = ClickJitterGate.UiDefault; }
         finally { _skipPenInputPersist = false; }
-        return PersistDoubleClickFix(ClickJitterGate.UiDefault);
+        if (await PersistDoubleClickFix(ClickJitterGate.UiDefault))
+            ActionConfirmation.Show("confirm.double_click_reset", "Double Click Fix reset");
     }
 
     /// <summary>TASKS #15: show the selected profile's (All, app or extra pen) own Double Click Fix, or All's
@@ -1594,7 +1606,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task FixOutputMode()
     {
-        await SetOutputMode(WinInkAbsoluteModePath);
+        if (await SetOutputMode(WinInkAbsoluteModePath))
+            ActionConfirmation.Show("confirm.output_mode_fixed", "Output mode fixed");
     }
 
     /// <summary>Map the tablet to the currently-selected display. Called automatically when the user picks
@@ -2122,9 +2135,11 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// to disk here — Save stays the user's).</summary>
     public async Task ResetTouchRingToDefaultsAsync()
     {
+        bool ok = true;
         for (int wi = 0; wi < Wheels.Count; wi++)
-            await RingModesChangedAsync(wi, RingModeBinding.Defaults.ToList());
+            ok &= await RingModesChangedAsync(wi, RingModeBinding.Defaults.ToList());
         RefreshWheels();
+        if (ok) ActionConfirmation.Show("confirm.ring_default", "Touch Ring reset");
     }
 
     /// <summary>Build N.1: "Default" on the ExpressKeys page — OTA's default is every key unbound.</summary>
@@ -2133,19 +2148,20 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (!AuxButtonsEnabled) return;
         var scope = AuxKeyOffScope();
         var off = AuxKeyOffStore.Load(scope);
-        await ApplyBindingMutationAsync(b =>
+        if (await ApplyBindingMutationAsync(b =>
         {
             AuxKeyOffStore.ClearAll(b.AuxButtons, off);
             AuxKeyOffStore.Save(scope, off);
-        });
+        }))
+            ActionConfirmation.Show("confirm.keys_default", "ExpressKeys reset");
     }
 
-    private Task RingModesChangedAsync(int wheelIndex, IReadOnlyList<RingMode> modes)
+    private Task<bool> RingModesChangedAsync(int wheelIndex, IReadOnlyList<RingMode> modes)
     {
         AppSettings.Set(RingModesKey(wheelIndex), RingModeBinding.Serialize(modes));
         var wheels = WorkingBindings().WheelBindings;
         if (!WheelEnabled || wheelIndex < 0 || wheelIndex >= wheels.Count || !RingModeBinding.IsActive(wheels[wheelIndex]))
-            return Task.CompletedTask;   // modes off: just remember the list
+            return Task.FromResult(true);   // modes off: just remember the list
         return ApplyRingBindingsAsync(b =>
         {
             var w = b.WheelBindings;
@@ -2155,15 +2171,16 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
     /// <summary>Version 16 BETA 2: write a ring-mode change to the table on screen (All, or the selected app's,
     /// like every other binding), then keep the pen gate filter in step with every table of this tablet.</summary>
-    private async Task ApplyRingBindingsAsync(Action<BindingSettings> mutate)
+    private async Task<bool> ApplyRingBindingsAsync(Action<BindingSettings> mutate)
     {
-        await ApplyBindingMutationAsync(mutate);
+        var applied = await ApplyBindingMutationAsync(mutate);
         var tablet = _profile.Tablet ?? "";
         var appTables = PerAppBindingStore.List(tablet).Select(a => a.Bindings).ToList();
         bool gateNeeded = RingModeBinding.UsesSmoothRotate(_profile.BindingSettings) || appTables.Any(RingModeBinding.UsesSmoothRotate);
         bool gateThere = _profile.Filters?.Any(f => f?.Path == RingModeBinding.GateTypeName && f.Enable) == true;
         if (gateNeeded != gateThere)
             await ApplySettingsChange(p => RingModeBinding.SyncGate(p, appTables));
+        return applied;
     }
 
     // Thresholds change rapidly while a slider is dragged — debounce into one apply (and one rebuild)

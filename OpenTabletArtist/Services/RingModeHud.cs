@@ -33,6 +33,7 @@ public sealed class RingModeHud : IDisposable
     private Window? _window;
     private TextBlock? _name;
     private TextBlock? _dots;
+    private TextBlock? _header;
     private DispatcherTimer? _hideTimer;
     private string _lastContent = "";
 
@@ -118,13 +119,35 @@ public sealed class RingModeHud : IDisposable
             Show(0, 0, message);
         });
 
-    private void Show(int mode, int count, string name)
+    /// <summary>Header line the ring-mode popup shows above the mode name.</summary>
+    public const string RingHeader = "TOUCH RING";
+
+    /// <summary>Confirmation overlay (ActionConfirmation): the very same window, size, position, opacity and
+    /// timing as the ring-mode popup, with the app's name as header and a check mark where the mode dots
+    /// are. Ignores the "RingModeHud" setting (that switch is about ring modes only). Safe from any thread;
+    /// never takes focus.</summary>
+    public void ShowConfirmation(string header, string message) =>
+        Dispatcher.UIThread.Post(() =>
+        {
+            _lastContent = "";
+            Show(0, 0, message, header, "✓");
+        });
+
+    /// <summary>The popup window once it exists (tests only: screenshots).</summary>
+    internal Window? PopupWindow => _window;
+
+    /// <summary>Show a popup right now, on the calling (UI) thread (tests only).</summary>
+    internal void ShowNowForTest(int mode, int count, string name, string header = RingHeader, string? dots = null) =>
+        Show(mode, count, name, header, dots);
+
+    private void Show(int mode, int count, string name, string header = RingHeader, string? dots = null)
     {
         try
         {
             EnsureWindow();
+            _header!.Text = header;
             _name!.Text = name;
-            _dots!.Text = Dots(mode, count);
+            _dots!.Text = dots ?? Dots(mode, count);
 
             // Where: centred over the frontmost app's window (Photoshop) when it's on the cursor's display,
             // else centred on the display holding the cursor (the pen moves it), else the primary display.
@@ -144,7 +167,7 @@ public sealed class RingModeHud : IDisposable
             SetUpNativeWindow();
             _hideTimer!.Stop();
             _hideTimer.Start();
-            AppLog.Info($"Ring mode popup: \"{name}\" ({mode}/{count}) on {where}, {w:0}x{h:0} pt at {_window.Position.X},{_window.Position.Y}.");
+            AppLog.Info($"{(header == RingHeader ? "Ring mode popup" : "Confirmation popup")}: \"{name}\" ({mode}/{count}) on {where}, {w:0}x{h:0} pt at {_window.Position.X},{_window.Position.Y}.");
         }
         catch (Exception e)
         {
@@ -198,6 +221,13 @@ public sealed class RingModeHud : IDisposable
             Foreground = OpenTabletArtist.Services.UiColors.SoftWhiteBrush,
             HorizontalAlignment = HorizontalAlignment.Center,
         };
+        _header = new TextBlock
+        {
+            Text = RingHeader,
+            FontSize = 9,
+            Foreground = OpenTabletArtist.Services.UiColors.SoftWhiteBrush,
+            HorizontalAlignment = HorizontalAlignment.Center,
+        };
         _dots = new TextBlock
         {
             FontSize = 16,
@@ -221,13 +251,7 @@ public sealed class RingModeHud : IDisposable
                     Margin = new Thickness(12, 6),
                     Children =
                     {
-                        new TextBlock
-                        {
-                            Text = "TOUCH RING",
-                            FontSize = 9,
-                            Foreground = OpenTabletArtist.Services.UiColors.SoftWhiteBrush,
-                            HorizontalAlignment = HorizontalAlignment.Center,
-                        },
+                        _header,
                         _name,
                         _dots,
                     },

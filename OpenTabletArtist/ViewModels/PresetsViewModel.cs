@@ -123,10 +123,15 @@ public partial class PresetsViewModel : ObservableObject, IDisposable
         var path = Path.Combine(PresetDirectory, $"{name}.json");
         _store.Save(settings, path);
         await LoadAsync();
+        ActionConfirmation.Show("confirm.preset_saved", "Preset saved");
     }
 
     [RelayCommand]
-    private async Task LoadPreset(string name) => await _profileSwitch.SwitchToAsync(name);
+    private async Task LoadPreset(string name)
+    {
+        if (await _profileSwitch.SwitchToAsync(name))
+            ActionConfirmation.Show("confirm.preset_loaded", "Preset loaded");
+    }
 
     [RelayCommand]
     private async Task UpdatePreset(string name)
@@ -137,6 +142,7 @@ public partial class PresetsViewModel : ObservableObject, IDisposable
         var path = Path.Combine(PresetDirectory, $"{name}.json");
         _store.Save(settings, path);
         await LoadAsync();
+        ActionConfirmation.Show("confirm.preset_updated", "Preset updated");
     }
 
     [RelayCommand]
@@ -155,6 +161,7 @@ public partial class PresetsViewModel : ObservableObject, IDisposable
 
         File.Copy(srcPath, Path.Combine(PresetDirectory, $"{newName}.json"));
         await LoadAsync();
+        ActionConfirmation.Show("confirm.preset_duplicated", "Preset duplicated");
     }
 
     [RelayCommand]
@@ -176,6 +183,7 @@ public partial class PresetsViewModel : ObservableObject, IDisposable
                 File.Move(oldPath, newPath);
                 _hotkeys.RenameSnapshot(name, newName); // carry the hotkey mapping across (#320)
                 await LoadAsync();
+                ActionConfirmation.Show("confirm.preset_renamed", "Preset renamed");
             }
             else
             {
@@ -211,6 +219,7 @@ public partial class PresetsViewModel : ObservableObject, IDisposable
         }
         _hotkeys.ClearHotkey(name); // drop its hotkey mapping (#320)
         await LoadAsync();
+        ActionConfirmation.Show("confirm.preset_deleted", "Preset deleted");
     }
 
     public void Dispose() => _deviceData.DataLoaded -= OnDataLoaded;

@@ -170,6 +170,10 @@ public static class Updater
 
     static HttpClient Http() { var h = new HttpClient { Timeout = TimeSpan.FromMinutes(10) }; h.DefaultRequestHeaders.UserAgent.ParseAdd("TabletAppForMac-Updater"); return h; }
 
+    /// <summary>True when the last <see cref="CheckChoicesAsync"/> could not reach GitHub (offline looks like "up to date"
+    /// otherwise). Used so the "checked" confirmation is only shown for a check that really happened.</summary>
+    public static volatile bool LastCheckFailed;
+
     /// <summary>The newer stable release, or null when up to date (or offline).</summary>
     public static async Task<Release?> CheckAsync() => (await CheckChoicesAsync()).StableUpgrade;
 
@@ -178,6 +182,7 @@ public static class Updater
     public static async Task<UpdateChoices> CheckChoicesAsync()
     {
         var s = Load(); s.LastCheck = DateTime.UtcNow; Save(s);
+        LastCheckFailed = false;
         try
         {
             using var h = Http();
@@ -187,7 +192,7 @@ public static class Updater
                         $"stable {(c.StableUpgrade?.Label ?? "-")}, BETA {(c.Beta?.Label ?? "-")}, back to stable {(c.GoBack?.Label ?? "-")}.");
             return c;
         }
-        catch (Exception ex) { AppLog.Warn("Update check failed.", ex); return UpdateChoices.None; }
+        catch (Exception ex) { LastCheckFailed = true; AppLog.Warn("Update check failed.", ex); return UpdateChoices.None; }
     }
 
     public sealed record Prepared(int Version, string CurrentApp, string FreshApp, string StagingDir, string Label = "");

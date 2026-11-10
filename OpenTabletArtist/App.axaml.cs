@@ -106,7 +106,8 @@ public partial class App : Application
 
             _ringHud = new RingModeHud();
             _ringHud.Start();
-            desktop.Exit += (_, _) => _ringHud?.Dispose();
+            Services.ActionConfirmation.Attach(_ringHud);
+            desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); };
 
             // Build J: safety net for the experimental smooth-rotate gesture (releases stuck R / mouse button
             // if the driver dies or hangs mid-gesture, then starts the driver again).

@@ -68,6 +68,7 @@ public partial class DiagnosticsViewModel : ObservableObject, IDisposable
             _lastDevices = devices; _lastVersion = version;
             ReportSummary = $"App {SettingsBundle.AppVersion} · " + (devices.Count == 0 ? "no tablet" : string.Join(", ", devices));
             IsReportOpen = true;
+            ActionConfirmation.Show("confirm.diagnostic_created", "Diagnostic file created");
         }
         catch (Exception ex)
         {
@@ -102,6 +103,7 @@ public partial class DiagnosticsViewModel : ObservableObject, IDisposable
         if (picked.Count == 0) return;
         var n = await Task.Run(() => DiagnosticBundle.AddScreenshots(DiagnosticFilePath, picked));
         ReportSummary += "\n" + Localizer.Te("diag.report.added", "Screenshots added: {n}").Replace("{n}", n.ToString());
+        if (n > 0) ActionConfirmation.Show("confirm.screenshots_added", "Screenshots added");
     }
 
     [RelayCommand]

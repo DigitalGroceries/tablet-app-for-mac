@@ -215,7 +215,11 @@ public partial class ThemeViewModel : ObservableObject
 
     /// <summary>Clears the Custom background image (called by the "Clear" button).</summary>
     [RelayCommand]
-    private void ClearBackgroundImage() => BackgroundImagePath = null;
+    private void ClearBackgroundImage()
+    {
+        BackgroundImagePath = null;
+        ActionConfirmation.Show("confirm.background_cleared", "Background cleared");
+    }
 
     // Fires only on user-driven changes, so it both applies and persists.
     partial void OnSelectedThemeChanged(ThemeOption value)
@@ -450,6 +454,7 @@ public partial class ThemeViewModel : ObservableObject
             BackgroundImagePath = null;
             BackgroundImageOpacity = CustomThemeSettings.DefaultBackgroundImageOpacity;
         }
+        ActionConfirmation.Show("confirm.theme_reset", "Theme reset");
     }
 
     /// <summary>A translucent card-frost brush: the card tint at the current card opacity (its alpha).</summary>
