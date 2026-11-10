@@ -313,7 +313,7 @@
   "update.earlier": "Frühere Versionen…",
   "update.earlier_title": "Frühere Versionen",
   "update.earlier_heading": "Zu einer früheren Version zurückkehren",
-  "update.earlier_body": "Wähle die Version, zu der du zurückkehren möchtest. Die App lädt sie herunter, prüft sie und startet sich neu. Deine Einstellungen bleiben erhalten. Wenn macOS erneut nach Berechtigungen fragt, führt dich das Einrichtungsfenster durch den Vorgang. Die frühere Version bietet dir diese Version bei ihrer wöchentlichen Update-Suche möglicherweise wieder an. Wähle „Nicht jetzt“, um bei ihr zu bleiben.",
+  "update.earlier_body": "Wähle die Version, zu der du zurückkehren möchtest. Die App lädt sie herunter, prüft sie und startet sich neu. Deine Einstellungen bleiben erhalten. Wenn macOS erneut nach Berechtigungen fragt, führt dich das Einrichtungsfenster durch den Vorgang. Die frühere Version bietet dir diese Version bei ihrer Update-Suche möglicherweise wieder an. Wähle „Nicht jetzt“, um bei ihr zu bleiben.",
   "update.earlier_none": "Gerade konnte keine frühere Version gefunden werden. Prüfe deine Internetverbindung und versuche es erneut.",
   "tablet.device.add_body": "Schließen Sie das Tablet an Ihren Mac an. Es erscheint hier von selbst. Wenn nicht, kennt diese App das Modell vielleicht noch nicht: Öffnen Sie Tablet-Konfigurationen, um nachzusehen.",
   "tablet.device.add_configs": "Tablet-Konfigurationen",

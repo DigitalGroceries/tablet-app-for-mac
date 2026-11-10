@@ -188,12 +188,12 @@ public partial class AboutViewModel : ObservableObject
         if (await Views.UpdatePromptWindow.ChooseEarlierAsync(u.EarlierOffers) is { } r) await u.InstallAsync(r);
     }
 
-    /// <summary>Called on launch: the weekly check. With "Update automatically" on, downloads then asks
+    /// <summary>Called on every launch (Version 26, Zak 10 Nov 2026: "check at every start of the app and not
+    /// just once a week"). With "Update automatically" on, downloads then asks
     /// OK to install; otherwise asks before downloading. Version 14: only a newer stable version is offered
     /// this way (a BETA only to someone already running a BETA); other BETAs are a choice on Home.</summary>
-    public async Task MonthlyCheckAsync()
+    public async Task LaunchCheckAsync()
     {
-        if (!Services.Updater.IsDueNow()) return;
         await CheckForUpdates();
         var pending = Services.AppUpdateState.Shared.Pending;
         if (pending == null) return;

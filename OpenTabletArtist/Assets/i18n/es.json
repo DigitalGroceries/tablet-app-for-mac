@@ -313,7 +313,7 @@
   "update.earlier": "Versiones anteriores…",
   "update.earlier_title": "Versiones anteriores",
   "update.earlier_heading": "Volver a una versión anterior",
-  "update.earlier_body": "Elige la versión a la que quieres volver. La app la descarga, la comprueba y se vuelve a abrir sola. Tus ajustes se conservan. Si macOS vuelve a pedir permisos, la ventana de configuración te guía durante el proceso. Puede que la versión anterior te vuelva a ofrecer esta en su comprobación semanal de actualizaciones; elige «Ahora no» para quedarte en ella.",
+  "update.earlier_body": "Elige la versión a la que quieres volver. La app la descarga, la comprueba y se vuelve a abrir sola. Tus ajustes se conservan. Si macOS vuelve a pedir permisos, la ventana de configuración te guía durante el proceso. Puede que la versión anterior te vuelva a ofrecer esta en su comprobación de actualizaciones; elige «Ahora no» para quedarte en ella.",
   "update.earlier_none": "Ahora mismo no se encuentra ninguna versión anterior. Comprueba la conexión a internet y vuelve a intentarlo.",
   "tablet.device.add_body": "Conecta la tableta al Mac. Aparece aquí sola. Si no aparece, puede que esta app aún no conozca el modelo: abre Configuraciones de tabletas para comprobarlo.",
   "tablet.device.add_configs": "Configuraciones de tabletas",

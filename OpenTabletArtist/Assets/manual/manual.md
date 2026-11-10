@@ -300,7 +300,7 @@ The Wacom driver and OpenTabletDriver cannot both use the tablet. Quit or uninst
 
 **Permissions:** from Version 18 on, updates keep both permissions; there is nothing to do. **Updating from Version 17 or older:** once, in System Settings › Privacy & Security › **Input Monitoring** and **Device Control and Data Access** (called **Accessibility** on older macOS), remove the old Tablet App for Mac entries with **−**, add the app with **+** and switch it on.
 
-- The app checks for updates once a week when it starts. When there is a new stable version, it asks **Update now?** Click **Update now** and the app downloads it, checks it, installs it and opens again by itself.
+- The app checks for updates every time it starts. When there is a new stable version, it asks **Update now?** Click **Update now** and the app downloads it, checks it, installs it and opens again by itself.
 - To check any time, click **Check for updates now** on **Home** (top right, under the About links). When there is a choice, Home shows **Install Version N** (the newest stable version) and **Try Version N BETA M** (a BETA: new features, not tested yet). While you use a BETA, **Previous Version** returns you to the stable version (the full name, **Go back to Version N**, is in the tooltip).
 - **Update automatically** is an optional setting just below it. It is off unless you turn it on. When it is on, the app downloads a new stable version by itself, then asks for OK before installing. It never installs a BETA by itself.
 - To go back to an earlier version, click **Earlier versions…** on **Home** and choose one of the two most recent stable versions older than the one you have. This works from a stable version and from a BETA. Your settings stay.

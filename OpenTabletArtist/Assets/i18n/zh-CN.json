@@ -313,7 +313,7 @@
   "update.earlier": "早期版本…",
   "update.earlier_title": "早期版本",
   "update.earlier_heading": "回退到早期版本",
-  "update.earlier_body": "选择要回退到的版本。应用会下载、校验并自动重新打开。设置会保留。若 macOS 再次要求权限，设置窗口会引导你完成。早期版本在每周检查更新时可能会再次提供此版本；选择“暂时不要”即可继续使用它。",
+  "update.earlier_body": "选择要回退到的版本。应用会下载、校验并自动重新打开。设置会保留。若 macOS 再次要求权限，设置窗口会引导你完成。早期版本在检查更新时可能会再次提供此版本；选择“暂时不要”即可继续使用它。",
   "update.earlier_none": "暂时找不到早期版本。请检查网络连接后重试。",
   "tablet.device.add_body": "将数位板连接到 Mac。它会自动出现在这里。如果没有出现,本应用可能还不认识该型号:打开数位板配置查看。",
   "tablet.device.add_configs": "数位板配置",

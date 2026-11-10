@@ -11,14 +11,6 @@ public class UpdaterTests
     public void ParsesTags(string? tag, int n) => Assert.Equal(n, Updater.ParseVersion(tag));
 
     [Fact]
-    public void ChecksWeekly()
-    {
-        var t = new DateTime(2026, 10, 1);
-        Assert.False(Updater.IsDue(t, t.AddDays(6)));
-        Assert.True(Updater.IsDue(t, t.AddDays(7)));
-    }
-
-    [Fact]
     public void ReadsLatestRelease()
     {
         var json = "{\"tag_name\":\"v8\",\"draft\":false,\"assets\":[{\"name\":\"" + Updater.ZipName + "\",\"browser_download_url\":\"https://x/z\"},{\"name\":\"SHA256SUMS\",\"browser_download_url\":\"https://x/s\"}]}";
