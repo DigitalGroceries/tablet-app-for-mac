@@ -367,7 +367,7 @@
   "backup.area.pref": "App setting",
   "backup.import.done": "Settings imported. Your previous settings were backed up first ({file}). Quit and reopen the app to finish.",
   "diag.zip.title": "Diagnostic file",
-  "diag.zip.description": "Makes one zip with a summary, the app and driver logs, your settings and the connected tablets, for a GitHub issue. Serial numbers and your user name are removed.",
+  "diag.zip.description": "Makes one zip with a summary, the app and driver logs, your settings, the connected tablets and your mice and keyboards (name, IDs, connection and driver), for a GitHub issue. Serial numbers, Bluetooth addresses and your user name are removed.",
   "diag.zip.button": "Create diagnostic file",
   "diag.zip.working": "Creating…",
   "diag.zip.done": "Saved to:",
