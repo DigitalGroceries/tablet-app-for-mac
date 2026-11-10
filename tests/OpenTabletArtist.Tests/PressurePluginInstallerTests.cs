@@ -77,6 +77,31 @@ public class PressurePluginInstallerTests
         finally { Directory.Delete(dir, true); }
     }
 
+    /// <summary>Build 7: test builds give every file the same fixed date, so a new plugin of the same size or with
+    /// an older date than the installed one must still replace it when the bytes differ.</summary>
+    [Fact]
+    public void CopyIfNeeded_SameSizeAndOlderDate_ButDifferentBytes_IsUpdated()
+    {
+        var dir = TempDir();
+        try
+        {
+            var src = Path.Combine(dir, "src.dll");
+            File.WriteAllText(src, "AAAA");
+            var pluginDir = Path.Combine(dir, "plugins");
+            Assert.Equal(PluginInstallOutcome.Installed, PressurePluginInstaller.CopyIfNeeded(src, pluginDir));
+            var dest = Path.Combine(pluginDir, "OpenTabletArtistDynamics", "OpenTabletArtist.Dynamics.dll");
+            File.SetLastWriteTimeUtc(dest, new DateTime(2026, 11, 9, 18, 0, 0, DateTimeKind.Utc));
+
+            File.WriteAllText(src, "BBBB");                                                       // same size
+            File.SetLastWriteTimeUtc(src, new DateTime(2026, 10, 26, 12, 0, 0, DateTimeKind.Utc)); // older date
+            Assert.Equal(PluginInstallOutcome.Updated, PressurePluginInstaller.CopyIfNeeded(src, pluginDir));
+            Assert.Equal("BBBB", File.ReadAllText(dest));
+
+            Assert.Equal(PluginInstallOutcome.None, PressurePluginInstaller.CopyIfNeeded(src, pluginDir)); // now identical
+        }
+        finally { Directory.Delete(dir, true); }
+    }
+
     [Fact]
     public void CopyIfNeeded_MissingSource_IsNone()
         => Assert.Equal(PluginInstallOutcome.None,

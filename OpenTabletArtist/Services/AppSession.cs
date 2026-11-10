@@ -1185,10 +1185,23 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
     private async Task EnsurePressurePluginAsync()
     {
         var connectionId = _session.ConnectionId;
-        if (_pluginEnsured || !IsAppOwnedDaemon || string.IsNullOrEmpty(PluginDirectory)) return;
+        if (_pluginEnsured) return;
+        // Build 7: log every outcome, so a test build that runs an old plugin can be told apart from one that
+        // doesn't (until now nothing was written either way).
+        if (!IsAppOwnedDaemon || string.IsNullOrEmpty(PluginDirectory))
+        {
+            AppLog.Info($"Plugin: not checked ({(!IsAppOwnedDaemon ? "the running driver was not started by this app" : "the driver's plugin folder is unknown")}).");
+            return;
+        }
         _pluginEnsured = true;
         var dir = PluginDirectory;
         var outcome = await Task.Run(() => _pluginInstaller.EnsureInstalled(dir));
+        AppLog.Info(outcome switch
+        {
+            PluginInstallOutcome.Installed => "Plugin: installed the bundled plugin; the driver loads it now.",
+            PluginInstallOutcome.Updated => "Plugin: the installed plugin differed from the bundled one; replaced it and restarting the driver.",
+            _ => "Plugin: the installed plugin matches the bundled one.",
+        });
 
         // Narrowly: stops the installer's RESULT being applied to a daemon this application is leaving.
         // Applying reaches the daemon, and this is fire-and-forget, so nothing would observe it failing
