@@ -436,5 +436,7 @@
   "save.factory.done": "已恢复出厂设置",
   "save.revert_tip": "用驱动程序的已保存文件替换实时设置，并丢弃未保存的更改。",
   "save.revert_tip_disabled": "无需还原 — 实时设置已与驱动程序的已保存文件一致。",
-  "save.default.revert_tip_matches": "已与你保存的默认设置一致。"
+  "save.default.revert_tip_matches": "已与你保存的默认设置一致。",
+  "save.factory.failed_title": "无法恢复出厂设置",
+  "save.factory.failed_body": "未做任何更改。请重试。如果仍然失败，请在“设置 › 故障排除”中重新启动驱动程序，然后再试一次。"
 }

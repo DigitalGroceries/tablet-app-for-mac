@@ -445,5 +445,7 @@
   "save.factory.done": "Restored factory settings",
   "save.revert_tip": "Replace live settings with the driver’s saved file, discarding unsaved changes.",
   "save.revert_tip_disabled": "Nothing to revert — live settings already match the driver’s saved file.",
-  "save.default.revert_tip_matches": "Already matching your saved default."
+  "save.default.revert_tip_matches": "Already matching your saved default.",
+  "save.factory.failed_title": "Couldn't restore factory settings",
+  "save.factory.failed_body": "Nothing was changed. Try again. If it fails again, restart the driver in Settings › Troubleshooting and try once more."
 }

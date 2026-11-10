@@ -786,19 +786,27 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private async Task RestoreFactoryCoreAsync()
     {
         if (_session.SettingsBusy || !_session.CanEditSettings) return;
+        ResetEditorInput();
+        // Snapshot before the daemon wipe: ResetSettings only rebuilds connected tablets, so a
+        // not-detected tablet's Double Click Fix would otherwise stay in the open editor / All stash.
+        var before = _session.CurrentSettings is { } prior ? SettingsCodec.Clone(prior) : null;
+        // Build 7 (Zak, 10 Nov 2026: "Restore factory settings ... stays to the custom value"): the session's
+        // RestoreFactoryAsync holds SettingsBusy itself and refuses while it is already held, and this method used
+        // to set it first, so every restore failed (app.log: "Factory restore failed (ApplyFailed)" three times).
+        // Take the busy flag only after the session has finished its own part.
+        var outcome = await _session.RestoreFactoryAsync();
+        if (!outcome.IsRestored)
+        {
+            AppLog.Warn($"Factory restore failed ({outcome.Status}).");
+            await _dialogs.ShowMessageAsync(
+                Localizer.Te("save.factory.failed_title", "Couldn't restore factory settings"),
+                Localizer.Te("save.factory.failed_body",
+                    "Nothing was changed. Try again. If it fails again, restart the driver in Settings › Troubleshooting and try once more."));
+            return;
+        }
         _session.SettingsBusy = true;
         try
         {
-            ResetEditorInput();
-            // Snapshot before the daemon wipe: ResetSettings only rebuilds connected tablets, so a
-            // not-detected tablet's Double Click Fix would otherwise stay in the open editor / All stash.
-            var before = _session.CurrentSettings is { } prior ? SettingsCodec.Clone(prior) : null;
-            var outcome = await _session.RestoreFactoryAsync();
-            if (!outcome.IsRestored)
-            {
-                AppLog.Warn($"Factory restore failed ({outcome.Status}).");
-                return;
-            }
             if (_session.CurrentSettings is not { } after)
             {
                 AppLog.Warn("Factory restore returned no settings.");

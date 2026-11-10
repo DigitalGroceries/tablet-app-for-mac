@@ -436,5 +436,7 @@
   "save.factory.done": "Ajustes de fábrica restaurados",
   "save.revert_tip": "Sustituye los ajustes en vivo por el archivo guardado del controlador y descarta los cambios sin guardar.",
   "save.revert_tip_disabled": "Nada que revertir: los ajustes en vivo ya coinciden con el archivo guardado del controlador.",
-  "save.default.revert_tip_matches": "Ya coincide con tu valor predeterminado guardado."
+  "save.default.revert_tip_matches": "Ya coincide con tu valor predeterminado guardado.",
+  "save.factory.failed_title": "No se pudieron restaurar los ajustes de fábrica",
+  "save.factory.failed_body": "No se ha cambiado nada. Inténtalo de nuevo. Si vuelve a fallar, reinicia el controlador en Ajustes › Solución de problemas y vuelve a intentarlo."
 }

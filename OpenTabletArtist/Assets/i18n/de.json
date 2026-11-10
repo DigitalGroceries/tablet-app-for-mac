@@ -436,5 +436,7 @@
   "save.factory.done": "Werkseinstellungen wiederhergestellt",
   "save.revert_tip": "Live-Einstellungen durch die gespeicherte Treiberdatei ersetzen und ungespeicherte Änderungen verwerfen.",
   "save.revert_tip_disabled": "Nichts zurückzusetzen — die Live-Einstellungen entsprechen bereits der gespeicherten Treiberdatei.",
-  "save.default.revert_tip_matches": "Entspricht bereits Ihrer gespeicherten Standardeinstellung."
+  "save.default.revert_tip_matches": "Entspricht bereits Ihrer gespeicherten Standardeinstellung.",
+  "save.factory.failed_title": "Werkseinstellungen konnten nicht wiederhergestellt werden",
+  "save.factory.failed_body": "Es wurde nichts geändert. Versuche es noch einmal. Klappt es wieder nicht, starte den Treiber unter Einstellungen › Problembehebung neu und versuche es erneut."
 }

@@ -436,5 +436,7 @@
   "save.factory.done": "Réglages d’usine restaurés",
   "save.revert_tip": "Remplace les réglages en direct par le fichier enregistré du pilote et ignore les modifications non enregistrées.",
   "save.revert_tip_disabled": "Rien à rétablir — les réglages en direct correspondent déjà au fichier enregistré du pilote.",
-  "save.default.revert_tip_matches": "Correspond déjà à votre valeur par défaut enregistrée."
+  "save.default.revert_tip_matches": "Correspond déjà à votre valeur par défaut enregistrée.",
+  "save.factory.failed_title": "Impossible de restaurer les réglages d’usine",
+  "save.factory.failed_body": "Rien n’a été modifié. Réessayez. Si cela échoue encore, redémarrez le pilote dans Réglages › Dépannage, puis réessayez."
 }
