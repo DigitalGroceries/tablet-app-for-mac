@@ -145,6 +145,7 @@ public sealed partial class GradientEditorViewModel : ObservableObject
             foreach (var g in GradientBackground.Defaults(skin)) Attach(new GradientGlowItem(g));
         Selected = Glows.FirstOrDefault();
         ApplyLive(PersistMode.Immediate);
+        Services.ActionConfirmation.Show("confirm.glows_reset", "Glows reset");
     }
 
     private enum PersistMode { Debounced, Immediate }

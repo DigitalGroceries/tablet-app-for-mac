@@ -51,6 +51,9 @@ public partial class LogView : UserControl
     private async Task CopyAsync(string? text)
     {
         if (text != null && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+        {
             await clipboard.SetTextAsync(text);
+            OpenTabletArtist.Services.ActionConfirmation.Show("confirm.log_copied", "Log copied");
+        }
     }
 }

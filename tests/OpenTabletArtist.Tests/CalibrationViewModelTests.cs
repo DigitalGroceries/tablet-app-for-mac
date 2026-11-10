@@ -405,4 +405,40 @@ public class CalibrationViewModelTests
         Assert.False(vm.ShowClear);
         Assert.False(vm.CanUndoPoint);
     }
+
+    // ---- the big confirmation overlay (ActionConfirmation) ----
+
+    private static System.Collections.Generic.List<string> RecordConfirmations()
+    {
+        var shown = new System.Collections.Generic.List<string>();
+        ActionConfirmation.Recorder = shown.Add;
+        return shown;
+    }
+
+    [Fact]
+    public async Task Apply_ConfirmsOnceTheOverlayClosedOnAWrittenCalibration()
+    {
+        var (vm, _, _) = NewVm();
+        Tap(vm, 0); Tap(vm, 1); Tap(vm, 2); Tap(vm, 3);
+        Assert.True(vm.IsConfirming);
+        var shown = RecordConfirmations();
+
+        await vm.ApplyCommand.ExecuteAsync(null);
+
+        Assert.Equal(new[] { "confirm.calibration_applied" }, shown);
+    }
+
+    [Fact]
+    public async Task ClearCalibration_ConfirmsWhenCleared_NotWhenTheWriteIsRefused()
+    {
+        var (vm, _, _) = NewVm();
+        var shown = RecordConfirmations();
+        await vm.ClearCommand.ExecuteAsync(null);
+        Assert.Equal(new[] { "confirm.calibration_cleared" }, shown);
+
+        shown.Clear();
+        var refused = Refused(out _);
+        await refused.ClearCommand.ExecuteAsync(null);
+        Assert.Empty(shown);
+    }
 }

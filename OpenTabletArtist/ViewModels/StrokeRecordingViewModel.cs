@@ -387,6 +387,7 @@ public partial class StrokeRecordingViewModel : ObservableObject
 
             Discard();
             SavedPath = path;
+            Services.ActionConfirmation.Show("confirm.recording_saved", "Recording saved");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException
                                        or ArgumentException or NotSupportedException)

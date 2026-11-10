@@ -1333,22 +1333,23 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
 
     /// <summary>Force the Pen Dynamics filter present + enabled across all profiles and apply — the Home
     /// health-check "Fix" backing the always-on invariant (#dynamics-always-on). No-op if nothing changed.</summary>
-    public async Task EnsureDynamicsAsync()
+    public async Task<bool> EnsureDynamicsAsync()
     {
         Dispatcher.UIThread.VerifyAccess();
         if (CurrentSettings is { } s && PressureCurveProfile.EnsureEnabled(s))
-            await ApplySettingsAsync(s);
+            return (await ApplySettingsAsync(s)).IsLive;
+        return false;
     }
 
     /// <summary>The one-click "Restore recommended pen settings" fix for the artist-pen-behavior health
     /// bundle (#artist-pen-health): re-enable Windows Ink + pen tip + pressure + tilt on the tablet's
     /// profile in a single apply. No-op if the tablet isn't found or nothing needed changing.</summary>
-    public async Task RestoreRecommendedPenBehaviorAsync(string? tabletName)
+    public async Task<bool> RestoreRecommendedPenBehaviorAsync(string? tabletName)
     {
         Dispatcher.UIThread.VerifyAccess();
-        if (CurrentSettings is not { } settings || string.IsNullOrEmpty(tabletName)) return;
+        if (CurrentSettings is not { } settings || string.IsNullOrEmpty(tabletName)) return false;
         var profile = settings.Profiles.FirstOrDefault(p => p.Tablet == tabletName);
-        if (profile == null) return;
+        if (profile == null) return false;
 
         var changed = Domain.PenBehaviorRestore.ToRecommended(profile, OperatingSystem.IsWindows());
 
@@ -1361,47 +1362,47 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             changed = true;
         }
 
-        if (changed) await ApplySettingsAsync(settings);
+        return changed && (await ApplySettingsAsync(settings)).IsLive;
     }
 
     /// <summary>The Home health-check "Fix" for an off-screen mapping (#629): re-map the tablet's active
     /// area cleanly to the primary display — a whole-monitor, undistorted 1:1 fit — and apply, pulling the
     /// pen back onto real screen space. No-op if the tablet/profile or the display set is unavailable.</summary>
-    public async Task MapTabletToPrimaryDisplayAsync(string? tabletName)
+    public async Task<bool> MapTabletToPrimaryDisplayAsync(string? tabletName)
     {
         Dispatcher.UIThread.VerifyAccess();
-        if (CurrentSettings is not { } settings || string.IsNullOrEmpty(tabletName)) return;
+        if (CurrentSettings is not { } settings || string.IsNullOrEmpty(tabletName)) return false;
         var profile = settings.Profiles.FirstOrDefault(p => p.Tablet == tabletName);
-        if (profile == null) return;
+        if (profile == null) return false;
 
         var displays = DisplayEnumerator.Enumerate();
-        if (displays is not { Count: > 0 }) return;
+        if (displays is not { Count: > 0 }) return false;
         var primary = displays.FirstOrDefault(d => d.IsPrimary) ?? displays[0];
 
         if (!Domain.DisplayMappingApplier.MapToSingleDisplay(profile, GetTabletDigitizer(tabletName), primary, displays))
-            return;
+            return false;
 
-        await ApplySettingsAsync(settings);
+        return (await ApplySettingsAsync(settings)).IsLive;
     }
 
     /// <summary>The Home health-check "Fix" for a non-cardinal active-area rotation (#629): snap the tablet's
     /// rotation to the nearest standard angle (0/90/180/270) and re-fit the area to its mapped display, then
     /// apply — un-skewing the pen axes. No-op if the tablet/profile is unavailable.</summary>
-    public async Task ResetTabletRotationToCardinalAsync(string? tabletName)
+    public async Task<bool> ResetTabletRotationToCardinalAsync(string? tabletName)
     {
         Dispatcher.UIThread.VerifyAccess();
-        if (CurrentSettings is not { } settings || string.IsNullOrEmpty(tabletName)) return;
+        if (CurrentSettings is not { } settings || string.IsNullOrEmpty(tabletName)) return false;
         var profile = settings.Profiles.FirstOrDefault(p => p.Tablet == tabletName);
-        if (profile?.AbsoluteModeSettings?.Tablet == null) return;
+        if (profile?.AbsoluteModeSettings?.Tablet == null) return false;
 
         double current = profile.AbsoluteModeSettings.Tablet.Rotation;
         int cardinal = ((int)System.Math.Round(current / 90.0) * 90 % 360 + 360) % 360;
 
         var displays = DisplayEnumerator.Enumerate();
         if (!Domain.DisplayMappingApplier.ApplyRotation(profile, GetTabletDigitizer(tabletName), cardinal, displays))
-            return;
+            return false;
 
-        await ApplySettingsAsync(settings);
+        return (await ApplySettingsAsync(settings)).IsLive;
     }
 
     // The last (tablets, desktop, tablet sizes, proportions) an automatic All displays re-fit was tried
@@ -1549,6 +1550,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
                 DaemonOperationError = "The driver didn't come online within 30 seconds.";
                 ConnectionStatus = "Disconnected"; // clear the Connecting… indicator on failure
             }
+            else ActionConfirmation.Show("confirm.driver_started", "Driver started");
         }
         finally
         {
@@ -1714,6 +1716,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
 
             if (!await WaitForConnectionStateAsync(connected: false, DaemonOperationTimeout))
                 DaemonOperationError = "The driver didn't stop within 30 seconds.";
+            else ActionConfirmation.Show("confirm.driver_stopped", "Driver stopped");
         }
         finally
         {
@@ -1772,6 +1775,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
                 DaemonOperationError = "The driver didn't come online within 30 seconds.";
                 ConnectionStatus = "Disconnected"; // clear the Connecting… indicator on failure
             }
+            else ActionConfirmation.Show("confirm.driver_restarted", "Driver restarted");
         }
         finally
         {

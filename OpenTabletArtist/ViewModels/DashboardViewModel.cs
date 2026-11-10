@@ -92,6 +92,12 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         if (issue?.Secondary is { } r) Dispatch(r, issue);
     }
 
+    /// <summary>The in-place "Fix" buttons: the overlay says it was done, only when the change reached the driver.</summary>
+    private static async System.Threading.Tasks.Task ConfirmFixAsync(System.Threading.Tasks.Task<bool> fix)
+    {
+        if (await fix) Services.ActionConfirmation.Show("confirm.fixed", "Fixed");
+    }
+
     private void Dispatch(Remediation r, HealthIssue issue)
     {
         switch (r.Area)
@@ -128,19 +134,19 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                 break;
             case RemediationArea.TabletMapToPrimary:
                 // Re-map the tablet's active area cleanly to the primary display in place, and persist.
-                if (!string.IsNullOrEmpty(r.TabletName)) _ = _session.MapTabletToPrimaryDisplayAsync(r.TabletName);
+                if (!string.IsNullOrEmpty(r.TabletName)) _ = ConfirmFixAsync(_session.MapTabletToPrimaryDisplayAsync(r.TabletName));
                 break;
             case RemediationArea.TabletResetRotation:
                 // Snap the tablet's non-cardinal active-area rotation to the nearest standard angle, and persist.
-                if (!string.IsNullOrEmpty(r.TabletName)) _ = _session.ResetTabletRotationToCardinalAsync(r.TabletName);
+                if (!string.IsNullOrEmpty(r.TabletName)) _ = ConfirmFixAsync(_session.ResetTabletRotationToCardinalAsync(r.TabletName));
                 break;
             case RemediationArea.TabletPenDynamics:
                 // Re-enable the always-on Pen Dynamics filter across profiles and persist.
-                _ = _session.EnsureDynamicsAsync();
+                _ = ConfirmFixAsync(_session.EnsureDynamicsAsync());
                 break;
             case RemediationArea.RestorePenBehavior:
                 // Artist-pen-behavior bundle: re-enable Windows Ink + tip + pressure + tilt in one apply.
-                _ = _session.RestoreRecommendedPenBehaviorAsync(r.TabletName);
+                _ = ConfirmFixAsync(_session.RestoreRecommendedPenBehaviorAsync(r.TabletName));
                 break;
             case RemediationArea.Configs:
                 // Open the CONFIGS page so the user can review/remove the override.
@@ -287,6 +293,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             : Services.Localizer.Te("home.perm_reset.failed", "The reset did not work. Remove the old entries by hand with −, then add this version with +.");
         Services.PlatformShell.OpenInputMonitoringSettings();
         RecheckAccessibility();
+        if (ok) Services.ActionConfirmation.Show("confirm.permissions_reset", "Permissions reset");
     }
 
     /// <summary>True when this column really has nothing to say. The daemon problem card lives outside the

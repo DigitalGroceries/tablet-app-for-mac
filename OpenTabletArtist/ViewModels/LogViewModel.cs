@@ -173,6 +173,7 @@ public partial class LogViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(EmptyStateText));
         OnPropertyChanged(nameof(FilterSummary));
         OnPropertyChanged(nameof(ShowFilterSummary));
+        Services.ActionConfirmation.Show("confirm.log_cleared", "Log cleared");
     }
 
     /// <summary>Plain-text dump of the visible log, for the view's Copy action.</summary>

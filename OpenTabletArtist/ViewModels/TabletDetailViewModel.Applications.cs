@@ -187,35 +187,35 @@ public partial class TabletDetailViewModel
     }
 
     /// <summary>Write a binding change either to All (OTD profile) or to the selected app's store.</summary>
-    internal async Task ApplyBindingMutationAsync(Action<BindingSettings> mutate)
+    internal async Task<bool> ApplyBindingMutationAsync(Action<BindingSettings> mutate)
     {
         // Version 14: editing an extra pen writes to that pen's own settings.
         if (!string.IsNullOrEmpty(SelectedPenKey))
         {
             var tablet = _profile.Tablet ?? "";
             var pen = PerPenStore.Find(tablet, SelectedPenKey);
-            if (pen is null) return;
+            if (pen is null) return false;
             var copy = PerAppBindingStore.CloneBindings(pen.Bindings);
             mutate(copy);
             PerPenStore.SaveBindings(tablet, SelectedPenKey!, copy);
             RefreshBindingEditorsFromSelection();
             PerAppBindingRuntime.Shared?.Reapply();   // the pen may be live already
-            return;
+            return true;
         }
         if (!string.IsNullOrEmpty(SelectedAppBundleId))
         {
             var tablet = _profile.Tablet ?? "";
             var app = PerAppBindingStore.Find(tablet, SelectedAppBundleId!);
-            if (app is null) return;
+            if (app is null) return false;
             var copy = PerAppBindingStore.CloneBindings(app.Bindings);
             mutate(copy);
             PerAppBindingStore.SaveBindings(tablet, SelectedAppBundleId!, copy);
             RefreshBindingEditorsFromSelection();
             PerAppBindingRuntime.Shared?.Kick();
-            return;
+            return true;
         }
         // All — normal OTD apply, and keep the All stash in sync.
-        await ApplySettingsChange(p =>
+        return await ApplySettingsChange(p =>
         {
             mutate(p.BindingSettings);
             PerAppBindingRuntime.SyncAllBindings(p.Tablet ?? "", p.BindingSettings);

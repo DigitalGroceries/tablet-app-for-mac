@@ -21,8 +21,10 @@ public sealed partial class DesktopEntryViewModel : ObservableObject
     [RelayCommand]
     private void CreateDesktopEntry()
     {
-        EntryStatus = DesktopEntry.TryCreate(out var path, out var error)
+        var ok = DesktopEntry.TryCreate(out var path, out var error);
+        EntryStatus = ok
             ? $"Created: {path}"
             : $"Couldn't create the entry: {error}";
+        if (ok) Services.ActionConfirmation.Show("confirm.launcher_created", "Launcher created");
     }
 }

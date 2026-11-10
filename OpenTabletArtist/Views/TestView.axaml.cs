@@ -114,7 +114,9 @@ public partial class TestView : UserControl
     private void OnCopy(object? sender, RoutedEventArgs e)
     {
         if (PaintCanvas.Snapshot() is not { } snap) return;
-        if (!ClipboardImage.CopyBgra(snap.Bgra, snap.Width, snap.Height))
+        if (ClipboardImage.CopyBgra(snap.Bgra, snap.Width, snap.Height))
+            OpenTabletArtist.Services.ActionConfirmation.Show("confirm.image_copied", "Image copied");
+        else
             ProfileToast.Show(ClipboardImage.FailureHint, "IconAlert");
     }
 }

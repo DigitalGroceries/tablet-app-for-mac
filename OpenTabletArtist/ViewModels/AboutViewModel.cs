@@ -152,7 +152,11 @@ public partial class AboutViewModel : ObservableObject
     public bool UpdateAutomatically { get => Services.Updater.Automatic; set => Services.Updater.Automatic = value; }
 
     [RelayCommand]
-    private async Task CheckForUpdates() => await Services.AppUpdateState.Shared.CheckAsync();
+    private async Task CheckForUpdates()
+    {
+        if (await Services.AppUpdateState.Shared.CheckAsync())
+            Services.ActionConfirmation.Show("confirm.update_checked", "Checked for updates");
+    }
 
     [RelayCommand]
     private async Task UpdateNow()

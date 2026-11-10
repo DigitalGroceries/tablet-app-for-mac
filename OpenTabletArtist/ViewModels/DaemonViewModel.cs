@@ -396,6 +396,7 @@ public sealed partial class DaemonViewModel : ObservableObject, IDisposable
         OtdServiceStatus = ok
             ? "OpenTabletDriver service started."
             : $"Couldn't start the service: {error}";
+        if (ok) Services.ActionConfirmation.Show("confirm.service_started", "Service started");
     }
 
     public void Dispose()

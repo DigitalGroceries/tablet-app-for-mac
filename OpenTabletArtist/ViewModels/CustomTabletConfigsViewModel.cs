@@ -116,9 +116,11 @@ public partial class CustomTabletConfigsViewModel : ObservableObject
             "Delete Configuration",
             $"Delete \"{Path.GetFileName(path)}\"?\n\nThis cannot be undone.");
         if (!confirmed) return;
+        bool deleted = false;
         try
         {
             File.Delete(path);
+            deleted = true;
         }
         catch (Exception ex)
         {
@@ -128,6 +130,7 @@ public partial class CustomTabletConfigsViewModel : ObservableObject
                 $"Couldn't delete \"{Path.GetFileName(path)}\": {ex.Message}");
         }
         LoadConfigurations();
+        if (deleted) Services.ActionConfirmation.Show("confirm.config_deleted", "Configuration deleted");
     }
 
     // --- Approved configs from OpenTabletDriver's repo (#480) ---
@@ -167,6 +170,7 @@ public partial class CustomTabletConfigsViewModel : ObservableObject
             AvailableStatus = error;
             return;
         }
+        Services.ActionConfirmation.Show("confirm.config_installed", "Config installed");
         // Drop it from the available list and re-scan the installed folder.
         AvailableConfigs = AvailableConfigs.Where(c => c.Path != config.Path).ToList();
         HasAvailableConfigs = AvailableConfigs.Count > 0;
