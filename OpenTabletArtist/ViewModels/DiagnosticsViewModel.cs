@@ -43,7 +43,7 @@ public partial class DiagnosticsViewModel : ObservableObject, IDisposable
     public bool HasDiagnosticFile => !string.IsNullOrEmpty(DiagnosticFilePath);
     public string DiagnosticTitle => Localizer.Te("diag.zip.title", "Diagnostic file");
     public string DiagnosticDescription => Localizer.Te("diag.zip.description",
-        "Makes one zip with a summary, the app and driver logs, your settings and the connected tablets, for a GitHub issue. Serial numbers and your user name are removed.");
+        "Makes one zip with a summary, the app and driver logs, your settings, the connected tablets and your mice and keyboards (name, IDs, connection and driver), for a GitHub issue. Serial numbers, Bluetooth addresses and your user name are removed.");
     public string DiagnosticButton => Localizer.Te("diag.zip.button", "Create diagnostic file");
     public string RevealLabel => Localizer.Te("backup.auto.folder", "Show in Finder");
 

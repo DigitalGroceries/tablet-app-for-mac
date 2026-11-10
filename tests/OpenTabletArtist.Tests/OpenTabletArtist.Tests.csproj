@@ -57,6 +57,8 @@
          and #30 (device.pen) are all additive and optional, so what Record mode writes was valid before and
          after. The next version of the schema that matters is the next commit that touches schema/. -->
     <None Include="Fixtures\take.schema.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\ioreg-hid-apple-silicon-macos27.plist" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\systemextensionsctl-macos27.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
