@@ -207,6 +207,30 @@ public sealed class PerAppBindingRuntime : IDisposable
                     StashedAllBindings(tablet)?.DoubleClickFix ?? profile.BindingSettings.DoubleClickFix);
             }
 
+            // TASKS #28: a key works only when All buttons is On. The switch empties All's own table; an
+            // application's table keeps its bindings, so the driver is given nothing from it while the switch is Off.
+            // (An Off key is already empty in the table, with its binding kept aside: see AuxKeyOffStore.)
+            if (bundleId is not null && AppSettings.Get($"AuxEnabled:{tablet}") == "false")
+            {
+                bindings = PerAppBindingStore.CloneBindings(bindings);
+                AuxKeyOffStore.ApplyAllButtons(bindings.AuxButtons, allButtonsOn: false);
+            }
+
+            // TASKS #29: a Touch Ring / Touch Strip works only when the main switch (Touch Rings) is On and its own
+            // On/Off is On. Both switches empty All's own table; an application's table keeps its ring settings, so
+            // the driver is given none of them for a ring that is Off (or for every ring while the main switch is Off).
+            if (bundleId is not null && bindings.WheelBindings.Count > 0)
+            {
+                var empty = WheelOffStore.RingsToEmpty(bindings.WheelBindings.Count,
+                    allRingsOn: AppSettings.Get($"WheelEnabled:{tablet}") != "false",
+                    offRings: WheelOffStore.Load(tablet).Keys);
+                if (empty.Count > 0)
+                {
+                    bindings = PerAppBindingStore.CloneBindings(bindings);
+                    WheelOffStore.Clear(bindings.WheelBindings, empty);
+                }
+            }
+
             // Version 14: an extra pen's own tip / eraser / side-button settings win over All and the app.
             if (penKey is not null && PerPenStore.Find(tablet, penKey) is { } pen)
             {

@@ -23,7 +23,7 @@ Tested only on an Apple silicon Mac with macOS 27.0.1 and a Wacom Intuos4 Small 
 - On **Home**, check the tablet card shows your tablet as connected.
 - Open the tablet, choose **Pen** in the Tool row, and set **Tip Feel**.
 - Set **Mapping** to the display you draw on.
-- Under **Functions**, set the ExpressKeys and the **Touch ring** modes.
+- Under **Functions**, set the ExpressKeys and the **Touch Ring** modes.
 - Click **Save** in the footer. Unsaved changes are kept and offered again after a shutdown.
 - Test in **Scribble**.
 
@@ -126,15 +126,15 @@ The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable 
 ![ExpressKeys](img/25-functions-tool.png)
 
 - Press a key on the tablet to light its row.
-- Row **⋯**: **Edit…** opens the function editor, **Clear** removes the action.
-- The enable switch turns all ExpressKey actions off or on; actions are kept.
+- Row **⋯**: **Edit…** opens the function editor, **Clear** removes the action, **Turn off** / **Turn on** switches just that key (an Off key is greyed and keeps its shortcut). Each application keeps its own On/Off for every key.
+- **All buttons** (Off / On switch) turns every ExpressKey off or on; actions and each key's own On/Off are kept. A key works only when **All buttons** and the key are both On. While **All buttons** is Off, the per-key item is greyed ("Turn on All buttons first").
 - **Default**: clears every ExpressKey action, after asking.
 
 Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left, Right, Middle click, Back and Forward button, or **Double Click**), **Scroll** (up, down, left, right, or **Move pen to scroll**: hold the button and move the pen to scroll like a mouse wheel; the cursor stays still and the tip does not click), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). **Save**, **Cancel**, **Clear**.
 
 ## Tablet › Functions › Touch ring
 
-- **Enable wheels**: On. Pauses all ring actions without deleting them.
+- **Touch Ring** (a tablet with one ring), **Touch Rings** (two rings, for example Cintiq 24HD), or **Touch Strip** / **Touch Strips** (tablets with touch strips, for example Intuos3 or Cintiq 22HD): an Off / On switch, On. Off pauses the ring or strip actions without deleting them. With two rings or strips, each one also has its own Off / On switch next to its name; it works only while the main switch is On, and the main switch never changes it.
 - **Touch Ring modes**: On. "4 modes. Press the ring's centre button to switch."
 - **Show touch ring setting (on-screen mode display)**: On. Shows the mode name when you switch.
 - The dial follows the ring live: the dot sits under your finger. The angle and turn direction show under the ring, for example "0° · Clockwise". 12 o'clock is 0° and 3 o'clock is 90°.

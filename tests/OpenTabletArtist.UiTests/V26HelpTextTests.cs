@@ -49,7 +49,8 @@ public class V26HelpTextTests
         Assert.Contains("ExpressKeys are the buttons on your tablet (not the ones on your pen).", texts);
         Assert.Contains("Click ••• next to a key to choose what it does: a keyboard shortcut, a mouse click or scrolling.", texts);
         Assert.Contains("Press a key on your tablet to see which row it is.", texts);
-        Assert.Contains("Turn off Enable buttons to stop all the keys working, for example if your hand keeps pressing one by accident. Your settings are kept, and the keys work again when you turn it back on.", texts);
+        Assert.Contains("Use the All buttons switch to stop every key working, for example if your hand keeps pressing one by accident. Your settings are kept, and the keys work again when you turn it back On.", texts);
+        Assert.Contains("To turn off just one key, click ••• next to it and choose Turn off. A key works only when All buttons and the key are both On.", texts);
         Assert.Contains("Your key settings are saved for this tablet. Each application can have its own: pick it in the Application row above.", texts);
         w.Close();
     }
@@ -148,7 +149,7 @@ public class V26HelpTextTests
         string[] keys =
         {
             "tablet.expresskeys.body", "tablet.expresskeys.choose_hint", "tablet.expresskeys.press_hint", "tablet.expresskeys.enable_note",
-            "tablet.expresskeys.per_app", "tablet.ring.about_turns", "tablet.ring.about_dial", "tablet.ring.about_enable",
+            "tablet.expresskeys.per_app", "tablet.expresskeys.key_note", "tablet.ring.about_turns", "tablet.ring.about_dial", "tablet.ring.about_enable", "tablet.ring.about_enable_all",
             "tablet.ring.note.rotate", "tablet.ring.note.zoom", "tablet.ring.note.size", "tablet.ring.note.hardness", "tablet.ring.note.keys",
             "tablet.ring.setup.rotate", "tablet.ring.setup.zoom", "tablet.ring.setup.size", "tablet.ring.setup.hardness",
         };
