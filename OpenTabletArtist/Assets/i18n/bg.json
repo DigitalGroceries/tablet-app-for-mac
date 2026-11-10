@@ -428,6 +428,6 @@
   "settings.troubleshoot.diag_body": "Записва zip на Бюрото с логове, настройки и информация за таблета, който можеш да прикачиш, когато искаш помощ.",
   "settings.troubleshoot.diag_button": "Създай диагностичен файл",
   "settings.troubleshoot.perm_title": "Нулирай разрешенията",
-  "settings.troubleshoot.perm_body": "Изчиства записите за Input Monitoring и Accessibility на това приложение, за да пита macOS отново. Само macOS.",
+  "settings.troubleshoot.perm_body": "Изчиства записите за Input Monitoring и Accessibility на това приложение, за да пита macOS отново.",
   "settings.troubleshoot.perm_button": "Нулирай разрешенията"
 }

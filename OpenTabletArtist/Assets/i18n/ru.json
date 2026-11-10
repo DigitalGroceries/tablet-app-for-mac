@@ -428,6 +428,6 @@
   "settings.troubleshoot.diag_body": "Сохраняет zip на рабочем столе с журналами, настройками и сведениями о планшете — его можно приложить к запросу о помощи.",
   "settings.troubleshoot.diag_button": "Создать диагностический файл",
   "settings.troubleshoot.perm_title": "Сбросить разрешения",
-  "settings.troubleshoot.perm_body": "Удаляет записи Input Monitoring и Универсального доступа этого приложения, чтобы macOS спросил снова. Только macOS.",
+  "settings.troubleshoot.perm_body": "Удаляет записи Input Monitoring и Универсального доступа этого приложения, чтобы macOS спросил снова.",
   "settings.troubleshoot.perm_button": "Сбросить разрешения"
 }

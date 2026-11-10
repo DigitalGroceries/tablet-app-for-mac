@@ -39,7 +39,7 @@ public class TroubleshootingShots
         public string DiagReveal => "Show in Finder";
         public string PermTitle => "Reset permissions";
         public string PermBody =>
-            "Clears this app’s Input Monitoring and Accessibility entries so macOS will ask again. macOS only.";
+            "Clears this app’s Input Monitoring and Accessibility entries so macOS will ask again.";
         public string PermButton => "Reset permissions";
         public bool ShowPermissionReset => true;
         public bool HasDiagnosticFile => false;

@@ -428,6 +428,6 @@
   "settings.troubleshoot.diag_body": "在桌面保存包含日志、设置和数位板信息的 zip，求助时可附上。",
   "settings.troubleshoot.diag_button": "创建诊断文件",
   "settings.troubleshoot.perm_title": "重置权限",
-  "settings.troubleshoot.perm_body": "清除本应用的输入监控与辅助功能记录，让 macOS 再次询问。仅限 macOS。",
+  "settings.troubleshoot.perm_body": "清除本应用的输入监控与辅助功能记录，让 macOS 再次询问。",
   "settings.troubleshoot.perm_button": "重置权限"
 }

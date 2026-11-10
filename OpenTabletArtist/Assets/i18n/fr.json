@@ -428,6 +428,6 @@
   "settings.troubleshoot.diag_body": "Enregistre un zip sur le Bureau avec les journaux, les réglages et les infos tablette à joindre pour demander de l’aide.",
   "settings.troubleshoot.diag_button": "Créer le fichier de diagnostic",
   "settings.troubleshoot.perm_title": "Réinitialiser les autorisations",
-  "settings.troubleshoot.perm_body": "Efface les entrées Surveillance des entrées et Accessibilité de cette app pour que macOS redemande. macOS uniquement.",
+  "settings.troubleshoot.perm_body": "Efface les entrées Surveillance des entrées et Accessibilité de cette app pour que macOS redemande.",
   "settings.troubleshoot.perm_button": "Réinitialiser les autorisations"
 }

@@ -428,6 +428,6 @@
   "settings.troubleshoot.diag_body": "Guarda un zip en el Escritorio con registros, ajustes e información de la tableta para adjuntarlo al pedir ayuda.",
   "settings.troubleshoot.diag_button": "Crear archivo de diagnóstico",
   "settings.troubleshoot.perm_title": "Restablecer permisos",
-  "settings.troubleshoot.perm_body": "Borra las entradas de Monitorización de entrada y Accesibilidad de esta app para que macOS vuelva a pedirlas. Solo macOS.",
+  "settings.troubleshoot.perm_body": "Borra las entradas de Monitorización de entrada y Accesibilidad de esta app para que macOS vuelva a pedirlas.",
   "settings.troubleshoot.perm_button": "Restablecer permisos"
 }

@@ -428,6 +428,6 @@
   "settings.troubleshoot.diag_body": "Speichert ein Zip auf dem Schreibtisch mit Protokollen, Einstellungen und Tablet-Infos zum Anhängen bei Hilfsanfragen.",
   "settings.troubleshoot.diag_button": "Diagnosedatei erstellen",
   "settings.troubleshoot.perm_title": "Berechtigungen zurücksetzen",
-  "settings.troubleshoot.perm_body": "Löscht die Input-Monitoring- und Bedienungshilfen-Einträge dieser App, damit macOS erneut fragt. Nur macOS.",
+  "settings.troubleshoot.perm_body": "Löscht die Input-Monitoring- und Bedienungshilfen-Einträge dieser App, damit macOS erneut fragt.",
   "settings.troubleshoot.perm_button": "Berechtigungen zurücksetzen"
 }

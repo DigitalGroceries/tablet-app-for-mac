@@ -437,6 +437,6 @@
   "settings.troubleshoot.diag_body": "Saves a zip on your Desktop with logs, settings and tablet info you can attach when asking for help.",
   "settings.troubleshoot.diag_button": "Create diagnostic file",
   "settings.troubleshoot.perm_title": "Reset permissions",
-  "settings.troubleshoot.perm_body": "Clears this app’s Input Monitoring and Accessibility entries so macOS will ask again. macOS only.",
+  "settings.troubleshoot.perm_body": "Clears this app’s Input Monitoring and Accessibility entries so macOS will ask again.",
   "settings.troubleshoot.perm_button": "Reset permissions"
 }
