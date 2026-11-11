@@ -180,8 +180,9 @@ public partial class RingModesEditor : ObservableObject
     }
 }
 
-/// <summary>Build K: the one thing a ring mode does.</summary>
-public enum RingAction { Keys, SmoothRotate, SmoothZoom, SmoothSize, SmoothHardness }
+/// <summary>Build K: the one thing a ring mode does.
+/// Version 26 (#35): Scroll (a plain mouse wheel, every app) is added last, so saved drop-down indices keep their meaning.</summary>
+public enum RingAction { Keys, SmoothRotate, SmoothZoom, SmoothSize, SmoothHardness, Scroll }
 
 /// <summary>One mode row: number, editable name, on/off, and the two direction bindings (keys only —
 /// the ring plugin sends key combos).</summary>
@@ -217,9 +218,12 @@ public partial class RingModeRow : ObservableObject
         _rotate = mode.RotateSensitivity;
         _size = _rotate != 0 ? 0 : mode.SizeSensitivity;
         _hard = _rotate != 0 || _size != 0 ? 0 : mode.HardnessSensitivity;
-        if (_rotate != 0 || _size != 0 || _hard != 0) _scroll = 0;   // one action per mode
+        _wheel = _rotate != 0 || _size != 0 || _hard != 0 ? 0 : mode.WheelScroll;
+        if (_rotate != 0 || _size != 0 || _hard != 0 || _wheel != 0) _scroll = 0;   // one action per mode
         _action = _rotate != 0 ? RingAction.SmoothRotate : _size != 0 ? RingAction.SmoothSize
-                : _hard != 0 ? RingAction.SmoothHardness : _scroll != 0 ? RingAction.SmoothZoom : RingAction.Keys;
+                : _hard != 0 ? RingAction.SmoothHardness : _wheel != 0 ? RingAction.Scroll
+                : _scroll != 0 ? RingAction.SmoothZoom : RingAction.Keys;
+        WheelSensitivity = _wheel != 0 ? Math.Abs(_wheel) : RingMode.DefaultWheelSpeed;
         RotateSensitivity = _rotate != 0 ? Math.Abs(_rotate) : RingMode.DefaultRotateSensitivity;
         SizeSensitivity = _size != 0 ? Math.Abs(_size) : RingMode.DefaultBrushSensitivity;
         HardnessSensitivity = _hard != 0 ? Math.Abs(_hard) : RingMode.DefaultBrushSensitivity;
@@ -252,8 +256,11 @@ public partial class RingModeRow : ObservableObject
     public double MinRotateSensitivity => RingMode.MinRotateSensitivity;
     public double MaxRotateSensitivity => RingMode.MaxRotateSensitivity;
 
-    private int _size, _hard;
+    private int _size, _hard, _wheel;
     private RingAction _action;
+
+    /// <summary>Version 26 (#35): the Scroll action's Speed while another action is picked (kept for switching back).</summary>
+    [ObservableProperty] private double _wheelSensitivity = RingMode.DefaultWheelSpeed;
 
     /// <summary>Build K: what this mode does — exactly one of keys / smooth rotate / smooth zoom / smooth brush
     /// size / smooth brush hardness (radio buttons), so a smooth option can't be ticked alongside another.</summary>
@@ -268,8 +275,9 @@ public partial class RingModeRow : ObservableObject
             _scroll = value == RingAction.SmoothZoom ? Sens(ScrollSensitivity, RingMode.MinSpeed, RingMode.MaxSpeed) : 0;
             _size = value == RingAction.SmoothSize ? Sens(SizeSensitivity, RingMode.MinBrushSensitivity, RingMode.MaxBrushSensitivity) : 0;
             _hard = value == RingAction.SmoothHardness ? Sens(HardnessSensitivity, RingMode.MinBrushSensitivity, RingMode.MaxBrushSensitivity) : 0;
+            _wheel = value == RingAction.Scroll ? Sens(WheelSensitivity, RingMode.MinSpeed, RingMode.MaxSpeed) : 0;
             foreach (var n in new[] { nameof(Action), nameof(ActionIndex), nameof(ActionShort), nameof(UseKeys), nameof(UseRotate), nameof(UseScroll), nameof(UseSize),
-                         nameof(UseHardness), nameof(UsesKeys), nameof(ShowScrollOption) })
+                         nameof(UseHardness), nameof(UseWheel), nameof(UsesKeys), nameof(ShowScrollOption) })
                 OnPropertyChanged(n);
             RefreshSpeed();
             if (!_suppress) _ = _changed();
@@ -292,6 +300,7 @@ public partial class RingModeRow : ObservableObject
         RingAction.SmoothSize => Math.Abs(_size),
         RingAction.SmoothHardness => Math.Abs(_hard),
         RingAction.SmoothZoom => Math.Abs(_scroll),
+        RingAction.Scroll => Math.Abs(_wheel),
         _ => RingMode.SpeedOfDegrees(_step),
     };
 
@@ -307,6 +316,8 @@ public partial class RingModeRow : ObservableObject
             "Turn the ring to make the brush bigger or smaller smoothly (experimental). Works in Photoshop only. Other apps get this mode's keys instead."),
         RingAction.SmoothHardness => Localizer.Te("tablet.ring.note.hardness",
             "Turn the ring to make the brush harder or softer smoothly (experimental). Works in Photoshop only, with round brushes. Other apps get this mode's keys instead."),
+        RingAction.Scroll => Localizer.Te("tablet.ring.note.scroll",
+            "Turn the ring to scroll, like a mouse wheel: clockwise scrolls down, anticlockwise scrolls up. Works in every app."),
         RingAction.Keys => KeysNote(),
         _ => "",
     };
@@ -334,6 +345,7 @@ public partial class RingModeRow : ObservableObject
         RingAction.SmoothZoom => "How it works: the app sends Option + scroll wheel. " + HeldKeys,
         RingAction.SmoothSize => "How it works: in Photoshop the app holds Control + Option and drags sideways. " + HeldKeys,
         RingAction.SmoothHardness => "How it works: in Photoshop the app holds Control + Option and drags up and down. " + HeldKeys,
+        RingAction.Scroll => "How it works: the app turns the mouse scroll wheel, one notch at a time, where the pointer is. No keys are held.",
         _ => "Smooth actions work in Photoshop (zoom and rotate also in Affinity) while the pointer is over its window. In other apps, a mode sends its keys.",
     };
 
@@ -394,6 +406,8 @@ public partial class RingModeRow : ObservableObject
             case RingAction.SmoothHardness: changed = _hard != speed; _hard = speed; SetQuietly(() => HardnessSensitivity = speed); break;
             case RingAction.SmoothZoom:
                 changed = Math.Abs(_scroll) != speed; _scroll = (_scroll < 0 ? -1 : 1) * speed; SetQuietly(() => ScrollSensitivity = speed); break;
+            case RingAction.Scroll:
+                changed = Math.Abs(_wheel) != speed; _wheel = (_wheel < 0 ? -1 : 1) * speed; SetQuietly(() => WheelSensitivity = speed); break;
             default:
                 var deg = RingMode.DegreesOfSpeed(speed);
                 changed = Math.Abs(deg - _step) > 0.01f; _step = deg;
@@ -414,6 +428,8 @@ public partial class RingModeRow : ObservableObject
         "Smooth zoom",
         "Smooth brush size",
         "Smooth hardness",
+        // Version 26 (#35, Maxime): a plain mouse-wheel scroll in every app, like Wacom's Touch Ring "Scroll".
+        "Scroll",
     };
     public IReadOnlyList<string> ActionChoices => ActionNames;
 
@@ -424,6 +440,7 @@ public partial class RingModeRow : ObservableObject
         RingAction.SmoothZoom => "Smooth zoom",
         RingAction.SmoothSize => "Smooth brush size",
         RingAction.SmoothHardness => "Smooth hardness",
+        RingAction.Scroll => "Scroll",
         _ => "Keystroke…",
     };
 
@@ -450,6 +467,8 @@ public partial class RingModeRow : ObservableObject
     public bool UseSize { get => Action == RingAction.SmoothSize; set => Pick(RingAction.SmoothSize, value); }
     /// <summary>Build K (EXPERIMENTAL): brush hardness by Control+Option+drag up/down.</summary>
     public bool UseHardness { get => Action == RingAction.SmoothHardness; set => Pick(RingAction.SmoothHardness, value); }
+    /// <summary>Version 26 (#35): plain scroll wheel, every app.</summary>
+    public bool UseWheel { get => Action == RingAction.Scroll; set => Pick(RingAction.Scroll, value); }
 
     [ObservableProperty] private double _sizeSensitivity = RingMode.DefaultBrushSensitivity;
     [ObservableProperty] private double _hardnessSensitivity = RingMode.DefaultBrushSensitivity;
@@ -576,7 +595,8 @@ public partial class RingModeRow : ObservableObject
 
     public RingMode ToMode() => new(string.IsNullOrWhiteSpace(Name) ? Title : Name.Trim(), _cw, _ccw, Enabled,
         _step, Action == RingAction.SmoothZoom ? _scroll : 0, Action == RingAction.SmoothRotate ? _rotate : 0,
-        Action == RingAction.SmoothSize ? _size : 0, Action == RingAction.SmoothHardness ? _hard : 0);
+        Action == RingAction.SmoothSize ? _size : 0, Action == RingAction.SmoothHardness ? _hard : 0,
+        Action == RingAction.Scroll ? _wheel : 0);
 
     partial void OnNameChanged(string value)
     {

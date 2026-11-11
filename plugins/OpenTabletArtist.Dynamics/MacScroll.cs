@@ -58,6 +58,21 @@ internal static class MacScroll
     /// ⌘ + scroll wheel when "Enable canvas rotation with ⌘+scroll wheel" is on in its Settings › Tools.</summary>
     public static void PostWithCommand(int pixels) => PostWithModifier(pixels, KeyCodeCommand, CommandFlag, ref _commandRemainder);
 
+    /// <summary>Version 26 (#35): plain mouse-wheel notches (line units; we press and set no modifier key),
+    /// posted where the pointer is, like a real mouse wheel. Positive = scroll up.</summary>
+    public static void PostLines(int lines)
+    {
+        if (lines == 0 || !OperatingSystem.IsMacOS()) return;
+        try
+        {
+            var e = CGEventCreateScrollWheelEvent2(Src.Value, LineUnits, 1, Math.Clamp(lines, -10, 10), 0, 0);
+            if (e == IntPtr.Zero) return;
+            try { CGEventPost(HidEventTap, e); }
+            finally { CFRelease(e); }
+        }
+        catch (Exception) { /* no CoreGraphics: nothing to do */ }
+    }
+
     private static void PostWithModifier(int pixels, ushort keyCode, ulong flag, ref int remainder)
     {
         if (pixels == 0 || !OperatingSystem.IsMacOS()) return;

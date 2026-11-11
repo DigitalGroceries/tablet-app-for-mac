@@ -211,6 +211,7 @@
   "tablet.ring.note.zoom": "リングを回すと、なめらかにズームイン・ズームアウトします（試験的）。Photoshop と Affinity で使えます。ほかのアプリでは、このモードのキーが送られます。",
   "tablet.ring.note.size": "リングを回すと、ブラシがなめらかに大きく・小さくなります（試験的）。Photoshop でのみ使えます。ほかのアプリでは、このモードのキーが送られます。",
   "tablet.ring.note.hardness": "リングを回すと、ブラシがなめらかに硬く・柔らかくなります（試験的）。Photoshop の円形ブラシでのみ使えます。ほかのアプリでは、このモードのキーが送られます。",
+  "tablet.ring.note.scroll": "リングを回すと、マウスホイールのようにスクロールします。時計回りで下へ、反時計回りで上へスクロールします。どのアプリでも使えます。",
   "tablet.ring.note.keys": "リングを {degrees}° 回すごとに、下のキーが送られます。",
   "tablet.ring.setup.rotate": "設定：Affinity の Settings › Tools で「Enable canvas rotation with ⌘+scroll wheel」をオンにします。Photoshop は設定不要です。",
   "tablet.ring.setup.zoom": "設定：Photoshop でズームせずに画像が上下に動く場合は、Photoshop の Settings › Tools で「Zoom with Scroll Wheel」のチェックを外します。または Keystroke… を選んで ⌘= と ⌘− を使います。",
