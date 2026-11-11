@@ -49,6 +49,10 @@
                                 ValueTextOverride="{Binding PositionSmoothingText}"
                                 Monospace="True" ValueWidth="44"
                                 ToolTip.Tip="EMA smoothing of the pen position: steadies wobbly lines, at a little lag." />
+            <!-- #40: smooth in-between points (the in-between points filter in the bundled plugin). -->
+            <ctrl:ToggleSetting x:Name="SmootherCurvesSwitch" Label="Smoother fast curves" InlineDescription="True"
+                                IsChecked="{Binding SmootherCurves}"
+                                ToolTip.Tip="Adds smooth in-between points so fast curves don't show flat pieces in drawing apps. About 5 ms of extra delay." />
             <StackPanel Spacing="12" Margin="0,8,0,0" IsVisible="{Binding CanDisableWindowsInk}">
                 <TextBlock x:Name="PressingHeading" Text="Pressing" Classes="basicsHeading" />
                 <ComboBox HorizontalAlignment="Stretch"

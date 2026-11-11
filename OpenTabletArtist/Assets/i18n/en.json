@@ -201,6 +201,8 @@
   "tablet.pen.default_setting": "Default setting",
   "tablet.pen.movement": "Movement",
   "tablet.pen.position_smoothing": "Position smoothing",
+  "tablet.pen.smoother_curves": "Smoother fast curves",
+  "tablet.pen.smoother_curves_tip": "Adds smooth in-between points so fast curves don't show flat pieces in drawing apps. About 5 ms of extra delay.",
   "tablet.pen.pen_input": "Pen input",
   "tablet.pen.disable_tip": "Disable pen tip",
   "tablet.pen.disable_pressure": "Disable pressure sensitivity",

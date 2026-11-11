@@ -197,6 +197,8 @@
   "tablet.pen.default_setting": "デフォルト設定",
   "tablet.pen.movement": "移動",
   "tablet.pen.position_smoothing": "位置のスムージング",
+  "tablet.pen.smoother_curves": "速いカーブをなめらかに",
+  "tablet.pen.smoother_curves_tip": "描画アプリで速いカーブが直線の集まりに見えないよう、なめらかな中間点を追加します。約 5 ms の遅延が加わります。",
   "tablet.pen.pen_input": "ペン入力",
   "tablet.pen.disable_tip": "ペン先を無効",
   "tablet.pen.disable_pressure": "筆圧を無効",

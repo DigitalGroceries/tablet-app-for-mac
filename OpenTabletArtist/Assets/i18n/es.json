@@ -201,6 +201,8 @@
   "tablet.pen.default_setting": "Ajuste predeterminado",
   "tablet.pen.movement": "Movimiento",
   "tablet.pen.position_smoothing": "Suavizado de posición",
+  "tablet.pen.smoother_curves": "Curvas rápidas más suaves",
+  "tablet.pen.smoother_curves_tip": "Añade puntos intermedios suaves para que las curvas rápidas no muestren tramos planos en los programas de dibujo. Unos 5 ms de retraso adicional.",
   "tablet.pen.pen_input": "Entrada del lápiz",
   "tablet.pen.disable_tip": "Desactivar la punta",
   "tablet.pen.disable_pressure": "Desactivar sensibilidad a la presión",
