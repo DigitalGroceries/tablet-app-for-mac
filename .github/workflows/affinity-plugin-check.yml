@@ -1,0 +1,39 @@
+name: Affinity plugin check
+# #39: on a real Mac, check the Smooth pen strokes plugin's signature and that it loads and runs
+# (dlopen + PluginMain), as Affinity would. Also builds it with Apple's own tools for comparison.
+on:
+  push:
+    paths:
+      - 'tools/affinity-plugin/**'
+      - 'OpenTabletArtist/Assets/affinity-plugin/**'
+      - 'scripts/build-affinity-plugin.sh'
+      - '.github/workflows/affinity-plugin-check.yml'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Committed bundle
+        run: |
+          B=OpenTabletArtist/Assets/affinity-plugin/SmoothPenStrokes.plugin
+          file $B/Contents/MacOS/SmoothPenStrokes
+          codesign -dv --verbose=4 $B/Contents/MacOS/SmoothPenStrokes || true
+          codesign --verify --verbose=4 $B/Contents/MacOS/SmoothPenStrokes || true
+          otool -L $B/Contents/MacOS/SmoothPenStrokes
+          dyld_info -fixups $B/Contents/MacOS/SmoothPenStrokes 2>/dev/null | head -40 || true
+      - name: Load test (committed bundle)
+        run: |
+          clang -o load_test tools/affinity-plugin/ci/load_test.c
+          ./load_test "$PWD/OpenTabletArtist/Assets/affinity-plugin/SmoothPenStrokes.plugin/Contents/MacOS/SmoothPenStrokes"
+          cat ~/Library/Logs/TabletAppForMac-Affinity.log || true
+      - name: Build with Apple's tools and load that too
+        run: |
+          ./scripts/build-affinity-plugin.sh
+          codesign -dv --verbose=4 OpenTabletArtist/Assets/affinity-plugin/SmoothPenStrokes.plugin/Contents/MacOS/SmoothPenStrokes || true
+          ./load_test "$PWD/OpenTabletArtist/Assets/affinity-plugin/SmoothPenStrokes.plugin/Contents/MacOS/SmoothPenStrokes"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SmoothPenStrokes-apple-built
+          path: OpenTabletArtist/Assets/affinity-plugin/SmoothPenStrokes.plugin

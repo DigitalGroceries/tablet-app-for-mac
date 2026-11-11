@@ -47,9 +47,12 @@ def smooth_strokes_pipl():
         prop(b"vers", struct.pack(">I", 0x00040000)),
         prop(b"mi64", pstr("PluginMain")),
         prop(b"ma64", pstr("PluginMain")),
-        # Gray, RGB, CMYK, Lab and their 16-bit forms: the filter is offered for any picture.
-        prop(b"mode", struct.pack(">H", 0x587C)),
-        prop(b"enbl", b"true\0"),
+        # 8-bit RGB and Grey, with the same enable expression and size limit as gmic-affinity, which Affinity
+        # is known to accept. A plain "true" enable expression left the menu item greyed out in Affinity 3.3
+        # (Zak's test, 11 Nov 2026).
+        prop(b"mode", struct.pack(">H", 0x5000)),
+        prop(b"enbl", b"in (PSHOP_ImageMode, RGBMode, GrayScaleMode)\0"),
+        prop(b"ms32", struct.pack(">ii", 2000000, 2000000)),
         prop(b"pmsa", struct.pack(">I", 1)),
     ])
 
