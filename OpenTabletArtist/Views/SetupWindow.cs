@@ -108,6 +108,8 @@ public sealed class SetupWindow : Window
         int number = StepNumber(_steps, step);
         TextBlock Big(string t) => new TextBlock { Text = t, FontSize = 26, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }.Fg("TextPrimaryBrush");
         TextBlock Plain(string t) => new TextBlock { Text = t, FontSize = 16, TextWrapping = TextWrapping.Wrap, LineHeight = 24 }.Fg("TextSecondaryBrush");
+        // #26 (Wacom comparison point 5): one plain line saying why macOS asks for this permission.
+        TextBlock Why(string t) => new TextBlock { Text = t, FontSize = 14, TextWrapping = TextWrapping.Wrap, LineHeight = 20, Margin = new Thickness(0, 4, 0, 0) }.Fg("TextMutedBrush");
         Button Main(string t, Action a) { var b = new Button { Content = t, FontSize = 16, Padding = new Thickness(18, 10), Background = B("#3D6BE0"), Foreground = B("#E4E4E4") }; b.Click += (_, _) => a(); return b; }
         Button Second(string t, Action a) { var b = new Button { Content = t, FontSize = 14, Padding = new Thickness(14, 8) }; b.Click += (_, _) => a(); return b; }
         void Header(string title)
@@ -171,6 +173,7 @@ public sealed class SetupWindow : Window
             case Step.ReadPen:
                 Header(Localizer.T("setup.pen.header"));
                 _body.Children.Add(Plain(Localizer.T("setup.pen.body")));
+                _body.Children.Add(Why(Localizer.Te("setup.pen.why", "Why: macOS lets an app read a tablet only with Input Monitoring. The app uses it to read your pen, ExpressKeys and Touch Ring.")));   // #26
                 Picture("setup-read-pen.png");
                 Row(Main(Localizer.T("setup.pen.open"), () => { _openedAt = DateTime.Now; PlatformShell.OpenInputMonitoringSettings(); }));
                 Stale(Localizer.T("setup.pen.stale"));
@@ -178,6 +181,7 @@ public sealed class SetupWindow : Window
             case Step.MovePointer:
                 Header(Localizer.T("setup.pointer.header"));
                 _body.Children.Add(Plain(Localizer.Tf("setup.pointer.body", ("pane", MacAccessibility.PointerPaneName()))));
+                _body.Children.Add(Why(Localizer.Tf("setup.pointer.why", ("pane", MacAccessibility.PointerPaneName()))));   // #26
                 Picture("setup-move-pointer.png");
                 // Version 15 (Zak, double prompt): only open System Settings; no macOS permission box on top.
                 Row(Main(Localizer.Tf("setup.pointer.open", ("pane", MacAccessibility.PointerPaneName())), () => { _openedAt = DateTime.Now; PlatformShell.OpenAccessibilitySettings(); }));
