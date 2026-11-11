@@ -203,56 +203,6 @@ public partial class StartupViewModel : ObservableObject
     public string OledLabelsDescription => Localizer.Te("oled.description",
         "Intuos4 Medium, Large and Extra Large. Each small screen beside an ExpressKey shows that key's action, as with the Wacom driver. Off: the screens stay dark.");
 
-    // ---- Affinity plugin (#39)
-    private AffinityPlugin? _affinity;
-    /// <summary>The Affinity plugin installer (set by the shell on macOS). The section shows only when Affinity is installed.</summary>
-    public AffinityPlugin? Affinity
-    {
-        get => _affinity;
-        set
-        {
-            _affinity = value;
-            OnPropertyChanged(nameof(ShowAffinity));
-            RefreshAffinity();
-        }
-    }
-    public bool ShowAffinity => _affinity?.AffinityInstalled == true;
-    public string AffinitySectionTitle => Localizer.Te("affinity.section", "Affinity");
-    public string AffinityDescription => Localizer.Te("affinity.description",
-        "Smoother pen strokes in Affinity. macOS merges pen points while Affinity is busy, so fast curves get corners. This small plugin switches that off inside Affinity. It doesn't change your pictures.");
-    public string AffinityInstallLabel => _affinity?.IsInstalled == true
-        ? Localizer.Te("affinity.install_again", "Install the plugin again")
-        : Localizer.Te("affinity.install", "Install the plugin for Affinity");
-    [ObservableProperty] private string _affinityStatus = "";
-    public bool HasAffinityStatus => AffinityStatus.Length > 0;
-    partial void OnAffinityStatusChanged(string value) => OnPropertyChanged(nameof(HasAffinityStatus));
-
-    /// <summary>The steps in Affinity, plus when the plugin last worked there.</summary>
-    private void RefreshAffinity(string? error = null)
-    {
-        OnPropertyChanged(nameof(AffinityInstallLabel));
-        if (_affinity == null) { AffinityStatus = ""; return; }
-        if (error != null)
-        {
-            AffinityStatus = Localizer.Te("affinity.failed", "Couldn't install the plugin: {error}").Replace("{error}", error);
-            return;
-        }
-        if (!_affinity.IsInstalled) { AffinityStatus = ""; return; }
-        var text = Localizer.Te("affinity.steps",
-            "Installed. In Affinity: 1. Settings › Photoshop Plugins: tick “Allow unknown plugins to be used”. 2. Quit and open Affinity again. 3. Open a picture and choose Filters › Plugins › Tablet App for Mac › Smooth pen strokes (Affinity 3: Pixel › Filters › Plugins). Do step 3 each time you open Affinity.");
-        if (_affinity.LastActive() is { } at)
-            text += "\n" + Localizer.Te("affinity.last_active", "Last worked in Affinity: {time}.").Replace("{time}", at.ToLocalTime().ToString("g"));
-        AffinityStatus = text;
-    }
-
-    [CommunityToolkit.Mvvm.Input.RelayCommand]
-    private void InstallAffinityPlugin()
-    {
-        if (_affinity == null) return;
-        try { _affinity.Install(); RefreshAffinity(); }
-        catch (Exception ex) { RefreshAffinity(ex.Message); }
-    }
-
     /// <summary>Settings backup card shown on this page (set by the shell).</summary>
     public BackupViewModel? Backup { get; set; }
 
