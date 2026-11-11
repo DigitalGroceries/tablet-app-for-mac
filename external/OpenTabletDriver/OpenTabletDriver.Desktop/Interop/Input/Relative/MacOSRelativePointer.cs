@@ -28,6 +28,14 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Relative
             CGEventSetDoubleValueField(mouseEvent, CGEventField.mouseEventDeltaY, 0);
         }
 
+        /// <summary>Tablet App for Mac (#36): a relative position is movement; the click lands where the
+        /// pointer is now plus that movement.</summary>
+        protected override Vector2 ClickPosition(float x, float y)
+        {
+            var at = GetCursorPosition();
+            return new Vector2((float)at.x + x, (float)at.y + y);
+        }
+
         protected override void QueuePendingPositionFromSystem()
         {
             QueuePendingPosition(0, 0);

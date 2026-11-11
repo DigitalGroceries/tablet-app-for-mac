@@ -210,7 +210,10 @@ namespace OpenTabletDriver.Daemon
             try
             {
                 foreach (var dev in Driver.InputDevices)
+                {
+                    ReleaseHeldButtons(dev.Properties.Name, dev.OutputMode);
                     dev.OutputMode?.Dispose();
+                }
 
                 Settings = settings ??= Settings.GetDefaults();
 
@@ -415,6 +418,32 @@ namespace OpenTabletDriver.Daemon
 
             Log.Write("MoveSettingsFile", $"Moving settings file at '{src}' to '{dst}'", LogLevel.Debug);
             File.Move(src, dst);
+        }
+
+        /// <summary>Tablet App for Mac (#36, #73): every settings change builds a new output mode and, on macOS,
+        /// a new virtual mouse. A button the old mouse was holding (the pen tip pressed while a click switches
+        /// the app's per-app settings) was never let go: macOS kept a left button down with no up. Let go of
+        /// anything held before the old mouse is dropped. Fails open.</summary>
+        private static void ReleaseHeldButtons(string group, IOutputMode? outputMode)
+        {
+            try
+            {
+                var pointer = outputMode switch
+                {
+                    AbsoluteOutputMode absolute => (object?)absolute.Pointer,
+                    RelativeOutputMode relative => relative.Pointer,
+                    _ => null
+                };
+                if (pointer is MacOSVirtualMouse { HasHeldButtons: true } mouse)
+                {
+                    mouse.ReleaseHeldButtons();
+                    Log.Write(group, "Released the mouse buttons held during a settings change", LogLevel.Debug);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Write(group, $"Couldn't release held mouse buttons: {e.Message}", LogLevel.Debug);
+            }
         }
 
         private static void SetOutputModeElements(InputDeviceTree dev, IOutputMode outputMode, Profile profile, BindingHandler bindingHandler)

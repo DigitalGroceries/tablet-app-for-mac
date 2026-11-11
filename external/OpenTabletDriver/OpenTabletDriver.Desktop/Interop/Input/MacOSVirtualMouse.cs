@@ -230,7 +230,29 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             _pendingY = y;
             // Hover between taps must not break a double-click; only movement while a button is held
             // (a drag) invalidates the click count.
-            _doubleClick.OnPosition(new Vector2(x, y), buttonHeld: _currButtonStates != 0);
+            _doubleClick.OnPosition(ClickPosition(x, y), buttonHeld: _currButtonStates != 0);
+        }
+
+        /// <summary>Tablet App for Mac (#36): the screen point a pending position stands for, used to count
+        /// double-clicks. Absolute mode queues screen points already. Relative mode queues movement (deltas),
+        /// which made every click within the double-click time count as a double, triple… click and a drag
+        /// never break the count, so it turns them into screen points.</summary>
+        protected virtual Vector2 ClickPosition(float x, float y) => new(x, y);
+
+        /// <summary>Tablet App for Mac (#36): this mouse has posted a button down that it hasn't let go yet.</summary>
+        public bool HasHeldButtons => _prevButtonStates != 0;
+
+        /// <summary>Tablet App for Mac (#36, #73): post an up, where the pointer is now, for every button this
+        /// mouse posted down and hasn't let go. The daemon calls it before it replaces this mouse with a new
+        /// one on a settings change, so macOS is never left holding a button that no one will release.</summary>
+        public void ReleaseHeldButtons()
+        {
+            if (_prevButtonStates == 0)
+                return;
+            QueuePendingPositionFromSystem();
+            ProcessKeyStates(_prevButtonStates, 0);
+            _prevButtonStates = 0;
+            _currButtonStates = 0;
         }
 
         public void SetPressure(float percentage)
@@ -285,7 +307,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                         // No pending position (e.g. an earlier button in this report drained it): use the
                         // last known position, not Vector2.Zero, so the click count isn't reset.
                         var down = _doubleClick.DownPosition(_pendingX.HasValue && _pendingY.HasValue
-                            ? new Vector2(_pendingX.Value, _pendingY.Value)
+                            ? ClickPosition(_pendingX.Value, _pendingY.Value)
                             : null);
                         clickState = _doubleClick.OnMouseDown(down, _doubleClickClock.ElapsedMilliseconds);
                         if (UseClickJitterGate && button == CGMouseButton.kCGMouseButtonLeft)

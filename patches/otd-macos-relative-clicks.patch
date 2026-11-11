@@ -1,0 +1,111 @@
+diff --git a/OpenTabletDriver.Daemon/DriverDaemon.cs b/OpenTabletDriver.Daemon/DriverDaemon.cs
+index 21c6517..484153d 100644
+--- a/OpenTabletDriver.Daemon/DriverDaemon.cs
++++ b/OpenTabletDriver.Daemon/DriverDaemon.cs
+@@ -210,7 +210,10 @@ namespace OpenTabletDriver.Daemon
+             try
+             {
+                 foreach (var dev in Driver.InputDevices)
++                {
++                    ReleaseHeldButtons(dev.Properties.Name, dev.OutputMode);
+                     dev.OutputMode?.Dispose();
++                }
+ 
+                 Settings = settings ??= Settings.GetDefaults();
+ 
+@@ -417,6 +420,32 @@ namespace OpenTabletDriver.Daemon
+             File.Move(src, dst);
+         }
+ 
++        /// <summary>Tablet App for Mac (#36, #73): every settings change builds a new output mode and, on macOS,
++        /// a new virtual mouse. A button the old mouse was holding (the pen tip pressed while a click switches
++        /// the app's per-app settings) was never let go: macOS kept a left button down with no up. Let go of
++        /// anything held before the old mouse is dropped. Fails open.</summary>
++        private static void ReleaseHeldButtons(string group, IOutputMode? outputMode)
++        {
++            try
++            {
++                var pointer = outputMode switch
++                {
++                    AbsoluteOutputMode absolute => (object?)absolute.Pointer,
++                    RelativeOutputMode relative => relative.Pointer,
++                    _ => null
++                };
++                if (pointer is MacOSVirtualMouse { HasHeldButtons: true } mouse)
++                {
++                    mouse.ReleaseHeldButtons();
++                    Log.Write(group, "Released the mouse buttons held during a settings change", LogLevel.Debug);
++                }
++            }
++            catch (Exception e)
++            {
++                Log.Write(group, $"Couldn't release held mouse buttons: {e.Message}", LogLevel.Debug);
++            }
++        }
++
+         private static void SetOutputModeElements(InputDeviceTree dev, IOutputMode outputMode, Profile profile, BindingHandler bindingHandler)
+         {
+             string group = dev.Properties.Name;
+diff --git a/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs b/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
+index ef40f80..edac386 100644
+--- a/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
++++ b/OpenTabletDriver.Desktop/Interop/Input/MacOSVirtualMouse.cs
+@@ -230,7 +230,29 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+             _pendingY = y;
+             // Hover between taps must not break a double-click; only movement while a button is held
+             // (a drag) invalidates the click count.
+-            _doubleClick.OnPosition(new Vector2(x, y), buttonHeld: _currButtonStates != 0);
++            _doubleClick.OnPosition(ClickPosition(x, y), buttonHeld: _currButtonStates != 0);
++        }
++
++        /// <summary>Tablet App for Mac (#36): the screen point a pending position stands for, used to count
++        /// double-clicks. Absolute mode queues screen points already. Relative mode queues movement (deltas),
++        /// which made every click within the double-click time count as a double, triple… click and a drag
++        /// never break the count, so it turns them into screen points.</summary>
++        protected virtual Vector2 ClickPosition(float x, float y) => new(x, y);
++
++        /// <summary>Tablet App for Mac (#36): this mouse has posted a button down that it hasn't let go yet.</summary>
++        public bool HasHeldButtons => _prevButtonStates != 0;
++
++        /// <summary>Tablet App for Mac (#36, #73): post an up, where the pointer is now, for every button this
++        /// mouse posted down and hasn't let go. The daemon calls it before it replaces this mouse with a new
++        /// one on a settings change, so macOS is never left holding a button that no one will release.</summary>
++        public void ReleaseHeldButtons()
++        {
++            if (_prevButtonStates == 0)
++                return;
++            QueuePendingPositionFromSystem();
++            ProcessKeyStates(_prevButtonStates, 0);
++            _prevButtonStates = 0;
++            _currButtonStates = 0;
+         }
+ 
+         public void SetPressure(float percentage)
+@@ -285,7 +307,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+                         // No pending position (e.g. an earlier button in this report drained it): use the
+                         // last known position, not Vector2.Zero, so the click count isn't reset.
+                         var down = _doubleClick.DownPosition(_pendingX.HasValue && _pendingY.HasValue
+-                            ? new Vector2(_pendingX.Value, _pendingY.Value)
++                            ? ClickPosition(_pendingX.Value, _pendingY.Value)
+                             : null);
+                         clickState = _doubleClick.OnMouseDown(down, _doubleClickClock.ElapsedMilliseconds);
+                         if (UseClickJitterGate && button == CGMouseButton.kCGMouseButtonLeft)
+diff --git a/OpenTabletDriver.Desktop/Interop/Input/Relative/MacOSRelativePointer.cs b/OpenTabletDriver.Desktop/Interop/Input/Relative/MacOSRelativePointer.cs
+index 204d841..04bc09a 100644
+--- a/OpenTabletDriver.Desktop/Interop/Input/Relative/MacOSRelativePointer.cs
++++ b/OpenTabletDriver.Desktop/Interop/Input/Relative/MacOSRelativePointer.cs
+@@ -28,6 +28,14 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Relative
+             CGEventSetDoubleValueField(mouseEvent, CGEventField.mouseEventDeltaY, 0);
+         }
+ 
++        /// <summary>Tablet App for Mac (#36): a relative position is movement; the click lands where the
++        /// pointer is now plus that movement.</summary>
++        protected override Vector2 ClickPosition(float x, float y)
++        {
++            var at = GetCursorPosition();
++            return new Vector2((float)at.x + x, (float)at.y + y);
++        }
++
+         protected override void QueuePendingPositionFromSystem()
+         {
+             QueuePendingPosition(0, 0);
