@@ -109,7 +109,10 @@ public class DialogService : IDialogService
                     : null;
             },
             // ABOUT tab → the config-override card's Review button navigates to the CONFIGS page (#467).
-            openConfigsPage: openConfigsPage);
+            openConfigsPage: openConfigsPage,
+            // #27/#30: a tablet that isn't found gets what to try instead of a dead end.
+            restartDriver: () => _session.RestartDaemonCommand.ExecuteAsync(null),
+            sendReport: () => Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = Views.ReportWindow.OpenAsync("Tablet")));
     }
 
     /// <summary>Opens the 4-tap pointer-calibration overlay on the display this tablet is mapped to

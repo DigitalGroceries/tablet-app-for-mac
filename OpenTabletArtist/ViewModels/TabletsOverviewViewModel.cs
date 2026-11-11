@@ -46,6 +46,10 @@ public partial class TabletOverviewItemViewModel : ObservableObject
     public string? StatusDetail { get; }
     public bool HasStatusDetail => !string.IsNullOrEmpty(StatusDetail);
 
+    /// <summary>#27 (Wacom comparison point 6, Mike Milo #30): a tablet that isn't found says where to look next,
+    /// instead of only "Not detected".</summary>
+    public string NotFoundHint => Services.Localizer.Te("home.not_found_hint", "Not found. Double-click to see what to try.");
+
     [RelayCommand]
     private void Open() => _navigate();
 

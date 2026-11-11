@@ -832,7 +832,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         Func<Task>? forgetAction = null,
         Func<CalibrationOptions, Task>? onCalibrate = null,
         Func<AuxBinding, string, Task<AuxBinding?>>? editBinding = null,
-        Action? openConfigsPage = null)
+        Action? openConfigsPage = null,
+        Func<Task>? restartDriver = null,
+        Action? sendReport = null)
     {
         _profile = profile;
         _settings = settings;
@@ -851,6 +853,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _forgetAction = forgetAction;
         _onCalibrate = onCalibrate;
         _openConfigsPage = openConfigsPage;
+        _restartDriver = restartDriver;
+        _sendReport = sendReport;
 
         if (penInput != null)
         {
@@ -955,7 +959,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         IsTabletDetected = _isDetectedProbe?.Invoke() ?? false;
         DetectionText = IsTabletDetected ? "Detected" : "Not detected";
-        DetectionDetail = IsTabletDetected ? "" : "Not detected. Showing this tablet's saved settings.";
+        DetectionDetail = IsTabletDetected ? "" : Localizer.Te("tablet.not_detected.detail", "Not detected. Showing this tablet's saved settings.");
+        OnPropertyChanged(nameof(ShowNotDetectedHelp));
         // Detection changing is exactly when the digitizer specs (dis)appear, so recompute the active
         // area too. This self-heals "Active-area details aren't available" on reconnect — no restart.
         RefreshTabletArea();
@@ -966,6 +971,33 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         // The tablet's size may only now be known: finish an All displays choice made before detection.
         MaybeRefitAllDisplays();
     }
+
+    // ---- #27 + #30 (Mike Milo, Wacom comparison point 6): when the tablet isn't found, say what to try ----------
+    private readonly Func<Task>? _restartDriver;
+    private readonly Action? _sendReport;
+
+    /// <summary>Not found, and there is something to offer (restart the driver, send a report) instead of a dead end.</summary>
+    public bool ShowNotDetectedHelp => !IsTabletDetected && (_restartDriver != null || _sendReport != null);
+    public bool CanRestartDriverHere => _restartDriver != null;
+    public bool CanSendReportHere => _sendReport != null;
+
+    public string NotDetectedHelp => Localizer.Te("tablet.not_detected.help",
+        "If it is plugged in: check it has power and that its USB cable goes straight into the Mac, not through a hub. Then click Restart driver. Still not found? Send a report and we will look into it.");
+
+    public string RestartDriverLabel => Localizer.Te("settings.troubleshoot.restart_button", "Restart driver");
+    public string SendReportLabel => Localizer.Te("tablet.not_detected.report", "Send a report…");
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private async Task RestartDriverHere()
+    {
+        if (_restartDriver == null) return;
+        try { await _restartDriver(); }
+        catch (Exception ex) { AppLog.Warn("Restart driver from the tablet page failed.", ex); }
+        RefreshDetectionStatus();
+    }
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private void SendReportHere() => _sendReport?.Invoke();
 
     // The last (tablet size, desktop, rotation) a refit was attempted for, so a daemon that stores the area
     // slightly differently can't make every settings refresh re-apply it again (no apply loop).

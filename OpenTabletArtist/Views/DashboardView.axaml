@@ -81,6 +81,10 @@
                                     <TextBlock x:Name="TabletStatusText" Text="{Binding StatusDetail}" Margin="0,6,0,0" Classes="Detail" FontSize="22" LetterSpacing="1"
                                                IsVisible="{Binding HasStatusDetail}"
                                                TextWrapping="Wrap" />
+                                    <!-- #27/#30: not found = where to look next (the tablet page has the help and buttons). -->
+                                    <TextBlock x:Name="TabletNotFoundHint" Text="{Binding NotFoundHint}" Margin="0,4,0,0" FontSize="16"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"
+                                               IsVisible="{Binding !IsDetected}" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
                                             VerticalAlignment="Center">
