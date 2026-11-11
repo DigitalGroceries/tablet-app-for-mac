@@ -86,6 +86,7 @@ public class TranslationLeftoversV26Tests
     {
         ("de", "update.thanks_ok"), ("fr", "update.thanks_ok"), ("ja", "update.thanks_ok"), ("ru", "update.thanks_ok"),
         ("de", "home.version"), ("fr", "home.version"), ("de", "backup.area.tablet"), ("fr", "backup.area.app"),
+        ("de", "tablet.strip.n"),   // German keeps "Touch Strip" (the file's own word)
     };
 
     [Theory]
