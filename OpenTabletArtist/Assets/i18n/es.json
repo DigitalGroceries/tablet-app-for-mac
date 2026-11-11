@@ -167,6 +167,7 @@
   "tablet.ring.note.zoom": "Gira el anillo para acercar y alejar el zoom de forma gradual (experimental). Funciona en Photoshop y Affinity. Las demás apps reciben las teclas de este modo.",
   "tablet.ring.note.size": "Gira el anillo para hacer el pincel más grande o más pequeño de forma gradual (experimental). Solo funciona en Photoshop. Las demás apps reciben las teclas de este modo.",
   "tablet.ring.note.hardness": "Gira el anillo para hacer el pincel más duro o más suave de forma gradual (experimental). Solo funciona en Photoshop, con pinceles redondos. Las demás apps reciben las teclas de este modo.",
+  "tablet.ring.note.scroll": "Gira el anillo para desplazarte como con la rueda del ratón: en sentido horario hacia abajo y en sentido antihorario hacia arriba. Funciona en todas las apps.",
   "tablet.ring.note.keys": "Al girar el anillo se envían las teclas de abajo cada {degrees}°.",
   "tablet.ring.setup.rotate": "Configuración: en Affinity, activa «Enable canvas rotation with ⌘+scroll wheel» en Settings › Tools. Photoshop no necesita configuración.",
   "tablet.ring.setup.zoom": "Configuración: si Photoshop mueve la imagen arriba y abajo en lugar de hacer zoom, desmarca «Zoom with Scroll Wheel» en Settings › Tools de Photoshop. O elige Keystroke… y usa ⌘= y ⌘−.",

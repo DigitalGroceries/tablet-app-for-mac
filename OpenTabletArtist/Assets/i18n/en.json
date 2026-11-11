@@ -171,6 +171,7 @@
   "tablet.ring.note.zoom": "Turn the ring to zoom in and out smoothly (experimental). Works in Photoshop and Affinity. Other apps get this mode's keys instead.",
   "tablet.ring.note.size": "Turn the ring to make the brush bigger or smaller smoothly (experimental). Works in Photoshop only. Other apps get this mode's keys instead.",
   "tablet.ring.note.hardness": "Turn the ring to make the brush harder or softer smoothly (experimental). Works in Photoshop only, with round brushes. Other apps get this mode's keys instead.",
+  "tablet.ring.note.scroll": "Turn the ring to scroll, like a mouse wheel: clockwise scrolls down, anticlockwise scrolls up. Works in every app.",
   "tablet.ring.note.keys": "Turning the ring sends the keys below, once every {degrees}°.",
   "tablet.ring.setup.rotate": "Setup: in Affinity, turn on \"Enable canvas rotation with ⌘+scroll wheel\" in Settings › Tools. Photoshop needs no setup.",
   "tablet.ring.setup.zoom": "Setup: if Photoshop moves the picture up and down instead of zooming, untick \"Zoom with Scroll Wheel\" in Photoshop's Settings › Tools. Or choose Keystroke… and use ⌘= and ⌘−.",

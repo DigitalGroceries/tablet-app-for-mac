@@ -167,6 +167,7 @@
   "tablet.ring.note.zoom": "Tournez l'anneau pour zoomer et dézoomer progressivement (expérimental). Fonctionne dans Photoshop et Affinity. Les autres applications reçoivent à la place les touches de ce mode.",
   "tablet.ring.note.size": "Tournez l'anneau pour agrandir ou réduire le pinceau progressivement (expérimental). Fonctionne uniquement dans Photoshop. Les autres applications reçoivent à la place les touches de ce mode.",
   "tablet.ring.note.hardness": "Tournez l'anneau pour rendre le pinceau progressivement plus dur ou plus doux (expérimental). Fonctionne uniquement dans Photoshop, avec les pinceaux ronds. Les autres applications reçoivent à la place les touches de ce mode.",
+  "tablet.ring.note.scroll": "Tournez l'anneau pour faire défiler comme avec la molette de la souris : dans le sens des aiguilles d'une montre vers le bas, dans le sens inverse vers le haut. Fonctionne dans toutes les applications.",
   "tablet.ring.note.keys": "Tourner l'anneau envoie les touches ci-dessous tous les {degrees}°.",
   "tablet.ring.setup.rotate": "Réglage : dans Affinity, activez « Enable canvas rotation with ⌘+scroll wheel » dans Settings › Tools. Photoshop n'a besoin d'aucun réglage.",
   "tablet.ring.setup.zoom": "Réglage : si Photoshop déplace l'image vers le haut et le bas au lieu de zoomer, décochez « Zoom with Scroll Wheel » dans Settings › Tools de Photoshop. Ou choisissez Keystroke… et utilisez ⌘= et ⌘−.",

@@ -211,6 +211,22 @@ public class RingModeTurnBinding : IStateBinding
     [Property("Mode 4 Scroll"), DefaultPropertyValue(0), Unit("px")]
     public int Mode4Scroll { get => _modeScroll[3]; set => _modeScroll[3] = value; }
 
+    // Version 26 (#35, Maxime): per-mode plain scroll, like a mouse wheel, in every app (Wacom's Touch Ring "Scroll":
+    // clockwise scrolls down). Wheel notches per mode step, signed per direction by the app (positive = up). 0 = off.
+    private readonly int[] _modeWheel = new int[RingModeState.MaxModes];
+
+    [Property("Mode 1 Wheel"), DefaultPropertyValue(0), Unit("lines")]
+    public int Mode1Wheel { get => _modeWheel[0]; set => _modeWheel[0] = value; }
+
+    [Property("Mode 2 Wheel"), DefaultPropertyValue(0), Unit("lines")]
+    public int Mode2Wheel { get => _modeWheel[1]; set => _modeWheel[1] = value; }
+
+    [Property("Mode 3 Wheel"), DefaultPropertyValue(0), Unit("lines")]
+    public int Mode3Wheel { get => _modeWheel[2]; set => _modeWheel[2] = value; }
+
+    [Property("Mode 4 Wheel"), DefaultPropertyValue(0), Unit("lines")]
+    public int Mode4Wheel { get => _modeWheel[3]; set => _modeWheel[3] = value; }
+
     // Build J (EXPERIMENTAL): per-mode smooth rotate (hold R + drag in Photoshop): canvas degrees per 100°
     // of ring, signed per direction by the app. 0 = off.
     private readonly float[] _modeRotate = new float[RingModeState.MaxModes];
@@ -268,6 +284,8 @@ public class RingModeTurnBinding : IStateBinding
     public static Func<FrontApp> FrontApp { get; set; } = DragRotate.FrontAppUnderCursor;
     public static Action<int> Scroll { get; set; } = MacScroll.PostWithOption;
     public static Action<int> CommandScroll { get; set; } = MacScroll.PostWithCommand;
+    /// <summary>Version 26 (#35): a plain scroll wheel (no keys held), in whatever app is under the pointer.</summary>
+    public static Action<int> WheelScroll { get; set; } = MacScroll.PostLines;
 
     /// <summary>Version 16 BETA 2: written by the app (2 = physical clockwise is OTD's clockwise binding, zoom
     /// value is a direction only). Not used here; the app reads it back to tell old bindings apart.</summary>
@@ -284,6 +302,12 @@ public class RingModeTurnBinding : IStateBinding
         int mode = RingModeState.Current;
         bool valid = mode >= 0 && mode < RingModeState.MaxModes;
         double ring = RingStep > 0 ? RingStep : 5;
+        if (valid && _modeWheel[mode] != 0)
+        {
+            // Version 26 (#35): scroll like a mouse wheel, one notch per mode step, in every app.
+            if (CountStep(mode)) WheelScroll(Math.Sign(_modeWheel[mode]));
+            return;
+        }
         if (valid && _modeRotate[mode] != 0)
         {
             // Smooth rotate in Photoshop: every ring position turns the canvas by (ring degrees × sensitivity %).

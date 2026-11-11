@@ -167,6 +167,7 @@
   "tablet.ring.note.zoom": "Drehe den Ring, um stufenlos hinein- und herauszuzoomen (experimentell). Funktioniert in Photoshop und Affinity. Andere Apps erhalten stattdessen die Tasten dieses Modus.",
   "tablet.ring.note.size": "Drehe den Ring, um den Pinsel stufenlos größer oder kleiner zu machen (experimentell). Funktioniert nur in Photoshop. Andere Apps erhalten stattdessen die Tasten dieses Modus.",
   "tablet.ring.note.hardness": "Drehe den Ring, um den Pinsel stufenlos härter oder weicher zu machen (experimentell). Funktioniert nur in Photoshop, mit runden Pinseln. Andere Apps erhalten stattdessen die Tasten dieses Modus.",
+  "tablet.ring.note.scroll": "Drehe den Ring, um wie mit einem Mausrad zu scrollen: im Uhrzeigersinn nach unten, gegen den Uhrzeigersinn nach oben. Funktioniert in jeder App.",
   "tablet.ring.note.keys": "Beim Drehen des Rings werden die Tasten unten alle {degrees}° gesendet.",
   "tablet.ring.setup.rotate": "Einrichtung: Schalte in Affinity unter Settings › Tools „Enable canvas rotation with ⌘+scroll wheel“ ein. Photoshop braucht keine Einrichtung.",
   "tablet.ring.setup.zoom": "Einrichtung: Wenn Photoshop das Bild nach oben und unten verschiebt, statt zu zoomen, entferne in Photoshop unter Settings › Tools das Häkchen bei „Zoom with Scroll Wheel“. Oder wähle Keystroke… und nutze ⌘= und ⌘−.",

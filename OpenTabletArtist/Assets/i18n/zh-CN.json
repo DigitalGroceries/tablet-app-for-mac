@@ -167,6 +167,7 @@
   "tablet.ring.note.zoom": "转动触控环可平滑放大和缩小（实验性）。适用于 Photoshop 和 Affinity。其他应用会改为收到此模式的按键。",
   "tablet.ring.note.size": "转动触控环可平滑调大或调小画笔（实验性）。仅适用于 Photoshop。其他应用会改为收到此模式的按键。",
   "tablet.ring.note.hardness": "转动触控环可平滑调硬或调软画笔（实验性）。仅适用于 Photoshop 的圆形画笔。其他应用会改为收到此模式的按键。",
+  "tablet.ring.note.scroll": "转动触控环即可像鼠标滚轮一样滚动：顺时针向下滚动，逆时针向上滚动。适用于所有应用。",
   "tablet.ring.note.keys": "触控环每转动 {degrees}°，就发送一次下方的按键。",
   "tablet.ring.setup.rotate": "设置：在 Affinity 的 Settings › Tools 中开启“Enable canvas rotation with ⌘+scroll wheel”。Photoshop 无需设置。",
   "tablet.ring.setup.zoom": "设置：如果 Photoshop 上下移动画面而不是缩放，请在 Photoshop 的 Settings › Tools 中取消勾选“Zoom with Scroll Wheel”。或者选择 Keystroke…，使用 ⌘= 和 ⌘−。",
