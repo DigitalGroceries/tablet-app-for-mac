@@ -28,6 +28,17 @@ jobs:
           clang -o load_test tools/affinity-plugin/ci/load_test.c
           ./load_test "$PWD/OpenTabletArtist/Assets/affinity-plugin/SmoothPenStrokes.plugin/Contents/MacOS/SmoothPenStrokes"
           cat ~/Library/Logs/TabletAppForMac-Affinity.log || true
+      - name: Ad-hoc sign the whole bundle (as gmic-affinity does) and load it again
+        run: |
+          mkdir -p dist && cp -R OpenTabletArtist/Assets/affinity-plugin/SmoothPenStrokes.plugin dist/
+          codesign --force --deep --sign - dist/SmoothPenStrokes.plugin
+          codesign --verify --deep --strict --verbose=4 dist/SmoothPenStrokes.plugin
+          codesign -dv --verbose=4 dist/SmoothPenStrokes.plugin
+          ./load_test "$PWD/dist/SmoothPenStrokes.plugin/Contents/MacOS/SmoothPenStrokes"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SmoothPenStrokes-signed
+          path: dist/SmoothPenStrokes.plugin
       - name: Build with Apple's tools and load that too
         run: |
           ./scripts/build-affinity-plugin.sh
