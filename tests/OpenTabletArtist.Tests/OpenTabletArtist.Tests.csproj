@@ -83,6 +83,7 @@
     <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\TouchTapGestures.cs" Link="Plugin\TouchTapGestures.cs" />
     <!-- Version 24: filter Dispose force-releases a held click (OTD disposes IDisposable pipeline elements). -->
     <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\TouchTrackpad.cs" Link="Plugin\TouchTrackpad.cs" />
+    <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\InBetweenPoints.cs" Link="Plugin\InBetweenPoints.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -197,6 +197,8 @@
   "tablet.pen.default_setting": "Настройка по умолчанию",
   "tablet.pen.movement": "Движение",
   "tablet.pen.position_smoothing": "Сглаживание позиции",
+  "tablet.pen.smoother_curves": "Более плавные быстрые кривые",
+  "tablet.pen.smoother_curves_tip": "Добавляет плавные промежуточные точки, чтобы быстрые кривые в программах для рисования не состояли из прямых отрезков. Около 5 мс дополнительной задержки.",
   "tablet.pen.pen_input": "Ввод пером",
   "tablet.pen.disable_tip": "Отключить наконечник",
   "tablet.pen.disable_pressure": "Отключить чувствительность к давлению",

@@ -1590,6 +1590,11 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _skipHoverPersist = false;
         CanEditHover = _applyAction != null;
 
+        // #40: smoother fast curves (in-between points) — load without triggering a persist.
+        _skipInBetweenPersist = true;
+        SmootherCurves = InBetweenProfile.IsOn(_settings, _profile.Tablet ?? "");
+        _skipInBetweenPersist = false;
+
         // Discussion #31: touch trackpad switch (PTH-651 only) — load without triggering a persist.
         _skipTouchPersist = true;
         TouchTrackpadAvailable = Domain.TouchTrackpad.Wanted(_profile);
@@ -3066,6 +3071,28 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", dynamics, enable: true);
         // The write mutated _profile.Filters (added/enabled/disabled the DynamicsFilter); reflect that
         // in the Filters tab and JSON view immediately rather than waiting for a manual Refresh.
+        UpdateFiltersDisplay();
+        TakeOutcome(await SubmitAsync(_settings), draft);
+    }
+
+    // ── Smoother fast curves (#40) ──────────────────────────────
+
+    /// <summary>Adds smooth in-between pen points, so fast curves don't show flat pieces in apps that draw straight
+    /// lines between points. Costs about one pen report (~5 ms) of delay. Off by default.</summary>
+    [ObservableProperty] private bool _smootherCurves;
+    private bool _skipInBetweenPersist;
+
+    partial void OnSmootherCurvesChanged(bool value)
+    {
+        if (_skipInBetweenPersist || _applyAction == null || _settings == null) return;
+        _ = PersistSmootherCurvesAsync(value);
+    }
+
+    private async Task PersistSmootherCurvesAsync(bool on)
+    {
+        if (_settings == null) return;
+        var draft = _draftGeneration;
+        InBetweenProfile.Write(_settings, _profile.Tablet ?? "", on);
         UpdateFiltersDisplay();
         TakeOutcome(await SubmitAsync(_settings), draft);
     }

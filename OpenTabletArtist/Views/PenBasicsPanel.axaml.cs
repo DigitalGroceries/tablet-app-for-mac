@@ -41,6 +41,12 @@ public partial class PenBasicsPanel : UserControl
         MovementSharedNote.IsVisible = ForEraser;
         if (MovementHeading != null) MovementHeading.Text = Localizer.T("tablet.pen.movement");
         if (PositionSmoothingSlider != null) PositionSmoothingSlider.Label = Localizer.T("tablet.pen.position_smoothing");
+        if (SmootherCurvesSwitch != null)
+        {
+            SmootherCurvesSwitch.Label = Localizer.Te("tablet.pen.smoother_curves", "Smoother fast curves");
+            ToolTip.SetTip(SmootherCurvesSwitch, Localizer.Te("tablet.pen.smoother_curves_tip",
+                "Adds smooth in-between points so fast curves don't show flat pieces in drawing apps. About 5 ms of extra delay."));
+        }
         if (PressingHeading != null) PressingHeading.Text = "Pressing"; // Windows-only; leave English for now
         InputHeading.Text = ForEraser ? Localizer.T("tablet.eraser.input") : Localizer.T("tablet.pen.pen_input");
         DisableTipSwitch.Label = Localizer.T("tablet.pen.disable_tip");

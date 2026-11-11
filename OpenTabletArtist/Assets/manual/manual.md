@@ -97,6 +97,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 | Pen button test | Live | Press a barrel button: its number on the pen picture lights while held, and the line above the cards reads "Button 2 pressed." (or 1). |
 | Movement | Normal (Absolute) | Absolute maps the pen to the screen; Mouse (Relative) moves the cursor like a mouse. Mouse-like mode also uses the tablet rotation set under Mapping. |
 | Position smoothing | 0.00 | Steadies the cursor, with some lag. |
+| Smoother fast curves | Off | Adds smooth in-between pen points, so fast curves don't show flat pieces in drawing apps that join points with straight lines. About 5 ms of extra delay. New in Version 26. |
 | Disable pen tip | Off | The tip makes no strokes; the bar reads 0%. |
 | Disable pressure sensitivity | Off | Every stroke uses the Manual Pen Tip Pressure while pressed, in every app. |
 | Manual Pen Tip Pressure | 30% | Own frame under Tip Feel. The pressure used while pressure sensitivity is off (0 to 100%). |
