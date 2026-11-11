@@ -56,6 +56,7 @@ public partial class BindingEditorDialog : Window
     {
         var vm = new BindingEditorViewModel(initial, title);
         var dialog = new BindingEditorDialog(vm);
+        vm.EditRadialMenu = json => RadialMenuEditorDialog.ShowAsync(owner, json, title);
         await OpenTabletArtist.Helpers.InWindowSheet.ShowDialogAsync(dialog, owner);
         return await dialog._resultTcs.Task;
     }

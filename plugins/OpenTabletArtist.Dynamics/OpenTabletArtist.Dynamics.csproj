@@ -24,6 +24,7 @@
     <Compile Include="..\..\OpenTabletArtist\Domain\CalibrationMath.cs" Link="CalibrationMath.cs" />
     <Compile Include="..\..\OpenTabletArtist\Domain\PenToolSignal.cs" Link="PenToolSignal.cs" />
     <Compile Include="..\..\OpenTabletArtist\Domain\PenScrollMath.cs" Link="PenScrollMath.cs" />
+    <Compile Include="..\..\OpenTabletArtist\Domain\RadialMenuModel.cs" Link="RadialMenuModel.cs" />
   </ItemGroup>
 
 </Project>

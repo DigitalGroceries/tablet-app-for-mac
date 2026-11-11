@@ -1,0 +1,472 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using OpenTabletArtist.Domain;
+using PluginBinding = OpenTabletArtist.Dynamics.RadialMenuBinding;
+using RadialMenuState = OpenTabletArtist.Dynamics.RadialMenuState;
+using OpenTabletArtist.Services;
+using OpenTabletArtist.ViewModels;
+using OpenTabletDriver.Desktop.Binding;
+using OpenTabletDriver.Desktop.Profiles;
+using OpenTabletDriver.Desktop.Reflection;
+using Xunit;
+
+namespace OpenTabletArtist.Tests;
+
+/// <summary>Radial menu (TASKS #42): the menu model, where a tap lands, the binding store and filter, the
+/// driver-side open/tap/close logic, the overlay's state file and the editor.</summary>
+public class RadialMenuModelTests
+{
+    [Theory]
+    [InlineData(0, 0, RadialMenuGeometry.Centre)]
+    [InlineData(0, -100, 0)]      // straight up
+    [InlineData(70, -70, 1)]      // up-right
+    [InlineData(100, 0, 2)]       // right
+    [InlineData(70, 70, 3)]
+    [InlineData(0, 100, 4)]       // down
+    [InlineData(-70, 70, 5)]
+    [InlineData(-100, 0, 6)]      // left
+    [InlineData(-70, -70, 7)]
+    [InlineData(0, -1000, RadialMenuGeometry.Outside)]
+    public void SliceAt_TopIsZero_ThenClockwise(double dx, double dy, int expected) =>
+        Assert.Equal(expected, RadialMenuGeometry.SliceAt(dx, dy, RadialMenuDef.DefaultSize));
+
+    [Fact]
+    public void SliceAt_BoundaryBetweenTopAndTopRight()
+    {
+        // 22.5° clockwise from the top is the edge between slice 0 and slice 1.
+        double r = 100, a = 22.0 * Math.PI / 180, b = 23.0 * Math.PI / 180;
+        Assert.Equal(0, RadialMenuGeometry.SliceAt(r * Math.Sin(a), -r * Math.Cos(a), 50));
+        Assert.Equal(1, RadialMenuGeometry.SliceAt(r * Math.Sin(b), -r * Math.Cos(b), 50));
+    }
+
+    [Fact]
+    public void Size_ChangesRadius()
+    {
+        Assert.True(RadialMenuGeometry.OuterRadius(100) > RadialMenuGeometry.OuterRadius(1));
+        Assert.Equal(160, RadialMenuGeometry.OuterRadius(50), 3);
+        Assert.Equal(RadialMenuGeometry.Outside, RadialMenuGeometry.SliceAt(0, -200, 1));
+        Assert.Equal(0, RadialMenuGeometry.SliceAt(0, -200, 100));
+    }
+
+    [Fact]
+    public void Default_HasEightSlices_UndoOnTop()
+    {
+        var m = RadialMenuDefaults.Create();
+        Assert.Equal(RadialMenuDef.SliceCount, m.Slices.Count);
+        Assert.Equal("Undo", m.Slices[0].Label);
+        Assert.Equal("Application+Z", m.Slices[0].Keys);
+        Assert.Equal("Application+Shift+Z", m.Slices[1].Keys);
+        Assert.All(m.Slices, s => Assert.True(s.IsSet));
+    }
+
+    [Fact]
+    public void Default_TranslatesNames()
+    {
+        var m = RadialMenuDefaults.Create((key, en) => key == "radial.default.undo" ? "Отмени" : en);
+        Assert.Equal("Отмени", m.Slices[0].Label);
+        Assert.Equal("Redo", m.Slices[1].Label);
+    }
+
+    [Fact]
+    public void Json_RoundTrips()
+    {
+        var m = RadialMenuDefaults.Create();
+        m.Size = 80;
+        m.Slices[3] = new RadialSlice { Label = "Tools", Action = RadialActions.Submenu, Submenu = RadialMenuDefaults.Create() };
+        m.Slices[4] = new RadialSlice { Label = "Safari", Action = RadialActions.Open, App = "com.apple.Safari" };
+        m.Slices[5] = new RadialSlice { Label = "Right", Action = RadialActions.Click, Click = "Right" };
+        var back = RadialMenuJson.Parse(RadialMenuJson.Serialize(m));
+        Assert.Equal(80, back.Size);
+        Assert.Equal(RadialActions.Submenu, back.Slices[3].Action);
+        Assert.Equal("Application+Z", back.Slices[3].Submenu!.Slices[0].Keys);
+        Assert.Equal("com.apple.Safari", back.Slices[4].App);
+        Assert.Equal("Right", back.Slices[5].Click);
+        Assert.Equal(RadialMenuJson.Serialize(m), RadialMenuJson.Serialize(back));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("{not json")]
+    [InlineData("[]")]
+    public void Parse_BrokenOrEmpty_GivesDefault(string? json)
+    {
+        var m = RadialMenuJson.Parse(json);
+        Assert.Equal(RadialMenuDef.SliceCount, m.Slices.Count);
+        Assert.Equal("Undo", m.Slices[0].Label);
+    }
+
+    [Fact]
+    public void Normalize_PadsSlices_DropsUnknownActions_ClampsSize()
+    {
+        var m = RadialMenuJson.Parse("{\"size\":500,\"slices\":[{\"label\":\"A\",\"action\":\"Launch rockets\"},{\"label\":\"B\",\"action\":\"keys\",\"keys\":\"Z\"}]}");
+        Assert.Equal(RadialMenuDef.SliceCount, m.Slices.Count);
+        Assert.Equal(RadialMenuDef.MaxSize, m.Size);
+        Assert.Equal(RadialActions.None, m.Slices[0].Action);
+        Assert.False(m.Slices[0].IsSet);
+        Assert.Equal(RadialActions.Keys, m.Slices[1].Action);   // action names are not case sensitive
+        Assert.All(m.Slices.Skip(2), s => Assert.Equal("", s.Label));
+    }
+
+    [Fact]
+    public void Normalize_StopsSubmenusAtMaxDepth()
+    {
+        RadialMenuDef Nest(int depth) => depth == 0 ? new RadialMenuDef()
+            : new RadialMenuDef { Slices = { new RadialSlice { Label = "deeper", Action = RadialActions.Submenu, Submenu = Nest(depth - 1) } } };
+        var m = RadialMenuJson.Normalize(Nest(6));
+        int depth = 1;
+        var cur = m;
+        while (cur.Slices[0].Action == RadialActions.Submenu) { cur = cur.Slices[0].Submenu!; depth++; }
+        Assert.Equal(RadialMenuDef.MaxDepth, depth);
+    }
+
+    [Fact]
+    public void EmptyLabelsAndSlices_NeverBreakSerialising()
+    {
+        // Wacom Center 6.4.15 crashed drawing a slice with no label/icon (9 Nov comparison): empty is normal here.
+        var m = new RadialMenuDef();
+        var json = RadialMenuJson.Serialize(m);
+        var back = RadialMenuJson.Parse(json);
+        Assert.All(back.Slices, s => { Assert.Equal("", s.Label); Assert.False(s.IsSet); });
+    }
+
+    [Fact]
+    public void Level_FollowsSubmenus()
+    {
+        var m = RadialMenuDefaults.Create();
+        var sub = new RadialMenuDef { Slices = { new RadialSlice { Label = "X", Action = RadialActions.Keys, Keys = "X" } } };
+        m.Slices[2] = new RadialSlice { Label = "More", Action = RadialActions.Submenu, Submenu = sub };
+        m = RadialMenuJson.Normalize(m);
+        Assert.Same(m, RadialMenuJson.Level(m, Array.Empty<int>()));
+        Assert.Equal("X", RadialMenuJson.Level(m, new[] { 2 })!.Slices[0].Label);
+        Assert.Null(RadialMenuJson.Level(m, new[] { 1 }));   // not a submenu
+        Assert.Null(RadialMenuJson.Level(m, new[] { 9 }));
+    }
+}
+
+public class RadialMenuBindingTests
+{
+    [Fact]
+    public void Store_RoundTripsThroughAuxBinding()
+    {
+        var menu = RadialMenuDefaults.Create();
+        menu.Slices[7].Label = "Bigger";
+        var store = RadialMenuBinding.Make(menu);
+        Assert.Equal(RadialMenuBinding.BindingTypeName, store.Path);
+
+        var read = AuxKeyBinding.ReadBinding(store);
+        Assert.NotNull(read);
+        Assert.Equal(AuxKind.RadialMenu, read!.Kind);
+        Assert.True(read.IsBound);
+        Assert.Equal("Bigger", RadialMenuJson.Parse(read.Menu).Slices[7].Label);
+
+        var again = AuxKeyBinding.MakeBinding(read);
+        Assert.Equal(RadialMenuBinding.BindingTypeName, again!.Path);
+        Assert.Equal(RadialMenuBinding.ReadMenuJson(store), RadialMenuBinding.ReadMenuJson(again));
+    }
+
+    [Fact]
+    public void Describe_NamesTheFirstSlices()
+    {
+        var d = AuxKeyBinding.Describe(AuxBinding.RadialMenu(RadialMenuJson.Serialize(RadialMenuDefaults.Create())));
+        Assert.StartsWith("Radial menu: Undo, Redo, Copy", d);
+    }
+
+    [Fact]
+    public void RadialMenu_WithNoJson_GetsTheDefaultMenu()
+    {
+        var b = AuxBinding.RadialMenu(null);
+        Assert.Equal(RadialMenuDef.SliceCount, RadialMenuJson.Parse(b.Menu).Slices.Count(s => s.IsSet));
+    }
+
+    [Fact]
+    public void SyncFilter_AddsAndRemovesTheFilter()
+    {
+        var profile = new Profile
+        {
+            Tablet = "Wacom PTK-440",
+            OutputMode = new PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)),
+            Filters = new PluginSettingStoreCollection(),
+            BindingSettings = new BindingSettings { AuxButtons = new PluginSettingStoreCollection { RadialMenuBinding.Make() } },
+        };
+        Assert.True(RadialMenuBinding.SyncFilter(profile));
+        Assert.Single(profile.Filters.OfType<PluginSettingStore>().Where(f => f.Path == RadialMenuBinding.FilterTypeName));
+        Assert.False(RadialMenuBinding.SyncFilter(profile));   // already right
+
+        profile.BindingSettings.AuxButtons[0] = null;
+        Assert.True(RadialMenuBinding.SyncFilter(profile));
+        Assert.DoesNotContain(profile.Filters.OfType<PluginSettingStore>(), f => f.Path == RadialMenuBinding.FilterTypeName);
+    }
+
+    [Fact]
+    public void PenButton_CanHoldARadialMenu()
+    {
+        var profile = new Profile
+        {
+            Tablet = "Wacom PTK-440",
+            OutputMode = new PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)),
+            Filters = new PluginSettingStoreCollection(),
+            BindingSettings = new BindingSettings { PenButtons = new PluginSettingStoreCollection { RadialMenuBinding.Make() } },
+        };
+        Assert.True(RadialMenuBinding.IsUsed(profile));
+    }
+}
+
+/// <summary>The driver side: opening, tapping, holding, submenus and closing (fake pointer, fake actions).</summary>
+public class RadialMenuStateTests : IDisposable
+{
+    private readonly string _dir = Path.Combine(Path.GetTempPath(), "ota-radial-" + Guid.NewGuid().ToString("N"));
+    private (double X, double Y)? _cursor = (500, 400);
+    private readonly List<string> _ran = new();
+
+    public RadialMenuStateTests()
+    {
+        Directory.CreateDirectory(_dir);
+        RadialMenuState.ResetForTests();
+        RadialMenuState.StateFilePath = Path.Combine(_dir, "radial-menu");
+        RadialMenuState.OffFlagPath = Path.Combine(_dir, "radial-menu-off");
+        RadialMenuState.CursorProvider = () => _cursor;
+        RadialMenuState.ActionRunner = (_, s) => _ran.Add(s.Label);
+        RadialMenuState.IdleCloseMs = 60_000;
+    }
+
+    public void Dispose()
+    {
+        RadialMenuState.ResetForTests();
+        RadialMenuState.ActionRunner = null;
+        try { Directory.Delete(_dir, true); } catch (IOException) { }
+    }
+
+    private static PluginBinding Binding(RadialMenuDef? menu = null) =>
+        new() { Menu = RadialMenuJson.Serialize(menu ?? RadialMenuDefaults.Create()) };
+
+    private JsonElement State() => JsonDocument.Parse(File.ReadAllText(RadialMenuState.StateFilePath)).RootElement;
+
+    private void TapAt(double dx, double dy)
+    {
+        _cursor = (500 + dx, 400 + dy);
+        RadialMenuState.TipDown();
+    }
+
+    [Fact]
+    public void Press_OpensAtThePointer_AndWritesTheMenu()
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        Assert.True(RadialMenuState.IsOpen);
+        var st = State();
+        Assert.Equal("open", st.GetProperty("state").GetString());
+        Assert.Equal(500, st.GetProperty("x").GetDouble());
+        Assert.Equal(400, st.GetProperty("y").GetDouble());
+        Assert.Equal("Undo", st.GetProperty("slices")[0].GetProperty("label").GetString());
+        Assert.Equal(8, st.GetProperty("slices").GetArrayLength());
+    }
+
+    [Fact]
+    public void Tap_RunsTheSlice_AndClosesWhenTheButtonIsUp()
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        TapAt(0, -100);   // top = Undo
+        Assert.Equal(new[] { "Undo" }, _ran);
+        Assert.False(RadialMenuState.IsOpen);
+        Assert.Equal("closed", State().GetProperty("state").GetString());
+    }
+
+    [Fact]
+    public void HoldingTheButton_KeepsTheMenuOpen()
+    {
+        var b = Binding();
+        b.Press(null!, null!);          // held
+        TapAt(0, -100);
+        TapAt(0, -100);
+        Assert.Equal(new[] { "Undo", "Undo" }, _ran);
+        Assert.True(RadialMenuState.IsOpen);
+        b.Release(null!, null!);
+        TapAt(100, 0);                  // right = Copy, now it closes
+        Assert.Equal("Copy", _ran.Last());
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Theory]
+    [InlineData(0, 0)]        // the centre X
+    [InlineData(0, -900)]     // outside the ring
+    public void CentreOrOutside_Closes_WithoutAnAction(double dx, double dy)
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        TapAt(dx, dy);
+        Assert.Empty(_ran);
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void EmptySlice_Closes()
+    {
+        var m = RadialMenuDefaults.Create();
+        m.Slices[2] = new RadialSlice();
+        var b = Binding(m);
+        b.Press(null!, null!);
+        TapAt(100, 0);
+        Assert.Empty(_ran);
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void PressingAgain_Closes()
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        b.Press(null!, null!);
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void Submenu_OpensItsRing_ThenRunsFromIt()
+    {
+        var m = RadialMenuDefaults.Create();
+        var sub = new RadialMenuDef { Slices = { new RadialSlice { Label = "Brush", Action = RadialActions.Keys, Keys = "B" } } };
+        m.Slices[2] = new RadialSlice { Label = "Tools", Action = RadialActions.Submenu, Submenu = sub };
+        var b = Binding(m);
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        TapAt(100, 0);                                  // Tools
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.Equal(new[] { 2 }, RadialMenuState.OpenPath);
+        Assert.Equal(1, State().GetProperty("depth").GetInt32());
+        Assert.Equal("Brush", State().GetProperty("slices")[0].GetProperty("label").GetString());
+        TapAt(0, -100);                                 // Brush
+        Assert.Equal(new[] { "Brush" }, _ran);
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void SwitchedOff_DoesNothing()
+    {
+        File.WriteAllText(RadialMenuState.OffFlagPath, "off");
+        Binding().Press(null!, null!);
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void NoPointer_DoesNothing()
+    {
+        _cursor = null;
+        Binding().Press(null!, null!);
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void ClosesByItself_WhenLeftOpen()
+    {
+        RadialMenuState.IdleCloseMs = 0;
+        Binding().Press(null!, null!);
+        System.Threading.Thread.Sleep(5);
+        RadialMenuState.CloseIfIdle();
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void Overlay_ReadsWhatTheDriverWrites()
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        var st = RadialMenuOverlay.Parse(File.ReadAllText(RadialMenuState.StateFilePath));
+        Assert.NotNull(st);
+        Assert.Equal("open", st!.State);
+        Assert.Equal(500, st.X);
+        Assert.Equal(8, st.Labels.Count);
+        Assert.All(st.Set, Assert.True);
+        RadialMenuState.Close("test");
+        var closed = RadialMenuOverlay.Parse(File.ReadAllText(RadialMenuState.StateFilePath));
+        Assert.Equal("closed", closed!.State);
+        Assert.True(closed.Seq > st.Seq);
+    }
+}
+
+public class RadialMenuEditorTests
+{
+    [Fact]
+    public void Edits_NameAndKeys_AndSaves()
+    {
+        var vm = new RadialMenuEditorViewModel(null, "Pen button 1");
+        vm.SelectSlice(4);
+        vm.SliceLabel = "Brush";
+        vm.ActionIndex = RadialMenuEditorViewModel.ActClick;
+        vm.ClickIndex = 1;   // Right
+        vm.SaveCommand.Execute(null);
+        var m = RadialMenuJson.Parse(vm.Result);
+        Assert.Equal("Brush", m.Slices[4].Label);
+        Assert.Equal(RadialActions.Click, m.Slices[4].Action);
+        Assert.Equal("Right", m.Slices[4].Click);
+        Assert.Equal("Undo", m.Slices[0].Label);
+    }
+
+    [Fact]
+    public void Submenus_EditOneRingAtATime_UpToTheLimit()
+    {
+        var vm = new RadialMenuEditorViewModel(null, "ExpressKey 1");
+        vm.SelectSlice(2);
+        vm.ActionIndex = RadialMenuEditorViewModel.ActSubmenu;
+        vm.EditSubmenuCommand.Execute(null);
+        Assert.True(vm.InSubmenu);
+        vm.SelectSlice(0);
+        vm.SliceLabel = "Inner";
+        vm.ActionIndex = RadialMenuEditorViewModel.ActSubmenu;
+        vm.EditSubmenuCommand.Execute(null);              // level 3
+        Assert.False(vm.CanAddSubmenu);
+        vm.ActionIndex = RadialMenuEditorViewModel.ActSubmenu;   // refused at the deepest level
+        Assert.NotEqual(RadialMenuEditorViewModel.ActSubmenu, vm.ActionIndex);
+        vm.BackCommand.Execute(null);
+        vm.BackCommand.Execute(null);
+        Assert.False(vm.InSubmenu);
+        Assert.Equal(2, vm.SelectedSlice);
+        Assert.Equal("Inner", vm.Menu.Slices[2].Submenu!.Slices[0].Label);
+    }
+
+    [Fact]
+    public void ClearAndReset()
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");
+        vm.ClearSliceCommand.Execute(null);
+        Assert.False(vm.Menu.Slices[0].IsSet);
+        vm.ResetCommand.Execute(null);
+        Assert.True(vm.Menu.Slices[0].IsSet);
+    }
+
+    [Fact]
+    public void Cancel_ReturnsNothing()
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");
+        vm.SliceLabel = "changed";
+        vm.CancelCommand.Execute(null);
+        Assert.Null(vm.Result);
+    }
+
+    [Fact]
+    public void BindingEditor_OffersTheRadialTab_ExceptForKeysOnly()
+    {
+        var vm = new BindingEditorViewModel(AuxBinding.Unbound, "ExpressKey 1");
+        Assert.True(vm.ShowRadialTab);
+        vm.IsRadialTab = true;
+        vm.SaveCommand.Execute(null);
+        Assert.Equal(AuxKind.RadialMenu, vm.Result!.Kind);
+
+        using (BindingEditorContext.KeysOnlyScope())
+            Assert.False(new BindingEditorViewModel(AuxBinding.Unbound, "Touch Ring mode").ShowRadialTab);
+        Assert.True(new BindingEditorViewModel(AuxBinding.Unbound, "again").ShowRadialTab);
+    }
+
+    [Fact]
+    public void BindingEditor_OpensOnTheRadialTab_ForARadialBinding()
+    {
+        var vm = new BindingEditorViewModel(AuxBinding.RadialMenu(null), "Pen button 2");
+        Assert.True(vm.IsRadialTab);
+        Assert.Contains("Undo", vm.RadialSummary);
+    }
+}

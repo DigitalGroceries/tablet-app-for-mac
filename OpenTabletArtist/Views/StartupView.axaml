@@ -26,6 +26,11 @@
         </c:Section>
 
         <!-- #7 / #18: words on the Intuos4 ExpressKey screens (feature reports 0x21 / 0x23). -->
+        <c:Section Title="{Binding RadialMenuSectionTitle}">
+            <c:ToggleSetting x:Name="RadialMenuToggle" Label="{Binding RadialMenuLabel}"
+                             Description="{Binding RadialMenuDescription}"
+                             IsChecked="{Binding RadialMenuOn}" />
+        </c:Section>
         <c:Section Title="{Binding OledLabelsSectionTitle}" IsVisible="{Binding ShowOledLabels}">
             <c:ToggleSetting x:Name="OledLabelsToggle" Label="{Binding OledLabelsLabel}"
                              Description="{Binding OledLabelsDescription}"

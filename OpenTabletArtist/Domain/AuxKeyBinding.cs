@@ -25,12 +25,13 @@ public sealed record AuxCombo(bool Ctrl, bool Shift, bool Alt, string Key, bool 
 
 /// <summary>The kind of action an express key performs. <see cref="None"/> is an explicit "do
 /// nothing" so an intentionally-unbound button reads clearly in the UI.</summary>
-public enum AuxKind { None, Keyboard, Mouse, Scroll }
+public enum AuxKind { None, Keyboard, Mouse, Scroll, RadialMenu }
 
 /// <summary>A full express-key binding the editor can model: nothing, a keyboard <see cref="AuxCombo"/>,
 /// a mouse button, or a scroll direction. Carries each value so the UI keeps every editor's state
 /// while switching type.</summary>
-public sealed record AuxBinding(AuxKind Kind, AuxCombo Combo, string MouseButton, string Scroll, int? GestureSpeed = null)
+public sealed record AuxBinding(AuxKind Kind, AuxCombo Combo, string MouseButton, string Scroll, int? GestureSpeed = null,
+    string? Menu = null)
 {
     public static readonly AuxBinding Unbound =
         new(AuxKind.None, AuxCombo.Unbound, AuxKeyBinding.None, AuxKeyBinding.None);
@@ -40,8 +41,15 @@ public sealed record AuxBinding(AuxKind Kind, AuxCombo Combo, string MouseButton
         AuxKind.Keyboard => Combo.IsBound,
         AuxKind.Mouse => IsSet(MouseButton),
         AuxKind.Scroll => IsSet(Scroll),
+        AuxKind.RadialMenu => true,   // a radial menu with no slices set still opens (and closes on a tap)
         _ => false,
     };
+
+    /// <summary>TASKS #42: a radial-menu binding holding <paramref name="menuJson"/> (null = the default menu).</summary>
+    public static AuxBinding RadialMenu(string? menuJson) =>
+        new(AuxKind.RadialMenu, AuxCombo.Unbound, AuxKeyBinding.None, AuxKeyBinding.None, null,
+            RadialMenuJson.Serialize(string.IsNullOrWhiteSpace(menuJson)
+                ? RadialMenuDefaults.Create(Localizer.Te) : RadialMenuJson.Parse(menuJson)));
 
     private static bool IsSet(string v) => !string.IsNullOrEmpty(v) && v != AuxKeyBinding.None;
 }
@@ -224,6 +232,7 @@ public static class AuxKeyBinding
     public static AuxBinding? ReadBinding(PluginSettingStore? store)
     {
         if (store?.Path == null) return AuxBinding.Unbound;
+        if (RadialMenuBinding.Is(store)) return AuxBinding.RadialMenu(RadialMenuBinding.ReadMenuJson(store));
         if (store.Path == MouseBindingPath || store.Path == DoubleClickBindingPath)
         {
             var button = ReadMouseButton(store);
@@ -248,6 +257,7 @@ public static class AuxKeyBinding
         AuxKind.Keyboard => MakeBinding(binding.Combo),
         AuxKind.Mouse => MakeMouseBinding(binding.MouseButton),
         AuxKind.Scroll => MakeScrollBinding(binding.Scroll, binding.GestureSpeed),
+        AuxKind.RadialMenu => RadialMenuBinding.Make(binding.Menu),
         _ => null,
     };
 
@@ -258,6 +268,7 @@ public static class AuxKeyBinding
         AuxKind.Keyboard => binding.Combo.IsBound ? DescribeCombo(binding.Combo) : "Do nothing",
         AuxKind.Mouse => IsBoundValue(binding.MouseButton) ? DescribeMouse(binding.MouseButton) : "Do nothing",
         AuxKind.Scroll => DescribeScroll(binding.Scroll),
+        AuxKind.RadialMenu => RadialMenuBinding.Describe(RadialMenuJson.Parse(binding.Menu), Localizer.Te),
         _ => "Do nothing",
     };
 

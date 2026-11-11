@@ -84,6 +84,8 @@
     <!-- Version 24: filter Dispose force-releases a held click (OTD disposes IDisposable pipeline elements). -->
     <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\TouchTrackpad.cs" Link="Plugin\TouchTrackpad.cs" />
     <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\InBetweenPoints.cs" Link="Plugin\InBetweenPoints.cs" />
+    <!-- TASKS #42: radial menu open / tap / close logic (pointer and actions are faked in the tests). -->
+    <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\RadialMenu.cs" Link="Plugin\RadialMenu.cs" />
   </ItemGroup>
 
   <ItemGroup>

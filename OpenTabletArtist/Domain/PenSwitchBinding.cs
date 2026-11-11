@@ -49,6 +49,7 @@ public static class PenSwitchBinding
         [OwnWindowBindingPath] = "Off (clicks in this app only)",
         [PenScrollBinding.BindingTypeName] = "Pen scroll",
         [PenZoomBinding.BindingTypeName] = "Pen zoom",
+        [RadialMenuBinding.BindingTypeName] = "Radial menu",
     };
 
     public static PenSwitchBindingMode DetectMode(PluginSettingStore? store, PenSwitchKind kind, int penButtonIndex = 1)

@@ -11,6 +11,7 @@ public partial class App : Application
     private AppTray? _tray;
     // Wacom-like on-screen display when the Touch Ring mode changes.
     private RingModeHud? _ringHud;
+    private RadialMenuOverlay? _radialMenu;
     private RingGestureWatchdog? _ringWatchdog;
 
     public override void Initialize()
@@ -107,7 +108,9 @@ public partial class App : Application
             _ringHud = new RingModeHud();
             _ringHud.Start();
             Services.ActionConfirmation.Attach(_ringHud);
-            desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); };
+            _radialMenu = new RadialMenuOverlay();   // TASKS #42: draws the radial menu the driver opens
+            _radialMenu.Start();
+            desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); _radialMenu?.Dispose(); };
 
             // Build J: safety net for the experimental smooth-rotate gesture (releases stuck R / mouse button
             // if the driver dies or hangs mid-gesture, then starts the driver again).
