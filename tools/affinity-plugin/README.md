@@ -14,4 +14,10 @@ keep every pen point our driver sends. It never touches the picture: the filter 
   and, if used, `Affinity Photo 2/Plugins`).
 - Log: `~/Library/Logs/TabletAppForMac-Affinity.log`, one line each time it switches merging off.
 
-Not tried in Affinity yet; Zak tests (Affinity 3.3.3).
+Signing: Affinity only enables the plugin when the WHOLE bundle carries a valid signature (ad-hoc is fine:
+`codesign --force --deep --sign -`). The Linux build leaves the bundle unsealed, so after any rebuild the
+"Affinity plugin check" workflow signs it on a Mac, checks it loads and runs, and commits the signed bundle back
+(`[skip ci]`). The PiPL uses gmic-affinity's enable rule (8-bit RGB / Grey); a bare "true" left it greyed out.
+
+Tested 11 Nov 2026 by Zak in Affinity 3.3.3 (PTK-440): the menu item is enabled after the signature fix, and fast
+circles come out smooth with Stabiliser on.
