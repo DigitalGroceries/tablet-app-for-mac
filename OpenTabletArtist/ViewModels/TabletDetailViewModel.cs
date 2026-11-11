@@ -1849,6 +1849,14 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ShowWheelControls));
     }
 
+    /// <summary>#38: re-read the app's own switches after Restore factory settings or Revert to default changed
+    /// them behind the page (All buttons, Touch Ring, the pen switches' saved copies).</summary>
+    public void ReloadAppState()
+    {
+        LoadAuxEnabledState();
+        LoadWheelEnabledState();
+    }
+
     private void LoadWheelEnabledState()
     {
         _suppressWheelEnabledApply = true;

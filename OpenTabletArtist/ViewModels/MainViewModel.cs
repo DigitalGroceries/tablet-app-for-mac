@@ -725,6 +725,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 await _perAppBindings.EnsureAllOnDaemonAsync();
             if (_session.CurrentSettings is not { } settings) return;
             UserDefaultSettings.Save(settings, _presetStore);
+            // #38: keep the app's own switches (All buttons, Touch Ring, each key's and ring's Off…) with it.
+            UserDefaultSettings.SaveAppState(TabletAppState.Snapshot(TabletsOf(settings)));
             RefreshDefaultButtons();
             ShowFooterFlash(Localizer.Te("save.default.saved", "Saved as your default"));
             AppLog.Info("Saved the current settings as the user default.");
@@ -767,9 +769,15 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 if (_session.CurrentSettings is { } live)
                     FactorySettingsMerge.SyncAllStashes(live);
                 await _session.SaveSettingsAsync();
+                // #38: put the app's own switches back as they were when the default was saved.
+                if (UserDefaultSettings.TryLoadAppState(out var appState))
+                    TabletAppState.Restore(appState, TabletsOf(defaults));
                 ReconcileOpenTabletDetails();
                 foreach (var editor in _tabletDetails.Values)
+                {
+                    editor.ReloadAppState();
                     editor.ResetPendingEdits();
+                }
                 RefreshDefaultButtons();
             }
             finally { _session.SettingsBusy = false; }
@@ -834,16 +842,25 @@ public partial class MainViewModel : ObservableObject, IDisposable
             // Persist so Revert to saved does not undo the factory reset. Keeps the user-default file.
             if (!await _session.SaveSettingsAsync())
                 AppLog.Warn("Factory settings are live but could not be saved to the driver file.");
+            // #38: the app's own switches back to factory too (All buttons and Touch Ring On, no key or ring
+            // Off, nothing put aside), so they match the factory bindings.
+            TabletAppState.ResetToFactory(TabletsOf(merged));
             // Force every open tablet page to adopt the factory profile (including re-added ones).
             ReconcileOpenTabletDetails();
             foreach (var editor in _tabletDetails.Values)
+            {
+                editor.ReloadAppState();
                 editor.ResetPendingEdits();
+            }
             RefreshDefaultButtons();
             ShowFooterFlash(Localizer.Te("save.factory.done", "Restored factory settings"));
             AppLog.Info("Restored factory settings and saved them.");
         }
         finally { _session.SettingsBusy = false; }
     }
+
+    private static IEnumerable<string> TabletsOf(OpenTabletDriver.Desktop.Settings settings) =>
+        settings.Profiles.Select(p => p.Tablet ?? "");
 
     /// <summary>Brief confirmation in the footer status area; clears itself after a few seconds.</summary>
     private void ShowFooterFlash(string message)
