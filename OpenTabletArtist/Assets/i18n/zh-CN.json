@@ -408,7 +408,7 @@
   "backup.area.pref": "App setting",
   "backup.import.done": "Settings imported. Your previous settings were backed up first ({file}). Quit and reopen the app to finish.",
   "diag.zip.title": "Diagnostic file",
-  "diag.zip.description": "Makes one zip with a summary, the app and driver logs, your settings, the connected tablets and your mice and keyboards (name, IDs, connection and driver), for a GitHub issue. Serial numbers, Bluetooth addresses and your user name are removed.",
+  "diag.zip.description": "生成一个 zip，包含摘要、应用和驱动程序日志、你的设置、已连接的数位板以及你的鼠标和键盘（名称、ID、连接方式和驱动程序），用于 GitHub Issue。序列号、蓝牙地址和你的用户名会被移除。",
   "diag.zip.button": "Create diagnostic file",
   "diag.zip.working": "Creating…",
   "diag.zip.done": "Saved to:",
