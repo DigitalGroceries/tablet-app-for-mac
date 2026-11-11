@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- "English", not "en": Affinity's plugin scan looks for a matching .lproj (see gmic-affinity's notes). -->
+  <key>CFBundleDevelopmentRegion</key>
+  <string>English</string>
+  <key>CFBundleExecutable</key>
+  <string>SmoothPenStrokes</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.freetabletapp.mac.affinity-smooth-strokes</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleName</key>
+  <string>Smooth pen strokes</string>
+  <key>CFBundleDisplayName</key>
+  <string>Smooth pen strokes</string>
+  <key>CFBundlePackageType</key>
+  <string>8BFM</string>
+  <key>CFBundleSignature</key>
+  <string>8BIM</string>
+  <key>CFBundleShortVersionString</key>
+  <string>1.0</string>
+  <key>CFBundleVersion</key>
+  <string>1</string>
+  <key>CSResourcesFileMapped</key>
+  <string>yes</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>11.0</string>
+  <key>NSHumanReadableCopyright</key>
+  <string>Tablet App for Mac. GPL-3.0.</string>
+</dict>
+</plist>

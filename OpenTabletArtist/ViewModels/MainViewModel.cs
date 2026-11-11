@@ -354,6 +354,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _oledLabels = new Intuos4OledLabels(_session.Daemon, _session,
             name => _session.CurrentSettings?.Profiles.FirstOrDefault(p => p.Tablet == name));
         Startup.OledLabelsChanged = _oledLabels.RefreshAsync;
+        // #39: the Affinity smooth-strokes plugin (macOS only; the section shows when Affinity is installed).
+        if (OperatingSystem.IsMacOS()) Startup.Affinity = AffinityPlugin.ForThisMac();
         _oledTimer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _oledTimer.Tick += (_, _) => { if (Startup.ShowOledLabels) _ = _oledLabels.RefreshAsync(); };
         _oledTimer.Start();
