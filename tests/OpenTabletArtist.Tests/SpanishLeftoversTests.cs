@@ -15,6 +15,7 @@ public class SpanishLeftoversTests
     public static readonly IReadOnlyDictionary<string, string> SameAsEnglish = new Dictionary<string, string>
     {
         ["app.name"] = "product name",
+        ["affinity.section"] = "product name (Affinity, by Canva)",
         ["nav.scribble"] = "the app's Scribble page name",
         ["settings.tab.dev"] = "technical abbreviation",
         ["perm.input_monitoring"] = "macOS setting name, kept in English throughout es.json",

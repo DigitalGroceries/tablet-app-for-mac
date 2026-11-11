@@ -32,6 +32,18 @@
                              IsChecked="{Binding OledLabelsOn}" />
         </c:Section>
 
+        <!-- #39: the Affinity plugin that switches macOS point merging off inside Affinity (smoother fast curves). -->
+        <c:Section Title="{Binding AffinitySectionTitle}" IsVisible="{Binding ShowAffinity}">
+            <StackPanel Spacing="10">
+                <TextBlock Text="{Binding AffinityDescription}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                <Button x:Name="AffinityInstallButton" Content="{Binding AffinityInstallLabel}" HorizontalAlignment="Left"
+                        Command="{Binding InstallAffinityPluginCommand}" />
+                <TextBlock x:Name="AffinityStatusText" Text="{Binding AffinityStatus}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextPrimaryBrush}" IsVisible="{Binding HasAffinityStatus}" />
+            </StackPanel>
+        </c:Section>
+
         <!-- Settings backup: export / import (preview first) and automatic backups. -->
         <v:BackupView DataContext="{Binding Backup}" IsVisible="{Binding Backup, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
