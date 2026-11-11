@@ -19,7 +19,8 @@ public class BuildR2LightnessTests
 
     // User content and colour maths may use real white: the paint palette's white swatch, the colour
     // wheel's saturation gradient and the accent "lighten" mix.
-    private static readonly string[] Allowed = { "ColorPalette.cs", "HueTriangleWheel.cs", "ThemeViewModel.cs" };
+    // Intuos4OledLabels.cs draws lit pixels on the tablet's own key screens (#7), not an on-screen colour.
+    private static readonly string[] Allowed = { "ColorPalette.cs", "HueTriangleWheel.cs", "ThemeViewModel.cs", "Intuos4OledLabels.cs" };
     private static readonly Regex White = new(
         @"Foreground=""White""|Value=""White""|=""White""|#(?:[0-9A-Fa-f]{2})?FFFFFF\b|#FFF\b|Brushes\.White|Colors\.White",
         RegexOptions.IgnoreCase);

@@ -769,6 +769,62 @@ namespace OpenTabletDriver.Daemon
             return Task.FromResult(sent);
         }
 
+        public Task<int> SendFeatureSequence(int vid, int pid, string strInterface, byte[][] reports)
+        {
+            if (reports == null || reports.Length == 0) return Task.FromResult(0);
+            int sent = 0, found = 0;
+            foreach (var device in Driver.CompositeDeviceHub.GetDevices().Where(d => d.VendorID == vid && d.ProductID == pid
+                && d.DeviceAttributes.TryGetValue("USB_INTERFACE_NUMBER", out var i) && i == strInterface))
+            {
+                found++;
+                if (SendFeatureSequenceTo(device, reports)) sent++;
+            }
+            if (found == 0) throw new IOException("Device not found");
+            return Task.FromResult(sent);
+        }
+
+        /// <summary>One stream for the whole sequence: on macOS every HidSharp stream starts its own reader and
+        /// writer threads, so opening one per report (as SendFeatureInit does) would be wasteful for the 48
+        /// reports that fill eight OLED keys. HidSharp cuts a report longer than the device's declared feature
+        /// report length short, so on macOS such a sequence goes straight through IOKit
+        /// (<see cref="MacHidFeature"/>); elsewhere it is refused with a clear log line instead of sent damaged.</summary>
+        public static bool SendFeatureSequenceTo(IDeviceEndpoint device, byte[][] reports)
+        {
+            var max = device.FeatureReportLength;
+            var tooLong = reports.FirstOrDefault(r => max > 0 && r.Length > max);
+            if (tooLong != null)
+            {
+                if (SystemInterop.CurrentPlatform != PluginPlatform.MacOS)
+                {
+                    Log.Write("Device", $"Feature report 0x{tooLong[0]:X2} is {tooLong.Length} bytes, but {device.DevicePath} takes at most {max}; not sent.", LogLevel.Warning);
+                    return false;
+                }
+                try
+                {
+                    Log.Write("Device", $"Feature report 0x{tooLong[0]:X2} is {tooLong.Length} bytes, the device declares at most {max}; sending through IOKit.", LogLevel.Debug);
+                    MacHidFeature.SendSequence(device.DevicePath, reports);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Log.Write("Device", $"Feature report sequence (IOKit) to {device.DevicePath} failed: {ex.Message}", LogLevel.Warning);
+                    return false;
+                }
+            }
+            try
+            {
+                using var stream = device.Open();
+                foreach (var report in reports)
+                    stream.SetFeature(report);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Write("Device", $"Feature report sequence to {device.DevicePath} failed: {ex.Message}", LogLevel.Warning);
+                return false;
+            }
+        }
+
         public Task SendOutputInit(int vid, int pid, string strInterface, byte[] initData)
         {
             var tablet = Driver.CompositeDeviceHub.GetDevices().FirstOrDefault(d => d.VendorID == vid && d.ProductID == pid && d.DeviceAttributes.TryGetValue("USB_INTERFACE_NUMBER", out var identifierInterface) && identifierInterface == strInterface);
