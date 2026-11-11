@@ -16,7 +16,7 @@ namespace OpenTabletArtist.ViewModels;
 /// </summary>
 public partial class BindingEditorViewModel : ObservableObject
 {
-    public const int KeyboardTab = 0, MouseTab = 1, ScrollTab = 2, MediaTab = 3;
+    public const int KeyboardTab = 0, MouseTab = 1, ScrollTab = 2, MediaTab = 3, RadialTab = 4;
 
     /// <summary>Media / consumer keys, surfaced on their own MEDIA tab. They're keyboard keys under the
     /// hood, so a media binding is still an <see cref="AuxKind.Keyboard"/> binding (no modifiers).</summary>
@@ -71,6 +71,37 @@ public partial class BindingEditorViewModel : ObservableObject
     /// <summary>Slow–Fast (1–100) for Move pen to scroll / zoom / pan+zoom. Same scale as Pen scroll.</summary>
     [ObservableProperty] private int _gestureSpeed = PenScrollMath.DefaultSpeed;
 
+    // ── Radial menu (TASKS #42) ─────────────────────────────────────────────────
+    /// <summary>The Radial menu tab is offered for pen buttons and ExpressKeys, not where only keys can be kept
+    /// (a Touch Ring mode's keystroke): see <see cref="BindingEditorContext"/>.</summary>
+    public bool ShowRadialTab { get; } = !BindingEditorContext.KeysOnly;
+    /// <summary>The menu being set (JSON). Starts as the button's own menu, or the default menu.</summary>
+    [ObservableProperty] private string _radialMenuText = Domain.RadialMenuJson.Serialize(RadialMenuDefaults.Create(Localizer.Te));
+    /// <summary>Opens the menu editor (set by the dialog, which owns the window): current JSON in, new JSON or null out.</summary>
+    public Func<string, System.Threading.Tasks.Task<string?>>? EditRadialMenu { get; set; }
+    public string RadialTabLabel => Localizer.Te("radial.title", "Radial menu");
+    public string RadialIntro => Localizer.Te("radial.intro",
+        "Press this button to show a round menu with 8 slices around the pen. Tap a slice with the pen tip to use it. Tap the centre, an empty slice or outside the menu, or press the button again, to close it. Hold the button while you tap to keep the menu open.");
+    public string RadialEditLabel => Localizer.Te("radial.edit", "Edit menu…");
+    public string RadialSummary
+    {
+        get
+        {
+            var m = Domain.RadialMenuJson.Parse(RadialMenuText);
+            var names = m.Slices.Select((sl, i) => sl.IsSet && sl.Label.Length > 0 ? sl.Label : null).Where(n => n != null).ToList();
+            return names.Count == 0 ? Localizer.Te("radial.empty", "No slices set yet.") : string.Join(" · ", names);
+        }
+    }
+    partial void OnRadialMenuTextChanged(string value) => OnPropertyChanged(nameof(RadialSummary));
+
+    [RelayCommand]
+    private async System.Threading.Tasks.Task EditRadial()
+    {
+        if (EditRadialMenu == null) return;
+        var result = await EditRadialMenu(RadialMenuText);
+        if (result != null) RadialMenuText = result;
+    }
+
 
     public BindingEditorViewModel(AuxBinding initial, string title)
     {
@@ -95,6 +126,10 @@ public partial class BindingEditorViewModel : ObservableObject
                 SelectedTabIndex = MouseTab;
                 SelectedMouseButton = initial.MouseButton == AuxKeyBinding.None ? null : initial.MouseButton;
                 break;
+            case AuxKind.RadialMenu when ShowRadialTab:
+                SelectedTabIndex = RadialTab;
+                RadialMenuText = Domain.RadialMenuJson.Serialize(Domain.RadialMenuJson.Parse(initial.Menu));
+                break;
             case AuxKind.Scroll:
                 SelectedTabIndex = ScrollTab;
                 SelectedScroll = initial.Scroll == AuxKeyBinding.None ? null : initial.Scroll;
@@ -114,6 +149,7 @@ public partial class BindingEditorViewModel : ObservableObject
         MouseTab => !string.IsNullOrEmpty(SelectedMouseButton),
         ScrollTab => !string.IsNullOrEmpty(SelectedScroll),
         MediaTab => !string.IsNullOrEmpty(SelectedMediaKey),
+        RadialTab => ShowRadialTab,
         _ => false,
     };
 
@@ -123,6 +159,7 @@ public partial class BindingEditorViewModel : ObservableObject
     public bool IsMouseTab { get => SelectedTabIndex == MouseTab; set { if (value) SelectedTabIndex = MouseTab; } }
     public bool IsScrollTab { get => SelectedTabIndex == ScrollTab; set { if (value) SelectedTabIndex = ScrollTab; } }
     public bool IsMediaTab { get => SelectedTabIndex == MediaTab; set { if (value) SelectedTabIndex = MediaTab; } }
+    public bool IsRadialTab { get => SelectedTabIndex == RadialTab; set { if (value) SelectedTabIndex = RadialTab; } }
 
     partial void OnSelectedTabIndexChanged(int value)
     {
@@ -131,6 +168,7 @@ public partial class BindingEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(IsMouseTab));
         OnPropertyChanged(nameof(IsScrollTab));
         OnPropertyChanged(nameof(IsMediaTab));
+        OnPropertyChanged(nameof(IsRadialTab));
     }
 
     partial void OnSelectedKeyOptionChanged(KeyOption? value) { SaveCommand.NotifyCanExecuteChanged(); UpdateCombo(); }
@@ -159,6 +197,7 @@ public partial class BindingEditorViewModel : ObservableObject
             // A media key is a keyboard binding with no modifiers.
             MediaTab => new AuxBinding(AuxKind.Keyboard, new AuxCombo(false, false, false, SelectedMediaKey!),
                                        AuxKeyBinding.None, AuxKeyBinding.None),
+            RadialTab => AuxBinding.RadialMenu(RadialMenuText),
             _ => AuxBinding.Unbound,
         };
         CloseRequested?.Invoke();
@@ -324,6 +363,26 @@ public partial class BindingEditorViewModel : ObservableObject
 }
 
 public enum KeyCapKind { Key, Modifier, Spacer }
+
+/// <summary>TASKS #42: while a <see cref="KeysOnlyScope"/> is open (a Touch Ring mode's keystroke, or a radial
+/// menu slice's keystroke) the binding editor doesn't offer the Radial menu tab. Flows across awaits.</summary>
+public static class BindingEditorContext
+{
+    private static readonly System.Threading.AsyncLocal<bool> _keysOnly = new();
+    public static bool KeysOnly => _keysOnly.Value;
+
+    public static IDisposable KeysOnlyScope()
+    {
+        var before = _keysOnly.Value;
+        _keysOnly.Value = true;
+        return new Restore(before);
+    }
+
+    private sealed class Restore(bool before) : IDisposable
+    {
+        public void Dispose() => _keysOnly.Value = before;
+    }
+}
 
 /// <summary>One cap on the on-screen keyboard. <see cref="Width"/> is the full footprint in pixels
 /// (units × base) — the visual gap is drawn inside it, so every row of the same total units lines up

@@ -630,6 +630,10 @@ public partial class RingModeRow : ObservableObject
                 return _changed();
             },
             label: label,
-            editBinding: editBinding == null ? null : (current, _) => editBinding(current, $"{Title} · {label}"));
+            // A ring mode can only keep keys, so the editor doesn't offer the Radial menu tab here (TASKS #42).
+            editBinding: editBinding == null ? null : async (current, _) =>
+            {
+                using (BindingEditorContext.KeysOnlyScope()) return await editBinding(current, $"{Title} · {label}");
+            });
     }
 }

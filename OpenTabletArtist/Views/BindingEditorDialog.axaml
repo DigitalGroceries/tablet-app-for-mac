@@ -114,6 +114,9 @@
                              IsChecked="{Binding IsMouseTab, Mode=TwoWay}" />
                 <RadioButton Classes="tab" Content="Scroll" GroupName="type"
                              IsChecked="{Binding IsScrollTab, Mode=TwoWay}" />
+                <RadioButton Classes="tab" Content="{Binding RadialTabLabel}" GroupName="type"
+                             IsVisible="{Binding ShowRadialTab}"
+                             IsChecked="{Binding IsRadialTab, Mode=TwoWay}" />
             </StackPanel>
         </Border>
 
@@ -228,6 +231,16 @@
                     <RadioButton Content="Stop" GroupName="md"
                                  IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=StopSong}" />
                 </StackPanel>
+            </StackPanel>
+
+            <!-- Radial menu (TASKS #42): the menu lives in this binding; the editor opens as its own sheet. -->
+            <StackPanel Spacing="12" IsVisible="{Binding IsRadialTab}" MaxWidth="620" HorizontalAlignment="Left">
+                <TextBlock Text="{Binding RadialIntro}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding RadialSummary}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextMutedBrush}" />
+                <Button Content="{Binding RadialEditLabel}" Command="{Binding EditRadialCommand}"
+                        Theme="{StaticResource AccentButton}" Padding="16,8" HorizontalAlignment="Left" />
             </StackPanel>
         </Panel>
     </DockPanel>

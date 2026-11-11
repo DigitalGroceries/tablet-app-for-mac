@@ -203,6 +203,22 @@ public partial class StartupViewModel : ObservableObject
     public string OledLabelsDescription => Localizer.Te("oled.description",
         "Intuos4 Medium, Large and Extra Large. Each small screen beside an ExpressKey shows that key's action, as with the Wacom driver. Off: the screens stay dark.");
 
+    // ---- Radial menu (TASKS #42): one switch for every button set to Radial menu
+    public bool RadialMenuOn
+    {
+        get => RadialMenuOverlay.Enabled;
+        set
+        {
+            if (value == RadialMenuOverlay.Enabled) return;
+            RadialMenuOverlay.Enabled = value;
+            OnPropertyChanged();
+        }
+    }
+    public string RadialMenuSectionTitle => Localizer.Te("radial.title", "Radial menu");
+    public string RadialMenuLabel => Localizer.Te("radial.toggle", "Show the radial menu");
+    public string RadialMenuDescription => Localizer.Te("radial.toggle_description",
+        "For pen buttons and ExpressKeys set to Radial menu (Change… › Radial menu). Off: those buttons do nothing.");
+
     /// <summary>Settings backup card shown on this page (set by the shell).</summary>
     public BackupViewModel? Backup { get; set; }
 
