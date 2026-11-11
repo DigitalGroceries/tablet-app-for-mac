@@ -42,6 +42,9 @@ namespace OpenTabletDriver.Desktop.Contracts
         /// <summary>Tablet App for Mac: like SendFeatureInit, but to EVERY matching device (two identical
         /// tablets share vid/pid/interface). Returns how many accepted it.</summary>
         Task<int> SendFeatureInitAll(int vendorID, int productID, string strInterface, byte[] initData);
+        /// <summary>Tablet App for Mac (#7, Intuos4 OLED key labels): several feature reports in order through ONE
+        /// open stream per device, to every matching device. Returns how many devices took all of them.</summary>
+        Task<int> SendFeatureSequence(int vendorID, int productID, string strInterface, byte[][] reports);
         Task SendOutputInit(int vendorID, int productID, string strInterface, byte[] initData);
 
         Task<IEnumerable<LogMessage>> GetCurrentLog();

@@ -182,6 +182,27 @@ public partial class StartupViewModel : ObservableObject
     public string StatusLedDescription => Localizer.Te("statusled.description",
         "Intuos4 only. The light stays dim and gets bright while the pen touches the tablet, as with the Wacom driver. Off: one steady brightness.");
 
+    // ---- Intuos4 ExpressKey screens (#7 / #18)
+    /// <summary>Shown only while an Intuos4 with key screens is connected (M, L, XL; set by the shell).</summary>
+    [ObservableProperty] private bool _showOledLabels;
+    /// <summary>Re-draws the key screens (set by the shell).</summary>
+    public Func<System.Threading.Tasks.Task>? OledLabelsChanged { get; set; }
+    public bool OledLabelsOn
+    {
+        get => Intuos4OledLabels.Enabled;
+        set
+        {
+            if (value == Intuos4OledLabels.Enabled) return;
+            Intuos4OledLabels.Enabled = value;
+            OnPropertyChanged();
+            _ = OledLabelsChanged?.Invoke();
+        }
+    }
+    public string OledLabelsSectionTitle => Localizer.Te("oled.section", "ExpressKey screens");
+    public string OledLabelsLabel => Localizer.Te("oled.toggle", "Show what each ExpressKey does on its screen");
+    public string OledLabelsDescription => Localizer.Te("oled.description",
+        "Intuos4 Medium, Large and Extra Large. Each small screen beside an ExpressKey shows that key's action, as with the Wacom driver. Off: the screens stay dark.");
+
     /// <summary>Settings backup card shown on this page (set by the shell).</summary>
     public BackupViewModel? Backup { get; set; }
 

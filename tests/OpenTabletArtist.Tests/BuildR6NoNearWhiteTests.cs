@@ -11,7 +11,8 @@ namespace OpenTabletArtist.Tests;
 /// drawing code. Only the paint palette, the colour-wheel maths and the colour-mixing helper may use white.</summary>
 public class BuildR6NoNearWhiteTests
 {
-    private static readonly string[] Allowed = { "ColorPalette.cs", "HueTriangleWheel.cs", "ColorPicker.axaml" };
+    // Intuos4OledLabels.cs draws lit pixels on the tablet's own key screens (#7), not an on-screen colour.
+    private static readonly string[] Allowed = { "ColorPalette.cs", "HueTriangleWheel.cs", "ColorPicker.axaml", "Intuos4OledLabels.cs" };
 
     private static string AppSource()
     {

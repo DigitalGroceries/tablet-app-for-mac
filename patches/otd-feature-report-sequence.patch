@@ -1,0 +1,144 @@
+diff --git a/OpenTabletDriver.Daemon/DriverDaemon.cs b/OpenTabletDriver.Daemon/DriverDaemon.cs
+index 484153d..cf40625 100644
+--- a/OpenTabletDriver.Daemon/DriverDaemon.cs
++++ b/OpenTabletDriver.Daemon/DriverDaemon.cs
+@@ -769,6 +769,62 @@ namespace OpenTabletDriver.Daemon
+             return Task.FromResult(sent);
+         }
+ 
++        public Task<int> SendFeatureSequence(int vid, int pid, string strInterface, byte[][] reports)
++        {
++            if (reports == null || reports.Length == 0) return Task.FromResult(0);
++            int sent = 0, found = 0;
++            foreach (var device in Driver.CompositeDeviceHub.GetDevices().Where(d => d.VendorID == vid && d.ProductID == pid
++                && d.DeviceAttributes.TryGetValue("USB_INTERFACE_NUMBER", out var i) && i == strInterface))
++            {
++                found++;
++                if (SendFeatureSequenceTo(device, reports)) sent++;
++            }
++            if (found == 0) throw new IOException("Device not found");
++            return Task.FromResult(sent);
++        }
++
++        /// <summary>One stream for the whole sequence: on macOS every HidSharp stream starts its own reader and
++        /// writer threads, so opening one per report (as SendFeatureInit does) would be wasteful for the 48
++        /// reports that fill eight OLED keys. HidSharp cuts a report longer than the device's declared feature
++        /// report length short, so on macOS such a sequence goes straight through IOKit
++        /// (<see cref="MacHidFeature"/>); elsewhere it is refused with a clear log line instead of sent damaged.</summary>
++        public static bool SendFeatureSequenceTo(IDeviceEndpoint device, byte[][] reports)
++        {
++            var max = device.FeatureReportLength;
++            var tooLong = reports.FirstOrDefault(r => max > 0 && r.Length > max);
++            if (tooLong != null)
++            {
++                if (SystemInterop.CurrentPlatform != PluginPlatform.MacOS)
++                {
++                    Log.Write("Device", $"Feature report 0x{tooLong[0]:X2} is {tooLong.Length} bytes, but {device.DevicePath} takes at most {max}; not sent.", LogLevel.Warning);
++                    return false;
++                }
++                try
++                {
++                    Log.Write("Device", $"Feature report 0x{tooLong[0]:X2} is {tooLong.Length} bytes, the device declares at most {max}; sending through IOKit.", LogLevel.Debug);
++                    MacHidFeature.SendSequence(device.DevicePath, reports);
++                    return true;
++                }
++                catch (Exception ex)
++                {
++                    Log.Write("Device", $"Feature report sequence (IOKit) to {device.DevicePath} failed: {ex.Message}", LogLevel.Warning);
++                    return false;
++                }
++            }
++            try
++            {
++                using var stream = device.Open();
++                foreach (var report in reports)
++                    stream.SetFeature(report);
++                return true;
++            }
++            catch (Exception ex)
++            {
++                Log.Write("Device", $"Feature report sequence to {device.DevicePath} failed: {ex.Message}", LogLevel.Warning);
++                return false;
++            }
++        }
++
+         public Task SendOutputInit(int vid, int pid, string strInterface, byte[] initData)
+         {
+             var tablet = Driver.CompositeDeviceHub.GetDevices().FirstOrDefault(d => d.VendorID == vid && d.ProductID == pid && d.DeviceAttributes.TryGetValue("USB_INTERFACE_NUMBER", out var identifierInterface) && identifierInterface == strInterface);
+diff --git a/OpenTabletDriver.Daemon/MacHidFeature.cs b/OpenTabletDriver.Daemon/MacHidFeature.cs
+new file mode 100644
+index 0000000..d4857fa
+--- /dev/null
++++ b/OpenTabletDriver.Daemon/MacHidFeature.cs
+@@ -0,0 +1,57 @@
++using System;
++using System.Runtime.InteropServices;
++
++namespace OpenTabletDriver.Daemon
++{
++    /// <summary>
++    /// Tablet App for Mac (#7, Intuos4 OLED key labels): sends feature reports straight through IOKit
++    /// (<c>IOHIDDeviceSetReport</c>), for reports longer than the device's declared feature report length.
++    /// HidSharp cuts such a report short to that length, which would turn the 259-byte image chunks into
++    /// garbage; IOKit sends the bytes as given, like the Linux driver does. Used only when the HidSharp
++    /// path can't carry the report.
++    /// </summary>
++    public static class MacHidFeature
++    {
++        private const string IOKit = "/System/Library/Frameworks/IOKit.framework/IOKit";
++        private const string CoreFoundation = "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation";
++        private const int kIOHIDReportTypeFeature = 2;
++
++        [DllImport(IOKit)] private static extern uint IORegistryEntryFromPath(uint mainPort, string path);
++        [DllImport(IOKit)] private static extern int IOObjectRelease(uint obj);
++        [DllImport(IOKit)] private static extern IntPtr IOHIDDeviceCreate(IntPtr allocator, uint service);
++        [DllImport(IOKit)] private static extern int IOHIDDeviceOpen(IntPtr device, uint options);
++        [DllImport(IOKit)] private static extern int IOHIDDeviceClose(IntPtr device, uint options);
++        [DllImport(IOKit)] private static extern int IOHIDDeviceSetReport(IntPtr device, int reportType, IntPtr reportId, byte[] report, IntPtr length);
++        [DllImport(CoreFoundation)] private static extern void CFRelease(IntPtr obj);
++
++        /// <summary>Sends every report in order through one IOKit handle. Throws with the IOKit return code
++        /// when the device can't be found, opened, or refuses a report.</summary>
++        public static void SendSequence(string registryPath, byte[][] reports)
++        {
++            var service = IORegistryEntryFromPath(0, registryPath);
++            if (service == 0) throw new InvalidOperationException("Device not found in the I/O Registry.");
++            try
++            {
++                var device = IOHIDDeviceCreate(IntPtr.Zero, service);
++                if (device == IntPtr.Zero) throw new InvalidOperationException("Couldn't create a HID handle.");
++                try
++                {
++                    var open = IOHIDDeviceOpen(device, 0);
++                    if (open != 0) throw new InvalidOperationException($"Couldn't open the device (0x{open:X8}).");
++                    try
++                    {
++                        foreach (var r in reports)
++                        {
++                            // The report ID goes in the first byte of the buffer as well (numbered reports).
++                            var ret = IOHIDDeviceSetReport(device, kIOHIDReportTypeFeature, (IntPtr)r[0], r, (IntPtr)r.Length);
++                            if (ret != 0) throw new InvalidOperationException($"Report 0x{r[0]:X2} ({r.Length} bytes) refused (0x{ret:X8}).");
++                        }
++                    }
++                    finally { IOHIDDeviceClose(device, 0); }
++                }
++                finally { CFRelease(device); }
++            }
++            finally { IOObjectRelease(service); }
++        }
++    }
++}
+diff --git a/OpenTabletDriver.Desktop/Contracts/IDriverDaemon.cs b/OpenTabletDriver.Desktop/Contracts/IDriverDaemon.cs
+index ebf53d1..42bd55d 100644
+--- a/OpenTabletDriver.Desktop/Contracts/IDriverDaemon.cs
++++ b/OpenTabletDriver.Desktop/Contracts/IDriverDaemon.cs
+@@ -42,6 +42,9 @@ namespace OpenTabletDriver.Desktop.Contracts
+         /// <summary>Tablet App for Mac: like SendFeatureInit, but to EVERY matching device (two identical
+         /// tablets share vid/pid/interface). Returns how many accepted it.</summary>
+         Task<int> SendFeatureInitAll(int vendorID, int productID, string strInterface, byte[] initData);
++        /// <summary>Tablet App for Mac (#7, Intuos4 OLED key labels): several feature reports in order through ONE
++        /// open stream per device, to every matching device. Returns how many devices took all of them.</summary>
++        Task<int> SendFeatureSequence(int vendorID, int productID, string strInterface, byte[][] reports);
+         Task SendOutputInit(int vendorID, int productID, string strInterface, byte[] initData);
+ 
+         Task<IEnumerable<LogMessage>> GetCurrentLog();

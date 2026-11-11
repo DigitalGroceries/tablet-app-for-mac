@@ -359,6 +359,25 @@ internal sealed class DaemonClient : IDaemonTransport, IDaemonSettingsChannel, I
         }
     }
 
+    /// <summary>#7: the whole sequence through one open stream per device (<c>SendFeatureSequence</c>). An older
+    /// daemon without it gets the reports one by one.</summary>
+    public async Task<bool> SendFeatureSequenceAsync(int vendorId, int productId, string usbInterface, byte[][] reports)
+    {
+        if (_rpc is not { IsDisposed: false }) return false;
+        try { return await _rpc.InvokeAsync<int>("SendFeatureSequence", vendorId, productId, usbInterface, reports) > 0; }
+        catch (StreamJsonRpc.RemoteMethodNotFoundException)
+        {
+            foreach (var r in reports)
+                if (!await SendFeatureReportToAllAsync(vendorId, productId, usbInterface, r)) return false;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _log.Debug("Feature report sequence through the daemon failed.", ex);
+            return false;
+        }
+    }
+
     private void OnDeviceReport(JObject data)
     {
         DeviceReport?.Invoke(data);

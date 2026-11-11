@@ -76,6 +76,15 @@ public interface IDaemonCapabilities : IDaemonDebugSession, IDaemonLogSource, ID
     /// to the single-device send.</summary>
     Task<bool> SendFeatureReportToAllAsync(int vendorId, int productId, string usbInterface, byte[] report) =>
         SendFeatureReportAsync(vendorId, productId, usbInterface, report);
+
+    /// <summary>#7 (Intuos4 OLED key labels): several feature reports in order, to every matching device.
+    /// Defaults to sending them one by one.</summary>
+    async Task<bool> SendFeatureSequenceAsync(int vendorId, int productId, string usbInterface, byte[][] reports)
+    {
+        foreach (var r in reports)
+            if (!await SendFeatureReportToAllAsync(vendorId, productId, usbInterface, r)) return false;
+        return true;
+    }
 }
 
 /// <summary>A transport that can send feature reports through the daemon.</summary>
@@ -83,4 +92,5 @@ public interface IDaemonFeatureReports
 {
     Task<bool> SendFeatureReportAsync(int vendorId, int productId, string usbInterface, byte[] report);
     Task<bool> SendFeatureReportToAllAsync(int vendorId, int productId, string usbInterface, byte[] report);
+    Task<bool> SendFeatureSequenceAsync(int vendorId, int productId, string usbInterface, byte[][] reports);
 }

@@ -30,6 +30,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly IDialogService _dialogs;
     private readonly DriverConflictMonitor _conflicts;
     private readonly Intuos4StatusLed _statusLed;
+    private readonly Intuos4OledLabels _oledLabels;
+    private readonly Avalonia.Threading.DispatcherTimer _oledTimer;
     private readonly HealthService _health;
     private readonly ProfileSwitchService _profileSwitch;
     // One shared hotkey window holds every global hotkey; the managers each register their own ids on it.
@@ -198,6 +200,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         TabletNotices.Refresh(_session.IsAppOwnedDaemon ? _session.DetectedTablets.Select(t => t.Name) : []);
         // Version 23 BETA: the Status light setting only while an Intuos4 is connected.
         Startup.ShowStatusLight = Intuos4StatusLed.AnyIntuos4(_session.DetectedTablets.Select(t => t.Name));
+        Startup.ShowOledLabels = Intuos4Oled.AnyOledTablet(_session.DetectedTablets.Select(t => t.Name));
     });
 
     public MainViewModel()
@@ -347,6 +350,13 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // (#572) are folded in as tabs.
         _statusLed = new Intuos4StatusLed(_session.Daemon, _session);
         Startup.StatusLedChanged = _statusLed.SettingChangedAsync;
+        // #7 / #18: the words on the Intuos4 ExpressKey screens follow the live bindings (edits, per-app, per-pen).
+        _oledLabels = new Intuos4OledLabels(_session.Daemon, _session,
+            name => _session.CurrentSettings?.Profiles.FirstOrDefault(p => p.Tablet == name));
+        Startup.OledLabelsChanged = _oledLabels.RefreshAsync;
+        _oledTimer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _oledTimer.Tick += (_, _) => { if (Startup.ShowOledLabels) _ = _oledLabels.RefreshAsync(); };
+        _oledTimer.Start();
         Startup.Backup = new BackupViewModel(() => _session.ActiveTabletName,
             async () => { if (_session.IsConnected) await _session.RestartDaemonCommand.ExecuteAsync(null); },
             ResolveUnsavedBeforeImportAsync);
@@ -1116,6 +1126,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         Diagnostics.Dispose();    // stops debugging + unsubscribes connection sync
         Dashboard.Dispose();      // cancels VMulti install/uninstall token + unsubscribes
         _statusLed.Dispose();
+        _oledTimer.Stop();
+        _oledLabels.Dispose();
         Presets.Dispose();        // unsubscribes DataLoaded
         Hotkeys.Dispose();        // unsubscribes DataLoaded
         Test.Dispose();           // stops the daemon debug stream if running
