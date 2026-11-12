@@ -20,6 +20,8 @@ namespace OpenTabletArtist.UiTests;
 /// area scrolls), and the size / transparency row never overlaps it.</summary>
 public class RadialEditorFitTests
 {
+    private static RadialMenuEditorDialog? _dialog;
+
     internal static (MainWindow Main, RadialMenuEditorViewModel Vm, RadialMenuPie Pie, Control Footer, ScrollViewer Area) Open(double w, double h, int size = 100)
     {
         _ = new ThemeViewModel();
@@ -28,7 +30,7 @@ public class RadialEditorFitTests
         InWindowSheet.MainOverride = () => mw;
         var vm = new RadialMenuEditorViewModel(null, "Pen button 1");
         vm.Size = size;                 // the biggest ring is the worst case
-        var dialog = new RadialMenuEditorDialog(vm);
+        var dialog = _dialog = new RadialMenuEditorDialog(vm);
         _ = InWindowSheet.ShowDialogAsync(dialog, mw);
         Settle(mw);
         var pie = mw.GetVisualDescendants().OfType<RadialMenuPie>().First(p => p.Interactive);
@@ -46,6 +48,9 @@ public class RadialEditorFitTests
 
     internal static void Close(MainWindow mw)
     {
+        _dialog?.Close();          // takes the sheet off InWindowSheet's stack, so other tests start clean
+        Settle(mw);
+        _dialog = null;
         InWindowSheet.MainOverride = null;
         mw.Close();
     }

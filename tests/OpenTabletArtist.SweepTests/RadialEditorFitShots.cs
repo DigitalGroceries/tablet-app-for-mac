@@ -30,15 +30,16 @@ public class RadialEditorFitShots
         var mw = new MainWindow { Width = w, Height = h };
         mw.Show();
         InWindowSheet.MainOverride = () => mw;
+        RadialMenuEditorDialog? dialog = null;
         try
         {
             var vm = new RadialMenuEditorViewModel(null, "Pen button 2");
             vm.Size = 100;
             vm.SelectSlice(2);
-            _ = InWindowSheet.ShowDialogAsync(new RadialMenuEditorDialog(vm), mw);
+            _ = InWindowSheet.ShowDialogAsync(dialog = new RadialMenuEditorDialog(vm), mw);
             for (int i = 0; i < 3; i++) { Dispatcher.UIThread.RunJobs(); mw.UpdateLayout(); }
             mw.CaptureRenderedFrame()!.Save($"{Dir}/radial-editor-fit-{(int)w}x{(int)h}.png");
         }
-        finally { InWindowSheet.MainOverride = null; mw.Close(); }
+        finally { dialog?.Close(); Dispatcher.UIThread.RunJobs(); InWindowSheet.MainOverride = null; mw.Close(); }
     }
 }
