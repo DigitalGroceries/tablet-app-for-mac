@@ -143,6 +143,9 @@ public static class RadialMenuState
     private static bool _busy;     // the app is editing a slice: the menu stays shown but the pen goes through to the app
     private static long _busySince;
     private static long _reqSeq;
+    // TASKS #65: the slice that ran last (for the app's short "Selection copied" text) and whether it worked. Sent in the next state write.
+    private static long _usedSeq;
+    private static (long Seq, string Label, string Keys, string Action, bool Ok)? _used;
     private static (long Seq, string Kind, int Slice, int[] Path)? _request;   // written once, with the next state
     // A drag by the hand with the pen tip: where the pen and the menu were when it started.
     private static bool _penDrag, _penDragMoved;
@@ -194,7 +197,7 @@ public static class RadialMenuState
             _cx = c.X; _cy = c.Y;
             _held = true;
             _parked = false;
-            _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null;
+            _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null; _used = null;
             Touch();
             WriteStateLocked();
             StartCommandPollingLocked();
@@ -232,7 +235,7 @@ public static class RadialMenuState
             if (run != null && !_held) CloseLocked("used " + Describe(run));
             else if (run != null) WriteStateLocked();   // flash the choice; the menu stays while the button is held
         }
-        if (run != null && owner != null) Run(owner, run);
+        if (run != null && owner != null) RunAndReport(owner, run);
     }
 
     /// <summary>The X, the pencil or the circular arrow was tapped (pen or mouse).</summary>
@@ -453,51 +456,77 @@ public static class RadialMenuState
                     return;
             }
         }
-        if (run != null && owner != null) Run(owner, run);
+        if (run != null && owner != null) RunAndReport(owner, run);
     }
 
-    private static void Run(RadialMenuBinding owner, RadialSlice s)
+    /// <summary>Run a slice, then tell the app which one ran and whether it worked (TASKS #65: its short confirmation text, or the
+    /// failure). Written with the next state, which is the closed state when this slice closed the menu.</summary>
+    private static void RunAndReport(RadialMenuBinding owner, RadialSlice s)
     {
-        if (ActionRunner != null) { ActionRunner(owner, s); return; }
+        bool ok = Run(owner, s);
+        lock (Gate)
+        {
+            _used = (++_usedSeq, s.Label ?? "", s.Keys ?? "", s.Action ?? "", ok);
+            WriteStateLocked();
+        }
+    }
+
+    /// <summary>True when the action was carried out; false (and logged) when it could not be.</summary>
+    private static bool Run(RadialMenuBinding owner, RadialSlice s)
+    {
+        if (ActionRunner != null) { ActionRunner(owner, s); return true; }
         try
         {
             switch (s.Action)
             {
                 case RadialActions.Keys:
                     var keys = RingModeBindingsKeys.Parse(s.Keys, owner.Keyboard);
-                    if (keys.Length > 0 && owner.Keyboard != null) Pulse.Press(owner.Keyboard, keys);
-                    else Log.Write("Radial menu", $"Keys not supported: '{s.Keys}'", LogLevel.Warning);
-                    break;
+                    if (keys.Length > 0 && owner.Keyboard != null) { Pulse.Press(owner.Keyboard, keys); return true; }
+                    Log.Write("Radial menu", $"Keys not supported: '{s.Keys}'", LogLevel.Warning);
+                    return false;
                 case RadialActions.Click:
-                    Click(owner.Pointer, s.Click);
-                    break;
+                    return Click(owner.Pointer, s.Click);
                 case RadialActions.Open:
-                    OpenApp(s.App);
-                    break;
+                    return OpenApp(s.App);
             }
+            return true;
         }
         catch (Exception e)
         {
             Log.Write("Radial menu", $"Action failed: {e.Message}", LogLevel.Warning);
+            return false;
         }
     }
 
-    private static void Click(IMouseButtonHandler? pointer, string? which)
+    private static bool Click(IMouseButtonHandler? pointer, string? which)
     {
-        if (pointer == null || string.IsNullOrWhiteSpace(which)) return;
+        if (pointer == null || string.IsNullOrWhiteSpace(which))
+        {
+            Log.Write("Radial menu", "Click not done: no pointer or no button chosen.", LogLevel.Warning);
+            return false;
+        }
         bool dbl = string.Equals(which, "DoubleClick", StringComparison.OrdinalIgnoreCase);
-        if (!Enum.TryParse<MouseButton>(dbl ? "Left" : which, true, out var b)) return;
+        if (!Enum.TryParse<MouseButton>(dbl ? "Left" : which, true, out var b))
+        {
+            Log.Write("Radial menu", $"Click not done: unknown button '{which}'.", LogLevel.Warning);
+            return false;
+        }
         for (int i = 0; i < (dbl ? 2 : 1); i++)
         {
             pointer.MouseDown(b);
             pointer.MouseUp(b);
             if (pointer is ISynchronousPointer sync) sync.Flush();
         }
+        return true;
     }
 
-    private static void OpenApp(string? app)
+    private static bool OpenApp(string? app)
     {
-        if (string.IsNullOrWhiteSpace(app) || !OperatingSystem.IsMacOS()) return;
+        if (string.IsNullOrWhiteSpace(app) || !OperatingSystem.IsMacOS())
+        {
+            Log.Write("Radial menu", "Open app not done: no app chosen (or not macOS).", LogLevel.Warning);
+            return false;
+        }
         var psi = new ProcessStartInfo("/usr/bin/open") { UseShellExecute = false };
         if (app.EndsWith(".app", StringComparison.OrdinalIgnoreCase) || app.Contains('/'))
         {
@@ -510,7 +539,11 @@ public static class RadialMenuState
             psi.ArgumentList.Add(app);
         }
         Process.Start(psi)?.Dispose();
+        return true;
     }
+
+    private static object? UsedPayloadLocked() =>
+        _used is { } u ? new { seq = u.Seq, label = u.Label, keys = u.Keys, action = u.Action, ok = u.Ok } : null;
 
     /// <summary>What the app's overlay reads: open or closed, where, how big, and the current ring's slices.</summary>
     private static void WriteStateLocked()
@@ -521,7 +554,7 @@ public static class RadialMenuState
             object payload;
             if (_top == null)
             {
-                payload = new { state = "closed", seq };
+                payload = new { state = "closed", seq, used = UsedPayloadLocked() };
             }
             else
             {
@@ -539,7 +572,7 @@ public static class RadialMenuState
                 {
                     state = "open", seq, x = _cx, y = _cy, size = _top.Size, transparency = _top.Transparency, depth = _path.Count, slices,
                     editing = _editing, confirm = _confirm, busy = _busy,
-                    menu = RadialMenuJson.Serialize(_top), request,
+                    menu = RadialMenuJson.Serialize(_top), request, used = UsedPayloadLocked(),
                 };
             }
             var json = JsonSerializer.Serialize(payload);
@@ -561,7 +594,7 @@ public static class RadialMenuState
         lock (Gate)
         {
             _top = null; _owner = null; _path.Clear(); _held = false; _seq = 0; _parked = false;
-            _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null;
+            _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null; _used = null; _usedSeq = 0;
             StopCommandPollingLocked();
             Interlocked.Exchange(ref _lastActivity, Environment.TickCount64);
         }

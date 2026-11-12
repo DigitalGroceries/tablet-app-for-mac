@@ -606,5 +606,17 @@
   "confirm.radial_edit_hint": "编辑你接下来点按的扇区",
   "confirm.radial_restored": "菜单已恢复",
   "confirm.radial_saved": "扇区已保存",
+  "radial.done.undo": "已撤销",
+  "radial.done.redo": "已重做",
+  "radial.done.copy": "已复制所选内容",
+  "radial.done.paste": "已粘贴",
+  "radial.done.cut": "已剪切所选内容",
+  "radial.done.select_all": "已全选",
+  "radial.done.zoom_out": "已缩小",
+  "radial.done.zoom_in": "已放大",
+  "radial.done.generic": "{name}：完成",
+  "radial.done.failed": "{name}：未能执行",
+  "radial.done.plain": "完成",
+  "radial.done.failed_plain": "未能执行",
   "filters.intro": "其他 OpenTabletDriver 插件的滤镜（例如 Antichatter 或 Radial Follow 平滑）可以让抖动的指针变稳。打开一个即可在本应用中使用。如果笔的手感变得奇怪，请再关闭它。若只想在笔接触时做简单平滑，请先试试 笔 › 位置平滑。"
 }

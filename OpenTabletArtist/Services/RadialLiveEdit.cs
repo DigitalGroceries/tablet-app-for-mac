@@ -38,6 +38,7 @@ public static class RadialLiveEdit
             }
             else
             {
+                AppLog.Info($"Radial menu: opening the slice editor on slice {request.Slice + 1}.");
                 window.BringToFront("radial menu edit", byUser: true);
                 wentForward = true;
                 result = await RadialMenuEditorDialog.ShowAsync(window, current, Localizer.Te("radial.title", "Radial menu"),

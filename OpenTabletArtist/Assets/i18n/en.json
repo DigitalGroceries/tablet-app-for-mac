@@ -606,5 +606,17 @@
   "confirm.radial_edit_hint": "Edit the slice you tap next",
   "confirm.radial_restored": "Menu restored",
   "confirm.radial_saved": "Slice saved",
+  "radial.done.undo": "Undone",
+  "radial.done.redo": "Redone",
+  "radial.done.copy": "Selection copied",
+  "radial.done.paste": "Pasted",
+  "radial.done.cut": "Selection cut",
+  "radial.done.select_all": "All selected",
+  "radial.done.zoom_out": "Zoomed out",
+  "radial.done.zoom_in": "Zoomed in",
+  "radial.done.generic": "{name} done",
+  "radial.done.failed": "{name} did not work",
+  "radial.done.plain": "Done",
+  "radial.done.failed_plain": "Did not work",
   "filters.intro": "Filters from other OpenTabletDriver plugins, for example Antichatter or Radial Follow smoothing, can calm a shaky pointer. Turn one on to use it with this app. If the pen starts to feel odd, turn it off again. For simple smoothing while the pen touches, try Pen › Position smoothing first."
 }

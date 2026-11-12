@@ -721,6 +721,92 @@ public class RadialMenuStateTests : IDisposable
         RadialMenuState.CloseIfIdle();
         Assert.True(RadialMenuState.IsOpen);
     }
+
+    // ── TASKS #65: the driver reports which slice ran and whether it worked ──
+
+    [Fact]
+    public void APenTapThatClosesTheMenu_ReportsTheSliceInTheClosedState()
+    {
+        var b = Binding(); b.Press(null!, null!); b.Release(null!, null!);
+        TapAt(110, 0);                                        // Copy
+        var st = State();
+        Assert.Equal("closed", st.GetProperty("state").GetString());
+        var used = st.GetProperty("used");
+        Assert.Equal("Copy", used.GetProperty("label").GetString());
+        Assert.Equal("Application+C", used.GetProperty("keys").GetString());
+        Assert.True(used.GetProperty("ok").GetBoolean());
+        Assert.True(used.GetProperty("seq").GetInt64() >= 1);
+        // the app's reader sees the same
+        var parsed = RadialMenuOverlay.Parse(File.ReadAllText(RadialMenuState.StateFilePath))!;
+        Assert.Equal("Copy", parsed.Used!.Label); Assert.True(parsed.Used.Ok);
+        Assert.Equal("Selection copied", RadialMenuConfirm.Text((k, e) => e, parsed.Used.Label, parsed.Used.Keys, parsed.Used.Ok));
+    }
+
+    [Fact]
+    public void WhileTheMenuStaysOpen_EachRunHasItsOwnSeq_AndTheMouseReportsToo()
+    {
+        var b = Binding(); b.Press(null!, null!);              // button held: stays open
+        TapAt(0, -100);                                         // Undo
+        var first = State().GetProperty("used").GetProperty("seq").GetInt64();
+        Assert.Equal("open", State().GetProperty("state").GetString());
+        TapAt(0, -100);
+        var second = State().GetProperty("used").GetProperty("seq").GetInt64();
+        Assert.True(second > first);
+        Mouse(RadialMenuCommand.Tap, 3);                        // the Mac mouse: Paste
+        var used = State().GetProperty("used");
+        Assert.Equal("Paste", used.GetProperty("label").GetString());
+        Assert.True(used.GetProperty("seq").GetInt64() > second);
+    }
+
+    [Fact]
+    public void ASliceThatCannotRun_IsReportedAsFailed_NotAsDone()
+    {
+        RadialMenuState.ActionRunner = null;                    // the real runner: this binding has no keyboard to press keys with
+        var menu = RadialMenuDefaults.Create();
+        menu.Slices[0] = new RadialSlice { Label = "Brush", Action = RadialActions.Keys, Keys = "B" };
+        var b = Binding(menu); b.Press(null!, null!); b.Release(null!, null!);
+        TapAt(0, -100);
+        var used = State().GetProperty("used");
+        Assert.Equal("Brush", used.GetProperty("label").GetString());
+        Assert.False(used.GetProperty("ok").GetBoolean());
+        Assert.Equal("Brush did not work", RadialMenuConfirm.Text((k, e) => e, "Brush", "B", false));
+    }
+
+    [Fact]
+    public void ANewSession_StartsWithoutTheLastRun()
+    {
+        var b = Binding(); b.Press(null!, null!); b.Release(null!, null!);
+        TapAt(0, -100);                                         // closes
+        b.Press(null!, null!);                                  // opens again
+        Assert.Equal("open", State().GetProperty("state").GetString());
+        Assert.Equal(JsonValueKind.Null, State().GetProperty("used").ValueKind);
+    }
+
+    [Fact]
+    public void ASubmenuOrEmptySlice_ReportsNothing()
+    {
+        var b = Binding(); b.Press(null!, null!);
+        var menu = RadialMenuDefaults.Create();
+        var sub = new RadialMenuDef { Slices = { new RadialSlice { Label = "Brush", Action = RadialActions.Keys, Keys = "B" } } };
+        menu.Slices[2] = new RadialSlice { Label = "Tools", Action = RadialActions.Submenu, Submenu = sub };
+        RadialMenuState.ResetForTests();
+        RadialMenuState.StateFilePath = Path.Combine(_dir, "radial-menu");
+        RadialMenuState.CursorProvider = () => _cursor; RadialMenuState.ActionRunner = (_, s) => _ran.Add(s.Label);
+        var b2 = Binding(menu); b2.Press(null!, null!);
+        TapAt(100, 0);                                          // Tools: only opens the submenu
+        Assert.Equal(JsonValueKind.Null, State().GetProperty("used").ValueKind);
+        Assert.Empty(_ran);
+    }
+
+    [Fact]
+    public void EditMode_DoesNotReportASliceRun()
+    {
+        var b = Binding(); b.Press(null!, null!); b.Release(null!, null!);
+        Mouse(RadialMenuCommand.Edit);
+        Mouse(RadialMenuCommand.Tap, 2);                        // edits Copy, does not run it
+        Assert.Empty(_ran);
+        Assert.Equal(JsonValueKind.Null, State().GetProperty("used").ValueKind);
+    }
 }
 
 public class RadialMenuEditorTests
