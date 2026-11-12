@@ -84,9 +84,12 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         {
             if (!_pendingX.HasValue || !_pendingY.HasValue)
                 QueuePendingPositionFromSystem();
-            var x = _pendingX ?? 0;
-            var y = _pendingY ?? 0;
-            var pos = new CGPoint(x, y);
+            // Tablet App for Mac (Maxime, 11 Nov): in Mouse-like (relative) mode the pending values are movement,
+            // not a place on screen. Using them as the click position sent the double-click (and the pointer)
+            // to the top-left corner of the screen. ClickPosition turns them into the real click position:
+            // unchanged in absolute mode, pointer + movement in relative mode.
+            var click = ClickPosition(_pendingX ?? 0, _pendingY ?? 0);
+            var pos = new CGPoint(click.X, click.Y);
             var at = CursorLocation();
             MacOSAppActivator.ActivateAt(new Vector2((float)at.x, (float)at.y), DisplayRects);
             PostClickEvent(CGEventType.kCGEventLeftMouseDown, pos, clickState: 1);
