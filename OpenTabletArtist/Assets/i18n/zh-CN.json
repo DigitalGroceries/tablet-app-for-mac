@@ -576,5 +576,6 @@
   "radial.default.cut": "剪切",
   "radial.default.select_all": "全选",
   "radial.default.zoom_out": "缩小",
-  "radial.default.zoom_in": "放大"
+  "radial.default.zoom_in": "放大",
+  "filters.intro": "其他 OpenTabletDriver 插件的过滤器（例如 Antichatter 或 Radial Follow 平滑）可以让抖动的指针变稳。打开一个即可在本应用中使用。如果笔的手感变得奇怪，请再关闭它。若只想在笔接触时做简单平滑，请先试试 笔 › 位置平滑。"
 }

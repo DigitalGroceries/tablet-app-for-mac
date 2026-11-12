@@ -576,5 +576,6 @@
   "radial.default.cut": "Ausschneiden",
   "radial.default.select_all": "Alles auswählen",
   "radial.default.zoom_out": "Verkleinern",
-  "radial.default.zoom_in": "Vergrößern"
+  "radial.default.zoom_in": "Vergrößern",
+  "filters.intro": "Filter aus anderen OpenTabletDriver-Plugins, zum Beispiel Antichatter oder die Radial-Follow-Glättung, können einen zittrigen Zeiger beruhigen. Schalte einen ein, um ihn mit dieser App zu nutzen. Wenn sich der Stift seltsam anfühlt, schalte ihn wieder aus. Für einfache Glättung, solange der Stift aufliegt, probiere zuerst Stift › Positionsglättung."
 }

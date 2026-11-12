@@ -576,5 +576,6 @@
   "radial.default.cut": "Couper",
   "radial.default.select_all": "Tout sélectionner",
   "radial.default.zoom_out": "Zoom arrière",
-  "radial.default.zoom_in": "Zoom avant"
+  "radial.default.zoom_in": "Zoom avant",
+  "filters.intro": "Les filtres d'autres plugins OpenTabletDriver, par exemple Antichatter ou le lissage Radial Follow, peuvent calmer un pointeur tremblant. Activez-en un pour l'utiliser avec cette app. Si le stylet se comporte bizarrement, désactivez-le. Pour un lissage simple pendant que le stylet touche la tablette, essayez d'abord Stylet › Lissage de position."
 }
