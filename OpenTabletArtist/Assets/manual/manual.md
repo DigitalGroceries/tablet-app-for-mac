@@ -78,7 +78,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 ## Tablet page layout
 
 - **Device**: the selected tablet. The switcher lists connected and remembered tablets. **+** explains how to add a tablet: connect it to your Mac and it appears in the Device row by itself. **−** forgets the selected tablet and its settings (it asks first).
-- **Tool**: **Functions** (ExpressKeys, Touch ring), **Pen** (pen, eraser, mapping), a tile for each extra pen, and **More** (about, calibration, hover, filters, json). **+** explains how to add a pen: bring the new pen close to the tablet and the app adds a tile for it. **−** removes the selected extra pen's settings; the main pen can't be removed.
+- **Tool**: **Functions** (ExpressKeys, Touch ring), **Pen** (pen, eraser, radial menu, mapping), a tile for each extra pen, and **More** (about, calibration, hover, filters, json). **+** explains how to add a pen: bring the new pen close to the tablet and the app adds a tile for it. **−** removes the selected extra pen's settings; the main pen can't be removed.
 - **Application**: **All**, or a specific app. **+** adds apps (Command-click to choose several at once). Each added app has its own ExpressKeys, Touch Ring, pen tip and pen button actions. They switch when that app comes to the front, but only once the pen tip is lifted, so a stroke is not interrupted. Mapping and pressure stay the same for every app. **−** removes the selected app's settings; it then uses **All** again.
 - **Refresh** reloads the tablet's settings from the driver.
 - Footer: **Options…** (Settings), **?** (this manual), **Report a problem or send a recommendation…** (see Report a problem or send a recommendation).
@@ -110,6 +110,10 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 ![Eraser](img/17-eraser-tab.png)
 
 The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable eraser** and **Manual Eraser Pressure** (own frame under Eraser Feel; used while pressure sensitivity is off). Shared with Pen (marked "Shared with Pen"): tilt, the Feel curve (one curve for tip and eraser), pressure sensitivity, Position smoothing (and Movement, when its choice is shown). The button cards are the pen's barrel buttons.
+
+## Tablet › Radial menu
+
+The **Radial menu** tab (Tool **Pen**, between **Eraser** and **Mapping**) is the radial menu editor inside the page, for the application chosen in the Application row (**All** or one application): the ring, the settings of the slice you click, **Menu size**, **Menu transparency** (slider and number box) and **Reset menu**. It is the same editor as **Change… › Radial menu**, without a Save button of its own: each change is applied at once and the footer's **Save** keeps it, like on the other tabs. The line on top says what opens the menu, for example **Opens with: Pen button 2**. If no pen button or ExpressKey opens it, it says **No pen button opens the radial menu yet** and offers **Use pen button 2** (button 1 on a pen with one button). If several buttons open radial menus, a small list **Menu to edit** picks which one the editor shows. The ring gets smaller when the window is narrow, and the page scrolls when it is short. New in Version 26.
 
 ## Tablet › Mapping
 
@@ -144,7 +148,7 @@ Pen gestures under **Scroll**, each with a **Speed** slider (Slow to Fast, 1–1
 
 A pen button or an ExpressKey can open a radial menu, like the one in Wacom's driver: a round menu with 8 slices, centred on the pen.
 
-- Set it up: **Change…** on a pen button or an ExpressKey, then the **Radial menu** tab, **Save**. **Edit menu…** opens the menu editor.
+- Set it up: **Change…** on a pen button or an ExpressKey, then the **Radial menu** tab, **Save**. **Edit menu…** opens the menu editor. The same editor is on its own tab, **Tablet › Pen › Radial menu** (see below).
 - Use it: press the button, then tap a slice with the pen tip. The menu closes after a choice. To use several slices in a row (for example Undo three times), hold the button while you tap. Tap the **×** in the centre, an empty slice or outside the menu, or press the button again, to close it without a choice. The pen tip never draws in your app while the menu is open. A menu left open closes by itself after a minute.
 - The **centre** has four buttons, each with its own highlight under the pen or the pointer: **× (top left)** closes the menu. **Pencil (top right)**: tap it, then tap a slice, and choose what that slice does from the same choices as **Edit menu…**; the change is saved at once and the menu stays open (tap the pencil again to put it down). **Circular arrow (bottom left)** asks "Restore the 8 default slices?": tap **Yes** (right) or **No** (left). **Open hand (bottom right)**: press it with the pen tip or the mouse and move more than a few points to drag the menu somewhere else; a press that doesn't move does nothing. A menu you have moved stays until you close it.
 - With the **Mac mouse**: click a slice to run it in the app underneath; the menu stays open, so you can open it with the pen and then use your 8 commands with the mouse. Click the **×**, or press **Esc**, to close it. Slices that click the mouse need the pen. The menu does not take the keyboard from your drawing app.
