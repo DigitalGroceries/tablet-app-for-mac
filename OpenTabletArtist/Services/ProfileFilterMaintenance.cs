@@ -30,6 +30,7 @@ public static class ProfileFilterMaintenance
         Domain.PenZoomBinding.FilterTypeName,   // OpenTabletArtist.Dynamics.PenZoomFilter (TASKS #24)
         Domain.RadialMenuBinding.FilterTypeName, // OpenTabletArtist.Dynamics.RadialMenuFilter (TASKS #42)
         Domain.TouchTrackpad.FilterTypeName,    // OpenTabletArtist.Dynamics.TouchTrackpadFilter (Discussion #31)
+        InBetweenProfile.FilterTypeName,        // OpenTabletArtist.Dynamics.InBetweenFilter (#40, TASKS #57)
     };
 
     /// <summary>Class names (last path segment) of filters this app has ever shipped, including
@@ -38,7 +39,7 @@ public static class ProfileFilterMaintenance
     private static readonly HashSet<string> OurClassNames = new(StringComparer.Ordinal)
     {
         "DynamicsFilter", "HoverFilter", "CalibrationFilter", "PressureCurveFilter", "RingGestureGate",
-        "PenScrollFilter", "PenZoomFilter", "TouchTrackpadFilter", "RadialMenuFilter",
+        "PenScrollFilter", "PenZoomFilter", "TouchTrackpadFilter", "RadialMenuFilter", "InBetweenFilter",
     };
 
     /// <summary>Namespace prefixes this app's plugin has used across renames. Anything we write has
@@ -97,6 +98,7 @@ public static class ProfileFilterMaintenance
                     // Keep the first current store of each kind; drop any exact duplicate.
                     if (!keptCurrent.Add(path))
                     {
+                        AppLog.Info($"Filter removed from '{profile!.Tablet}': duplicate store of {path} (the first one is kept).");
                         filters.RemoveAt(i);
                         changed = true;
                     }
@@ -105,6 +107,7 @@ public static class ProfileFilterMaintenance
 
                 if (IsOurStaleFilter(path))
                 {
+                    AppLog.Info($"Filter removed from '{profile!.Tablet}': {path} is a leftover from an old plugin name.");
                     filters.RemoveAt(i);
                     changed = true;
                 }
@@ -137,6 +140,7 @@ public static class ProfileFilterMaintenance
                 // TASKS #17: a plugin filter the user turned on in the Filters tab stays on.
                 if (Classify(store.Path) == FilterOrigin.Unknown && !UserFilterChoices.IsAllowed(store.Path))
                 {
+                    AppLog.Info($"Filter switched off on '{profile!.Tablet}': {store.Path} is not one of this app's filters and was not turned on in the Filters tab.");
                     store.Enable = false;
                     changed = true;
                 }

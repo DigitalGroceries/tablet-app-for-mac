@@ -27,6 +27,8 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
         AvaloniaProperty.Register<RadialMenuPie, int>(nameof(Highlight), -3);
     public static readonly StyledProperty<int> SelectedProperty =
         AvaloniaProperty.Register<RadialMenuPie, int>(nameof(Selected), -3);
+    public static readonly StyledProperty<int> TransparencyProperty =
+        AvaloniaProperty.Register<RadialMenuPie, int>(nameof(Transparency), RadialMenuDef.DefaultTransparency);
     public static readonly StyledProperty<bool> InteractiveProperty =
         AvaloniaProperty.Register<RadialMenuPie, bool>(nameof(Interactive));
 
@@ -40,6 +42,9 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     public int Highlight { get => GetValue(HighlightProperty); set => SetValue(HighlightProperty, value); }
     /// <summary>Slice picked in the editor.</summary>
     public int Selected { get => GetValue(SelectedProperty); set => SetValue(SelectedProperty, value); }
+    /// <summary>0 (solid) to 100 (clear): how see-through the slice and centre backgrounds are. Labels, divider lines,
+    /// icons and the highlighted slice are not affected.</summary>
+    public int Transparency { get => GetValue(TransparencyProperty); set => SetValue(TransparencyProperty, value); }
     /// <summary>Editor only: clicking a slice raises <see cref="SliceClicked"/>.</summary>
     public bool Interactive { get => GetValue(InteractiveProperty); set => SetValue(InteractiveProperty, value); }
 
@@ -56,14 +61,22 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     static RadialMenuPie()
     {
         AffectsRender<RadialMenuPie>(LabelsProperty, SetFlagsProperty, SubmenuFlagsProperty, HighlightProperty, SelectedProperty,
-            CentreTextProperty, EditingProperty);
+            CentreTextProperty, EditingProperty, TransparencyProperty);
     }
 
-    private static readonly IBrush SliceFill = new SolidColorBrush(Color.FromArgb(235, 40, 44, 52));
-    private static readonly IBrush EmptyFill = new SolidColorBrush(Color.FromArgb(200, 40, 44, 52));
+    // The slice and centre backgrounds follow Transparency (0 = solid, 255 alpha); an empty slice is a little clearer,
+    // the highlight, the selected slice, text, lines and icons never are.
+    private IBrush SliceFill => Back(40, 44, 52, 1.0);
+    private IBrush EmptyFill => Back(40, 44, 52, 0.85);
+    private static readonly IBrush PencilCut = new SolidColorBrush(Color.FromRgb(28, 31, 37));
+    private IBrush CentreBack => Back(28, 31, 37, 1.0);
+    private IBrush Back(byte r, byte g, byte b, double k)
+    {
+        double opaque = 1 - Math.Clamp(Transparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency) / 100.0;
+        return new SolidColorBrush(Color.FromArgb((byte)Math.Round(255 * opaque * k), r, g, b));
+    }
     private static readonly IBrush HighlightFill = new SolidColorBrush(Color.FromArgb(245, 61, 123, 217));
     private static readonly IBrush SelectedFill = new SolidColorBrush(Color.FromArgb(245, 86, 96, 112));
-    private static readonly IBrush CentreFill = new SolidColorBrush(Color.FromArgb(240, 28, 31, 37));
     private static readonly IPen Edge = new Pen(new SolidColorBrush(Color.FromArgb(160, 228, 228, 228)), 1.5);
     private static readonly IBrush TextBrush = new SolidColorBrush(Color.FromRgb(228, 228, 228));   // the app never goes brighter than #E4
     private static readonly IBrush TextMuted = new SolidColorBrush(Color.FromArgb(150, 220, 220, 220));
@@ -109,7 +122,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
         var divider = new Pen(new SolidColorBrush(Color.FromArgb(220, 228, 228, 228)), Math.Max(2, inner / 28));
         if (!string.IsNullOrEmpty(CentreText))
         {
-            ctx.DrawEllipse(CentreFill, Edge, c, inner, inner);
+            ctx.DrawEllipse(CentreBack, Edge, c, inner, inner);
             var q = new FormattedText(CentreText!, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, Typeface.Default,
                 Math.Clamp(inner / 5, 10, 16), TextBrush)
             { MaxTextWidth = inner * 1.6, MaxLineCount = 4, TextAlignment = TextAlignment.Center, Trimming = TextTrimming.CharacterEllipsis };
@@ -120,7 +133,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
         {
             int code = QuarterCodes[quarter];
             bool on = code == RadialMenuGeometry.Edit && Editing;
-            ctx.DrawGeometry(Highlight == code ? HighlightFill : on ? SelectedFill : CentreFill, Edge, Quarter(c, inner, quarter));
+            ctx.DrawGeometry(Highlight == code ? HighlightFill : on ? SelectedFill : CentreBack, Edge, Quarter(c, inner, quarter));
         }
         ctx.DrawLine(divider, new Point(c.X - inner, c.Y), new Point(c.X + inner, c.Y));
         ctx.DrawLine(divider, new Point(c.X, c.Y - inner), new Point(c.X, c.Y + inner));
@@ -175,7 +188,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
             g.EndFigure(true);
         }
         ctx.DrawGeometry(TextBrush, null, body);
-        var cut = new Pen(CentreFill, Math.Max(1, s / 7));
+        var cut = new Pen(PencilCut, Math.Max(1, s / 7));   // always dark: part of the icon, not the background
         ctx.DrawLine(cut, P(-0.6, 0.32), P(-0.6, -0.32));
         ctx.DrawLine(cut, P(0.72, 0.32), P(0.72, -0.32));
     }

@@ -30,7 +30,7 @@ public sealed class RadialMenuEditorDialog : Window
         DataContext = vm;
         Title = vm.Heading;
         Width = 1000;
-        Height = 780;
+        Height = 830;
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         this[!BackgroundProperty] = new DynamicResourceExtension("BgBaseBrush");
@@ -105,6 +105,7 @@ public sealed class RadialMenuEditorDialog : Window
         pie[!RadialMenuPie.SetFlagsProperty] = new Binding(nameof(vm.SetFlags));
         pie[!RadialMenuPie.SubmenuFlagsProperty] = new Binding(nameof(vm.SubmenuFlags));
         pie[!RadialMenuPie.SelectedProperty] = new Binding(nameof(vm.SelectedSlice));
+        pie[!RadialMenuPie.TransparencyProperty] = new Binding(nameof(vm.Transparency));   // live preview of the transparency
         pie[!Layoutable.WidthProperty] = new Binding(nameof(vm.PreviewDiameter));     // live preview: the ring has the size the slider says
         pie[!Layoutable.HeightProperty] = new Binding(nameof(vm.PreviewDiameter));
         pie.SliceClicked += vm.SelectSlice;
@@ -178,7 +179,8 @@ public sealed class RadialMenuEditorDialog : Window
         size[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.Size)) { Mode = BindingMode.TwoWay };
         Avalonia.Automation.AutomationProperties.SetName(size, vm.SizeCaption);
         var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto,Auto,*,Auto,Auto"), Margin = new Thickness(0, 14, 0, 0) };
-        void Put(Control c, int col) { Grid.SetColumn(c, col); footer.Children.Add(c); }
+        footer.RowDefinitions = new RowDefinitions("Auto,Auto");
+        void Put(Control c, int col, int row = 0) { Grid.SetColumn(c, col); Grid.SetRow(c, row); footer.Children.Add(c); }
         Put(new TextBlock { Text = vm.SizeCaption, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) }, 0);
         Put(new TextBlock { Text = vm.SizeSmall, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) }, 1);
         Put(size, 2);
@@ -186,12 +188,24 @@ public sealed class RadialMenuEditorDialog : Window
         var sizeNumber = new TextBlock { VerticalAlignment = VerticalAlignment.Center, FontWeight = FontWeight.SemiBold, MinWidth = 34, Margin = new Thickness(0, 0, 16, 0) };
         sizeNumber[!TextBlock.TextProperty] = new Binding(nameof(vm.SizeText));
         Put(sizeNumber, 4);
+        // Menu transparency: 0 (solid) to 100 (clear), the ring on the left shows it while the slider moves.
+        var transparency = new Slider { Minimum = 0, Maximum = 100, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220, Margin = new Thickness(0, 6, 0, 0) };
+        transparency[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.Transparency)) { Mode = BindingMode.TwoWay };
+        Avalonia.Automation.AutomationProperties.SetName(transparency, vm.TransparencyCaption);
+        Put(new TextBlock { Text = vm.TransparencyCaption, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 6, 10, 0) }, 0, 1);
+        Put(new TextBlock { Text = vm.TransparencySolid, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 6, 6, 0) }, 1, 1);
+        Put(transparency, 2, 1);
+        Put(new TextBlock { Text = vm.TransparencyClear, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 6, 10, 0) }, 3, 1);
+        var transparencyNumber = new TextBlock { VerticalAlignment = VerticalAlignment.Center, FontWeight = FontWeight.SemiBold, MinWidth = 40, Margin = new Thickness(0, 6, 16, 0) };
+        transparencyNumber[!TextBlock.TextProperty] = new Binding(nameof(vm.TransparencyText));
+        Put(transparencyNumber, 4, 1);
         var reset = new Button { Content = vm.ResetLabel, Command = vm.ResetCommand, Padding = new Thickness(12, 6), HorizontalAlignment = HorizontalAlignment.Left };
-        Put(reset, 5);
+        Put(reset, 5); Grid.SetRowSpan(reset, 2); reset.VerticalAlignment = VerticalAlignment.Center;
         var save = new Button { Content = vm.SaveLabel, Command = vm.SaveCommand, Padding = new Thickness(22, 8), Margin = new Thickness(0, 0, 8, 0) };
         if (Application.Current?.TryFindResource("AccentButton", out var accent) == true && accent is Avalonia.Styling.ControlTheme t) save.Theme = t;
-        Put(save, 6);
-        Put(new Button { Content = vm.CancelLabel, Command = vm.CancelCommand, Padding = new Thickness(16, 8) }, 7);
+        Put(save, 6); Grid.SetRowSpan(save, 2); save.VerticalAlignment = VerticalAlignment.Center;
+        var cancel = new Button { Content = vm.CancelLabel, Command = vm.CancelCommand, Padding = new Thickness(16, 8), VerticalAlignment = VerticalAlignment.Center };
+        Put(cancel, 7); Grid.SetRowSpan(cancel, 2);
         var footerWrap = new StackPanel();
         footerWrap.Children.Add(new Border { Height = 1, Margin = new Thickness(0, 16, 0, 0), [!Border.BackgroundProperty] = new DynamicResourceExtension("DividerBrush") });
         footerWrap.Children.Add(footer);

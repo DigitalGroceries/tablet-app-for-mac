@@ -537,7 +537,7 @@ public static class RadialMenuState
                 object? request = _request is { } r ? new { seq = r.Seq, kind = r.Kind, slice = r.Slice, path = r.Path } : null;
                 payload = new
                 {
-                    state = "open", seq, x = _cx, y = _cy, size = _top.Size, depth = _path.Count, slices,
+                    state = "open", seq, x = _cx, y = _cy, size = _top.Size, transparency = _top.Transparency, depth = _path.Count, slices,
                     editing = _editing, confirm = _confirm, busy = _busy,
                     menu = RadialMenuJson.Serialize(_top), request,
                 };

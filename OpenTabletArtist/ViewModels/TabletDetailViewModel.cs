@@ -3158,7 +3158,13 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
     partial void OnSmootherCurvesChanged(bool value)
     {
-        if (_skipInBetweenPersist || _applyAction == null || _settings == null) return;
+        if (_skipInBetweenPersist) return;
+        if (_applyAction == null || _settings == null)
+        {
+            AppLog.Warn($"Smoother fast curves switched {(value ? "on" : "off")} on '{TabletName}' but not saved: this page can't edit settings right now.");
+            return;
+        }
+        AppLog.Info($"Smoother fast curves switched {(value ? "on" : "off")} on '{TabletName}'.");
         _ = PersistSmootherCurvesAsync(value);
     }
 
@@ -3168,7 +3174,13 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var draft = _draftGeneration;
         InBetweenProfile.Write(_settings, _profile.Tablet ?? "", on);
         UpdateFiltersDisplay();
-        TakeOutcome(await SubmitAsync(_settings), draft);
+        var outcome = await SubmitAsync(_settings);
+        var adopted = TakeOutcome(outcome, draft);
+        var now = InBetweenProfile.IsOn(_settings, _profile.Tablet ?? "");
+        if (now != on)
+            AppLog.Warn($"Smoother fast curves: asked for {(on ? "on" : "off")} but the profile now holds {(now ? "on" : "off")} (driver outcome {outcome}).");
+        else
+            AppLog.Info($"Smoother fast curves {(on ? "on" : "off")} sent to the driver (outcome {outcome}, adopted {adopted}).");
     }
 
     // ── Other plugins' filters (TASKS #17, Kert) ──────────────

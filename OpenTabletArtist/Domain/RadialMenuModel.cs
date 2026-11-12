@@ -26,6 +26,8 @@ public sealed class RadialMenuDef
 {
     public const int SliceCount = 8;
     public const int MinSize = 1, MaxSize = 100, DefaultSize = 50;
+    /// <summary>Menu transparency in percent: 0 is solid, 100 is clear. TASKS #58 (Zak 17:29): 70 unless chosen.</summary>
+    public const int MinTransparency = 0, MaxTransparency = 100, DefaultTransparency = 70;
     /// <summary>Top menu + 2 levels of submenus.</summary>
     public const int MaxDepth = 3;
 
@@ -33,6 +35,10 @@ public sealed class RadialMenuDef
 
     /// <summary>On-screen size 1–100 (same scale as the app's other sliders). Only the top menu's value is used.</summary>
     [JsonPropertyName("size")] public int Size { get; set; } = DefaultSize;
+
+    /// <summary>How see-through the slices are, 0 (solid) to 100 (clear). Labels, lines and icons stay fully visible.
+    /// Only the top menu's value is used; a menu saved before this existed reads as <see cref="DefaultTransparency"/>.</summary>
+    [JsonPropertyName("transparency")] public int Transparency { get; set; } = DefaultTransparency;
 }
 
 public sealed class RadialSlice
@@ -66,6 +72,7 @@ public static class RadialMenuDefExtensions
     public static RadialMenuDef Clone(this RadialMenuDef def) => new()
     {
         Size = def.Size,
+        Transparency = def.Transparency,
         Slices = def.Slices.Select(s => s.Clone()).ToList(),
     };
 }
@@ -123,6 +130,7 @@ public static class RadialMenuJson
         {
             Slices = slices,
             Size = Math.Clamp(def?.Size ?? RadialMenuDef.DefaultSize, RadialMenuDef.MinSize, RadialMenuDef.MaxSize),
+            Transparency = Math.Clamp(def?.Transparency ?? RadialMenuDef.DefaultTransparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency),
         };
     }
 
@@ -153,6 +161,7 @@ public static class RadialMenuDefaults
         return new RadialMenuDef
         {
             Size = RadialMenuDef.DefaultSize,
+            Transparency = RadialMenuDef.DefaultTransparency,
             Slices = new List<RadialSlice>
             {
                 Keys(T("undo", "Undo"), "Application+Z"),          // top

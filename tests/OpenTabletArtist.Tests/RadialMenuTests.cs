@@ -383,6 +383,7 @@ public class RadialMenuStateTests : IDisposable
         Assert.Equal("open", st!.State);
         Assert.Equal(500, st.X);
         Assert.Equal(8, st.Labels.Count);
+        Assert.Equal(RadialMenuDef.DefaultTransparency, st.Transparency);   // TASKS #58: the overlay gets it from the driver's state
         Assert.All(st.Set, Assert.True);
         RadialMenuState.Close("test");
         var closed = RadialMenuOverlay.Parse(File.ReadAllText(RadialMenuState.StateFilePath));
@@ -785,6 +786,36 @@ public class RadialMenuEditorTests
         Assert.Equal(50, vm.Size);
         Assert.Equal(320, vm.PreviewDiameter, 1);
         Assert.Equal("50", vm.SizeText);
+    }
+
+    [Fact]
+    public void Transparency_DefaultsTo70_IsSavedWithTheMenu_AndResetBringsItBack()
+    {
+        Assert.Equal(70, RadialMenuDef.DefaultTransparency);
+        Assert.Equal(70, RadialMenuDefaults.Create().Transparency);
+        var vm = new RadialMenuEditorViewModel(null, "x");
+        Assert.Equal(70, vm.Transparency);
+        Assert.Equal("70%", vm.TransparencyText);
+        vm.Transparency = 20;
+        Assert.Equal("20%", vm.TransparencyText);
+        vm.SaveCommand.Execute(null);
+        Assert.Equal(20, RadialMenuJson.Parse(vm.Result).Transparency);
+        Assert.Contains("\"transparency\":20", vm.Result);
+
+        var vm2 = new RadialMenuEditorViewModel(vm.Result, "x");
+        Assert.Equal(20, vm2.Transparency);
+        vm2.ResetCommand.Execute(null);
+        Assert.Equal(70, vm2.Transparency);
+    }
+
+    [Fact]
+    public void Transparency_OfAnOldMenuWithoutIt_IsTheDefault_AndIsClamped()
+    {
+        Assert.Equal(70, RadialMenuJson.Parse("{\"slices\":[],\"size\":50}").Transparency);
+        Assert.Equal(100, RadialMenuJson.Parse("{\"slices\":[],\"transparency\":900}").Transparency);
+        Assert.Equal(0, RadialMenuJson.Parse("{\"slices\":[],\"transparency\":-5}").Transparency);
+        var menu = RadialMenuDefaults.Create(); menu.Transparency = 33;
+        Assert.Equal(33, menu.Clone().Transparency);
     }
 
     [Fact]

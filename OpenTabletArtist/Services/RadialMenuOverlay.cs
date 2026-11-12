@@ -128,7 +128,8 @@ public sealed class RadialMenuOverlay : IDisposable
     /// <summary>What the state file says (null when it can't be read).</summary>
     public sealed record MenuState(string State, long Seq, double X, double Y, int Size, int Depth,
         IReadOnlyList<string> Labels, IReadOnlyList<bool> Set, IReadOnlyList<bool> Submenu,
-        bool Editing = false, bool Confirm = false, string? Menu = null, RadialRequest? Request = null);
+        bool Editing = false, bool Confirm = false, string? Menu = null, RadialRequest? Request = null,
+        int Transparency = RadialMenuDef.DefaultTransparency);
 
     /// <summary>The pen or the mouse asked for something only the app can do: choose a slice's command ("edit") or
     /// restore the default slices ("restore", after the driver's Yes / No). Sent once; <see cref="Seq"/> only grows.</summary>
@@ -185,7 +186,9 @@ public sealed class RadialMenuOverlay : IDisposable
                 labels, set, sub,
                 r.TryGetProperty("editing", out var ed) && ed.ValueKind == JsonValueKind.True,
                 r.TryGetProperty("confirm", out var cf) && cf.ValueKind == JsonValueKind.True,
-                r.TryGetProperty("menu", out var mn) ? mn.GetString() : null, request);
+                r.TryGetProperty("menu", out var mn) ? mn.GetString() : null, request,
+                r.TryGetProperty("transparency", out var tr) && tr.ValueKind == JsonValueKind.Number
+                    ? Math.Clamp(tr.GetInt32(), RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency) : RadialMenuDef.DefaultTransparency);
         }
         catch (Exception)
         {
@@ -246,6 +249,7 @@ public sealed class RadialMenuOverlay : IDisposable
             else _pie.CentreText = null;
             _pie.Labels = labels;
             _pie.SetFlags = st.Set;
+            _pie.Transparency = st.Transparency;
             _pie.SubmenuFlags = st.Submenu;
             _pie.Highlight = HighlightNow();
             if (!_window.IsVisible)
