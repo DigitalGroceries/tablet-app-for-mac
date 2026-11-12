@@ -86,7 +86,9 @@ public class BuildR14Tests
         var tl = box.TranslatePoint(new Avalonia.Point(0, 0), frame)!.Value;
         Assert.True(tl.X >= 0 && tl.X + box.Bounds.Width <= frame.Bounds.Width + 0.5, $"panel {tl.X}+{box.Bounds.Width} in {frame.Bounds.Width}");
         var heads = box.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Classes.Contains("basicsHeading") && t.IsEffectivelyVisible).ToList();
-        Assert.Equal(new[] { "Movement", "Pen input" }, heads.Select(h => h.Text).ToArray());   // Pressing: Windows only
+        // TASKS #55: Movement is hidden unless Settings shows it; Pressing: Windows only
+        Assert.Equal(OpenTabletArtist.Services.PenMovementPolicy.ShowChoice ? new[] { "Movement", "Pen input" } : new[] { "Pen input" },
+            heads.Select(h => h.Text).ToArray());
         Assert.All(heads, h => Assert.Equal(17, h.FontSize));
         var texts = view.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
         Assert.DoesNotContain(texts, t => t.StartsWith("More pen options"));

@@ -204,7 +204,7 @@ public partial class TabletDetailViewModel
         {
             var tablet = _profile.Tablet ?? "";
             var pen = PerPenStore.Find(tablet, SelectedPenKey);
-            if (pen is null) return false;
+            if (pen is null) { AppLog.Warn($"Binding change refused: extra pen '{SelectedPenKey}' not found for '{tablet}'."); return false; }
             var copy = PerAppBindingStore.CloneBindings(pen.Bindings);
             mutate(copy);
             PerPenStore.SaveBindings(tablet, SelectedPenKey!, copy);
@@ -216,7 +216,7 @@ public partial class TabletDetailViewModel
         {
             var tablet = _profile.Tablet ?? "";
             var app = PerAppBindingStore.Find(tablet, SelectedAppBundleId!);
-            if (app is null) return false;
+            if (app is null) { AppLog.Warn($"Binding change refused: application '{SelectedAppBundleId}' not found for '{tablet}'."); return false; }
             var copy = PerAppBindingStore.CloneBindings(app.Bindings);
             mutate(copy);
             PerAppBindingStore.SaveBindings(tablet, SelectedAppBundleId!, copy);
