@@ -63,6 +63,13 @@ public class RadialMenuShots
         Dispatcher.UIThread.RunJobs();
         Snap(w, "radial-editor-size1.png");
         vm.Size = 50;
+        vm.Transparency = 0;
+        Dispatcher.UIThread.RunJobs();
+        Snap(w, "radial-editor-transparency0.png");
+        vm.Transparency = 100;
+        Dispatcher.UIThread.RunJobs();
+        Snap(w, "radial-editor-transparency100.png");
+        vm.Transparency = 70;
         Dispatcher.UIThread.RunJobs();
         vm.ActionIndex = RadialMenuEditorViewModel.ActOpen;
         Dispatcher.UIThread.RunJobs();
