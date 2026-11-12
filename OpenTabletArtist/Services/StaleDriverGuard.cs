@@ -99,7 +99,7 @@ internal static class StaleDriverGuard
                     if (path == null || !path.EndsWith("/" + DaemonExePaths.DaemonExeName, StringComparison.Ordinal)) continue;
                     if (!IsStale(path, p.StartTime.ToUniversalTime(), bundled, written)) continue;
                     AppLog.Info($"Driver: stopping a leftover driver from an older version ({path}, started {p.StartTime:u}).");
-                    p.Kill();
+                    GracefulProcessStop.Stop(p);   // SIGTERM first (#73), then kill
                     p.WaitForExit(5000);
                     stopped++;
                 }

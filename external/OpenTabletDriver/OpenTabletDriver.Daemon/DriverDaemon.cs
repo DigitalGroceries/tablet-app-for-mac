@@ -423,27 +423,25 @@ namespace OpenTabletDriver.Daemon
         /// <summary>Tablet App for Mac (#36, #73): every settings change builds a new output mode and, on macOS,
         /// a new virtual mouse. A button the old mouse was holding (the pen tip pressed while a click switches
         /// the app's per-app settings) was never let go: macOS kept a left button down with no up. Let go of
-        /// anything held before the old mouse is dropped. Fails open.</summary>
-        private static void ReleaseHeldButtons(string group, IOutputMode? outputMode)
+        /// anything held before the old mouse is dropped. Never throws; every outcome is logged.</summary>
+        private static void ReleaseHeldButtons(string group, IOutputMode? outputMode, string reason = "settings change")
         {
-            try
+            var pointer = outputMode switch
             {
-                var pointer = outputMode switch
-                {
-                    AbsoluteOutputMode absolute => (object?)absolute.Pointer,
-                    RelativeOutputMode relative => relative.Pointer,
-                    _ => null
-                };
-                if (pointer is MacOSVirtualMouse { HasHeldButtons: true } mouse)
-                {
-                    mouse.ReleaseHeldButtons();
-                    Log.Write(group, "Released the mouse buttons held during a settings change", LogLevel.Debug);
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Write(group, $"Couldn't release held mouse buttons: {e.Message}", LogLevel.Debug);
-            }
+                AbsoluteOutputMode absolute => (object?)absolute.Pointer,
+                RelativeOutputMode relative => relative.Pointer,
+                _ => null
+            };
+            HeldButtonRelease.TryRelease(pointer, group, reason);
+        }
+
+        /// <summary>Tablet App for Mac (#73): the driver is closing (quit, update, "Restart driver"). A button the
+        /// virtual mouse still holds would stay down in macOS after this process is gone, so the user's real
+        /// mouse button would no longer click. Called once, before the process exits.</summary>
+        public void ReleaseAllHeldButtons()
+        {
+            foreach (var dev in Driver.InputDevices)
+                ReleaseHeldButtons(dev.Properties.Name, dev.OutputMode, "driver closing");
         }
 
         private static void SetOutputModeElements(InputDeviceTree dev, IOutputMode outputMode, Profile profile, BindingHandler bindingHandler)

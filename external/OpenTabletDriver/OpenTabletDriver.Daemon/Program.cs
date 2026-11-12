@@ -115,7 +115,12 @@ namespace OpenTabletDriver.Daemon
             try
             {
                 daemonRunning = true;
-                await host.Run(BuildDaemon(), cts.Token);
+                var daemon = BuildDaemon();
+                await host.Run(daemon, cts.Token);
+                // Tablet App for Mac (#73): let go of any mouse button the pen still holds before this process
+                // exits; macOS would otherwise keep that button pressed with nobody left to release it.
+                try { daemon.ReleaseAllHeldButtons(); }
+                catch (Exception e) { Log.Write("ProgramMain", $"Couldn't release the held mouse buttons on exit: {e.Message}", LogLevel.Warning); }
                 daemonRunning = false;
                 Log.Write("ProgramMain", "Daemon gracefully stopped");
             }

@@ -63,7 +63,7 @@ public class RelativeClickTests
     {
         var daemon = Source(Daemon);
         Assert.Matches(new Regex(@"ReleaseHeldButtons\(dev\.Properties\.Name, dev\.OutputMode\);\s*dev\.OutputMode\?\.Dispose\(\);"), daemon);
-        Assert.Contains("mouse.ReleaseHeldButtons();", daemon);
+        Assert.Contains("HeldButtonRelease.TryRelease(pointer, group, reason);", daemon);   // #73: now one shared, logged helper
 
         var mouse = Source(Mouse);
         var release = mouse[mouse.IndexOf("public void ReleaseHeldButtons()")..];
