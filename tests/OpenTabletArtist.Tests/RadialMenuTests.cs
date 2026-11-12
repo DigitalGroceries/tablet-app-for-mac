@@ -950,7 +950,7 @@ public class RadialMenuEditorTests
     public void CentreHintFor_MatchesWhatTheRealButtonsDo()
     {
         Assert.Equal("Closes the menu.", RadialMenuEditorViewModel.CentreHintFor(RadialMenuGeometry.Centre));
-        Assert.Equal("Then tap a slice to choose what it does.", RadialMenuEditorViewModel.CentreHintFor(RadialMenuGeometry.Edit));
+        Assert.Equal("Turns on edit mode: then tap a slice to choose what it does.", RadialMenuEditorViewModel.CentreHintFor(RadialMenuGeometry.Edit));
         Assert.Equal("Asks whether to restore the 8 default slices.", RadialMenuEditorViewModel.CentreHintFor(RadialMenuGeometry.Restore));
         Assert.Equal("Drag to move the menu.", RadialMenuEditorViewModel.CentreHintFor(RadialMenuGeometry.Hand));
         Assert.Equal("", RadialMenuEditorViewModel.CentreHintFor(0));   // a slice is not a centre button
@@ -973,11 +973,11 @@ public class RadialMenuEditorTests
         {
             Assert.False(vm.HasCentreHint);
             vm.ExplainCentre(RadialMenuGeometry.Edit);
-            Assert.Equal("Then tap a slice to choose what it does.", vm.CentreHint);
+            Assert.Equal("Turns on edit mode: then tap a slice to choose what it does.", vm.CentreHint);
             Assert.True(vm.HasCentreHint);
             Assert.Equal(slice, vm.SelectedSlice);
             Assert.Equal(label, vm.SliceLabel);
-            Assert.Contains(lines, l => l.Contains("the pencil in the picture was clicked") && l.Contains("Then tap a slice to choose what it does."));
+            Assert.Contains(lines, l => l.Contains("the pencil in the picture was clicked") && l.Contains("Turns on edit mode: then tap a slice to choose what it does."));
         }
         finally { AppLog.LineWritten -= H; }
     }

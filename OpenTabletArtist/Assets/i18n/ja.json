@@ -602,7 +602,7 @@
   "radial.default.zoom_in": "拡大",
   "radial.restore_prompt": "8つの初期スライスに戻しますか？",
   "radial.centre.close": "メニューを閉じます。",
-  "radial.centre.edit": "次にスライスをタップして動作を選びます。",
+  "radial.centre.edit": "編集モードにします。次にスライスをタップして動作を選びます。",
   "radial.centre.restore": "8つの初期スライスに戻すか確認します。",
   "radial.centre.hand": "ドラッグしてメニューを移動します。",
   "radial.yes": "はい",

@@ -602,7 +602,7 @@
   "radial.default.zoom_in": "放大",
   "radial.restore_prompt": "恢复 8 个默认扇区吗？",
   "radial.centre.close": "关闭菜单。",
-  "radial.centre.edit": "然后点按一个扇区来选择它的功能。",
+  "radial.centre.edit": "开启编辑模式：然后点按一个扇区来选择它的功能。",
   "radial.centre.restore": "询问是否恢复 8 个默认扇区。",
   "radial.centre.hand": "拖动以移动菜单。",
   "radial.yes": "是",

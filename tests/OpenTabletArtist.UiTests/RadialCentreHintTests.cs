@@ -71,7 +71,7 @@ public class RadialCentreHintTests
             var cases = new (int Code, string Text, string LogName)[]
             {
                 (RadialMenuGeometry.Centre, "Closes the menu.", "X"),
-                (RadialMenuGeometry.Edit, "Then tap a slice to choose what it does.", "pencil"),
+                (RadialMenuGeometry.Edit, "Turns on edit mode: then tap a slice to choose what it does.", "pencil"),
                 (RadialMenuGeometry.Restore, "Asks whether to restore the 8 default slices.", "circular arrow"),
                 (RadialMenuGeometry.Hand, "Drag to move the menu.", "hand"),
             };

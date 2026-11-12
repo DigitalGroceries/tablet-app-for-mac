@@ -602,7 +602,7 @@
   "radial.default.zoom_in": "Vergrößern",
   "radial.restore_prompt": "Die 8 Standard-Felder wiederherstellen?",
   "radial.centre.close": "Schließt das Menü.",
-  "radial.centre.edit": "Tippe danach ein Feld an, um festzulegen, was es tut.",
+  "radial.centre.edit": "Schaltet den Bearbeitungsmodus ein: tippe danach ein Feld an, um festzulegen, was es tut.",
   "radial.centre.restore": "Fragt, ob die 8 Standard-Felder wiederhergestellt werden sollen.",
   "radial.centre.hand": "Ziehen, um das Menü zu verschieben.",
   "radial.yes": "Ja",

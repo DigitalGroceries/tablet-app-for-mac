@@ -98,7 +98,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     public static string CentreHintFor(int code) => code switch
     {
         RadialMenuGeometry.Centre => Localizer.Te("radial.centre.close", "Closes the menu."),
-        RadialMenuGeometry.Edit => Localizer.Te("radial.centre.edit", "Then tap a slice to choose what it does."),
+        RadialMenuGeometry.Edit => Localizer.Te("radial.centre.edit", "Turns on edit mode: then tap a slice to choose what it does."),
         RadialMenuGeometry.Restore => Localizer.Te("radial.centre.restore", "Asks whether to restore the 8 default slices."),
         RadialMenuGeometry.Hand => Localizer.Te("radial.centre.hand", "Drag to move the menu."),
         _ => "",

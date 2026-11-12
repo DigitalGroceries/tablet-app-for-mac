@@ -602,7 +602,7 @@
   "radial.default.zoom_in": "Zoom avant",
   "radial.restore_prompt": "Rétablir les 8 parts par défaut ?",
   "radial.centre.close": "Ferme le menu.",
-  "radial.centre.edit": "Touchez ensuite une part pour choisir ce qu'elle fait.",
+  "radial.centre.edit": "Active le mode édition : touchez ensuite une part pour choisir ce qu'elle fait.",
   "radial.centre.restore": "Demande si les 8 parts par défaut doivent être rétablies.",
   "radial.centre.hand": "Glissez pour déplacer le menu.",
   "radial.yes": "Oui",
