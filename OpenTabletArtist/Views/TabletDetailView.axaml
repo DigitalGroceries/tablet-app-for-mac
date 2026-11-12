@@ -488,8 +488,6 @@
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
                 <RadioButton Content="eraser" x:Name="EraserTab" IsVisible="{Binding PenToolActive}"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
-                <RadioButton Content="radial menu" x:Name="RadialTab" IsVisible="{Binding PenToolActive}"
-                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
                 <RadioButton Content="mapping" x:Name="MappingTab"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3">
                     <RadioButton.IsVisible>
@@ -1549,9 +1547,36 @@
                             </StackPanel>
                         </HeaderedContentControl>
                     </StackPanel>
-                    <Grid Grid.Column="2" ColumnDefinitions="64,24,*">
+                    <Grid Grid.Column="2" ColumnDefinitions="64,16,*,16,Auto">
                         <views:PenDiagram VerticalAlignment="Center" />
-                        <StackPanel Grid.Column="2" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <!-- TASKS #63 (Zak 20:53): the radial menu's picture, always shown between the pen drawing and the Button cards, with
+                             the label above it. Clicking it opens the radial menu editor for the selected application and the pen button that
+                             has the Radial menu. Nothing on the radial menu: the picture is dimmed and says so, with "Use pen button 2".
+                             It has its own column, so the cards (and the "Press a pen button to test it" line with the lit badges) never overlap it. -->
+                        <StackPanel x:Name="RadialSpot" Grid.Column="2" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="230">
+                            <TextBlock x:Name="RadialSpotHeading" Text="{Binding RadialSpotHeading}" FontWeight="SemiBold" TextWrapping="Wrap"
+                                       HorizontalAlignment="Center" TextAlignment="Center" />
+                            <Button x:Name="RadialSpotButton" Padding="4" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0"
+                                    Cursor="Hand" IsEnabled="{Binding CanEditRadial}" Click="OnRadialSpotClick"
+                                    AutomationProperties.Name="{Binding RadialSpotHeading}"
+                                    Opacity="{Binding RadialSpotOpacity}">
+                                <Button.Styles>
+                                    <Style Selector="Button#RadialSpotButton /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+                                    <Style Selector="Button#RadialSpotButton:disabled /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+                                    <Style Selector="Button#RadialSpotButton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="#18FFFFFF" /></Style>
+                                </Button.Styles>
+                                <Viewbox Stretch="Uniform" MaxWidth="190" MaxHeight="190" MinWidth="120" MinHeight="120">
+                                    <ctrl:RadialMenuPie x:Name="RadialSpotPie" Width="220" Height="220" IsHitTestVisible="False"
+                                                        Labels="{Binding RadialPreview.Labels}" SetFlags="{Binding RadialPreview.SetFlags}"
+                                                        SubmenuFlags="{Binding RadialPreview.SubmenuFlags}" Transparency="{Binding RadialPreview.Transparency}" />
+                                </Viewbox>
+                            </Button>
+                            <TextBlock x:Name="RadialSpotLine" Text="{Binding RadialSpotLine}" FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
+                                       HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                            <Button x:Name="RadialUseButton" Content="{Binding RadialUseButtonLabel}" Command="{Binding UseRadialButtonCommand}"
+                                    IsVisible="{Binding CanUseRadialButton}" HorizontalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="4" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Right">
                             <TextBlock x:Name="PenButtonTestLine" Text="{Binding PenButtonTestText}" FontSize="12"
                                        Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HasPenButtons}" />
                             <views:PenSwitchCard DataContext="{Binding PenButton3Row}"
@@ -1661,29 +1686,6 @@
             </StackPanel>
             </Border>
         </ScrollViewer>
-
-        <!-- ===== TASKS #63: RADIAL MENU tab (between Eraser and Mapping): the radial menu editor of the selected application inside
-             the page, the same editor as Button > Change... > Radial menu. The top line says what opens it. ===== -->
-        <ScrollViewer Grid.Row="2" x:Name="RadialPage" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
-                      IsVisible="{Binding #RadialTab.IsChecked}">
-            <StackPanel Spacing="10">
-                <StackPanel Spacing="8">
-                    <StackPanel Orientation="Horizontal" Spacing="14">
-                        <TextBlock x:Name="RadialTopLineText" Text="{Binding RadialTopLine}" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" />
-                        <Button x:Name="RadialUseButton" Content="{Binding RadialUseButtonLabel}" Command="{Binding UseRadialButtonCommand}"
-                                IsVisible="{Binding CanUseRadialButton}" Padding="12,6" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding ShowRadialChooser}">
-                        <TextBlock Text="{Binding RadialChooseLabel}" VerticalAlignment="Center" />
-                        <ComboBox x:Name="RadialChooser" ItemsSource="{Binding RadialOpeners}" SelectedItem="{Binding SelectedRadialOpener}" MinWidth="200" />
-                    </StackPanel>
-                </StackPanel>
-                <Border Classes="wacomPane" HorizontalAlignment="Stretch" IsVisible="{Binding HasRadialOpener}">
-                    <ContentControl x:Name="RadialEditorHost" IsEnabled="{Binding CanEditRadial}" HorizontalContentAlignment="Stretch" />
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
-
 
         <!-- ===== Build O: bottom bar like Wacom's (About · Options… · Help). Default lives on each tab. ===== -->
         <Border Grid.Row="3" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Padding="0,8,0,0" Margin="0,8,0,0">

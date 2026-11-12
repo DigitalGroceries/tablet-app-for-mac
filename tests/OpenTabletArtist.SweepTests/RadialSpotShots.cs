@@ -16,13 +16,13 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>TASKS #63: pictures of Tablet › Pen › Radial menu at 1100x720 (Zak's window), 900x600 and larger, with the tab hosted like
-/// the app does (below the nav row, above the footer). Output: $OTA_SHOTS/radial-tab-*.png or /workspace.</summary>
-public class RadialTabShots
+/// <summary>TASKS #63: pictures of Tablet › Pen with the Radial Menu Settings picture at 1100x720 (Zak's window), 900x600 and larger, with the page hosted like
+/// the app does (below the nav row, above the footer). Output: $OTA_SHOTS/radial-spot-*.png or /workspace.</summary>
+public class RadialSpotShots
 {
     static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
 
-    internal static (TabletDetailViewModel Vm, TabletDetailView View, Window Window) Open(double w, double h, bool radialOnButton2, string tab = "RadialTab")
+    internal static (TabletDetailViewModel Vm, TabletDetailView View, Window Window) Open(double w, double h, bool radialOnButton2, string tab = "PenTab")
     {
         _ = new ThemeViewModel();
         var profile = new Profile { Tablet = "Wacom Intuos4 PTK-440", OutputMode = new PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)) };
@@ -41,6 +41,13 @@ public class RadialTabShots
         window.Show();
         view.FindControl<RadioButton>(tab)!.IsChecked = true;
         Settle(window);
+        // the page scrolls in a short window: scroll the picture (and its line / button) into view
+        var spot = view.FindControl<StackPanel>("RadialSpot")!;
+        var use = view.FindControl<Button>("RadialUseButton")!;
+        (use.IsEffectivelyVisible ? (Control)use : view.FindControl<TextBlock>("RadialSpotLine")!).BringIntoView();
+        Settle(window);
+        spot.FindControl<TextBlock>("RadialSpotHeading")!.BringIntoView();
+        Settle(window);
         return (vm, view, window);
     }
 
@@ -49,21 +56,24 @@ public class RadialTabShots
     [AvaloniaTheory]
     [InlineData(1100, 720)]
     [InlineData(900, 600)]
-    [InlineData(1500, 1000)]
-    public void RadialTab(double w, double h)
+    [InlineData(1100, 1000)]
+    public void RadialSpot(double w, double h)
     {
         Directory.CreateDirectory(Dir);
         var (vm, _, win) = Open(w, h, radialOnButton2: true);
-        win.CaptureRenderedFrame()!.Save($"{Dir}/radial-tab-{(int)w}x{(int)h}.png");
+        win.CaptureRenderedFrame()!.Save($"{Dir}/radial-spot-{(int)w}x{(int)h}.png");
         win.Close();
     }
 
-    [AvaloniaFact]
-    public void RadialTab_NoButtonYet()
+    [AvaloniaTheory]
+    [InlineData(1100, 720)]
+    [InlineData(900, 600)]
+    [InlineData(1100, 1000)]
+    public void RadialSpot_NoButtonYet(double w, double h)
     {
         Directory.CreateDirectory(Dir);
-        var (vm, _, win) = Open(1100, 720, radialOnButton2: false);
-        win.CaptureRenderedFrame()!.Save($"{Dir}/radial-tab-none-1100x720.png");
+        var (vm, _, win) = Open(w, h, radialOnButton2: false);
+        win.CaptureRenderedFrame()!.Save($"{Dir}/radial-spot-none-{(int)w}x{(int)h}.png");
         win.Close();
     }
 }
