@@ -36,7 +36,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     public IReadOnlyList<bool>? SetFlags { get => GetValue(SetFlagsProperty); set => SetValue(SetFlagsProperty, value); }
     /// <summary>Which slices open a submenu (drawn with a small arrow).</summary>
     public IReadOnlyList<bool>? SubmenuFlags { get => GetValue(SubmenuFlagsProperty); set => SetValue(SubmenuFlagsProperty, value); }
-    /// <summary>Slice under the pen (on-screen menu), <see cref="RadialMenuGeometry.Centre"/> for the X, <see cref="RadialMenuGeometry.Hand"/> for the hand.</summary>
+    /// <summary>Slice under the pen (on-screen menu), or one of the centre buttons (<see cref="RadialMenuGeometry.Centre"/> X, <see cref="RadialMenuGeometry.Edit"/>, <see cref="RadialMenuGeometry.Restore"/>, <see cref="RadialMenuGeometry.Hand"/>).</summary>
     public int Highlight { get => GetValue(HighlightProperty); set => SetValue(HighlightProperty, value); }
     /// <summary>Slice picked in the editor.</summary>
     public int Selected { get => GetValue(SelectedProperty); set => SetValue(SelectedProperty, value); }
@@ -55,7 +55,8 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
 
     static RadialMenuPie()
     {
-        AffectsRender<RadialMenuPie>(LabelsProperty, SetFlagsProperty, SubmenuFlagsProperty, HighlightProperty, SelectedProperty);
+        AffectsRender<RadialMenuPie>(LabelsProperty, SetFlagsProperty, SubmenuFlagsProperty, HighlightProperty, SelectedProperty,
+            CentreTextProperty, EditingProperty);
     }
 
     private static readonly IBrush SliceFill = new SolidColorBrush(Color.FromArgb(235, 40, 44, 52));
@@ -101,27 +102,116 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
             ctx.DrawText(ft, new Point(p.X - maxW / 2, p.Y - ft.Height / 2));
         }
 
-        // Centre: two half-circle buttons with a divider. Top: the X closes the menu. Bottom: the open hand, press
-        // and move to drag the menu somewhere else.
-        ctx.DrawGeometry(Highlight == RadialMenuGeometry.Centre ? HighlightFill : CentreFill, Edge, Half(c, inner, top: true));
-        ctx.DrawGeometry(Highlight == RadialMenuGeometry.Hand ? HighlightFill : CentreFill, Edge, Half(c, inner, top: false));
-        var divider = new Pen(new SolidColorBrush(Color.FromArgb(220, 228, 228, 228)), Math.Max(2, inner / 22));
+        // Centre: four quarter buttons split by a cross. Top left: the X closes the menu. Top right: the pencil, then tap
+        // a slice to choose what it does. Bottom left: the circular arrow restores the default slices. Bottom right: the
+        // open hand, press and move to drag the menu somewhere else. While the Yes / No question shows, the centre is
+        // just the question.
+        var divider = new Pen(new SolidColorBrush(Color.FromArgb(220, 228, 228, 228)), Math.Max(2, inner / 28));
+        if (!string.IsNullOrEmpty(CentreText))
+        {
+            ctx.DrawEllipse(CentreFill, Edge, c, inner, inner);
+            var q = new FormattedText(CentreText!, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, Typeface.Default,
+                Math.Clamp(inner / 5, 10, 16), TextBrush)
+            { MaxTextWidth = inner * 1.6, MaxLineCount = 4, TextAlignment = TextAlignment.Center, Trimming = TextTrimming.CharacterEllipsis };
+            ctx.DrawText(q, new Point(c.X - inner * 0.8, c.Y - q.Height / 2));
+            return;
+        }
+        for (int quarter = 0; quarter < 4; quarter++)
+        {
+            int code = QuarterCodes[quarter];
+            bool on = code == RadialMenuGeometry.Edit && Editing;
+            ctx.DrawGeometry(Highlight == code ? HighlightFill : on ? SelectedFill : CentreFill, Edge, Quarter(c, inner, quarter));
+        }
         ctx.DrawLine(divider, new Point(c.X - inner, c.Y), new Point(c.X + inner, c.Y));
+        ctx.DrawLine(divider, new Point(c.X, c.Y - inner), new Point(c.X, c.Y + inner));
 
-        double x = inner * 0.2;
-        var xc = new Point(c.X, c.Y - inner * 0.5);
-        var xPen = new Pen(TextBrush, Math.Max(2, inner / 12), lineCap: PenLineCap.Round);
-        ctx.DrawLine(xPen, new Point(xc.X - x, xc.Y - x), new Point(xc.X + x, xc.Y + x));
-        ctx.DrawLine(xPen, new Point(xc.X - x, xc.Y + x), new Point(xc.X + x, xc.Y - x));
+        double u = inner * 0.5;                       // distance of a quarter's middle from the centre
+        double s = inner * 0.30;                      // icon size
+        DrawX(ctx, new Point(c.X - u, c.Y - u), s * 0.7);
+        DrawPencil(ctx, new Point(c.X + u, c.Y - u), s);
+        DrawRestore(ctx, new Point(c.X - u, c.Y + u), s);
+        DrawHand(ctx, new Point(c.X + u, c.Y + u), s * 1.5);
+    }
 
-        DrawHand(ctx, new Point(c.X, c.Y + inner * 0.5), inner * 0.62);
+    private static readonly int[] QuarterCodes =
+    {
+        RadialMenuGeometry.Centre, RadialMenuGeometry.Edit, RadialMenuGeometry.Hand, RadialMenuGeometry.Restore,
+    };
+
+    /// <summary>The Yes / No question in the centre (null: the four buttons).</summary>
+    public string? CentreText { get => GetValue(CentreTextProperty); set => SetValue(CentreTextProperty, value); }
+    public static readonly StyledProperty<string?> CentreTextProperty =
+        AvaloniaProperty.Register<RadialMenuPie, string?>(nameof(CentreText));
+
+    /// <summary>The pencil has been tapped: it is drawn as pressed until a slice is chosen.</summary>
+    public bool Editing { get => GetValue(EditingProperty); set => SetValue(EditingProperty, value); }
+    public static readonly StyledProperty<bool> EditingProperty =
+        AvaloniaProperty.Register<RadialMenuPie, bool>(nameof(Editing));
+
+    private static void DrawX(DrawingContext ctx, Point at, double r)
+    {
+        var pen = new Pen(TextBrush, Math.Max(2, r / 3.2), lineCap: PenLineCap.Round);
+        ctx.DrawLine(pen, new Point(at.X - r, at.Y - r), new Point(at.X + r, at.Y + r));
+        ctx.DrawLine(pen, new Point(at.X - r, at.Y + r), new Point(at.X + r, at.Y - r));
+    }
+
+    /// <summary>A pencil pointing down-left: a slanted body with a tip. Our own simple drawing.</summary>
+    private static void DrawPencil(DrawingContext ctx, Point at, double s)
+    {
+        // Along the pencil's axis (from the tip at the lower left to the end at the upper right).
+        Point P(double along, double across)
+        {
+            const double k = 0.7071;   // 45 degrees
+            return new Point(at.X + (along * k - across * k) * s, at.Y + (-along * k - across * k) * s);
+        }
+        var body = new StreamGeometry();
+        using (var g = body.Open())
+        {
+            g.BeginFigure(P(-1.15, 0), true);        // the tip
+            g.LineTo(P(-0.6, 0.32));
+            g.LineTo(P(1.0, 0.32));
+            g.LineTo(P(1.0, -0.32));
+            g.LineTo(P(-0.6, -0.32));
+            g.EndFigure(true);
+        }
+        ctx.DrawGeometry(TextBrush, null, body);
+        var cut = new Pen(CentreFill, Math.Max(1, s / 7));
+        ctx.DrawLine(cut, P(-0.6, 0.32), P(-0.6, -0.32));
+        ctx.DrawLine(cut, P(0.72, 0.32), P(0.72, -0.32));
+    }
+
+    /// <summary>A circular arrow turning back (counter-clockwise) with an arrow head: "restore".</summary>
+    private static void DrawRestore(DrawingContext ctx, Point at, double s)
+    {
+        double r = s * 0.85;
+        var pen = new Pen(TextBrush, Math.Max(2, s / 3.2), lineCap: PenLineCap.Round);
+        var arc = new StreamGeometry();
+        using (var g = arc.Open())
+        {
+            // From the upper left, clockwise round the right side, to the left: a 270 degree arc.
+            g.BeginFigure(PointAt(at, r, -45), false);
+            g.ArcTo(PointAt(at, r, -135), new Size(r, r), 0, true, SweepDirection.Clockwise);
+            g.EndFigure(false);
+        }
+        ctx.DrawGeometry(null, pen, arc);
+        // The arrow head at the start of the arc (upper left), pointing back along it.
+        var tip = PointAt(at, r, -45);
+        var head = new StreamGeometry();
+        using (var g = head.Open())
+        {
+            g.BeginFigure(new Point(tip.X + s * 0.15, tip.Y - s * 0.75), true);
+            g.LineTo(new Point(tip.X - s * 0.9, tip.Y + s * 0.1));
+            g.LineTo(new Point(tip.X + s * 0.85, tip.Y + s * 0.55));
+            g.EndFigure(true);
+        }
+        ctx.DrawGeometry(TextBrush, null, head);
     }
 
     /// <summary>Our own open-hand "pan" icon (four fingers, a thumb and a palm, all rounded), drawn from simple shapes.
     /// <paramref name="s"/> is the unit: the icon is about 1.1 s tall.</summary>
     private static void DrawHand(DrawingContext ctx, Point at, double s)
     {
-        var o = new Point(at.X, at.Y + 0.05 * s);   // y 0 = the top of the palm
+        var o = new Point(at.X, at.Y - 0.2 * s);   // y 0 = the top of the palm
         double w = 0.17 * s;
         var pen = new Pen(TextBrush, w, lineCap: PenLineCap.Round);
         Point P(double x, double y) => new(o.X + x * s, o.Y + y * s);
@@ -136,15 +226,17 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
         ctx.DrawGeometry(TextBrush, null, new RectangleGeometry(new Rect(P(-0.39, 0.0), P(0.39, 0.46)), 0.2 * s, 0.2 * s));
     }
 
-    /// <summary>The top or bottom half of the centre disc.</summary>
-    private static Geometry Half(Point c, double r, bool top)
+    /// <summary>One quarter of the centre disc: 0 top left, 1 top right, 2 bottom right, 3 bottom left.</summary>
+    private static Geometry Quarter(Point c, double r, int quarter)
     {
+        // Angles clockwise from the top: top right is 0..90, bottom right 90..180, bottom left 180..270, top left 270..360.
+        double from = quarter switch { 0 => 270, 1 => 0, 2 => 90, _ => 180 };
         var g = new StreamGeometry();
         using (var ctx = g.Open())
         {
-            // Clockwise from the left point over the top, or from the right point under the bottom.
-            ctx.BeginFigure(top ? new Point(c.X - r, c.Y) : new Point(c.X + r, c.Y), true);
-            ctx.ArcTo(top ? new Point(c.X + r, c.Y) : new Point(c.X - r, c.Y), new Size(r, r), 0, false, SweepDirection.Clockwise);
+            ctx.BeginFigure(c, true);
+            ctx.LineTo(PointAt(c, r, from));
+            ctx.ArcTo(PointAt(c, r, from + 90), new Size(r, r), 0, false, SweepDirection.Clockwise);
             ctx.EndFigure(true);
         }
         return g;

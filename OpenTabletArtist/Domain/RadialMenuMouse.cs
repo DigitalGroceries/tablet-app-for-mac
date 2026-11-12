@@ -5,9 +5,13 @@ namespace OpenTabletArtist.Domain;
 /// <summary>What a mouse press on the on-screen radial menu landed on.</summary>
 public enum RadialTarget
 {
-    /// <summary>The top half of the centre circle: close.</summary>
+    /// <summary>Centre, top left (the X): close.</summary>
     Close,
-    /// <summary>The bottom half of the centre circle (the open hand): drag to move the menu.</summary>
+    /// <summary>Centre, top right (the pencil): then tap a slice to choose what it does.</summary>
+    Edit,
+    /// <summary>Centre, bottom left (the circular arrow): restore the default slices.</summary>
+    Restore,
+    /// <summary>Centre, bottom right (the open hand): drag to move the menu.</summary>
     Hand,
     Slice,
     Outside,
@@ -24,6 +28,8 @@ public static class RadialMenuMouse
     {
         int s = RadialMenuGeometry.SliceAt(dx, dy, size);
         if (s == RadialMenuGeometry.Centre) return (RadialTarget.Close, -1);
+        if (s == RadialMenuGeometry.Edit) return (RadialTarget.Edit, -1);
+        if (s == RadialMenuGeometry.Restore) return (RadialTarget.Restore, -1);
         if (s == RadialMenuGeometry.Hand) return (RadialTarget.Hand, -1);
         if (s == RadialMenuGeometry.Outside) return (RadialTarget.Outside, -1);
         return (RadialTarget.Slice, s);
