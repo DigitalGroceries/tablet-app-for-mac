@@ -1577,7 +1577,7 @@
                                     <Button.Styles>
                                         <Style Selector="Button#RadialSpotButton /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
                                         <Style Selector="Button#RadialSpotButton:disabled /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
-                                        <Style Selector="Button#RadialSpotButton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="#18FFFFFF" /></Style>
+                                        <Style Selector="Button#RadialSpotButton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" /></Style>
                                     </Button.Styles>
                                     <Viewbox x:Name="RadialSpotViewbox" Stretch="Uniform" Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}">
                                         <ctrl:RadialMenuPie x:Name="RadialSpotPie" Width="220" Height="220" IsHitTestVisible="False"

@@ -141,6 +141,9 @@ public static class RadialMenuJson
 
     private static readonly System.Collections.Generic.HashSet<int> _loggedLargeSizes = new();
 
+    /// <summary>Where the "saved size is too large" line goes (the app points it at its log; this file is shared with plugins that have none).</summary>
+    public static Action<string>? Log { get; set; }
+
     /// <summary>A menu size within <see cref="RadialMenuDef.MinSize"/>..<see cref="RadialMenuDef.MaxSize"/>. A saved size above the
     /// largest (older versions allowed up to 100) is brought down to it; each such value is logged once per run.</summary>
     internal static int ClampSize(int size)
@@ -149,7 +152,7 @@ public static class RadialMenuJson
         {
             bool first; lock (_loggedLargeSizes) first = _loggedLargeSizes.Add(size);
             if (first)
-                Services.AppLog.Info($"Radial menu: a saved menu size of {size} is larger than the largest allowed ({RadialMenuDef.MaxSize}, " +
+                Log?.Invoke($"Radial menu: a saved menu size of {size} is larger than the largest allowed ({RadialMenuDef.MaxSize}, " +
                                      $"{RadialMenuDef.MaxDiameter:0} pt across), so it is used as {RadialMenuDef.MaxSize}; the saved value is corrected the next time the menu is saved.");
         }
         return Math.Clamp(size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);

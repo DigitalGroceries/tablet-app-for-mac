@@ -45,10 +45,16 @@ public class RadialMenuModelTests
     [Fact]
     public void Size_ChangesRadius()
     {
-        Assert.True(RadialMenuGeometry.OuterRadius(100) > RadialMenuGeometry.OuterRadius(1));
+        Assert.True(RadialMenuGeometry.OuterRadius(50) > RadialMenuGeometry.OuterRadius(1));
         Assert.Equal(160, RadialMenuGeometry.OuterRadius(50), 3);
+        // TASKS #63 (Zak 21:01): nothing is bigger than the largest size (50 = 320 pt across), whatever number is stored.
+        Assert.Equal(50, RadialMenuDef.MaxSize);
+        Assert.Equal(RadialMenuDef.MaxDiameter, 2 * RadialMenuGeometry.OuterRadius(RadialMenuDef.MaxSize), 3);
+        Assert.Equal(RadialMenuGeometry.OuterRadius(50), RadialMenuGeometry.OuterRadius(100), 3);
+        Assert.Equal(RadialMenuGeometry.OuterRadius(50), RadialMenuGeometry.OuterRadius(int.MaxValue), 3);
         Assert.Equal(RadialMenuGeometry.Outside, RadialMenuGeometry.SliceAt(0, -200, 1));
-        Assert.Equal(0, RadialMenuGeometry.SliceAt(0, -200, 100));
+        Assert.Equal(RadialMenuGeometry.Outside, RadialMenuGeometry.SliceAt(0, -200, 100));   // beyond the 160 pt radius
+        Assert.Equal(0, RadialMenuGeometry.SliceAt(0, -150, 50));
     }
 
     [Fact]
@@ -74,12 +80,12 @@ public class RadialMenuModelTests
     public void Json_RoundTrips()
     {
         var m = RadialMenuDefaults.Create();
-        m.Size = 80;
+        m.Size = 40;
         m.Slices[3] = new RadialSlice { Label = "Tools", Action = RadialActions.Submenu, Submenu = RadialMenuDefaults.Create() };
         m.Slices[4] = new RadialSlice { Label = "Safari", Action = RadialActions.Open, App = "com.apple.Safari" };
         m.Slices[5] = new RadialSlice { Label = "Right", Action = RadialActions.Click, Click = "Right" };
         var back = RadialMenuJson.Parse(RadialMenuJson.Serialize(m));
-        Assert.Equal(80, back.Size);
+        Assert.Equal(40, back.Size);
         Assert.Equal(RadialActions.Submenu, back.Slices[3].Action);
         Assert.Equal("Application+Z", back.Slices[3].Submenu!.Slices[0].Keys);
         Assert.Equal("com.apple.Safari", back.Slices[4].App);
@@ -768,6 +774,22 @@ public class RadialMenuEditorTests
     }
 
     [Fact]
+    public void SavedSizeAbove50_IsUsedAs50_NeverBiggerThan320()
+    {
+        var m = RadialMenuDefaults.Create(); m.Size = 50;
+        var json = RadialMenuJson.Serialize(m).Replace("\"size\":50", "\"size\":100");
+        Assert.Contains("\"size\":100", json);
+        Assert.Equal(50, RadialMenuJson.Parse(json).Size);
+        var vm = new RadialMenuEditorViewModel(json, "x");
+        Assert.Equal(50, vm.Size);
+        Assert.Equal(320, vm.PreviewDiameter, 1);
+        vm.Size = 100;                                    // even if something sets more, the menu and the number stay at the largest
+        Assert.Equal(320, vm.PreviewDiameter, 1);
+        Assert.Equal("50", vm.SizeText);
+        Assert.Equal(50, RadialMenuJson.Parse(vm.CurrentJson()).Size);
+    }
+
+    [Fact]
     public void SizeSlider_ChangesThePreviewAtOnce_AndResetPutsItBackTo50()
     {
         var vm = new RadialMenuEditorViewModel(null, "x");
@@ -775,9 +797,9 @@ public class RadialMenuEditorTests
         vm.PropertyChanged += (_, e) => seen.Add(e.PropertyName!);
         Assert.Equal(320, vm.PreviewDiameter, 1);
         Assert.Equal("50", vm.SizeText);
-        vm.Size = 100;
-        Assert.Equal(2 * RadialMenuGeometry.OuterRadius(100), vm.PreviewDiameter, 1);
-        Assert.Equal("100", vm.SizeText);
+        vm.Size = 25;
+        Assert.Equal(2 * RadialMenuGeometry.OuterRadius(25), vm.PreviewDiameter, 1);
+        Assert.Equal("25", vm.SizeText);
         Assert.Contains(nameof(vm.PreviewDiameter), seen);
         Assert.Contains(nameof(vm.SizeText), seen);
         vm.Size = 1;
