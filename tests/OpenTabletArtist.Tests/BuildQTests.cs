@@ -59,6 +59,7 @@ public class ObjCSelectorTests
             "sharedApplication", "setActivationPolicy:",
             "_setPreventsActivation:", "sharedWorkspace", "frontmostApplication", "processIdentifier",
             "runningApplicationWithProcessIdentifier:", "activateWithOptions:", "isActive",
+            "setOpaque:", "setBackgroundColor:", "clearColor",
         };
         Assert.Equal(expected, OpenTabletArtist.Services.ObjCSelectors.All);
         Assert.DoesNotContain("mainApp", OpenTabletArtist.Services.ObjCSelectors.All);

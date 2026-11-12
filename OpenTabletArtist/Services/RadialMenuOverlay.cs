@@ -280,7 +280,11 @@ public sealed class RadialMenuOverlay : IDisposable
             if (_window.TryGetPlatformHandle() is Avalonia.Platform.IMacOSTopLevelPlatformHandle mac && mac.NSWindow != IntPtr.Zero)
                 MacDesktop.MakeOverlay(mac.NSWindow, clickThrough: false);
             _pointerTimer!.Start();
-            if (!wasVisible) AppLog.Info($"Radial menu shown at {st.X:0},{st.Y:0} (size {st.Size}, level {st.Depth}).");
+            if (!wasVisible)
+            {
+                double opacity = RadialMenuDef.OpacityFor(st.Transparency);
+                AppLog.Info($"Radial menu shown at {st.X:0},{st.Y:0} (size {st.Size}, transparency {st.Transparency}%, opacity {opacity:0.00}, level {st.Depth}).");
+            }
         }
         catch (Exception e)
         {

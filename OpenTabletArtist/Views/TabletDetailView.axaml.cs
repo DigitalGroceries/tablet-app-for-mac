@@ -278,22 +278,41 @@ public partial class TabletDetailView : UserControl, ITabbedContent
             sv.Offset = new Vector(Math.Max(0, sv.Offset.X + dx), sv.Offset.Y);
     }
 
-    /// <summary>TASKS #63: the transparency number box under the radial picture behaves like the editor's: Enter or leaving the box applies the
-    /// typed value ("40", "40%", "40,5"; clamped to 0-100; text that is not a number puts the old value back), Up / Down change it by 1.</summary>
+    /// <summary>TASKS #63 / v27: the transparency and size number boxes under the radial picture: Enter or leaving the box
+    /// applies the typed value (transparency: "40", "40%", "40,5", clamped to 0-100; size: clamped to 1-50; text that is not
+    /// a number, or an empty box, puts the old value back). Up / Down change it by 1.</summary>
     private void HookRadialSliders()
     {
-        var box = this.FindControl<TextBox>("RadialTransparencyBox");
-        if (box == null) { AppLog.Warn("Radial menu settings: the transparency box is missing from the Pen page."); return; }
+        HookRadialNumberBox("RadialTransparencyBox",
+            pv => pv.TransparencyInput,
+            (pv, text) => pv.TransparencyInput = text,
+            pv => pv.Transparency,
+            "transparency");
+        HookRadialNumberBox("RadialSizeBox",
+            pv => pv.SizeInput,
+            (pv, text) => pv.SizeInput = text,
+            pv => pv.Size,
+            "size");
+    }
+
+    private void HookRadialNumberBox(string name,
+        Func<ViewModels.RadialMenuEditorViewModel, string> get,
+        Action<ViewModels.RadialMenuEditorViewModel, string> set,
+        Func<ViewModels.RadialMenuEditorViewModel, int> value,
+        string kind)
+    {
+        var box = this.FindControl<TextBox>(name);
+        if (box == null) { AppLog.Warn($"Radial menu settings: the {kind} box is missing from the Pen page."); return; }
         box.AddHandler(InputElement.KeyDownEvent, (_, e) =>
         {
             var pv = Vm?.RadialPreview;
             if (pv == null) return;
-            if (e.Key is Key.Enter or Key.Return) { pv.TransparencyInput = box.Text ?? ""; box.Text = pv.TransparencyInput; box.SelectAll(); e.Handled = true; }
-            else if (e.Key == Key.Up) { pv.TransparencyInput = (pv.Transparency + 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
-            else if (e.Key == Key.Down) { pv.TransparencyInput = (pv.Transparency - 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+            if (e.Key is Key.Enter or Key.Return) { set(pv, box.Text ?? ""); box.Text = get(pv); box.SelectAll(); e.Handled = true; }
+            else if (e.Key == Key.Up) { set(pv, (value(pv) + 1).ToString(System.Globalization.CultureInfo.InvariantCulture)); e.Handled = true; }
+            else if (e.Key == Key.Down) { set(pv, (value(pv) - 1).ToString(System.Globalization.CultureInfo.InvariantCulture)); e.Handled = true; }
         }, RoutingStrategies.Tunnel);
         // After leaving the box, show the real value (clamped, or the old one when the text was not a number).
-        box.LostFocus += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (Vm?.RadialPreview is { } pv) box.Text = pv.TransparencyInput; });
+        box.LostFocus += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (Vm?.RadialPreview is { } pv) box.Text = get(pv); });
     }
 
     /// <summary>TASKS #63: the radial picture on the Pen page was clicked: the radial menu editor for the selected table.</summary>

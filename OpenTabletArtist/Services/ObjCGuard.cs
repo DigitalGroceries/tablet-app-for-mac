@@ -35,6 +35,10 @@ public static class ObjCSelectors
     public const string RunningApplicationWithPid = "runningApplicationWithProcessIdentifier:";
     public const string ActivateWithOptions = "activateWithOptions:";
     public const string IsActive = "isActive";
+    // v27: the radial menu window must be a non-opaque, clear-backed NSWindow so work behind shows through.
+    public const string SetOpaque = "setOpaque:";
+    public const string SetBackgroundColor = "setBackgroundColor:";
+    public const string ClearColor = "clearColor";
 
     public static IReadOnlyList<string> All { get; } = new[]
     {
@@ -43,6 +47,7 @@ public static class ObjCSelectors
         SharedApplication, SetActivationPolicy,
         SetPreventsActivation, SharedWorkspace, FrontmostApplication, ProcessIdentifier, RunningApplicationWithPid,
         ActivateWithOptions, IsActive,
+        SetOpaque, SetBackgroundColor, ClearColor,
     };
 }
 

@@ -36,6 +36,7 @@ internal static class MacDesktop
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern void SendNUInt(IntPtr obj, IntPtr sel, nuint value);
 
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern IntPtr SendPtr(IntPtr obj, IntPtr sel);
+    [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern void SendPtrArg(IntPtr obj, IntPtr sel, IntPtr arg);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern IntPtr SendPtrInt(IntPtr obj, IntPtr sel, int value);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern int SendIntRet(IntPtr obj, IntPtr sel);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)] private static extern bool SendBoolRet(IntPtr obj, IntPtr sel);
@@ -149,6 +150,18 @@ internal static class MacDesktop
         // NSWindowCollectionBehaviorCanJoinAllSpaces (1) | Stationary (16) | IgnoresCycle (64) | FullScreenAuxiliary (256)
         if (ObjCGuard.RespondsTo(nsWindow, ObjCSelectors.SetCollectionBehavior))
             SendNUInt(nsWindow, sel_registerName(ObjCSelectors.SetCollectionBehavior), (nuint)(1 | 16 | 64 | 256));
+        // v27 (Zak): the window itself must be non-opaque with a clear backing, or turning the menu see-through
+        // only shows a dark window background instead of the user's work.
+        if (ObjCGuard.RespondsTo(nsWindow, ObjCSelectors.SetOpaque))
+            SendBool(nsWindow, sel_registerName(ObjCSelectors.SetOpaque), false);
+        var nsColor = ObjCGuard.Class("NSColor");
+        if (nsColor != IntPtr.Zero && ObjCGuard.RespondsTo(nsColor, ObjCSelectors.ClearColor)
+            && ObjCGuard.RespondsTo(nsWindow, ObjCSelectors.SetBackgroundColor))
+        {
+            var clear = SendPtr(nsColor, sel_registerName(ObjCSelectors.ClearColor));
+            if (clear != IntPtr.Zero)
+                SendPtrArg(nsWindow, sel_registerName(ObjCSelectors.SetBackgroundColor), clear);
+        }
     }
 
     private static int _frontPid;

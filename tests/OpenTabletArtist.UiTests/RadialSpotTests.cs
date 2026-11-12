@@ -283,7 +283,9 @@ public class RadialSpotTests
 
             slider.Value = 10; Settle(window);
             Assert.Equal(10, pie.Transparency);                        // live in the picture
+            Assert.Equal(RadialMenuDef.OpacityFor(10), pie.Opacity);    // the whole picture fades (v27)
             Assert.Equal("10", box.Text);                              // synced
+            Assert.NotEqual(RadialMenuDef.OpacityFor(0), pie.Opacity);
 
             vm.RadialPreview!.TransparencyInput = "75%"; Settle(window);   // typing, as the editor accepts it
             Assert.Equal(75, (int)slider.Value); Assert.Equal(75, pie.Transparency);
@@ -313,7 +315,7 @@ public class RadialSpotTests
         var (vm, view, window, _) = Open(NewProfile(Name(), new PluginSettingStore?[] { null, Radial("A") }));
         try
         {
-            var slider = Find<Slider>(view, "RadialSizeSlider"); var number = Find<TextBlock>(view, "RadialSizeNumber");
+            var slider = Find<Slider>(view, "RadialSizeSlider"); var number = Find<TextBox>(view, "RadialSizeBox");
             var box = Find<Viewbox>(view, "RadialSpotViewbox");
             Assert.Equal(RadialMenuDef.MaxSize, (int)slider.Maximum);
             Assert.Equal(RadialMenuDef.MaxSize, 50);
@@ -324,10 +326,24 @@ public class RadialSpotTests
             Assert.Equal(TabletDetailViewModel.RadialPictureMax, large, 1);
 
             slider.Value = 10; Settle(window);
-            Assert.Equal("10", number.Text);
+            Assert.Equal("10", number.Text);                          // the number box follows the slider
             Assert.True(box.Width < large - 30, $"the picture did not get smaller: {box.Width} vs {large}");
+            vm.RadialPreview!.SizeInput = "25"; Settle(window);       // typing, as transparency does
+            Assert.Equal(25, (int)slider.Value);
+            Assert.Equal("25", number.Text);
+            vm.RadialPreview.SizeInput = "abc"; Settle(window);
+            Assert.Equal("25", number.Text);                          // not a number: the old value comes back
+            vm.RadialPreview.SizeInput = "87"; Settle(window);
+            Assert.Equal(RadialMenuDef.MaxSize, (int)slider.Value);    // clamped to 1-50
+            Assert.Equal("50", number.Text);
+            number.Focus(); Settle(window);
+            number.Text = "8";
+            number.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+            Settle(window);
+            Assert.Equal(8, (int)slider.Value); Assert.Equal("8", number.Text);   // Enter applies
             slider.Value = 1000; Settle(window);                          // above the range: held at the largest
             Assert.Equal(RadialMenuDef.MaxSize, (int)slider.Value);
+            Assert.Equal("50", number.Text);
             Assert.Equal(large, box.Width, 1);
             await Pump(TabletDetailViewModel.RadialApplyDelay.Milliseconds + 80);
         }

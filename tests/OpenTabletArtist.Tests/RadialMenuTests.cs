@@ -872,6 +872,7 @@ public class RadialMenuEditorTests
         vm.Size = 100;                                    // even if something sets more, the menu and the number stay at the largest
         Assert.Equal(320, vm.PreviewDiameter, 1);
         Assert.Equal("50", vm.SizeText);
+        Assert.Equal("50", vm.SizeInput);
         Assert.Equal(50, RadialMenuJson.Parse(vm.CurrentJson()).Size);
     }
 
@@ -883,17 +884,66 @@ public class RadialMenuEditorTests
         vm.PropertyChanged += (_, e) => seen.Add(e.PropertyName!);
         Assert.Equal(320, vm.PreviewDiameter, 1);
         Assert.Equal("50", vm.SizeText);
+        Assert.Equal("50", vm.SizeInput);
         vm.Size = 25;
         Assert.Equal(2 * RadialMenuGeometry.OuterRadius(25), vm.PreviewDiameter, 1);
         Assert.Equal("25", vm.SizeText);
+        Assert.Equal("25", vm.SizeInput);
         Assert.Contains(nameof(vm.PreviewDiameter), seen);
         Assert.Contains(nameof(vm.SizeText), seen);
+        Assert.Contains(nameof(vm.SizeInput), seen);
         vm.Size = 1;
         Assert.True(vm.PreviewDiameter < 320);
+        Assert.Equal("1", vm.SizeInput);
         vm.ResetCommand.Execute(null);
         Assert.Equal(50, vm.Size);
         Assert.Equal(320, vm.PreviewDiameter, 1);
         Assert.Equal("50", vm.SizeText);
+        Assert.Equal("50", vm.SizeInput);
+    }
+
+    [Theory]
+    [InlineData("25", 25, "25")]
+    [InlineData(" 7 ", 7, "7")]
+    [InlineData("12,6", 13, "13")]
+    [InlineData("1", 1, "1")]
+    [InlineData("50", 50, "50")]
+    [InlineData("87", 50, "50")]       // clamped to 1-50 (MaxSize = 320 pt)
+    [InlineData("0", 1, "1")]
+    [InlineData("-9", 1, "1")]
+    [InlineData("abc", 50, "50")]      // not a number: the old value comes back
+    [InlineData("", 50, "50")]
+    public void Size_TypedInTheNumberBox_IsClamped_AndTheSliderValueFollows(string typed, int expected, string shown)
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");   // starts at the default, 50
+        vm.SizeInput = typed;
+        Assert.Equal(expected, vm.Size);                    // the slider is bound to this value
+        Assert.Equal(shown, vm.SizeInput);
+        Assert.Equal(shown, vm.SizeText);
+        vm.SaveCommand.Execute(null);
+        Assert.Equal(expected, RadialMenuJson.Parse(vm.Result!).Size);
+    }
+
+    [Fact]
+    public void Size_SliderMovesTheNumberBox()
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");
+        vm.Size = 12;
+        Assert.Equal("12", vm.SizeInput);
+        Assert.Equal("12", vm.SizeText);
+    }
+
+    [Fact]
+    public void OpacityFor_IsSolidAt0_AndKeepsAUsableFloorAt100()
+    {
+        Assert.Equal(0.10, RadialMenuDef.MinVisibleOpacity);
+        Assert.Equal(1.0, RadialMenuDef.OpacityFor(0));
+        Assert.Equal(0.10, RadialMenuDef.OpacityFor(100));
+        Assert.Equal(0.64, RadialMenuDef.OpacityFor(40), 2);   // default 40% → 64% opaque (36% see-through)
+        Assert.Equal(1.0, RadialMenuDef.OpacityFor(-5));
+        Assert.Equal(0.10, RadialMenuDef.OpacityFor(200));
+        Assert.True(RadialMenuDef.OpacityFor(100) < RadialMenuDef.OpacityFor(40));
+        Assert.True(RadialMenuDef.OpacityFor(40) < RadialMenuDef.OpacityFor(0));
     }
 
     [Fact]

@@ -42,8 +42,9 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     public int Highlight { get => GetValue(HighlightProperty); set => SetValue(HighlightProperty, value); }
     /// <summary>Slice picked in the editor.</summary>
     public int Selected { get => GetValue(SelectedProperty); set => SetValue(SelectedProperty, value); }
-    /// <summary>0 (solid) to 100 (clear): how see-through the slice and centre backgrounds are. Labels, divider lines,
-    /// icons and the highlighted slice are not affected.</summary>
+    /// <summary>0 (solid) to 100 (clear): how see-through the whole menu is — slices, labels, icons, ring and highlight.
+    /// 100% still leaves <see cref="RadialMenuDef.MinVisibleOpacity"/> so the menu stays usable. The Pen page preview and
+    /// the on-screen menu both follow this (v27, Zak 21:49).</summary>
     public int Transparency { get => GetValue(TransparencyProperty); set => SetValue(TransparencyProperty, value); }
     /// <summary>Editor only: clicking a slice raises <see cref="SliceClicked"/>.</summary>
     public bool Interactive { get => GetValue(InteractiveProperty); set => SetValue(InteractiveProperty, value); }
@@ -62,19 +63,22 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     {
         AffectsRender<RadialMenuPie>(LabelsProperty, SetFlagsProperty, SubmenuFlagsProperty, HighlightProperty, SelectedProperty,
             CentreTextProperty, EditingProperty, TransparencyProperty);
+        TransparencyProperty.Changed.AddClassHandler<RadialMenuPie>((pie, _) => pie.ApplyTransparencyOpacity());
     }
 
-    // The slice and centre backgrounds follow Transparency (0 = solid, 255 alpha); an empty slice is a little clearer,
-    // the highlight, the selected slice, text, lines and icons never are.
+    public RadialMenuPie() => ApplyTransparencyOpacity();
+
+    /// <summary>The whole control fades with the transparency, so the Pen page preview and the popup match what you will get.</summary>
+    private void ApplyTransparencyOpacity() => Opacity = RadialMenuDef.OpacityFor(Transparency);
+
+    // Slice / centre fills keep their own colours (an empty slice is a little clearer). See-through-ness is the control's
+    // Opacity, so labels, divider lines, icons and the highlight fade with them.
     private IBrush SliceFill => Back(40, 44, 52, 1.0);
     private IBrush EmptyFill => Back(40, 44, 52, 0.85);
     private static readonly IBrush PencilCut = new SolidColorBrush(Color.FromRgb(28, 31, 37));
     private IBrush CentreBack => Back(28, 31, 37, 1.0);
-    private IBrush Back(byte r, byte g, byte b, double k)
-    {
-        double opaque = 1 - Math.Clamp(Transparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency) / 100.0;
-        return new SolidColorBrush(Color.FromArgb((byte)Math.Round(255 * opaque * k), r, g, b));
-    }
+    private static IBrush Back(byte r, byte g, byte b, double k) =>
+        new SolidColorBrush(Color.FromArgb((byte)Math.Round(255 * k), r, g, b));
     private static readonly IBrush HighlightFill = new SolidColorBrush(Color.FromArgb(245, 61, 123, 217));
     private static readonly IBrush SelectedFill = new SolidColorBrush(Color.FromArgb(245, 86, 96, 112));
     private static readonly IPen Edge = new Pen(new SolidColorBrush(Color.FromArgb(160, 228, 228, 228)), 1.5);

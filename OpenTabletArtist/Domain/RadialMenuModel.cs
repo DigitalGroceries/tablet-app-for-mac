@@ -33,6 +33,16 @@ public sealed class RadialMenuDef
     public const double MaxDiameter = 320;
     /// <summary>Menu transparency in percent: 0 is solid, 100 is clear. TASKS #58 / #59 (Zak 18:21): 40 unless chosen (was 70).</summary>
     public const int MinTransparency = 0, MaxTransparency = 100, DefaultTransparency = 40;
+    /// <summary>At 100% transparency the menu is still this opaque (10% = 90% see-through), so labels and slices stay usable.
+    /// 0% transparency is fully solid. v27 (Zak 21:49): the whole menu fades, not only the slice backgrounds.</summary>
+    public const double MinVisibleOpacity = 0.10;
+    /// <summary>Opacity of the whole menu (slices, labels, icons, ring and highlight) for a transparency 0–100.</summary>
+    public static double OpacityFor(int transparency)
+    {
+        int t = Math.Clamp(transparency, MinTransparency, MaxTransparency);
+        // Weighted from fully solid (0%) to MinVisibleOpacity (100%), exact at both ends.
+        return MinVisibleOpacity + (1.0 - MinVisibleOpacity) * (MaxTransparency - t) / MaxTransparency;
+    }
     /// <summary>Top menu + 2 levels of submenus.</summary>
     public const int MaxDepth = 3;
 
@@ -41,7 +51,7 @@ public sealed class RadialMenuDef
     /// <summary>On-screen size 1–100 (same scale as the app's other sliders). Only the top menu's value is used.</summary>
     [JsonPropertyName("size")] public int Size { get; set; } = DefaultSize;
 
-    /// <summary>How see-through the slices are, 0 (solid) to 100 (clear). Labels, lines and icons stay fully visible.
+    /// <summary>How see-through the whole menu is, 0 (solid) to 100 (clear, still <see cref="MinVisibleOpacity"/> so it stays usable).
     /// Only the top menu's value is used; a menu saved before this existed reads as <see cref="DefaultTransparency"/>.</summary>
     [JsonPropertyName("transparency")] public int Transparency { get; set; } = DefaultTransparency;
 }

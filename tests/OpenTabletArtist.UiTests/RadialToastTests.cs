@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using OpenTabletArtist.Domain;
@@ -196,6 +197,38 @@ public class RadialToastTests
             Assert.DoesNotContain("{name}", (string)json["radial.done.plain"]!);
         }
     }
+
+    [AvaloniaFact]
+    public async Task PopupWindow_IsClear_AndThePieOpacityFollowsTransparency_AndOpenIsLogged()
+    {
+        _ = new ThemeViewModel();
+        var overlay = new RadialMenuOverlay();
+        try
+        {
+            var labels = new[] { "Undo", "Redo", "Copy", "Paste", "Cut", "All", "Out", "In" }.ToList();
+            var set = Enumerable.Repeat(true, 8).ToList();
+            var sub = Enumerable.Repeat(false, 8).ToList();
+            var lines = await Logged(async () =>
+            {
+                overlay.ShowNowForTest(new RadialMenuOverlay.MenuState("open", 1, 400, 300, 50, 0, labels, set, sub, Transparency: 40));
+                await Task.Yield();
+            });
+            Pump();
+            var w = overlay.MenuWindow!;
+            Assert.Same(Avalonia.Media.Brushes.Transparent, w.Background);
+            Assert.Contains(WindowTransparencyLevel.Transparent, w.TransparencyLevelHint);
+            var pie = Assert.IsType<OpenTabletArtist.Controls.RadialMenuPie>(w.Content);
+            Assert.Equal(40, pie.Transparency);
+            Assert.Equal(RadialMenuDef.OpacityFor(40), pie.Opacity);
+            Assert.Contains(lines, l => l.Contains("transparency 40%") && l.Contains("opacity 0.64"));
+
+            overlay.ShowNowForTest(new RadialMenuOverlay.MenuState("open", 2, 400, 300, 50, 0, labels, set, sub, Transparency: 100));
+            Pump();
+            Assert.Equal(100, pie.Transparency);
+            Assert.Equal(RadialMenuDef.MinVisibleOpacity, pie.Opacity);
+        }
+        finally { overlay.Dispose(); }
+    }
 }
 
 /// <summary>TASKS #64 (1): after the pencil, a click on a slice with the Mac mouse must reach the driver as an edit-mode tap, exactly like a click
@@ -267,6 +300,7 @@ public class RadialMouseEditTests
             try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { }
         }
     }
+
 }
 
 /// <summary>TASKS #64 (1): the driver's edit request for slice N opens the slice editor on that slice, inside the app window.</summary>

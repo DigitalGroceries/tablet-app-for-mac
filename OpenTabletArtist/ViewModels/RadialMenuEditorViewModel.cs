@@ -42,6 +42,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         _top = string.IsNullOrWhiteSpace(menuJson) ? RadialMenuDefaults.Create(Localizer.Te) : RadialMenuJson.Parse(menuJson);
         Title = title;
         _size = _top.Size;
+        _sizeInput = _size.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _transparency = _top.Transparency;
         _transparencyInput = _transparency.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _selectedSlice = 0;
@@ -190,6 +191,41 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         _top.Size = Math.Clamp(value, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
         OnPropertyChanged(nameof(PreviewDiameter));
         OnPropertyChanged(nameof(SizeText));
+        _sizeInput = Math.Clamp(value, RadialMenuDef.MinSize, RadialMenuDef.MaxSize)
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+        OnPropertyChanged(nameof(SizeInput));
+    }
+
+    private string _sizeInput = "";
+
+    /// <summary>The size as typed in the number box beside the slider (v27, Zak: the size was a read-only number).
+    /// Whatever is committed (Enter or leaving the box) is read as a number, clamped to
+    /// <see cref="RadialMenuDef.MinSize"/>..<see cref="RadialMenuDef.MaxSize"/> (50 = 320 pt) and applied, so the
+    /// slider and the live preview follow; text that is not a number, or an empty box, puts the old value back.
+    /// The box always ends up showing the real value.</summary>
+    public string SizeInput
+    {
+        get => _sizeInput;
+        set
+        {
+            if (TryParseSize(value, out var v)) Size = v;
+            _sizeInput = Math.Clamp(Size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize)
+                .ToString(System.Globalization.CultureInfo.InvariantCulture);
+            OnPropertyChanged(nameof(SizeInput));
+            OpenTabletArtist.Services.AppLog.Info($"Radial menu settings: menu size {_sizeInput} was entered in the number box.");
+        }
+    }
+
+    /// <summary>Reads a typed menu size: comma or dot, rounded and clamped to the size range.</summary>
+    public static bool TryParseSize(string? text, out int size)
+    {
+        size = 0;
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        var t = text.Trim().Replace(',', '.');
+        if (!double.TryParse(t, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d)
+            || double.IsNaN(d) || double.IsInfinity(d)) return false;
+        size = (int)Math.Round(Math.Clamp(d, RadialMenuDef.MinSize, RadialMenuDef.MaxSize), MidpointRounding.AwayFromZero);
+        return true;
     }
 
     partial void OnTransparencyChanged(int value)
