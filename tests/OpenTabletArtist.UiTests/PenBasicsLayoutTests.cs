@@ -85,6 +85,9 @@ public class PenBasicsLayoutTests
         Dispatcher.UIThread.RunJobs();
         Assert.True(view.FindControl<ComboBox>("MovementBox")!.IsEffectivelyVisible);
         Assert.Equal("Relative (slow / no mouse-like speed-up)", vm.SelectedMovement.Title);
+        // The longer label must not push the dropdown past its column (250 wide) onto the Pen input column.
+        var movementBox = view.FindControl<ComboBox>("MovementBox")!;
+        Assert.True(movementBox.Bounds.Width <= 250.5, $"Movement box is {movementBox.Bounds.Width} wide");
         Assert.Equal(rel, settings.Profiles.First().OutputMode!.Path);   // not changed
         window.Close();
     }

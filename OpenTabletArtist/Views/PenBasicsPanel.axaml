@@ -32,7 +32,7 @@
                 <TextBlock x:Name="MovementHeading" Text="Movement" Classes="basicsHeading" />
                 <TextBlock x:Name="MovementSharedNote" Text="Shared with Pen." FontSize="11" IsVisible="False"
                            Foreground="{DynamicResource TextMutedBrush}" />
-                <ComboBox x:Name="MovementBox" HorizontalAlignment="Stretch"
+                <ComboBox x:Name="MovementBox" HorizontalAlignment="Stretch" MaxWidth="250"
                           ItemsSource="{Binding MovementOptions}"
                           SelectedItem="{Binding SelectedMovement, Mode=TwoWay}"
                           ItemTemplate="{StaticResource ChoiceOptionTemplate}"
