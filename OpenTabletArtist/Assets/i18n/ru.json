@@ -206,7 +206,7 @@
   "tablet.pen.movement": "Движение",
   "tablet.pen.movement_absolute": "Обычное (абсолютное)",
   "tablet.pen.movement_absolute_help": "Перо соответствует экрану 1:1.",
-  "tablet.pen.movement_relative": "Относительное (без ускорения)",
+  "tablet.pen.movement_relative": "Относительное (медленно / без ускорения, как у мыши)",
   "tablet.pen.movement_relative_help": "Указатель движется от своего текущего положения на то расстояние, на которое сдвинулось перо. Без ускорения указателя, как в macOS.",
   "tablet.pen.position_smoothing": "Сглаживание позиции",
   "tablet.pen.smoother_curves": "Более плавные быстрые кривые",

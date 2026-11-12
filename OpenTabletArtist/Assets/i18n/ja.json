@@ -206,7 +206,7 @@
   "tablet.pen.movement": "移動",
   "tablet.pen.movement_absolute": "通常（絶対）",
   "tablet.pen.movement_absolute_help": "ペンは画面に1対1で対応します。",
-  "tablet.pen.movement_relative": "相対（加速なし）",
+  "tablet.pen.movement_relative": "相対（低速 / マウスのような加速なし）",
   "tablet.pen.movement_relative_help": "ポインターは現在の位置から、ペンが動いた距離だけ動きます。Macのような加速はありません。",
   "tablet.pen.position_smoothing": "位置のスムージング",
   "tablet.pen.smoother_curves": "速いカーブをなめらかに",

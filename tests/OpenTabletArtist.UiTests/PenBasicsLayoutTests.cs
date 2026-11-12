@@ -57,7 +57,7 @@ public class PenBasicsLayoutTests
     }
 
     // TASKS #55 (12 Nov 18:54): the Movement choice is always visible, and a saved Relative stays Relative and reads
-    // "Relative (no speed-up)".
+    // "Relative (slow / no mouse-like speed-up)".
     [AvaloniaFact]
     public void MovementChoice_IsAlwaysVisible()
     {
@@ -84,7 +84,7 @@ public class PenBasicsLayoutTests
         window.Show();
         Dispatcher.UIThread.RunJobs();
         Assert.True(view.FindControl<ComboBox>("MovementBox")!.IsEffectivelyVisible);
-        Assert.Equal("Relative (no speed-up)", vm.SelectedMovement.Title);
+        Assert.Equal("Relative (slow / no mouse-like speed-up)", vm.SelectedMovement.Title);
         Assert.Equal(rel, settings.Profiles.First().OutputMode!.Path);   // not changed
         window.Close();
     }

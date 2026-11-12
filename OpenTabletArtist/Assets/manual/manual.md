@@ -96,7 +96,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 | Current pressure | Live | Pressure after the curve; tooltip shows the raw value. |
 | Button 1 / Button 2 cards | Default (right click) / Default (middle click) | **Change…** opens the function editor; **Default** restores it. Under **Mouse** you can choose **Double Click** (posts a left-button double-click at the cursor). |
 | Pen button test | Live | Press a barrel button: its number on the pen picture lights while held, and the line above the cards reads "Button 2 pressed." (or 1). |
-| Movement | Normal (Absolute) | **Normal (Absolute)** maps the pen to the screen. **Relative (no speed-up)**: the pointer moves from where it is, by how far the pen moves. No Mac-style speed-up. Both choices are always shown, and a saved Relative setting is never changed for you. Clicks, click-drags and a button set to **Double Click** happen at the pointer, as with a mouse. Relative mode also uses the tablet rotation set under Mapping. |
+| Movement | Normal (Absolute) | **Normal (Absolute)** maps the pen to the screen. **Relative (slow / no mouse-like speed-up)**: the pointer moves from where it is, by how far the pen moves. No Mac-style speed-up. Both choices are always shown, and a saved Relative setting is never changed for you. Clicks, click-drags and a button set to **Double Click** happen at the pointer, as with a mouse. Relative mode also uses the tablet rotation set under Mapping. |
 | Position smoothing | 0.0 | Steadies the cursor, with some lag. The slider is under its name and runs from 0 (off) to 10 (strongest, the old 0.25); the number is shown next to the name. |
 | Smoother fast curves | Off | Adds smooth in-between pen points, so fast curves don't show flat pieces in drawing apps that join points with straight lines. About 5 ms of extra delay. New in Version 26. |
 | Disable pen tip | Off | The tip makes no strokes; the bar reads 0%. |
@@ -118,7 +118,7 @@ The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable 
 | Control | Default | Function |
 |---|---|---|
 | Active area | Whole tablet | Drag the area or its corners. |
-| Rotation | 0° | 180° puts the ExpressKeys on the other side; 90° and 270° are portrait. This rotation is also used in Relative (no speed-up) mode. After rotating, recalibrate (More › calibration) if the pointer no longer sits under the nib. |
+| Rotation | 0° | 180° puts the ExpressKeys on the other side; 90° and 270° are portrait. This rotation is also used in Relative (slow / no mouse-like speed-up) mode. After rotating, recalibrate (More › calibration) if the pointer no longer sits under the nib. |
 | Display / All displays | Main display | The display the area maps to. |
 | Force proportions | On | Keeps the area at the display's aspect ratio. |
 | Display Settings | – | Opens macOS Displays settings. |

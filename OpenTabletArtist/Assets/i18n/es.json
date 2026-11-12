@@ -210,7 +210,7 @@
   "tablet.pen.movement": "Movimiento",
   "tablet.pen.movement_absolute": "Normal (Absoluto)",
   "tablet.pen.movement_absolute_help": "El lápiz se corresponde 1:1 con la pantalla.",
-  "tablet.pen.movement_relative": "Relativo (sin aceleración)",
+  "tablet.pen.movement_relative": "Relativo (lento / sin la aceleración propia del ratón)",
   "tablet.pen.movement_relative_help": "El puntero se mueve desde donde está, tanto como se mueve el lápiz. Sin la aceleración propia del Mac.",
   "tablet.pen.position_smoothing": "Suavizado de posición",
   "tablet.pen.smoother_curves": "Curvas rápidas más suaves",

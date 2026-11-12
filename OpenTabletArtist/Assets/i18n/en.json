@@ -210,7 +210,7 @@
   "tablet.pen.movement": "Movement",
   "tablet.pen.movement_absolute": "Normal (Absolute)",
   "tablet.pen.movement_absolute_help": "The pen maps 1:1 to the screen.",
-  "tablet.pen.movement_relative": "Relative (no speed-up)",
+  "tablet.pen.movement_relative": "Relative (slow / no mouse-like speed-up)",
   "tablet.pen.movement_relative_help": "The pointer moves from where it is, by how far the pen moves. No Mac-style speed-up.",
   "tablet.pen.position_smoothing": "Position smoothing",
   "tablet.pen.smoother_curves": "Smoother fast curves",

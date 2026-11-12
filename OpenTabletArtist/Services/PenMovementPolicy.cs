@@ -3,7 +3,7 @@ using System;
 namespace OpenTabletArtist.Services;
 
 /// <summary>TASKS #55: Position smoothing on the Pen page runs 0-10 (the driver value runs 0-0.25; 10 is the old 0.25).
-/// The Movement choice (Normal (Absolute) / Relative (no speed-up)) is always visible and a saved Relative stays
+/// The Movement choice (Normal (Absolute) / Relative (slow / no mouse-like speed-up)) is always visible and a saved Relative stays
 /// Relative (Zak / Claude, 12 Nov 18:54: no hiding, no fallback).</summary>
 public static class PenMovementPolicy
 {

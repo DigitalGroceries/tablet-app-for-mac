@@ -206,7 +206,7 @@
   "tablet.pen.movement": "Bewegung",
   "tablet.pen.movement_absolute": "Normal (Absolut)",
   "tablet.pen.movement_absolute_help": "Der Stift wird 1:1 auf den Bildschirm abgebildet.",
-  "tablet.pen.movement_relative": "Relativ (ohne Beschleunigung)",
+  "tablet.pen.movement_relative": "Relativ (langsam / ohne mausartige Beschleunigung)",
   "tablet.pen.movement_relative_help": "Der Zeiger bewegt sich von seiner aktuellen Position aus, so weit sich der Stift bewegt. Keine Beschleunigung wie beim Mac.",
   "tablet.pen.position_smoothing": "Positionsglättung",
   "tablet.pen.smoother_curves": "Glattere schnelle Kurven",

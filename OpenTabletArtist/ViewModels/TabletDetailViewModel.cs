@@ -721,7 +721,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     [
         new("absolute", Localizer.Te("tablet.pen.movement_absolute", "Normal (Absolute)"),
             Localizer.Te("tablet.pen.movement_absolute_help", "The pen maps 1:1 to the screen.")),
-        new("relative", Localizer.Te("tablet.pen.movement_relative", "Relative (no speed-up)"),
+        new("relative", Localizer.Te("tablet.pen.movement_relative", "Relative (slow / no mouse-like speed-up)"),
             Localizer.Te("tablet.pen.movement_relative_help", "The pointer moves from where it is, by how far the pen moves. No Mac-style speed-up.")),
     ];
 

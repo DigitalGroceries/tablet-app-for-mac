@@ -206,7 +206,7 @@
   "tablet.pen.movement": "移动",
   "tablet.pen.movement_absolute": "正常（绝对）",
   "tablet.pen.movement_absolute_help": "笔与屏幕 1:1 对应。",
-  "tablet.pen.movement_relative": "相对（无加速）",
+  "tablet.pen.movement_relative": "相对（较慢 / 无类似鼠标的加速）",
   "tablet.pen.movement_relative_help": "指针从当前位置出发，随笔移动的距离而移动，没有 Mac 式的加速。",
   "tablet.pen.position_smoothing": "位置平滑",
   "tablet.pen.smoother_curves": "更平滑的快速曲线",

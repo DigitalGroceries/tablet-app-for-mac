@@ -206,7 +206,7 @@
   "tablet.pen.movement": "Движение",
   "tablet.pen.movement_absolute": "Нормално (абсолютно)",
   "tablet.pen.movement_absolute_help": "Писалката съответства на екрана 1:1.",
-  "tablet.pen.movement_relative": "Относително (без ускорение)",
+  "tablet.pen.movement_relative": "Относително (бавно / без ускорение като при мишка)",
   "tablet.pen.movement_relative_help": "Показалецът се движи от мястото, където е, толкова, колкото се движи писалката. Без ускорение като в Mac.",
   "tablet.pen.position_smoothing": "Изглаждане на позицията",
   "tablet.pen.smoother_curves": "По-гладки бързи криви",

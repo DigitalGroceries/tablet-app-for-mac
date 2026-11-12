@@ -206,7 +206,7 @@
   "tablet.pen.movement": "Mouvement",
   "tablet.pen.movement_absolute": "Normal (Absolu)",
   "tablet.pen.movement_absolute_help": "Le stylet correspond 1:1 à l’écran.",
-  "tablet.pen.movement_relative": "Relatif (sans accélération)",
+  "tablet.pen.movement_relative": "Relatif (lent / sans accélération façon souris)",
   "tablet.pen.movement_relative_help": "Le pointeur se déplace à partir de sa position actuelle, de la distance parcourue par le stylet. Pas d’accélération à la manière du Mac.",
   "tablet.pen.position_smoothing": "Lissage de position",
   "tablet.pen.smoother_curves": "Courbes rapides plus lisses",

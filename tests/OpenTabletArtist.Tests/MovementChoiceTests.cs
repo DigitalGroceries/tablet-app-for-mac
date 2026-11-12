@@ -13,7 +13,7 @@ using Xunit;
 namespace OpenTabletArtist.Tests;
 
 /// <summary>TASKS #55: the Pen page's Movement choice is always visible (Zak / Claude, 12 Nov 18:54), a saved Relative
-/// stays Relative (no fallback to Absolute), and Relative is called "Relative (no speed-up)". Position smoothing is 0-10.</summary>
+/// stays Relative (no fallback to Absolute), and Relative is called "Relative (slow / no mouse-like speed-up)". Position smoothing is 0-10.</summary>
 [Collection(DisplayEnumeratorCollection.Name)]
 public class MovementChoiceTests
 {
@@ -83,7 +83,7 @@ public class MovementChoiceTests
     {
         var settings = SettingsOn(NativeAbsolute);
         var vm = new TabletDetailViewModel(settings.Profiles.First(), settings);
-        Assert.Equal("Relative (no speed-up)", vm.MovementOptions[1].Title);
+        Assert.Equal("Relative (slow / no mouse-like speed-up)", vm.MovementOptions[1].Title);
         Assert.Equal("The pointer moves from where it is, by how far the pen moves. No Mac-style speed-up.", vm.MovementOptions[1].Description);
         Assert.DoesNotContain("Mouse-like", vm.MovementOptions[1].Title);
     }
