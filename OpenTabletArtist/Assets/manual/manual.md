@@ -145,7 +145,10 @@ Pen gestures under **Scroll**, each with a **Speed** slider (Slow to Fast, 1–1
 A pen button or an ExpressKey can open a radial menu, like the one in Wacom's driver: a round menu with 8 slices, centred on the pen.
 
 - Set it up: **Change…** on a pen button or an ExpressKey, then the **Radial menu** tab, **Save**. **Edit menu…** opens the menu editor.
-- Use it: press the button, then tap a slice with the pen tip. The menu closes after a choice. To use several slices in a row (for example Undo three times), hold the button while you tap. Tap the centre (×), an empty slice or outside the menu, or press the button again, to close it without a choice. The pen tip never draws in your app while the menu is open. A menu left open closes by itself after a minute.
+- Use it: press the button, then tap a slice with the pen tip. The menu closes after a choice. To use several slices in a row (for example Undo three times), hold the button while you tap. Tap the **×** in the centre, an empty slice or outside the menu, or press the button again, to close it without a choice. The pen tip never draws in your app while the menu is open. A menu left open closes by itself after a minute.
+- The **centre** has four buttons, each with its own highlight under the pen or the pointer: **× (top left)** closes the menu. **Pencil (top right)**: tap it, then tap a slice, and choose what that slice does from the same choices as **Edit menu…**; the change is saved at once and the menu stays open (tap the pencil again to put it down). **Circular arrow (bottom left)** asks "Restore the 8 default slices?": tap **Yes** (right) or **No** (left). **Open hand (bottom right)**: press it with the pen tip or the mouse and move more than a few points to drag the menu somewhere else; a press that doesn't move does nothing. A menu you have moved stays until you close it.
+- With the **Mac mouse**: click a slice to run it in the app underneath; the menu stays open, so you can open it with the pen and then use your 8 commands with the mouse. Click the **×**, or press **Esc**, to close it. Slices that click the mouse need the pen. The menu does not take the keyboard from your drawing app.
+- In **Scribble**, the radial menu's **Undo** and **Redo** undo and redo your strokes (so does **Cmd+Z** and **Cmd+Shift+Z**), so you can try the menu without a drawing app. **Copy** copies the drawing; Paste, Cut, Select all and Zoom only say that they work in your drawing app.
 - Menu editor: click a slice, give it a **Name** and choose **What it does**: **Keystroke** (**Set keystroke…**), **Mouse click** (Left, Right, Middle or Double Click), **Submenu** (8 more slices; **Edit submenu** opens it, up to 3 levels), **Open an app** (**Choose app…**), or **Nothing** (the slice closes the menu). **Clear slice** empties one slice, **Reset menu** brings back the starting menu (Undo, Redo, Copy, Paste, Cut, Select all, Zoom out, Zoom in). **Menu size**: Small to Large.
 - Each button keeps its own menu, and each application can have its own (Application row). The menus are saved with your tablet settings, so Save, Save as default, Revert and the settings backup include them.
 - **Settings › System › Radial menu** switches every radial menu off or on (on by default).
@@ -211,7 +214,7 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 
 ![Scribble](img/63-scribble-draw.png)
 
-**Mark positions** draws a dot for each position the tablet reports. **Clear**, **Copy**. **Record** and **Stop** save a stroke recording.
+**Mark positions** draws a dot for each position the tablet reports. **Clear**, **Copy**. **Cmd+Z** undoes the last stroke (or a Clear) and **Cmd+Shift+Z** does it again; the radial menu's Undo and Redo send the same keys. **Record** and **Stop** save a stroke recording.
 
 ## Settings
 

@@ -24,6 +24,7 @@ public class SpanishLeftoversTests
         ["tablet.tab.expresskeys"] = "Wacom feature name",
         ["tablet.tab.json"] = "file format",
         ["tablet.mapping.diagonal"] = "same word in Spanish",
+        ["radial.no"] = "No is the same word in Spanish",
         ["scribble.azal"] = "azimuth / altitude abbreviation",
     };
 
