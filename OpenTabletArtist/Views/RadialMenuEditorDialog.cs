@@ -29,8 +29,8 @@ public sealed class RadialMenuEditorDialog : Window
     {
         DataContext = vm;
         Title = vm.Heading;
-        Width = 880;
-        Height = 600;
+        Width = 1000;
+        Height = 780;
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         this[!BackgroundProperty] = new DynamicResourceExtension("BgBaseBrush");
@@ -100,19 +100,23 @@ public sealed class RadialMenuEditorDialog : Window
         DockPanel.SetDock(heading, Dock.Top);
 
         // Left: where we are, the ring, Back
-        var pie = new RadialMenuPie { Width = 320, Height = 320, Interactive = true, Cursor = new Cursor(StandardCursorType.Hand) };
+        var pie = new RadialMenuPie { Width = 320, Height = 320, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Interactive = true, Cursor = new Cursor(StandardCursorType.Hand) };
         pie[!RadialMenuPie.LabelsProperty] = new Binding(nameof(vm.Labels));
         pie[!RadialMenuPie.SetFlagsProperty] = new Binding(nameof(vm.SetFlags));
         pie[!RadialMenuPie.SubmenuFlagsProperty] = new Binding(nameof(vm.SubmenuFlags));
         pie[!RadialMenuPie.SelectedProperty] = new Binding(nameof(vm.SelectedSlice));
+        pie[!Layoutable.WidthProperty] = new Binding(nameof(vm.PreviewDiameter));     // live preview: the ring has the size the slider says
+        pie[!Layoutable.HeightProperty] = new Binding(nameof(vm.PreviewDiameter));
         pie.SliceClicked += vm.SelectSlice;
+        var pieBox = new Grid { Width = 470, Height = 470 };      // room for the largest size, so nothing moves while the slider does
+        pieBox.Children.Add(pie);
         var where = new TextBlock { TextWrapping = TextWrapping.Wrap, FontWeight = FontWeight.SemiBold };
         where[!TextBlock.TextProperty] = new Binding(nameof(vm.Where));
         var back = new Button { Content = vm.BackLabel, Command = vm.BackCommand, Padding = new Thickness(12, 6) };
         back[!Visual.IsVisibleProperty] = new Binding(nameof(vm.InSubmenu));
-        var left = new StackPanel { Spacing = 10, Width = 340 };
+        var left = new StackPanel { Spacing = 10, Width = 490 };
         left.Children.Add(where);
-        left.Children.Add(pie);
+        left.Children.Add(pieBox);
         left.Children.Add(back);
 
         // Right: the selected slice
@@ -173,18 +177,21 @@ public sealed class RadialMenuEditorDialog : Window
         var size = new Slider { Minimum = 1, Maximum = 100, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220 };
         size[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.Size)) { Mode = BindingMode.TwoWay };
         Avalonia.Automation.AutomationProperties.SetName(size, vm.SizeCaption);
-        var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto,*,Auto,Auto"), Margin = new Thickness(0, 14, 0, 0) };
+        var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto,Auto,*,Auto,Auto"), Margin = new Thickness(0, 14, 0, 0) };
         void Put(Control c, int col) { Grid.SetColumn(c, col); footer.Children.Add(c); }
         Put(new TextBlock { Text = vm.SizeCaption, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) }, 0);
         Put(new TextBlock { Text = vm.SizeSmall, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) }, 1);
         Put(size, 2);
-        Put(new TextBlock { Text = vm.SizeLarge, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 16, 0) }, 3);
+        Put(new TextBlock { Text = vm.SizeLarge, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 10, 0) }, 3);
+        var sizeNumber = new TextBlock { VerticalAlignment = VerticalAlignment.Center, FontWeight = FontWeight.SemiBold, MinWidth = 34, Margin = new Thickness(0, 0, 16, 0) };
+        sizeNumber[!TextBlock.TextProperty] = new Binding(nameof(vm.SizeText));
+        Put(sizeNumber, 4);
         var reset = new Button { Content = vm.ResetLabel, Command = vm.ResetCommand, Padding = new Thickness(12, 6), HorizontalAlignment = HorizontalAlignment.Left };
-        Put(reset, 4);
+        Put(reset, 5);
         var save = new Button { Content = vm.SaveLabel, Command = vm.SaveCommand, Padding = new Thickness(22, 8), Margin = new Thickness(0, 0, 8, 0) };
         if (Application.Current?.TryFindResource("AccentButton", out var accent) == true && accent is Avalonia.Styling.ControlTheme t) save.Theme = t;
-        Put(save, 5);
-        Put(new Button { Content = vm.CancelLabel, Command = vm.CancelCommand, Padding = new Thickness(16, 8) }, 6);
+        Put(save, 6);
+        Put(new Button { Content = vm.CancelLabel, Command = vm.CancelCommand, Padding = new Thickness(16, 8) }, 7);
         var footerWrap = new StackPanel();
         footerWrap.Children.Add(new Border { Height = 1, Margin = new Thickness(0, 16, 0, 0), [!Border.BackgroundProperty] = new DynamicResourceExtension("DividerBrush") });
         footerWrap.Children.Add(footer);

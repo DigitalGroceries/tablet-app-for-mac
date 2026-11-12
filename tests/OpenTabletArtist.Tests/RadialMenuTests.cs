@@ -767,6 +767,27 @@ public class RadialMenuEditorTests
     }
 
     [Fact]
+    public void SizeSlider_ChangesThePreviewAtOnce_AndResetPutsItBackTo50()
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");
+        var seen = new System.Collections.Generic.List<string>();
+        vm.PropertyChanged += (_, e) => seen.Add(e.PropertyName!);
+        Assert.Equal(320, vm.PreviewDiameter, 1);
+        Assert.Equal("50", vm.SizeText);
+        vm.Size = 100;
+        Assert.Equal(2 * RadialMenuGeometry.OuterRadius(100), vm.PreviewDiameter, 1);
+        Assert.Equal("100", vm.SizeText);
+        Assert.Contains(nameof(vm.PreviewDiameter), seen);
+        Assert.Contains(nameof(vm.SizeText), seen);
+        vm.Size = 1;
+        Assert.True(vm.PreviewDiameter < 320);
+        vm.ResetCommand.Execute(null);
+        Assert.Equal(50, vm.Size);
+        Assert.Equal(320, vm.PreviewDiameter, 1);
+        Assert.Equal("50", vm.SizeText);
+    }
+
+    [Fact]
     public void Cancel_ReturnsNothing()
     {
         var vm = new RadialMenuEditorViewModel(null, "x");

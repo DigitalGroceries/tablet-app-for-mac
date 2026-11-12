@@ -179,7 +179,19 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         Refresh();
     }
 
-    partial void OnSizeChanged(int value) => _top.Size = Math.Clamp(value, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
+    partial void OnSizeChanged(int value)
+    {
+        _top.Size = Math.Clamp(value, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
+        OnPropertyChanged(nameof(PreviewDiameter));
+        OnPropertyChanged(nameof(SizeText));
+    }
+
+    /// <summary>The size shown as a number next to the slider (1-100).</summary>
+    public string SizeText => Math.Clamp(Size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>Width and height in points of the live preview ring: the same size the menu has on screen
+    /// (50 gives 320, 1 gives 180, 100 gives 460), so the slider shows what you will get.</summary>
+    public double PreviewDiameter => 2 * RadialMenuGeometry.OuterRadius(Size);
 
     private void NotifyActionFlags()
     {

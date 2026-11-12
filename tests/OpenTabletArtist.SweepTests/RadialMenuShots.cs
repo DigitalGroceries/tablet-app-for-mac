@@ -56,6 +56,14 @@ public class RadialMenuShots
         vm.SelectSlice(2);
         var w = new RadialMenuEditorDialog(vm);
         Snap(w, "radial-editor.png");
+        vm.Size = 100;
+        Dispatcher.UIThread.RunJobs();
+        Snap(w, "radial-editor-size100.png");
+        vm.Size = 1;
+        Dispatcher.UIThread.RunJobs();
+        Snap(w, "radial-editor-size1.png");
+        vm.Size = 50;
+        Dispatcher.UIThread.RunJobs();
         vm.ActionIndex = RadialMenuEditorViewModel.ActOpen;
         Dispatcher.UIThread.RunJobs();
         Snap(w, "radial-editor-open-app.png");
