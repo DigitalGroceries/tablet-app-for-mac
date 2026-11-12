@@ -324,7 +324,6 @@ public class TabletDetailViewModelTests
     [Fact]
     public void SelectMovement_RedundantSelection_DoesNotApply_ButRealChangeDoes()
     {
-        using var shown = MovementChoiceScope.On();        // TASKS #55: Relative needs the Settings switch
         var settings = AbsoluteSettingsWith("T");
         int applies = 0;
         var vm = new TabletDetailViewModel(
@@ -349,7 +348,6 @@ public class TabletDetailViewModelTests
     [Fact]
     public void SelectedMovement_ReflectsMode_AndOnlyAppliesOnARealPick()
     {
-        using var shown = MovementChoiceScope.On();
         var settings = AbsoluteSettingsWith("T");
         int applies = 0;
         var vm = new TabletDetailViewModel(

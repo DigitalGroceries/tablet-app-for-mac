@@ -219,22 +219,6 @@ public partial class StartupViewModel : ObservableObject
     public string RadialMenuDescription => Localizer.Te("radial.toggle_description",
         "For pen buttons and ExpressKeys set to Radial menu (Change… › Radial menu). Off: those buttons do nothing.");
 
-    // ---- TASKS #55: show the Pen page's Movement choice (Absolute / Relative); off by default
-    public bool ShowMovementChoiceOn
-    {
-        get => PenMovementPolicy.ShowChoice;
-        set
-        {
-            if (value == PenMovementPolicy.ShowChoice) return;
-            PenMovementPolicy.ShowChoice = value;
-            OnPropertyChanged();
-        }
-    }
-    public string MovementChoiceSectionTitle => Localizer.Te("settings.movement_choice.title", "Pen movement");
-    public string MovementChoiceLabel => Localizer.Te("settings.movement_choice.label", "Show Movement choice (Absolute / Relative)");
-    public string MovementChoiceDescription => Localizer.Te("settings.movement_choice.description",
-        "Off: the pen always works as Normal (Absolute), the way a drawing tablet should, and the Movement choice on the Pen page is hidden. On: the Pen page offers Mouse-like (Relative) again.");
-
     /// <summary>Settings backup card shown on this page (set by the shell).</summary>
     public BackupViewModel? Backup { get; set; }
 

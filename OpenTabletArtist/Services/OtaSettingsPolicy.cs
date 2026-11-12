@@ -21,7 +21,6 @@ public static class OtaSettingsPolicy
                     Domain.TouchTrackpad.SyncFilter(profile);   // Discussion #31: finger touch as a trackpad
                     SyncRelativeRotation(profile);              // Issue #69: Mouse-like reads RelativeRotation
                 }
-        PenMovementPolicy.FallBackToAbsolute(workingCopy);   // TASKS #55: Relative is hidden unless Settings shows it
         if (ownedDaemon) ProfileFilterMaintenance.DisableUnapprovedFilters(workingCopy);
     }
 

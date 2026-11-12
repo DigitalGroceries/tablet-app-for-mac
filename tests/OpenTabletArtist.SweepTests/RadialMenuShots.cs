@@ -78,23 +78,14 @@ public class RadialMenuShots
     }
 
     [AvaloniaFact]
-    public void PenPage_MovementHidden_SmoothingUnderCaption()
+    public void PenPage_MovementVisible_SmoothingUnderCaption()
     {
         System.IO.Directory.CreateDirectory(Dir);
         _ = new ThemeViewModel();
-        var was = PenMovementPolicy.ShowChoice;
-        try
-        {
-            PenMovementPolicy.ShowChoice = false;
-            var vm = new TabletDetailViewModel { PositionSmoothing = 0.1 };
-            var w = new Window { Content = new PenBasicsPanel { DataContext = vm, Margin = new Thickness(20) }, Width = 900, Height = 520 };
-            Snap(w, "pen-page-movement-hidden.png");
-            PenMovementPolicy.ShowChoice = true;
-            Dispatcher.UIThread.RunJobs();
-            Snap(w, "pen-page-movement-shown.png");
-            w.Close();
-        }
-        finally { PenMovementPolicy.ShowChoice = was; }
+        var vm = new TabletDetailViewModel { PositionSmoothing = 0.1 };
+        var w = new Window { Content = new PenBasicsPanel { DataContext = vm, Margin = new Thickness(20) }, Width = 900, Height = 520 };
+        Snap(w, "pen-page-movement-shown.png");
+        w.Close();
     }
 
     [AvaloniaFact]

@@ -31,12 +31,6 @@
                              Description="{Binding RadialMenuDescription}"
                              IsChecked="{Binding RadialMenuOn}" />
         </c:Section>
-        <!-- TASKS #55: the Pen page's Movement choice is hidden unless this is on. -->
-        <c:Section Title="{Binding MovementChoiceSectionTitle}">
-            <c:ToggleSetting x:Name="MovementChoiceToggle" Label="{Binding MovementChoiceLabel}"
-                             Description="{Binding MovementChoiceDescription}"
-                             IsChecked="{Binding ShowMovementChoiceOn}" />
-        </c:Section>
         <c:Section Title="{Binding OledLabelsSectionTitle}" IsVisible="{Binding ShowOledLabels}">
             <c:ToggleSetting x:Name="OledLabelsToggle" Label="{Binding OledLabelsLabel}"
                              Description="{Binding OledLabelsDescription}"

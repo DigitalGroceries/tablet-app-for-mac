@@ -717,32 +717,12 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// <see cref="Key"/> is the argument the matching Select… command takes.</summary>
     public sealed record ChoiceOption(string Key, string Title, string Description);
 
-    /// <summary>TASKS #55: the Movement choice is shown on the Pen page only when Settings › System turns it on.
-    /// Off (default): the app uses Normal (Absolute) and a saved Relative falls back to Absolute.</summary>
-    public bool ShowMovementChoice => PenMovementPolicy.ShowChoice;
-
-    private bool _movementFallbackTried;
-
-    private void OnMovementChoiceChanged()
-    {
-        OnPropertyChanged(nameof(ShowMovementChoice));
-        _movementFallbackTried = false;
-        ApplyMovementFallback();
-    }
-
-    /// <summary>Hidden Movement choice + saved Relative: go back to Absolute once (and log it).</summary>
-    private void ApplyMovementFallback()
-    {
-        if (ShowMovementChoice || _movementFallbackTried || !IsRelativeOutputMode || _applyAction == null) return;
-        _movementFallbackTried = true;   // a failed apply must not loop through RefreshFromProfile
-        AppLog.Info($"Saved movement for '{TabletName}' was Relative; switching to Normal (Absolute) (the Movement choice is hidden in Settings).");
-        _ = SetOutputMode(ModePath(true, DisableWindowsInk));
-    }
-
     public ChoiceOption[] MovementOptions { get; } =
     [
-        new("absolute", "Normal (Absolute)", "The pen maps 1:1 to the screen."),
-        new("relative", "Mouse-like (Relative)", "The pen moves the cursor like a mouse."),
+        new("absolute", Localizer.Te("tablet.pen.movement_absolute", "Normal (Absolute)"),
+            Localizer.Te("tablet.pen.movement_absolute_help", "The pen maps 1:1 to the screen.")),
+        new("relative", Localizer.Te("tablet.pen.movement_relative", "Relative (no speed-up)"),
+            Localizer.Te("tablet.pen.movement_relative_help", "The pointer moves from where it is, by how far the pen moves. No Mac-style speed-up.")),
     ];
 
     public ChoiceOption[] PressModeOptions { get; } =
@@ -783,7 +763,6 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     private void SelectMovement(string mode)
     {
         bool wantAbsolute = mode == "absolute";
-        if (!wantAbsolute && !ShowMovementChoice) return;   // TASKS #55: Relative is off unless Settings shows the choice
         // Already in the requested direction? No-op. This keeps a redundant click from re-applying (the
         // save-loop guard), AND stops a tablet that's already on a *native* Absolute/Relative mode from
         // being force-swapped to the Windows-Ink equivalent on a click — the one deliberate, documented
@@ -900,7 +879,6 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
         // Show/hide the developer-only Filters/JSON tabs live as their Developer-tab toggles change.
         DeveloperSettings.Instance.PropertyChanged += OnDeveloperSettingsChanged;
-        PenMovementPolicy.Changed += OnMovementChoiceChanged;
 
         TabletName = profile.Tablet ?? "Unknown Tablet";
         HasAreaMapping = profile.AbsoluteModeSettings != null;
@@ -942,7 +920,6 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _profile = new Profile { Tablet = "Design Tablet", OutputMode = new PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)) };
         TabletName = "Design Tablet";
         Displays = [];
-        PenMovementPolicy.Changed += OnMovementChoiceChanged;   // TASKS #55 (the page shows or hides Movement live)
     }
 
     private static string? GetPluginFriendlyName(string? path) =>
@@ -1542,7 +1519,6 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         // direction (#549).
         DisableWindowsInk = OperatingSystem.IsWindows() && !isWinInk;
         _skipOutputModeChange = false;
-        ApplyMovementFallback();   // TASKS #55
 
         // "Fix output mode → Windows Ink" is a Windows-only remediation (VMulti + WinInk). Off-Windows the
         // native mode is the correct output, so there's nothing to fix. On Windows it's fixable when the
@@ -3289,7 +3265,6 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// </summary>
     public void Dispose()
     {
-        PenMovementPolicy.Changed -= OnMovementChoiceChanged;
         if (_deviceData != null)
         {
             _deviceData.DataLoaded -= RefreshDetectionStatus;

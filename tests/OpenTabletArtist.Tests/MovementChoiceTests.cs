@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenTabletArtist.Services;
@@ -11,23 +12,11 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>Turns the Settings switch "Show Movement choice" on for a test and puts it back after. Shared
-/// state, so the tests that use it sit in the display collection (they do not run in parallel).</summary>
-internal sealed class MovementChoiceScope : IDisposable
-{
-    private readonly bool _was = PenMovementPolicy.ShowChoice;
-    private MovementChoiceScope(bool on) => PenMovementPolicy.ShowChoice = on;
-    public static MovementChoiceScope On() => new(true);
-    public static MovementChoiceScope Off() => new(false);
-    public void Dispose() => PenMovementPolicy.ShowChoice = _was;
-}
-
-/// <summary>TASKS #55: the Pen page's Movement choice is hidden by default (the app uses Absolute), a saved
-/// Relative falls back to Absolute, and a Settings switch brings the choice back. Position smoothing is 0-10.</summary>
+/// <summary>TASKS #55: the Pen page's Movement choice is always visible (Zak / Claude, 12 Nov 18:54), a saved Relative
+/// stays Relative (no fallback to Absolute), and Relative is called "Relative (no speed-up)". Position smoothing is 0-10.</summary>
 [Collection(DisplayEnumeratorCollection.Name)]
 public class MovementChoiceTests
 {
-    private const string WinInkAbsolute = "VoiDPlugins.OutputMode.WinInkAbsoluteMode";
     private const string WinInkRelative = "VoiDPlugins.OutputMode.WinInkRelativeMode";
     private const string NativeAbsolute = "OpenTabletDriver.Desktop.Output.AbsoluteMode";
     private const string NativeRelative = "OpenTabletDriver.Desktop.Output.RelativeMode";
@@ -38,136 +27,73 @@ public class MovementChoiceTests
         return s;
     }
 
-    [Fact]
-    public void TheChoiceIsOffByDefault()
-    {
-        using var off = MovementChoiceScope.Off();
-        Assert.False(PenMovementPolicy.ShowChoice);
-        var settings = SettingsOn(NativeAbsolute);
-        var vm = new TabletDetailViewModel(settings.Profiles.First(), settings);
-        Assert.False(vm.ShowMovementChoice);
-    }
-
-    [Fact]
-    public void TheSwitch_IsRememberedAndRaisesChanged()
-    {
-        using var off = MovementChoiceScope.Off();
-        int changed = 0;
-        void H() => changed++;
-        PenMovementPolicy.Changed += H;
-        try
-        {
-            PenMovementPolicy.ShowChoice = true;
-            Assert.True(PenMovementPolicy.ShowChoice);
-            Assert.Equal("1", AppSettings.Get(PenMovementPolicy.SettingKey));
-            PenMovementPolicy.ShowChoice = true;      // same value: nothing
-            Assert.Equal(1, changed);
-            PenMovementPolicy.ShowChoice = false;
-            Assert.Equal(2, changed);
-        }
-        finally { PenMovementPolicy.Changed -= H; }
-    }
-
-    [Fact]
-    public void StartupViewModel_Switch_ShowsAndHidesTheChoice()
-    {
-        using var off = MovementChoiceScope.Off();
-        var vm = new StartupViewModel();
-        Assert.False(vm.ShowMovementChoiceOn);
-        vm.ShowMovementChoiceOn = true;
-        Assert.True(PenMovementPolicy.ShowChoice);
-        vm.ShowMovementChoiceOn = false;
-        Assert.False(PenMovementPolicy.ShowChoice);
-    }
-
     [Theory]
-    [InlineData(WinInkRelative, WinInkAbsolute)]
-    [InlineData(NativeRelative, NativeAbsolute)]
-    [InlineData(WinInkAbsolute, WinInkAbsolute)]
-    public void AbsolutePathFor_SwapsTheRelativeToken(string from, string to) =>
-        Assert.Equal(to, PenMovementPolicy.AbsolutePathFor(from));
-
-    [Fact]
-    public void SavedRelative_FallsBackToAbsolute_WhileHidden_AndIsApplied()
+    [InlineData(NativeAbsolute)]
+    [InlineData(NativeRelative)]
+    public void TheChoiceIsOffered_ForEveryProfile_AndHasTwoEntries(string path)
     {
-        using var off = MovementChoiceScope.Off();
-        var settings = SettingsOn(NativeRelative);
-        int applies = 0;
-        var vm = new TabletDetailViewModel(settings.Profiles.First(), settings,
-            applyAction: _ => { applies++; return Task.FromResult(SettingsApplyOutcome.Live); });
-        Assert.Equal(1, applies);                                   // once, no loop
-        Assert.Equal(NativeAbsolute, settings.Profiles.First().OutputMode!.Path);
-        Assert.True(vm.IsAbsoluteMode);
+        var settings = SettingsOn(path);
+        var vm = new TabletDetailViewModel(settings.Profiles.First(), settings);
+        Assert.Equal(2, vm.MovementOptions.Length);
+        Assert.Equal(path == NativeAbsolute ? "absolute" : "relative", vm.SelectedMovement.Key);
     }
 
     [Fact]
-    public void SavedRelative_IsKept_WhileTheChoiceIsShown()
+    public void SavedRelative_StaysRelative_AfterAnUpdate_NothingIsApplied()
     {
-        using var on = MovementChoiceScope.On();
         var settings = SettingsOn(NativeRelative);
         int applies = 0;
         var vm = new TabletDetailViewModel(settings.Profiles.First(), settings,
             applyAction: _ => { applies++; return Task.FromResult(SettingsApplyOutcome.Live); });
-        Assert.Equal(0, applies);
+        Assert.Equal(0, applies);                                   // nothing is switched behind the user's back
+        Assert.Equal(NativeRelative, settings.Profiles.First().OutputMode!.Path);
         Assert.False(vm.IsAbsoluteMode);
-        Assert.True(vm.ShowMovementChoice);
+        Assert.Equal("relative", vm.SelectedMovement.Key);
     }
 
     [Fact]
-    public void FailingApply_DoesNotLoopTheFallback()
+    public void Prepare_KeepsEverySavedRelativeProfile()
     {
-        using var off = MovementChoiceScope.Off();
-        var settings = SettingsOn(NativeRelative);
-        int applies = 0;
-        _ = new TabletDetailViewModel(settings.Profiles.First(), settings,
-            applyAction: _ => { applies++; return Task.FromResult(SettingsApplyOutcome.Disconnected); });
-        Assert.True(applies <= 1);
+        var settings = SettingsOn(WinInkRelative);
+        settings.Profiles.Add(new Profile { Tablet = "U", OutputMode = new PluginSettingStore(NativeRelative) { Path = NativeRelative } });
+        settings.Profiles.Add(new Profile { Tablet = "V", OutputMode = new PluginSettingStore(NativeAbsolute) { Path = NativeAbsolute } });
+        OtaSettingsPolicy.Prepare(settings, ownedDaemon: false);    // every settings send and update passes here
+        Assert.Equal(WinInkRelative, settings.Profiles[0].OutputMode!.Path);
+        Assert.Equal(NativeRelative, settings.Profiles[1].OutputMode!.Path);
+        Assert.Equal(NativeAbsolute, settings.Profiles[2].OutputMode!.Path);
     }
 
     [Fact]
-    public void WhileHidden_RelativeCannotBePicked()
+    public void Relative_CanBePicked_AndAbsoluteBack()
     {
-        using var off = MovementChoiceScope.Off();
         var settings = SettingsOn(NativeAbsolute);
         int applies = 0;
         var vm = new TabletDetailViewModel(settings.Profiles.First(), settings,
             applyAction: _ => { applies++; return Task.FromResult(SettingsApplyOutcome.Live); });
         vm.SelectMovementCommand.Execute("relative");
-        Assert.Equal(0, applies);
+        Assert.Equal(1, applies);
+        Assert.False(vm.IsAbsoluteMode);
+        vm.SelectMovementCommand.Execute("absolute");
+        Assert.Equal(2, applies);
         Assert.True(vm.IsAbsoluteMode);
     }
 
     [Fact]
-    public void TurningTheSwitchOff_WhileOnRelative_FallsBackToAbsolute()
+    public void TheMovementOptions_AreTheHonestLabels()
     {
-        var settings = SettingsOn(NativeRelative);
-        int applies = 0;
-        TabletDetailViewModel vm;
-        using (MovementChoiceScope.On())
-        {
-            vm = new TabletDetailViewModel(settings.Profiles.First(), settings,
-                applyAction: _ => { applies++; return Task.FromResult(SettingsApplyOutcome.Live); });
-            Assert.Equal(0, applies);
-            PenMovementPolicy.ShowChoice = false;                   // the user switches it off
-            Assert.Equal(1, applies);
-            Assert.True(vm.IsAbsoluteMode);
-        }
-        vm.Dispose();
+        var settings = SettingsOn(NativeAbsolute);
+        var vm = new TabletDetailViewModel(settings.Profiles.First(), settings);
+        Assert.Equal("Relative (no speed-up)", vm.MovementOptions[1].Title);
+        Assert.Equal("The pointer moves from where it is, by how far the pen moves. No Mac-style speed-up.", vm.MovementOptions[1].Description);
+        Assert.DoesNotContain("Mouse-like", vm.MovementOptions[1].Title);
     }
 
     [Fact]
-    public void Prepare_ChangesEverySavedRelativeProfile_WhileHidden()
+    public void TheHideSwitchIsGone()
     {
-        using var off = MovementChoiceScope.Off();
-        var settings = SettingsOn(WinInkRelative);
-        settings.Profiles.Add(new Profile { Tablet = "U", OutputMode = new PluginSettingStore(NativeAbsolute) { Path = NativeAbsolute } });
-        OtaSettingsPolicy.Prepare(settings, ownedDaemon: false);
-        Assert.Equal(WinInkAbsolute, settings.Profiles[0].OutputMode!.Path);
-        Assert.Equal(NativeAbsolute, settings.Profiles[1].OutputMode!.Path);
-        using var on = MovementChoiceScope.On();
-        var kept = SettingsOn(NativeRelative);
-        OtaSettingsPolicy.Prepare(kept, ownedDaemon: false);
-        Assert.Equal(NativeRelative, kept.Profiles[0].OutputMode!.Path);
+        // No Settings switch, no setting key, no strings: the choice is never hidden.
+        Assert.Null(typeof(PenMovementPolicy).GetProperty("ShowChoice"));
+        Assert.DoesNotContain(typeof(StartupViewModel).GetProperties(), p => p.Name.Contains("MovementChoice"));
     }
 
     // ---- Position smoothing 0-10
@@ -191,7 +117,6 @@ public class MovementChoiceTests
     [Fact]
     public void PositionSmoothingScale_MapsBothWays_AndShowsTheNumber()
     {
-        using var off = MovementChoiceScope.Off();
         var settings = SettingsOn(NativeAbsolute);
         var vm = new TabletDetailViewModel(settings.Profiles.First(), settings);
         vm.PositionSmoothing = 0.25;                                // an old saved maximum

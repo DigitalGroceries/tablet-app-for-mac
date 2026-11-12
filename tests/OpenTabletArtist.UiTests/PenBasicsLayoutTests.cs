@@ -56,24 +56,37 @@ public class PenBasicsLayoutTests
         window.Close();
     }
 
-    // TASKS #55: the Movement choice is hidden by default and comes back with the Settings switch.
+    // TASKS #55 (12 Nov 18:54): the Movement choice is always visible, and a saved Relative stays Relative and reads
+    // "Relative (no speed-up)".
     [AvaloniaFact]
-    public void MovementChoice_IsHiddenByDefault_AndShownWithTheSettingsSwitch()
+    public void MovementChoice_IsAlwaysVisible()
     {
-        var was = OpenTabletArtist.Services.PenMovementPolicy.ShowChoice;
-        try
+        var (window, view) = Page();
+        Assert.True(view.FindControl<ComboBox>("MovementBox")!.IsEffectivelyVisible);
+        Assert.True(Heading(view, "Movement").IsEffectivelyVisible);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void MovementChoice_ForAProfileOnRelative_ShowsRelativeNoSpeedUp()
+    {
+        const string rel = "OpenTabletDriver.Desktop.Output.RelativeMode";
+        var settings = new OpenTabletDriver.Desktop.Settings
         {
-            OpenTabletArtist.Services.PenMovementPolicy.ShowChoice = false;
-            var (window, view) = Page();
-            Assert.False(view.FindControl<ComboBox>("MovementBox")!.IsEffectivelyVisible);
-            Assert.False(Heading(view, "Movement").IsEffectivelyVisible);
-            OpenTabletArtist.Services.PenMovementPolicy.ShowChoice = true;
-            Dispatcher.UIThread.RunJobs();
-            Assert.True(view.FindControl<ComboBox>("MovementBox")!.IsEffectivelyVisible);
-            Assert.True(Heading(view, "Movement").IsEffectivelyVisible);
-            window.Close();
-        }
-        finally { OpenTabletArtist.Services.PenMovementPolicy.ShowChoice = was; }
+            Profiles = new OpenTabletDriver.Desktop.Profiles.ProfileCollection
+            {
+                new OpenTabletDriver.Desktop.Profiles.Profile { Tablet = "T", OutputMode = new OpenTabletDriver.Desktop.Reflection.PluginSettingStore(rel) { Path = rel } },
+            },
+        };
+        var vm = new OpenTabletArtist.ViewModels.TabletDetailViewModel(settings.Profiles.First(), settings);
+        var view = new PenBasicsPanel { DataContext = vm };
+        var window = new Window { Content = view, Width = 1400, Height = 900 };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(view.FindControl<ComboBox>("MovementBox")!.IsEffectivelyVisible);
+        Assert.Equal("Relative (no speed-up)", vm.SelectedMovement.Title);
+        Assert.Equal(rel, settings.Profiles.First().OutputMode!.Path);   // not changed
+        window.Close();
     }
 
     // TASKS #55: the slider is UNDER its caption, at least as wide as the explanation below it, 0-10, with the number shown.
