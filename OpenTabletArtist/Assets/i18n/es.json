@@ -587,5 +587,11 @@
   "radial.default.select_all": "Seleccionar todo",
   "radial.default.zoom_out": "Alejar",
   "radial.default.zoom_in": "Acercar",
+  "radial.restore_prompt": "¿Restaurar las 8 secciones predeterminadas?",
+  "radial.yes": "Sí",
+  "radial.no": "No",
+  "confirm.radial_edit_hint": "Edita la sección que toques ahora",
+  "confirm.radial_restored": "Menú restaurado",
+  "confirm.radial_saved": "Sección guardada",
   "filters.intro": "Los filtros de otros plugins de OpenTabletDriver, por ejemplo Antichatter o el suavizado Radial Follow, pueden calmar un puntero tembloroso. Activa uno para usarlo con esta app. Si el lápiz se comporta de forma rara, vuelve a desactivarlo. Para un suavizado sencillo mientras el lápiz toca la tableta, prueba primero Lápiz › Suavizado de posición."
 }

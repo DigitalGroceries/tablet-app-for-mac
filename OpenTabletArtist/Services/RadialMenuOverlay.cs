@@ -21,7 +21,7 @@ namespace OpenTabletArtist.Services;
 /// the keyboard, and the plugin itself reads where the pen tip went down. While open, the slice under the
 /// pointer lights up (polled here, so it needs nothing from the driver).
 /// The Mac mouse works too (TASKS #54): a click on a slice runs it in the app underneath and the menu stays open,
-/// the X (top half of the centre) or Esc closes it, and the hand (bottom half) drags it. The window asks macOS not to activate this
+/// the X (centre, top left) or Esc closes it, the pencil edits the next slice you tap, the circular arrow restores the default slices (after a Yes / No) and the hand (bottom right) drags it. The window asks macOS not to activate this
 /// app when clicked, so the shortcut still goes to the app that was in front. The app can't press keys in other
 /// apps, so each click is written to a small command file the driver plugin reads (<see cref="RadialMenuCommand"/>).
 /// Also owns the Radial menu On/Off switch (Settings › System): Off writes a flag file the plugin checks.
@@ -67,14 +67,14 @@ public sealed class RadialMenuOverlay : IDisposable
     private static readonly object CommandGate = new();
 
     /// <summary>Hand a mouse command to the driver plugin. The sequence number only grows, so each is acted on once.</summary>
-    public static void SendCommand(string op, int slice = -1, double x = 0, double y = 0)
+    public static void SendCommand(string op, int slice = -1, double x = 0, double y = 0, string? menu = null)
     {
         try
         {
             lock (CommandGate)
             {
                 _commandSeq = Math.Max(_commandSeq + 1, DateTime.UtcNow.Ticks);
-                var cmd = new RadialMenuCommand { Seq = _commandSeq, Op = op, Slice = slice, X = x, Y = y };
+                var cmd = new RadialMenuCommand { Seq = _commandSeq, Op = op, Slice = slice, X = x, Y = y, Menu = menu };
                 Directory.CreateDirectory(Path.GetDirectoryName(CommandFilePath)!);
                 var tmp = CommandFilePath + ".tmp";
                 File.WriteAllText(tmp, cmd.ToJson());
@@ -127,7 +127,29 @@ public sealed class RadialMenuOverlay : IDisposable
 
     /// <summary>What the state file says (null when it can't be read).</summary>
     public sealed record MenuState(string State, long Seq, double X, double Y, int Size, int Depth,
-        IReadOnlyList<string> Labels, IReadOnlyList<bool> Set, IReadOnlyList<bool> Submenu);
+        IReadOnlyList<string> Labels, IReadOnlyList<bool> Set, IReadOnlyList<bool> Submenu,
+        bool Editing = false, bool Confirm = false, string? Menu = null, RadialRequest? Request = null);
+
+    /// <summary>The pen or the mouse asked for something only the app can do: choose a slice's command ("edit") or
+    /// restore the default slices ("restore", after the driver's Yes / No). Sent once; <see cref="Seq"/> only grows.</summary>
+    public sealed record RadialRequest(long Seq, string Kind, int Slice, IReadOnlyList<int> Path);
+
+    /// <summary>Set by the app: carries out a <see cref="RadialRequest"/> for the menu with this JSON, and answers the
+    /// driver (the new menu, or the same one when nothing changed). Not set in tests.</summary>
+    public static Func<RadialRequest, string, System.Threading.Tasks.Task>? RequestHandler { get; set; }
+
+    private long _lastRequestSeq;
+    private bool _wasEditing;
+
+    private static async System.Threading.Tasks.Task RunRequestAsync(Func<RadialRequest, string, System.Threading.Tasks.Task> handler, RadialRequest req, string menuJson)
+    {
+        try { await handler(req, menuJson); }
+        catch (Exception e)
+        {
+            AppLog.Warn("Radial menu: couldn't carry out the " + req.Kind + " request", e);
+            SendCommand(RadialMenuCommand.MenuChanged, menu: menuJson);   // let the pen back in
+        }
+    }
 
     public static MenuState? Parse(string json)
     {
@@ -147,11 +169,23 @@ public sealed class RadialMenuOverlay : IDisposable
                     set.Add(s.TryGetProperty("set", out var st) && st.GetBoolean());
                     sub.Add(s.TryGetProperty("action", out var a) && a.GetString() == RadialActions.Submenu);
                 }
+            RadialRequest? request = null;
+            if (r.TryGetProperty("request", out var rq) && rq.ValueKind == JsonValueKind.Object)
+            {
+                var path = new List<int>();
+                if (rq.TryGetProperty("path", out var pa) && pa.ValueKind == JsonValueKind.Array)
+                    foreach (var n in pa.EnumerateArray()) path.Add(n.GetInt32());
+                request = new RadialRequest(rq.GetProperty("seq").GetInt64(), rq.GetProperty("kind").GetString() ?? "",
+                    rq.TryGetProperty("slice", out var sl) ? sl.GetInt32() : -1, path);
+            }
             return new MenuState(state, seq,
                 r.GetProperty("x").GetDouble(), r.GetProperty("y").GetDouble(),
                 r.TryGetProperty("size", out var sz) ? sz.GetInt32() : RadialMenuDef.DefaultSize,
                 r.TryGetProperty("depth", out var d) ? d.GetInt32() : 0,
-                labels, set, sub);
+                labels, set, sub,
+                r.TryGetProperty("editing", out var ed) && ed.ValueKind == JsonValueKind.True,
+                r.TryGetProperty("confirm", out var cf) && cf.ValueKind == JsonValueKind.True,
+                r.TryGetProperty("menu", out var mn) ? mn.GetString() : null, request);
         }
         catch (Exception)
         {
@@ -172,7 +206,13 @@ public sealed class RadialMenuOverlay : IDisposable
             if (st.Seq == _lastSeq) return;   // a watcher can fire twice for one write
             _lastSeq = st.Seq;
             if (st.State == "open" && Enabled) Show(st);
-            else Hide();
+            else { Hide(); _lastRequestSeq = 0; _wasEditing = false; }   // a new session numbers its requests afresh
+            if (st.Request is { } req && req.Seq > _lastRequestSeq)
+            {
+                _lastRequestSeq = req.Seq;
+                if (RequestHandler is { } handler)
+                    _ = RunRequestAsync(handler, req, st.Menu ?? "");
+            }
         });
     }
 
@@ -190,7 +230,21 @@ public sealed class RadialMenuOverlay : IDisposable
             // On macOS Avalonia's window coordinates are global points with a top-left origin, the same
             // space as CGEventGetLocation, which is where the plugin took the centre from (see RingModeHud).
             _window.Position = new PixelPoint((int)Math.Round(st.X - d / 2), (int)Math.Round(st.Y - d / 2));
-            _pie!.Labels = st.Labels;
+            _pie!.Editing = st.Editing;
+            if (st.Editing && !_wasEditing) ActionConfirmation.Show("confirm.radial_edit_hint", "Edit the slice you tap next");
+            _wasEditing = st.Editing;
+            var labels = st.Labels;
+            if (st.Confirm)
+            {
+                // The driver sends only which two slices are live; the words are ours (translated).
+                var l = Enumerable.Repeat("", RadialMenuDef.SliceCount).ToList();
+                l[2] = Localizer.Te("radial.yes", "Yes");
+                l[6] = Localizer.Te("radial.no", "No");
+                labels = l;
+                _pie.CentreText = Localizer.Te("radial.restore_prompt", "Restore the 8 default slices?");
+            }
+            else _pie.CentreText = null;
+            _pie.Labels = labels;
             _pie.SetFlags = st.Set;
             _pie.SubmenuFlags = st.Submenu;
             _pie.Highlight = HighlightNow();
@@ -321,6 +375,12 @@ public sealed class RadialMenuOverlay : IDisposable
         {
             case RadialTarget.Close:
                 SendCommand(RadialMenuCommand.Centre);
+                break;
+            case RadialTarget.Edit:
+                SendCommand(RadialMenuCommand.Edit);
+                break;
+            case RadialTarget.Restore:
+                SendCommand(RadialMenuCommand.Restore);
                 break;
             case RadialTarget.Slice:
                 // macOS shouldn't activate this app for the click; if it did, the keyboard goes back first.

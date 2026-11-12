@@ -587,5 +587,11 @@
   "radial.default.select_all": "全选",
   "radial.default.zoom_out": "缩小",
   "radial.default.zoom_in": "放大",
+  "radial.restore_prompt": "恢复 8 个默认扇区吗？",
+  "radial.yes": "是",
+  "radial.no": "否",
+  "confirm.radial_edit_hint": "编辑你接下来点按的扇区",
+  "confirm.radial_restored": "菜单已恢复",
+  "confirm.radial_saved": "扇区已保存",
   "filters.intro": "其他 OpenTabletDriver 插件的滤镜（例如 Antichatter 或 Radial Follow 平滑）可以让抖动的指针变稳。打开一个即可在本应用中使用。如果笔的手感变得奇怪，请再关闭它。若只想在笔接触时做简单平滑，请先试试 笔 › 位置平滑。"
 }

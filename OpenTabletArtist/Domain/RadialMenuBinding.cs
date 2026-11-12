@@ -42,6 +42,33 @@ public static class RadialMenuBinding
 
     public static bool IsUsed(Profile profile) => AllBindings(profile).Any(Is);
 
+    private static string Canonical(string? json) => RadialMenuJson.Serialize(RadialMenuJson.Parse(json));
+
+    /// <summary>Does a radial-menu binding in this binding table hold exactly this menu?</summary>
+    public static bool AnyUses(BindingSettings? bindings, string menuJson)
+    {
+        var want = Canonical(menuJson);
+        return PenScrollBinding.AllBindings(bindings).Any(s => Is(s) && Canonical(ReadMenuJson(s)) == want);
+    }
+
+    /// <summary>Give every radial-menu binding that holds <paramref name="oldJson"/> the menu <paramref name="newJson"/>
+    /// (the same menu may be on several buttons). Returns how many were changed.</summary>
+    public static int ReplaceMenu(BindingSettings? bindings, string oldJson, string newJson)
+    {
+        var want = Canonical(oldJson);
+        var replacement = Canonical(newJson);
+        int n = 0;
+        foreach (var store in PenScrollBinding.AllBindings(bindings))
+        {
+            if (!Is(store) || Canonical(ReadMenuJson(store)) != want) continue;
+            var old = store!.Settings.FirstOrDefault(s => s.Property == MenuProperty);
+            if (old != null) store.Settings.Remove(old);
+            store.Settings.Add(new PluginSetting(MenuProperty, replacement));
+            n++;
+        }
+        return n;
+    }
+
     /// <summary>The radial menu filter is in the profile (enabled, once) exactly while a radial-menu binding is.</summary>
     public static bool SyncFilter(Profile profile)
     {

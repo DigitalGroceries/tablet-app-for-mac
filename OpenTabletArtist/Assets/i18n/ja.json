@@ -587,5 +587,11 @@
   "radial.default.select_all": "すべてを選択",
   "radial.default.zoom_out": "縮小",
   "radial.default.zoom_in": "拡大",
+  "radial.restore_prompt": "8つの初期スライスに戻しますか？",
+  "radial.yes": "はい",
+  "radial.no": "いいえ",
+  "confirm.radial_edit_hint": "次にタップするスライスを編集します",
+  "confirm.radial_restored": "メニューを元に戻しました",
+  "confirm.radial_saved": "スライスを保存しました",
   "filters.intro": "Antichatter や Radial Follow スムージングなど、ほかの OpenTabletDriver プラグインのフィルターは、ポインタの震えを抑えられます。このアプリで使うにはオンにしてください。ペンの動きがおかしくなったら、オフに戻してください。ペンが触れている間だけの簡単なスムージングなら、まず ペン › 位置のスムージング をお試しください。"
 }

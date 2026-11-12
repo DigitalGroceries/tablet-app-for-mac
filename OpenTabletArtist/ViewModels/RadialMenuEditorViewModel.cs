@@ -110,6 +110,18 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     /// <summary>The menu as it stands now (tests).</summary>
     public RadialMenuDef Menu => RadialMenuJson.Normalize(_top);
 
+    /// <summary>Open on a given slice of a given ring (the radial menu's pencil: edit the slice just tapped).</summary>
+    public void GoTo(IReadOnlyList<int> path, int slice)
+    {
+        foreach (var i in path)
+        {
+            SelectSlice(i);
+            if (Slice.Action != RadialActions.Submenu) break;
+            EditSubmenu();
+        }
+        SelectSlice(slice);
+    }
+
     public void SelectSlice(int i)
     {
         if (i < 0 || i >= RadialMenuDef.SliceCount) return;

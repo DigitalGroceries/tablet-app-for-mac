@@ -46,9 +46,14 @@ public sealed class RadialMenuEditorDialog : Window
     }
 
     /// <summary>Open the editor over <paramref name="owner"/>; returns the new menu (JSON) or null on Cancel.</summary>
-    public static async Task<string?> ShowAsync(Window owner, string menuJson, string title)
+    public static Task<string?> ShowAsync(Window owner, string menuJson, string title) =>
+        ShowAsync(owner, menuJson, title, null, -1);
+
+    /// <summary>As above, opened on slice <paramref name="slice"/> of the ring reached by <paramref name="path"/>.</summary>
+    public static async Task<string?> ShowAsync(Window owner, string menuJson, string title, System.Collections.Generic.IReadOnlyList<int>? path, int slice)
     {
         var vm = new RadialMenuEditorViewModel(menuJson, title);
+        if (slice >= 0) vm.GoTo(path ?? Array.Empty<int>(), slice);
         var dialog = new RadialMenuEditorDialog(vm);
         vm.PickKeystroke = initial => BindingEditorDialog.ShowAsync(owner, initial, vm.Heading + " · " + vm.SliceCaption);
         vm.PickApp = () => PickAppAsync(owner);

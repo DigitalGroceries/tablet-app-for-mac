@@ -543,6 +543,19 @@ public partial class MainViewModel : ObservableObject, IDisposable
         return vm;
     }
 
+    /// <summary>The radial menu's pencil and restore (TASKS #54): change the menu held by the radial-menu buttons of
+    /// whichever tablet has it, and save at once. False when no tablet's current table holds <paramref name="oldJson"/>.</summary>
+    public async Task<bool> ReplaceRadialMenuAsync(string oldJson, string newJson)
+    {
+        bool any = false;
+        foreach (var choice in TabletPage.Tablets.ToList())
+        {
+            var vm = ResolveTabletDetail(choice.Name);
+            if (vm != null && await vm.ReplaceRadialMenuAsync(oldJson, newJson)) any = true;
+        }
+        return any;
+    }
+
     /// <summary>Re-enumerate monitors on every cached tablet detail VM. Quiet login builds those VMs
     /// before <c>desktop.MainWindow</c> is set, so the first Enumerate is empty; call this after the
     /// window is shown so Tablet › Mapping gets the arrangement.</summary>
