@@ -717,6 +717,28 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// <see cref="Key"/> is the argument the matching Select… command takes.</summary>
     public sealed record ChoiceOption(string Key, string Title, string Description);
 
+    /// <summary>TASKS #55: the Movement choice is shown on the Pen page only when Settings › System turns it on.
+    /// Off (default): the app uses Normal (Absolute) and a saved Relative falls back to Absolute.</summary>
+    public bool ShowMovementChoice => PenMovementPolicy.ShowChoice;
+
+    private bool _movementFallbackTried;
+
+    private void OnMovementChoiceChanged()
+    {
+        OnPropertyChanged(nameof(ShowMovementChoice));
+        _movementFallbackTried = false;
+        ApplyMovementFallback();
+    }
+
+    /// <summary>Hidden Movement choice + saved Relative: go back to Absolute once (and log it).</summary>
+    private void ApplyMovementFallback()
+    {
+        if (ShowMovementChoice || _movementFallbackTried || !IsRelativeOutputMode || _applyAction == null) return;
+        _movementFallbackTried = true;   // a failed apply must not loop through RefreshFromProfile
+        AppLog.Info($"Saved movement for '{TabletName}' was Relative; switching to Normal (Absolute) (the Movement choice is hidden in Settings).");
+        _ = SetOutputMode(ModePath(true, DisableWindowsInk));
+    }
+
     public ChoiceOption[] MovementOptions { get; } =
     [
         new("absolute", "Normal (Absolute)", "The pen maps 1:1 to the screen."),
@@ -761,6 +783,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     private void SelectMovement(string mode)
     {
         bool wantAbsolute = mode == "absolute";
+        if (!wantAbsolute && !ShowMovementChoice) return;   // TASKS #55: Relative is off unless Settings shows the choice
         // Already in the requested direction? No-op. This keeps a redundant click from re-applying (the
         // save-loop guard), AND stops a tablet that's already on a *native* Absolute/Relative mode from
         // being force-swapped to the Windows-Ink equivalent on a click — the one deliberate, documented
@@ -877,6 +900,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
         // Show/hide the developer-only Filters/JSON tabs live as their Developer-tab toggles change.
         DeveloperSettings.Instance.PropertyChanged += OnDeveloperSettingsChanged;
+        PenMovementPolicy.Changed += OnMovementChoiceChanged;
 
         TabletName = profile.Tablet ?? "Unknown Tablet";
         HasAreaMapping = profile.AbsoluteModeSettings != null;
@@ -1508,6 +1532,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         // direction (#549).
         DisableWindowsInk = OperatingSystem.IsWindows() && !isWinInk;
         _skipOutputModeChange = false;
+        ApplyMovementFallback();   // TASKS #55
 
         // "Fix output mode → Windows Ink" is a Windows-only remediation (VMulti + WinInk). Off-Windows the
         // native mode is the correct output, so there's nothing to fix. On Windows it's fixable when the
@@ -2570,7 +2595,21 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _smoothAfterCurve = true;
 
     public string PressureSmoothingText => PressureSmoothing.ToString("0.00");
-    public string PositionSmoothingText => PositionSmoothing.ToString("0.00");
+    public string PositionSmoothingText => PositionSmoothingScale.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>TASKS #55: Position smoothing as the Pen page shows it, 0 to 10 (one decimal): the driver value
+    /// 0 to 0.25 scaled, so 10 is the old 0.25 and a saved 0.25 shows as 10.</summary>
+    public double PositionSmoothingScale
+    {
+        get => PenMovementPolicy.SmoothingToUi(PositionSmoothing, PenSmoothing.MaxPositionSmoothingAmount);
+        set
+        {
+            var ui = Math.Clamp(Math.Round(value, 1), 0, PenMovementPolicy.SmoothingUiMax);
+            // The slider echoes its own (rounded) value back; keep the exact saved number when it shows the same.
+            if (Math.Abs(PositionSmoothingScale - ui) < 1e-9) return;
+            PositionSmoothing = PenMovementPolicy.SmoothingFromUi(ui, PenSmoothing.MaxPositionSmoothingAmount);
+        }
+    }
 
     /// <summary>Upper bound for the position-smoothing slider (#487); heavier smoothing is too laggy to be
     /// useful, so the slider stops here (see <see cref="PenSmoothing.MaxPositionSmoothingAmount"/>).</summary>
@@ -2593,6 +2632,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     partial void OnPositionSmoothingChanged(double value)
     {
         OnPropertyChanged(nameof(PositionSmoothingText));
+        OnPropertyChanged(nameof(PositionSmoothingScale));
         NotifyDynamicsStatus();
         SchedulePersist();
     }
@@ -3204,6 +3244,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// </summary>
     public void Dispose()
     {
+        PenMovementPolicy.Changed -= OnMovementChoiceChanged;
         if (_deviceData != null)
         {
             _deviceData.DataLoaded -= RefreshDetectionStatus;

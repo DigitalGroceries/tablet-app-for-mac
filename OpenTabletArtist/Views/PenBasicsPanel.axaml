@@ -28,27 +28,42 @@
     <!-- Match Pen/Eraser Tilt column (250,24,*) so Movement lines up with Tip Feel above. -->
     <Grid ColumnDefinitions="250,24,*">
         <StackPanel Spacing="12">
-            <TextBlock x:Name="MovementHeading" Text="Movement" Classes="basicsHeading" />
-            <TextBlock x:Name="MovementSharedNote" Text="Shared with Pen." FontSize="11" IsVisible="False"
-                       Foreground="{DynamicResource TextMutedBrush}" />
-            <ComboBox x:Name="MovementBox" HorizontalAlignment="Stretch"
-                      ItemsSource="{Binding MovementOptions}"
-                      SelectedItem="{Binding SelectedMovement, Mode=TwoWay}"
-                      ItemTemplate="{StaticResource ChoiceOptionTemplate}"
-                      SelectionBoxItemTemplate="{StaticResource ChoiceOptionNameTemplate}"
-                      AutomationProperties.Name="Movement" />
+            <!-- TASKS #55: hidden unless Settings › System › Show Movement choice is on. -->
+            <StackPanel Spacing="12" IsVisible="{Binding ShowMovementChoice}">
+                <TextBlock x:Name="MovementHeading" Text="Movement" Classes="basicsHeading" />
+                <TextBlock x:Name="MovementSharedNote" Text="Shared with Pen." FontSize="11" IsVisible="False"
+                           Foreground="{DynamicResource TextMutedBrush}" />
+                <ComboBox x:Name="MovementBox" HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding MovementOptions}"
+                          SelectedItem="{Binding SelectedMovement, Mode=TwoWay}"
+                          ItemTemplate="{StaticResource ChoiceOptionTemplate}"
+                          SelectionBoxItemTemplate="{StaticResource ChoiceOptionNameTemplate}"
+                          AutomationProperties.Name="Movement" />
+            </StackPanel>
             <TextBlock Text="Output mode needs to use Windows Ink for pressure and tilt to work"
                        Foreground="{DynamicResource TextPrimaryBrush}" FontStyle="Italic" TextWrapping="Wrap"
                        IsVisible="{Binding CanFixOutputMode}" />
             <Button Content="Fix" Theme="{StaticResource AccentButton}" Command="{Binding FixOutputModeCommand}"
                     Padding="12,6" HorizontalAlignment="Left" IsVisible="{Binding CanFixOutputMode}" />
-            <ctrl:LabeledSlider x:Name="PositionSmoothingSlider" Label="Position smoothing" LabelWidth="130" Margin="0,4,0,0"
-                                Minimum="0" Maximum="0.25"
-                                Ticks="0,0.05,0.1,0.15,0.2,0.25" TickPlacement="BottomRight"
-                                Value="{Binding PositionSmoothing}"
-                                ValueTextOverride="{Binding PositionSmoothingText}"
-                                Monospace="True" ValueWidth="44"
-                                ToolTip.Tip="EMA smoothing of the pen position: steadies wobbly lines, at a little lag." />
+            <!-- TASKS #55: caption and number on one line, the slider UNDER them across the full column (as wide as the
+                 explanation below it), 0 to 10. -->
+            <StackPanel Spacing="4" Margin="0,4,0,0">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock x:Name="PositionSmoothingCaption" Text="Position smoothing" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock x:Name="PositionSmoothingValue" Grid.Column="1" Text="{Binding PositionSmoothingText}"
+                               FontFamily="{DynamicResource MonoFontFamily}" MinWidth="36" TextAlignment="Right" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                </Grid>
+                <Slider x:Name="PositionSmoothingSlider" HorizontalAlignment="Stretch"
+                        Minimum="0" Maximum="10" TickFrequency="0.1" IsSnapToTickEnabled="True"
+                        SmallChange="0.1" LargeChange="1"
+                        Value="{Binding PositionSmoothingScale, Mode=TwoWay}"
+                        AutomationProperties.Name="Position smoothing" />
+                <TextBlock x:Name="PositionSmoothingNote" TextWrapping="Wrap" FontSize="12"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           Text="Steadies wobbly lines, at a little lag. 0 is off, 10 is the strongest." />
+            </StackPanel>
             <!-- #40: smooth in-between points (the in-between points filter in the bundled plugin). -->
             <ctrl:ToggleSetting x:Name="SmootherCurvesSwitch" Label="Smoother fast curves" InlineDescription="True"
                                 IsChecked="{Binding SmootherCurves}"
