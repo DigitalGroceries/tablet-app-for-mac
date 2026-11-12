@@ -182,7 +182,7 @@ public sealed class RadialMenuEditorDialog : Window
         body.Children.Add(right);
 
         // Footer: size, reset, save / cancel
-        var size = new Slider { Minimum = 1, Maximum = 100, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220 };
+        var size = new Slider { Minimum = RadialMenuDef.MinSize, Maximum = RadialMenuDef.MaxSize, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220 };
         size[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.Size)) { Mode = BindingMode.TwoWay };
         Avalonia.Automation.AutomationProperties.SetName(size, vm.SizeCaption);
         var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto,Auto,*,Auto,Auto"), Margin = new Thickness(0, 14, 0, 0), Name = FooterName };

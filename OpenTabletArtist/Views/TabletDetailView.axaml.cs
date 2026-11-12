@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.LogicalTree;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
@@ -39,6 +40,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         EraserTab.IsCheckedChanged += OnLiveTabChanged;
         SyncToolChips();
         ApplyLanguage();
+        HookRadialSliders();
         // Zak 9 Nov: About ExpressKeys beside the key list when there is room, under it when there is not.
         ExpressKeysPage.SizeChanged += (_, e) => LayoutExpressKeysPage(e.NewSize.Width);
         // Touch ring: About sits over the top right of the page; keep the ring table below it, however many
@@ -274,6 +276,37 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     {
         if ((s as Control)?.Tag is string name && this.FindControl<ScrollViewer>(name) is { } sv)
             sv.Offset = new Vector(Math.Max(0, sv.Offset.X + dx), sv.Offset.Y);
+    }
+
+    /// <summary>TASKS #63: the transparency number box under the radial picture behaves like the editor's: Enter or leaving the box applies the
+    /// typed value ("40", "40%", "40,5"; clamped to 0-100; text that is not a number puts the old value back), Up / Down change it by 1.</summary>
+    private void HookRadialSliders()
+    {
+        var box = this.FindControl<TextBox>("RadialTransparencyBox");
+        if (box == null) { AppLog.Warn("Radial menu settings: the transparency box is missing from the Pen page."); return; }
+        box.AddHandler(InputElement.KeyDownEvent, (_, e) =>
+        {
+            var pv = Vm?.RadialPreview;
+            if (pv == null) return;
+            if (e.Key is Key.Enter or Key.Return) { pv.TransparencyInput = box.Text ?? ""; box.Text = pv.TransparencyInput; box.SelectAll(); e.Handled = true; }
+            else if (e.Key == Key.Up) { pv.TransparencyInput = (pv.Transparency + 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+            else if (e.Key == Key.Down) { pv.TransparencyInput = (pv.Transparency - 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+        }, RoutingStrategies.Tunnel);
+        // After leaving the box, show the real value (clamped, or the old one when the text was not a number).
+        box.LostFocus += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (Vm?.RadialPreview is { } pv) box.Text = pv.TransparencyInput; });
+    }
+
+    /// <summary>TASKS #63: the radial picture on the Pen page was clicked: the radial menu editor for the selected table.</summary>
+    private async void OnRadialSpotClick(object? s, RoutedEventArgs e)
+    {
+        try
+        {
+            var vm = Vm;
+            if (vm == null) { AppLog.Warn("Radial menu settings: the page has no view model, so the editor wasn't opened."); return; }
+            if (TopLevel.GetTopLevel(this) is not Window owner) { AppLog.Warn("Radial menu settings: no window to open the editor in."); return; }
+            await vm.EditRadialMenuAsync(json => RadialMenuEditorDialog.ShowAsync(owner, json, Localizer.Te("radial.title", "Radial menu")));
+        }
+        catch (Exception ex) { AppLog.Warn("Radial menu settings: opening the radial menu editor failed.", ex); }
     }
 
     private void OnCustomizeFeel(object? s, RoutedEventArgs e)

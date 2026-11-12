@@ -236,7 +236,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     public string TransparencyText => Math.Clamp(Transparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency)
         .ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
 
-    /// <summary>The size shown as a number next to the slider (1-100).</summary>
+    /// <summary>The size shown as a number next to the slider (1-50).</summary>
     public string SizeText => Math.Clamp(Size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize).ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     /// <summary>Width and height in points of the live preview ring: the same size the menu has on screen
@@ -369,6 +369,14 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         SelectedSlice = 0;
         LoadSlice();
         Refresh();
+    }
+
+    /// <summary>The menu as it is now (JSON), with the size and transparency the sliders show. TASKS #63: the Pen page's sliders use it.</summary>
+    public string CurrentJson()
+    {
+        _top.Size = Math.Clamp(Size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
+        _top.Transparency = Math.Clamp(Transparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency);
+        return RadialMenuJson.Serialize(_top);
     }
 
     [RelayCommand]

@@ -129,7 +129,10 @@ public sealed class RadialMenuOverlay : IDisposable
     public sealed record MenuState(string State, long Seq, double X, double Y, int Size, int Depth,
         IReadOnlyList<string> Labels, IReadOnlyList<bool> Set, IReadOnlyList<bool> Submenu,
         bool Editing = false, bool Confirm = false, string? Menu = null, RadialRequest? Request = null,
-        int Transparency = RadialMenuDef.DefaultTransparency);
+        int Transparency = RadialMenuDef.DefaultTransparency, UsedSlice? Used = null);
+
+    /// <summary>The slice the driver ran last and whether it worked (TASKS #65). <see cref="Seq"/> is new for each run.</summary>
+    public sealed record UsedSlice(long Seq, string Label, string Keys, string Action, bool Ok);
 
     /// <summary>The pen or the mouse asked for something only the app can do: choose a slice's command ("edit") or
     /// restore the default slices ("restore", after the driver's Yes / No). Sent once; <see cref="Seq"/> only grows.</summary>
@@ -141,6 +144,8 @@ public sealed class RadialMenuOverlay : IDisposable
 
     private long _lastRequestSeq;
     private bool _wasEditing;
+    private long _lastUsedSeq = -1;
+    private readonly RadialMenuToast _toast = new();
 
     private static async System.Threading.Tasks.Task RunRequestAsync(Func<RadialRequest, string, System.Threading.Tasks.Task> handler, RadialRequest req, string menuJson)
     {
@@ -160,8 +165,15 @@ public sealed class RadialMenuOverlay : IDisposable
             var r = doc.RootElement;
             var state = r.GetProperty("state").GetString() ?? "closed";
             long seq = r.TryGetProperty("seq", out var sq) ? sq.GetInt64() : 0;
+            UsedSlice? used = null;
+            if (r.TryGetProperty("used", out var us) && us.ValueKind == JsonValueKind.Object)
+                used = new UsedSlice(us.TryGetProperty("seq", out var usq) ? usq.GetInt64() : 0,
+                    us.TryGetProperty("label", out var ul) ? ul.GetString() ?? "" : "",
+                    us.TryGetProperty("keys", out var uk) ? uk.GetString() ?? "" : "",
+                    us.TryGetProperty("action", out var ua) ? ua.GetString() ?? "" : "",
+                    !us.TryGetProperty("ok", out var uo) || uo.ValueKind != JsonValueKind.False);
             if (state != "open") return new MenuState(state, seq, 0, 0, RadialMenuDef.DefaultSize, 0,
-                Array.Empty<string>(), Array.Empty<bool>(), Array.Empty<bool>());
+                Array.Empty<string>(), Array.Empty<bool>(), Array.Empty<bool>(), Used: used);
             var labels = new List<string>(); var set = new List<bool>(); var sub = new List<bool>();
             if (r.TryGetProperty("slices", out var slices))
                 foreach (var s in slices.EnumerateArray())
@@ -188,7 +200,8 @@ public sealed class RadialMenuOverlay : IDisposable
                 r.TryGetProperty("confirm", out var cf) && cf.ValueKind == JsonValueKind.True,
                 r.TryGetProperty("menu", out var mn) ? mn.GetString() : null, request,
                 r.TryGetProperty("transparency", out var tr) && tr.ValueKind == JsonValueKind.Number
-                    ? Math.Clamp(tr.GetInt32(), RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency) : RadialMenuDef.DefaultTransparency);
+                    ? Math.Clamp(tr.GetInt32(), RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency) : RadialMenuDef.DefaultTransparency,
+                used);
         }
         catch (Exception)
         {
@@ -210,11 +223,14 @@ public sealed class RadialMenuOverlay : IDisposable
             _lastSeq = st.Seq;
             if (st.State == "open" && Enabled) Show(st);
             else { Hide(); _lastRequestSeq = 0; _wasEditing = false; }   // a new session numbers its requests afresh
+            ShowUsedIfNew(st);
             if (st.Request is { } req && req.Seq > _lastRequestSeq)
             {
                 _lastRequestSeq = req.Seq;
+                AppLog.Info($"Radial menu: the driver asked the app to {req.Kind}" + (req.Slice >= 0 ? $" slice {req.Slice + 1}" : "") + $" (request {req.Seq}).");
                 if (RequestHandler is { } handler)
                     _ = RunRequestAsync(handler, req, st.Menu ?? "");
+                else AppLog.Warn("Radial menu: no handler for the driver's " + req.Kind + " request, so nothing was opened.");
             }
         });
     }
@@ -234,7 +250,10 @@ public sealed class RadialMenuOverlay : IDisposable
             // space as CGEventGetLocation, which is where the plugin took the centre from (see RingModeHud).
             _window.Position = new PixelPoint((int)Math.Round(st.X - d / 2), (int)Math.Round(st.Y - d / 2));
             _pie!.Editing = st.Editing;
-            if (st.Editing && !_wasEditing) ActionConfirmation.Show("confirm.radial_edit_hint", "Edit the slice you tap next");
+            // TASKS #64: the pencil's hint sits under the menu itself (not a pop-up over the app that was in front) and stays until a slice
+            // is chosen, the pencil is put down, or the menu closes.
+            if (st.Editing) _toast.Show(Localizer.Te("confirm.radial_edit_hint", "Edit the slice you tap next"), st.X, st.Y, r, hold: true);
+            else if (_wasEditing) _toast.HideHint();
             _wasEditing = st.Editing;
             var labels = st.Labels;
             if (st.Confirm)
@@ -273,8 +292,31 @@ public sealed class RadialMenuOverlay : IDisposable
     {
         _press = null;
         _pointerTimer?.Stop();
+        _toast.HideHint();
         if (_window?.IsVisible == true) _window.Hide();
     }
+
+    /// <summary>TASKS #65: the driver ran a slice: say what happened next to the menu (where it was), or say that it did not work. One text per
+    /// run; the same <c>used</c> in later state writes is not shown again. Failures are logged as well.</summary>
+    internal void ShowUsedIfNew(MenuState st)
+    {
+        if (st.Used is not { } u || u.Seq == _lastUsedSeq) return;
+        _lastUsedSeq = u.Seq;
+        try
+        {
+            var text = RadialMenuConfirm.Text(Localizer.Te, u.Label, u.Keys, u.Ok);
+            if (!u.Ok) AppLog.Warn($"Radial menu: the slice \"{u.Label}\" ({u.Action}) did not run; the menu says so.");
+            else AppLog.Info($"Radial menu: slice \"{u.Label}\" ran, message \"{text}\".");
+            _toast.Show(text, _cx, _cy, RadialMenuGeometry.OuterRadius(_size), hold: false);
+        }
+        catch (Exception e)
+        {
+            AppLog.Warn("Radial menu: couldn't show what the slice did", e);
+        }
+    }
+
+    /// <summary>The text bubble (tests).</summary>
+    internal RadialMenuToast Toast => _toast;
 
     private int HighlightNow()
     {
@@ -381,12 +423,14 @@ public sealed class RadialMenuOverlay : IDisposable
                 SendCommand(RadialMenuCommand.Centre);
                 break;
             case RadialTarget.Edit:
+                AppLog.Info("Radial menu: mouse click on the pencil.");
                 SendCommand(RadialMenuCommand.Edit);
                 break;
             case RadialTarget.Restore:
                 SendCommand(RadialMenuCommand.Restore);
                 break;
             case RadialTarget.Slice:
+                if (_pie?.Editing == true) AppLog.Info($"Radial menu: mouse click on slice {press.Slice + 1} while the pencil is on: asking the driver to edit it.");
                 // macOS shouldn't activate this app for the click; if it did, the keyboard goes back first.
                 if (MacDesktop.GiveFocusBack()) Task.Delay(150).ContinueWith(_ => SendCommand(RadialMenuCommand.Tap, press.Slice));
                 else SendCommand(RadialMenuCommand.Tap, press.Slice);
@@ -411,6 +455,7 @@ public sealed class RadialMenuOverlay : IDisposable
     {
         _pointerTimer?.Stop();
         _watcher?.Dispose();
+        _toast.Dispose();
         _window?.Close();
     }
 }

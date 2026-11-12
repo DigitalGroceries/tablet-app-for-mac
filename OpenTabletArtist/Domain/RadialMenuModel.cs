@@ -25,7 +25,12 @@ public static class RadialActions
 public sealed class RadialMenuDef
 {
     public const int SliceCount = 8;
-    public const int MinSize = 1, MaxSize = 100, DefaultSize = 50;
+    public const int MinSize = 1, DefaultSize = 50;
+    /// <summary>TASKS #63 (Zak 21:01): the menu is never bigger than the one on his screen, which is size 50: 320 pt across
+    /// (<see cref="RadialMenuGeometry.OuterRadius"/> 160). The slider's largest value is this; a saved larger size is used as this.</summary>
+    public const int MaxSize = 50;
+    /// <summary>The widest a menu can be, in points (the picture in the Pen page's Radial Menu Settings is never larger).</summary>
+    public const double MaxDiameter = 320;
     /// <summary>Menu transparency in percent: 0 is solid, 100 is clear. TASKS #58 / #59 (Zak 18:21): 40 unless chosen (was 70).</summary>
     public const int MinTransparency = 0, MaxTransparency = 100, DefaultTransparency = 40;
     /// <summary>Top menu + 2 levels of submenus.</summary>
@@ -129,9 +134,28 @@ public static class RadialMenuJson
         return new RadialMenuDef
         {
             Slices = slices,
-            Size = Math.Clamp(def?.Size ?? RadialMenuDef.DefaultSize, RadialMenuDef.MinSize, RadialMenuDef.MaxSize),
+            Size = ClampSize(def?.Size ?? RadialMenuDef.DefaultSize),
             Transparency = Math.Clamp(def?.Transparency ?? RadialMenuDef.DefaultTransparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency),
         };
+    }
+
+    private static readonly System.Collections.Generic.HashSet<int> _loggedLargeSizes = new();
+
+    /// <summary>Where the "saved size is too large" line goes (the app points it at its log; this file is shared with plugins that have none).</summary>
+    public static Action<string>? Log { get; set; }
+
+    /// <summary>A menu size within <see cref="RadialMenuDef.MinSize"/>..<see cref="RadialMenuDef.MaxSize"/>. A saved size above the
+    /// largest (older versions allowed up to 100) is brought down to it; each such value is logged once per run.</summary>
+    internal static int ClampSize(int size)
+    {
+        if (size > RadialMenuDef.MaxSize)
+        {
+            bool first; lock (_loggedLargeSizes) first = _loggedLargeSizes.Add(size);
+            if (first)
+                Log?.Invoke($"Radial menu: a saved menu size of {size} is larger than the largest allowed ({RadialMenuDef.MaxSize}, " +
+                                     $"{RadialMenuDef.MaxDiameter:0} pt across), so it is used as {RadialMenuDef.MaxSize}; the saved value is corrected the next time the menu is saved.");
+        }
+        return Math.Clamp(size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
     }
 
     /// <summary>The ring reached by following <paramref name="path"/> (slice numbers of submenus) from the top,
@@ -197,7 +221,8 @@ public static class RadialMenuGeometry
     /// <summary>Tapped outside the ring: close.</summary>
     public const int Outside = -2;
 
-    /// <summary>Outer radius in points for size 1–100: 50 gives 160 pt (a 320 pt menu), 1 gives 90, 100 gives 230.</summary>
+    /// <summary>Outer radius in points for size 1–50: 50 (the largest) gives 160 pt (a 320 pt menu), 1 gives about 91. A larger
+    /// number is treated as 50, so no menu is bigger than 320 pt across (TASKS #63).</summary>
     public static double OuterRadius(int size) =>
         90 + 1.4 * Math.Clamp(size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
 
