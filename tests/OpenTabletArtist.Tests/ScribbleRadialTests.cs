@@ -149,63 +149,75 @@ public class ScribbleShortcutsTests
         Assert.Equal(ScribbleShortcut.None, ScribbleShortcuts.Classify(key, mods, mac: true));
 }
 
-/// <summary>TASKS #54: where a mouse press lands on the on-screen radial menu, and click versus drag.</summary>
+/// <summary>TASKS #54: where a mouse press lands on the on-screen radial menu (the four centre buttons and the slices), and click versus drag.</summary>
 public class RadialMenuMouseTests
 {
-    private const int Size = 50;   // 160 pt outer radius, 41.6 pt centre
+    private const int Size = 50;   // 160 pt outer radius, 64 pt centre circle
+
+    [Theory]
+    [InlineData(-30, -30, RadialTarget.Close)]      // top left: the X
+    [InlineData(30, -30, RadialTarget.Edit)]        // top right: the pencil
+    [InlineData(-30, 30, RadialTarget.Restore)]     // bottom left: the circular arrow
+    [InlineData(30, 30, RadialTarget.Hand)]         // bottom right: the open hand
+    [InlineData(0, 0, RadialTarget.Close)]          // the crossing belongs to the X
+    public void TheCentre_IsFourQuarterButtons(double dx, double dy, RadialTarget expected)
+    {
+        var (t, slice) = RadialMenuMouse.HitTest(dx, dy, Size);
+        Assert.Equal((expected, -1), (t, slice));
+    }
 
     [Fact]
-    public void Centre_IsTheX()
-    {
-        var (t, slice, edge) = RadialMenuMouse.HitTest(0, 0, Size);
-        Assert.Equal((RadialTarget.Centre, -1, false), (t, slice, edge));
-    }
+    public void TheCentre_IsLargerThanBefore_SoEachQuarterIsAComfortableTarget() =>
+        Assert.True(RadialMenuGeometry.InnerRadius(Size) >= 60);   // 64 pt (it was 42 pt for the single X)
 
     [Fact]
     public void BeyondTheRing_IsOutside() =>
         Assert.Equal(RadialTarget.Outside, RadialMenuMouse.HitTest(0, -500, Size).Target);
 
     [Theory]
-    [InlineData(0, -100, 0)]      // top
-    [InlineData(100, 0, 2)]       // right
-    [InlineData(0, 100, 4)]       // bottom
-    [InlineData(-100, 0, 6)]      // left
-    [InlineData(71, -71, 1)]      // top right
+    [InlineData(0, -110, 0)]      // top
+    [InlineData(110, 0, 2)]       // right
+    [InlineData(0, 110, 4)]       // bottom
+    [InlineData(-110, 0, 6)]      // left
+    [InlineData(78, -78, 1)]      // top right
     public void InsideTheRing_IsTheSliceUnderThePointer(double dx, double dy, int expected)
     {
-        var (t, slice, edge) = RadialMenuMouse.HitTest(dx, dy, Size);
-        Assert.Equal((RadialTarget.Slice, expected, false), (t, slice, edge));
+        var (t, slice) = RadialMenuMouse.HitTest(dx, dy, Size);
+        Assert.Equal((RadialTarget.Slice, expected), (t, slice));
     }
 
     [Fact]
-    public void TheOuterRim_CanBeGrabbed_TheRestCannot()
+    public void ASliceClick_NeverDrags_HoweverFarThePointerMoves()
     {
-        double outer = RadialMenuGeometry.OuterRadius(Size);
-        Assert.True(RadialMenuMouse.HitTest(0, -(outer - 5), Size).OnEdge);
-        Assert.False(RadialMenuMouse.HitTest(0, -(outer - RadialMenuMouse.EdgeBand - 5), Size).OnEdge);
-    }
-
-    [Fact]
-    public void ASliceClick_DoesNotMove_AndAPressThatStaysPutIsAClick()
-    {
-        var press = new RadialMenuPress((100, 100), (0, 0), RadialTarget.Slice, 2, onEdge: false);
-        Assert.Null(press.Move((101, 101)));
+        var press = new RadialMenuPress((100, 100), (0, 0), RadialTarget.Slice, 2);
+        Assert.Null(press.Move((300, 300)));
         Assert.False(press.Dragging);
     }
 
-    [Fact]
-    public void PressedInTheMiddleOfASlice_NeverDrags_HoweverFarItMoves()
+    [Theory]
+    [InlineData(RadialTarget.Close)]
+    [InlineData(RadialTarget.Edit)]
+    [InlineData(RadialTarget.Restore)]
+    public void OnlyTheHandDrags(RadialTarget target)
     {
-        var press = new RadialMenuPress((100, 100), (0, 0), RadialTarget.Slice, 2, onEdge: false);
+        var press = new RadialMenuPress((100, 100), (0, 0), target, -1);
         Assert.Null(press.Move((300, 300)));
         Assert.False(press.Dragging);
     }
 
     [Fact]
-    public void PressedOnTheRim_BecomesADragAfterAFewPoints_AndTheWindowFollows()
+    public void ThePressOnTheHand_WithoutMoving_IsNotADrag()
     {
-        var press = new RadialMenuPress((100, 100), (50, 60), RadialTarget.Slice, 2, onEdge: true);
-        Assert.Null(press.Move((102, 101)));                      // under the threshold: still a click
+        var press = new RadialMenuPress((100, 100), (50, 60), RadialTarget.Hand, -1);
+        Assert.Null(press.Move((102, 101)));      // under 4 pt
+        Assert.False(press.Dragging);
+    }
+
+    [Fact]
+    public void OnTheHand_ADragStartsAfterAFewPoints_AndTheWindowFollows()
+    {
+        var press = new RadialMenuPress((100, 100), (50, 60), RadialTarget.Hand, -1);
+        Assert.Null(press.Move((102, 101)));
         var o = press.Move((130, 90));
         Assert.True(press.Dragging);
         Assert.Equal((80.0, 50.0), o);                            // origin + the cursor's movement
@@ -215,7 +227,7 @@ public class RadialMenuMouseTests
     [Fact]
     public void OnceDragging_SmallMovesAreStillDrags()
     {
-        var press = new RadialMenuPress((0, 0), (10, 10), RadialTarget.Slice, 0, onEdge: true);
+        var press = new RadialMenuPress((0, 0), (10, 10), RadialTarget.Hand, -1);
         press.Move((50, 0));
         Assert.Equal((10.0, 10.0), press.Move((0, 0)));
         Assert.True(press.Dragging);

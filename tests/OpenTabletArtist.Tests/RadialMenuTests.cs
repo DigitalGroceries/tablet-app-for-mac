@@ -562,6 +562,158 @@ public class RadialMenuStateTests : IDisposable
         }
         finally { RadialMenuOverlay.CommandFilePath = before; }
     }
+
+    // ── The centre's four buttons (TASKS #54), with the pen ──
+
+    private JsonElement Req() => State().GetProperty("request");
+
+    [Theory]
+    [InlineData(-30, -30)]   // the X
+    [InlineData(0, 0)]
+    public void Pen_TheX_Closes(double dx, double dy)
+    {
+        Binding().Press(null!, null!);
+        TapAt(dx, dy);
+        Assert.False(RadialMenuState.IsOpen);
+        Assert.Empty(_ran);
+    }
+
+    [Fact]
+    public void Pen_TheHand_NeverCloses_AndATapWithoutMovingDoesNothing()
+    {
+        Binding().Press(null!, null!);
+        double cx = 500, cy = 400;
+        TapAt(30, 30);                       // bottom right: the hand
+        RadialMenuState.PenMoved();          // no movement
+        RadialMenuState.TipUp();
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.Equal(cx, State().GetProperty("x").GetDouble());
+        Assert.Equal(cy, State().GetProperty("y").GetDouble());
+        Assert.Empty(_ran);
+    }
+
+    [Fact]
+    public void Pen_DraggingTheHand_MovesTheMenu_AfterAFewPoints_AndParksIt()
+    {
+        RadialMenuState.IdleCloseMs = 1;
+        Binding().Press(null!, null!);
+        TapAt(30, 30);                       // pen down on the hand at (530,430)
+        _cursor = (532, 431);                // 2 pt: still not a drag
+        RadialMenuState.PenMoved();
+        Assert.Equal(500, State().GetProperty("x").GetDouble());
+        _cursor = (630, 380);                // moved by (+100, -50)
+        RadialMenuState.PenMoved();
+        RadialMenuState.TipUp();             // writes the final place
+        Assert.Equal(600, State().GetProperty("x").GetDouble());
+        Assert.Equal(350, State().GetProperty("y").GetDouble());
+        System.Threading.Thread.Sleep(20);
+        RadialMenuState.CloseIfIdle();
+        Assert.True(RadialMenuState.IsOpen);  // parked
+        // and the pen's taps are now measured from the new centre
+        _cursor = (600, 250);
+        RadialMenuState.TipDown();
+        Assert.Equal(new[] { "Undo" }, _ran);
+    }
+
+    [Fact]
+    public void Pen_Pencil_ThenASlice_AsksTheAppToEditIt_AndTheMenuStaysOpen()
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        TapAt(30, -30);                      // the pencil
+        Assert.True(RadialMenuState.Editing);
+        Assert.True(State().GetProperty("editing").GetBoolean());
+        TapAt(110, 0);                       // slice 2 (Copy): edited, not run
+        Assert.Empty(_ran);
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.False(RadialMenuState.Editing);
+        Assert.Equal("edit", Req().GetProperty("kind").GetString());
+        Assert.Equal(2, Req().GetProperty("slice").GetInt32());
+        Assert.True(RadialMenuState.Busy);
+        Assert.False(RadialMenuState.SwallowsPen);   // the pen can click in the app's editor meanwhile
+    }
+
+    [Fact]
+    public void PencilTappedTwice_PutsItDown()
+    {
+        Binding().Press(null!, null!);
+        TapAt(30, -30);
+        TapAt(30, -30);
+        Assert.False(RadialMenuState.Editing);
+    }
+
+    [Fact]
+    public void TheAppsAnswer_ChangesTheOpenMenu_AndLetsThePenBackIn()
+    {
+        Binding().Press(null!, null!);
+        TapAt(30, -30);
+        TapAt(0, -110);                      // edit slice 0 (Undo)
+        var m = RadialMenuDefaults.Create();
+        m.Slices[0] = new RadialSlice { Label = "Save", Action = RadialActions.Keys, Keys = "Application+S" };
+        Mouse(RadialMenuCommand.MenuChanged);   // unchanged (cancelled): no menu given
+        Assert.True(RadialMenuState.SwallowsPen);
+        TapAt(30, -30);
+        TapAt(0, -110);
+        RadialMenuState.HandleCommand(new RadialMenuCommand { Seq = 2, Op = RadialMenuCommand.MenuChanged, Menu = RadialMenuJson.Serialize(m) });
+        Assert.Equal("Save", State().GetProperty("slices")[0].GetProperty("label").GetString());
+        Assert.Equal(RadialMenuJson.Serialize(m), State().GetProperty("menu").GetString());
+        TapAt(0, -110);
+        Assert.Equal(new[] { "Save" }, _ran);
+    }
+
+    [Fact]
+    public void Pen_CircularArrow_AsksYesNo_YesRestores_AnythingElseCancels()
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        TapAt(-30, 30);                      // the circular arrow
+        Assert.True(RadialMenuState.Confirming);
+        Assert.True(State().GetProperty("confirm").GetBoolean());
+        // only Yes (right, slice 2) and No (left, slice 6) are live on the ring
+        var slices = State().GetProperty("slices");
+        for (int i = 0; i < 8; i++) Assert.Equal(i == 2 || i == 6, slices[i].GetProperty("set").GetBoolean());
+        TapAt(0, -110);                      // somewhere else: cancel
+        Assert.False(RadialMenuState.Confirming);
+        Assert.False(State().TryGetProperty("request", out var none) && none.ValueKind == JsonValueKind.Object);
+        Assert.Empty(_ran);
+
+        TapAt(-30, 30);
+        TapAt(110, 0);                       // Yes
+        Assert.Equal("restore", Req().GetProperty("kind").GetString());
+        Assert.False(RadialMenuState.Confirming);
+        Assert.True(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void Mouse_PencilAndArrow_DoWhatThePenDoes()
+    {
+        Binding().Press(null!, null!);
+        Mouse(RadialMenuCommand.Edit);
+        Assert.True(RadialMenuState.Editing);
+        Mouse(RadialMenuCommand.Tap, 3);
+        Assert.Equal("edit", Req().GetProperty("kind").GetString());
+        Mouse(RadialMenuCommand.MenuChanged);
+        Mouse(RadialMenuCommand.Restore);
+        Assert.True(RadialMenuState.Confirming);
+        Mouse(RadialMenuCommand.Tap, 6);     // No
+        Assert.False(RadialMenuState.Confirming);
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.Empty(_ran);
+    }
+
+    [Fact]
+    public void WhileTheAppEdits_TheMenuDoesNotCloseByItself()
+    {
+        RadialMenuState.IdleCloseMs = 1;
+        Binding().Press(null!, null!);
+        Mouse(RadialMenuCommand.Edit);
+        Mouse(RadialMenuCommand.Tap, 0);
+        System.Threading.Thread.Sleep(20);
+        RadialMenuState.CloseIfIdle();
+        Assert.True(RadialMenuState.IsOpen);
+    }
 }
 
 public class RadialMenuEditorTests
