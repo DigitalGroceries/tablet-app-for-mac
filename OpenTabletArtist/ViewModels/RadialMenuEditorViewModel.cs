@@ -42,6 +42,8 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         _top = string.IsNullOrWhiteSpace(menuJson) ? RadialMenuDefaults.Create(Localizer.Te) : RadialMenuJson.Parse(menuJson);
         Title = title;
         _size = _top.Size;
+        _transparency = _top.Transparency;
+        _transparencyInput = _transparency.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _selectedSlice = 0;
         LoadSlice();
         Refresh();
@@ -78,6 +80,9 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     public string SizeCaption => Localizer.Te("radial.size", "Menu size");
     public string SizeSmall => Localizer.Te("radial.size_small", "Small");
     public string SizeLarge => Localizer.Te("radial.size_large", "Large");
+    public string TransparencyCaption => Localizer.Te("radial.transparency", "Menu transparency");
+    public string TransparencySolid => Localizer.Te("radial.transparency_solid", "Solid");
+    public string TransparencyClear => Localizer.Te("radial.transparency_clear", "Clear");
     public string SaveLabel => Localizer.Te("save.button", "Save");
     public string CancelLabel => Localizer.Te("app.cancel", "Cancel");
 
@@ -96,6 +101,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     [ObservableProperty] private string _keysText = "";
     [ObservableProperty] private string _appText = "";
     [ObservableProperty] private int _size;
+    [ObservableProperty] private int _transparency;
 
     public bool IsKeys => ActionIndex == ActKeys;
     public bool IsClick => ActionIndex == ActClick;
@@ -109,6 +115,18 @@ public partial class RadialMenuEditorViewModel : ObservableObject
 
     /// <summary>The menu as it stands now (tests).</summary>
     public RadialMenuDef Menu => RadialMenuJson.Normalize(_top);
+
+    /// <summary>Open on a given slice of a given ring (the radial menu's pencil: edit the slice just tapped).</summary>
+    public void GoTo(IReadOnlyList<int> path, int slice)
+    {
+        foreach (var i in path)
+        {
+            SelectSlice(i);
+            if (Slice.Action != RadialActions.Submenu) break;
+            EditSubmenu();
+        }
+        SelectSlice(slice);
+    }
 
     public void SelectSlice(int i)
     {
@@ -167,7 +185,63 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         Refresh();
     }
 
-    partial void OnSizeChanged(int value) => _top.Size = Math.Clamp(value, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
+    partial void OnSizeChanged(int value)
+    {
+        _top.Size = Math.Clamp(value, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
+        OnPropertyChanged(nameof(PreviewDiameter));
+        OnPropertyChanged(nameof(SizeText));
+    }
+
+    partial void OnTransparencyChanged(int value)
+    {
+        _top.Transparency = Math.Clamp(value, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency);
+        OnPropertyChanged(nameof(TransparencyText));
+        _transparencyInput = Math.Clamp(value, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency)
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+        OnPropertyChanged(nameof(TransparencyInput));
+    }
+
+    private string _transparencyInput = "";
+
+    /// <summary>The transparency as typed in the number box beside the slider (TASKS #59, Zak 18:21: also editable from the
+    /// keyboard). Whatever is committed (Enter or leaving the box) is read as a number, "40", "40%" or "40,5", clamped to
+    /// 0-100 and applied, so the slider and the live preview follow; text that is not a number puts the old value back.
+    /// The box always ends up showing the real value.</summary>
+    public string TransparencyInput
+    {
+        get => _transparencyInput;
+        set
+        {
+            if (TryParsePercent(value, out var v)) Transparency = v;
+            // Show the real value even when nothing changed (clamped, "abc", "40%").
+            _transparencyInput = Math.Clamp(Transparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency)
+                .ToString(System.Globalization.CultureInfo.InvariantCulture);
+            OnPropertyChanged(nameof(TransparencyInput));
+        }
+    }
+
+    /// <summary>Reads a typed percent: optional % sign, comma or dot, rounded and clamped to the transparency range.</summary>
+    public static bool TryParsePercent(string? text, out int percent)
+    {
+        percent = 0;
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        var t = text.Trim().TrimEnd('%').Trim().Replace(',', '.');
+        if (!double.TryParse(t, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d)
+            || double.IsNaN(d) || double.IsInfinity(d)) return false;
+        percent = (int)Math.Round(Math.Clamp(d, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency), MidpointRounding.AwayFromZero);
+        return true;
+    }
+
+    /// <summary>The transparency shown as a number next to its slider, "70%".</summary>
+    public string TransparencyText => Math.Clamp(Transparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency)
+        .ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
+
+    /// <summary>The size shown as a number next to the slider (1-100).</summary>
+    public string SizeText => Math.Clamp(Size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>Width and height in points of the live preview ring: the same size the menu has on screen
+    /// (50 gives 320, 1 gives 180, 100 gives 460), so the slider shows what you will get.</summary>
+    public double PreviewDiameter => 2 * RadialMenuGeometry.OuterRadius(Size);
 
     private void NotifyActionFlags()
     {
@@ -291,6 +365,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         _top = RadialMenuDefaults.Create(Localizer.Te);
         _path.Clear();
         Size = _top.Size;
+        Transparency = _top.Transparency;
         SelectedSlice = 0;
         LoadSlice();
         Refresh();
@@ -300,6 +375,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     private void Save()
     {
         _top.Size = Size;
+        _top.Transparency = Transparency;
         Result = RadialMenuJson.Serialize(_top);
         CloseRequested?.Invoke();
     }

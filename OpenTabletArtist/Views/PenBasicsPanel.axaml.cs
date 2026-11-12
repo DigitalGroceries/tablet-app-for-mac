@@ -40,7 +40,13 @@ public partial class PenBasicsPanel : UserControl
         PressureSharedNote.IsVisible = ForEraser;
         MovementSharedNote.IsVisible = ForEraser;
         if (MovementHeading != null) MovementHeading.Text = Localizer.T("tablet.pen.movement");
-        if (PositionSmoothingSlider != null) PositionSmoothingSlider.Label = Localizer.T("tablet.pen.position_smoothing");
+        if (PositionSmoothingCaption != null)
+        {
+            PositionSmoothingCaption.Text = Localizer.T("tablet.pen.position_smoothing");
+            Avalonia.Automation.AutomationProperties.SetName(PositionSmoothingSlider, PositionSmoothingCaption.Text);
+            PositionSmoothingNote.Text = Localizer.Te("tablet.pen.position_smoothing_note",
+                "Steadies wobbly lines, at a little lag. 0 is off, 10 is the strongest.");
+        }
         if (SmootherCurvesSwitch != null)
         {
             SmootherCurvesSwitch.Label = Localizer.Te("tablet.pen.smoother_curves", "Smoother fast curves");

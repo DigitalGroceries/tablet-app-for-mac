@@ -42,9 +42,11 @@ public static class PenScrollBinding
     private static readonly IEnumerable<PluginSettingStore?> None = Array.Empty<PluginSettingStore?>();
 
     /// <summary>Every binding store of a profile, wherever it sits.</summary>
-    public static IEnumerable<PluginSettingStore?> AllBindings(Profile profile)
+    public static IEnumerable<PluginSettingStore?> AllBindings(Profile profile) => AllBindings(profile.BindingSettings);
+
+    /// <summary>Every binding store of a binding table, wherever it sits.</summary>
+    public static IEnumerable<PluginSettingStore?> AllBindings(BindingSettings? b)
     {
-        var b = profile.BindingSettings;
         if (b == null) yield break;
         yield return b.TipButton;
         yield return b.EraserButton;

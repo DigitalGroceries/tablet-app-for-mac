@@ -57,6 +57,8 @@ public class ObjCSelectorTests
             "UTF8String", "setIgnoresMouseEvents:", "setCollectionBehavior:", "window", "setLevel:", "screen", "frame",
             "setFrame:display:", "agentServiceWithPlistName:", "stringWithUTF8String:",
             "sharedApplication", "setActivationPolicy:",
+            "_setPreventsActivation:", "sharedWorkspace", "frontmostApplication", "processIdentifier",
+            "runningApplicationWithProcessIdentifier:", "activateWithOptions:", "isActive",
         };
         Assert.Equal(expected, OpenTabletArtist.Services.ObjCSelectors.All);
         Assert.DoesNotContain("mainApp", OpenTabletArtist.Services.ObjCSelectors.All);

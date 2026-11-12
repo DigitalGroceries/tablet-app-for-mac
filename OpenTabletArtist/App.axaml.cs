@@ -109,6 +109,7 @@ public partial class App : Application
             _ringHud.Start();
             Services.ActionConfirmation.Attach(_ringHud);
             _radialMenu = new RadialMenuOverlay();   // TASKS #42: draws the radial menu the driver opens
+            RadialMenuOverlay.RequestHandler = RadialLiveEdit.HandleAsync;   // TASKS #54: the pencil and the circular arrow
             _radialMenu.Start();
             desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); _radialMenu?.Dispose(); };
 

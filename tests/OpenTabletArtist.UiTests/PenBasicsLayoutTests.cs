@@ -30,20 +30,19 @@ public class PenBasicsLayoutTests
     private static TextBlock Heading(PenBasicsPanel v, string text) =>
         v.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == text && t.Classes.Contains("basicsHeading"));
 
-    private static LabeledSlider PositionSmoothing(PenBasicsPanel v) =>
-        v.GetVisualDescendants().OfType<LabeledSlider>().Single(s => s.Label == "Position smoothing");
+    private static Slider PositionSmoothing(PenBasicsPanel v) => v.FindControl<Slider>("PositionSmoothingSlider")!;
+    private static TextBlock Caption(PenBasicsPanel v) => v.FindControl<TextBlock>("PositionSmoothingCaption")!;
+    private static TextBlock Note(PenBasicsPanel v) => v.FindControl<TextBlock>("PositionSmoothingNote")!;
+    private static TextBlock Number(PenBasicsPanel v) => v.FindControl<TextBlock>("PositionSmoothingValue")!;
 
     [AvaloniaFact]
-    public void PositionSmoothing_IsInTheMovementColumn_BetweenMovementAndPressing()
+    public void PositionSmoothing_IsInTheMovementColumn_BeforePressing()
     {
         var (window, view) = Page();
         var order = view.GetVisualDescendants().ToList();
-        int movement = order.IndexOf(Heading(view, "Movement"));
         int slider = order.IndexOf(PositionSmoothing(view));
         int pressing = order.IndexOf(Heading(view, "Pressing"));
-
-        Assert.True(movement >= 0 && slider >= 0 && pressing >= 0);
-        Assert.True(movement < slider, "position smoothing should come after the movement heading");
+        Assert.True(slider >= 0 && pressing >= 0);
         Assert.True(slider < pressing, "position smoothing should come before the pressing section, not under it");
         window.Close();
     }
@@ -52,18 +51,76 @@ public class PenBasicsLayoutTests
     public void PositionSmoothing_SharesTheMovementColumn()
     {
         var (window, view) = Page();
-        var column = Heading(view, "Movement").GetVisualAncestors().OfType<StackPanel>().First();
+        var column = Heading(view, "Pressing").GetVisualAncestors().OfType<StackPanel>().Last(c => c.GetVisualDescendants().Contains(PositionSmoothing(view)));
         Assert.Contains(PositionSmoothing(view), column.GetVisualDescendants());
-        Assert.Contains(Heading(view, "Pressing"), column.GetVisualDescendants());
         window.Close();
     }
 
-    // The slider's tick marks sit just above the pressing heading, so the heading needs its own gap.
+    // TASKS #55 (12 Nov 18:54): the Movement choice is always visible, and a saved Relative stays Relative and reads
+    // "Relative (slow / no mouse-like speed-up)".
+    [AvaloniaFact]
+    public void MovementChoice_IsAlwaysVisible()
+    {
+        var (window, view) = Page();
+        Assert.True(view.FindControl<ComboBox>("MovementBox")!.IsEffectivelyVisible);
+        Assert.True(Heading(view, "Movement").IsEffectivelyVisible);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void MovementChoice_ForAProfileOnRelative_ShowsRelativeNoSpeedUp()
+    {
+        const string rel = "OpenTabletDriver.Desktop.Output.RelativeMode";
+        var settings = new OpenTabletDriver.Desktop.Settings
+        {
+            Profiles = new OpenTabletDriver.Desktop.Profiles.ProfileCollection
+            {
+                new OpenTabletDriver.Desktop.Profiles.Profile { Tablet = "T", OutputMode = new OpenTabletDriver.Desktop.Reflection.PluginSettingStore(rel) { Path = rel } },
+            },
+        };
+        var vm = new OpenTabletArtist.ViewModels.TabletDetailViewModel(settings.Profiles.First(), settings);
+        var view = new PenBasicsPanel { DataContext = vm };
+        var window = new Window { Content = view, Width = 1400, Height = 900 };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(view.FindControl<ComboBox>("MovementBox")!.IsEffectivelyVisible);
+        Assert.Equal("Relative (slow / no mouse-like speed-up)", vm.SelectedMovement.Title);
+        // The longer label must not push the dropdown past its column (250 wide) onto the Pen input column.
+        var movementBox = view.FindControl<ComboBox>("MovementBox")!;
+        Assert.True(movementBox.Bounds.Width <= 250.5, $"Movement box is {movementBox.Bounds.Width} wide");
+        Assert.Equal(rel, settings.Profiles.First().OutputMode!.Path);   // not changed
+        window.Close();
+    }
+
+    // TASKS #55: the slider is UNDER its caption, at least as wide as the explanation below it, 0-10, with the number shown.
+    [AvaloniaFact]
+    public void PositionSmoothing_IsUnderItsCaption_AsWideAsTheNote_AndRunsZeroToTen()
+    {
+        var (window, view) = Page();
+        var slider = PositionSmoothing(view);
+        var caption = Caption(view);
+        var note = Note(view);
+        Assert.Equal((0.0, 10.0), (slider.Minimum, slider.Maximum));
+        double captionY = caption.TranslatePoint(new Point(0, 0), view)!.Value.Y;
+        double sliderY = slider.TranslatePoint(new Point(0, 0), view)!.Value.Y;
+        double noteY = note.TranslatePoint(new Point(0, 0), view)!.Value.Y;
+        Assert.True(sliderY > captionY + caption.Bounds.Height - 1, "the slider is under its caption");
+        Assert.True(noteY >= sliderY + slider.Bounds.Height - 1, "the explanation is under the slider");
+        Assert.True(slider.Bounds.Width >= note.Bounds.Width - 0.5, $"slider {slider.Bounds.Width} vs note {note.Bounds.Width}");
+        Assert.Equal("0.0", Number(view).Text);
+        ((OpenTabletArtist.ViewModels.TabletDetailViewModel)view.DataContext!).PositionSmoothing = 0.25;
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("10.0", Number(view).Text);
+        Assert.Equal(10, slider.Value, 3);
+        window.Close();
+    }
+
+    // The slider sits just above the pressing heading, so the heading needs its own gap.
     [AvaloniaFact]
     public void ThereIsRoomBetweenThePositionSliderAndThePressingHeading()
     {
         var (window, view) = Page();
-        var slider = PositionSmoothing(view);
+        var slider = Note(view);
         var heading = Heading(view, "Pressing");
         if (!System.OperatingSystem.IsWindows())
         {

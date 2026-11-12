@@ -56,9 +56,35 @@ public class RadialMenuShots
         vm.SelectSlice(2);
         var w = new RadialMenuEditorDialog(vm);
         Snap(w, "radial-editor.png");
+        vm.Size = 100;
+        Dispatcher.UIThread.RunJobs();
+        Snap(w, "radial-editor-size100.png");
+        vm.Size = 1;
+        Dispatcher.UIThread.RunJobs();
+        Snap(w, "radial-editor-size1.png");
+        vm.Size = 50;
+        vm.Transparency = 0;
+        Dispatcher.UIThread.RunJobs();
+        Snap(w, "radial-editor-transparency0.png");
+        vm.Transparency = 100;
+        Dispatcher.UIThread.RunJobs();
+        Snap(w, "radial-editor-transparency100.png");
+        vm.Transparency = RadialMenuDef.DefaultTransparency;
+        Dispatcher.UIThread.RunJobs();
         vm.ActionIndex = RadialMenuEditorViewModel.ActOpen;
         Dispatcher.UIThread.RunJobs();
         Snap(w, "radial-editor-open-app.png");
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void PenPage_MovementVisible_SmoothingUnderCaption()
+    {
+        System.IO.Directory.CreateDirectory(Dir);
+        _ = new ThemeViewModel();
+        var vm = new TabletDetailViewModel { PositionSmoothing = 0.1 };
+        var w = new Window { Content = new PenBasicsPanel { DataContext = vm, Margin = new Thickness(20) }, Width = 900, Height = 520 };
+        Snap(w, "pen-page-movement-shown.png");
         w.Close();
     }
 

@@ -26,6 +26,8 @@ public sealed class RadialMenuDef
 {
     public const int SliceCount = 8;
     public const int MinSize = 1, MaxSize = 100, DefaultSize = 50;
+    /// <summary>Menu transparency in percent: 0 is solid, 100 is clear. TASKS #58 / #59 (Zak 18:21): 40 unless chosen (was 70).</summary>
+    public const int MinTransparency = 0, MaxTransparency = 100, DefaultTransparency = 40;
     /// <summary>Top menu + 2 levels of submenus.</summary>
     public const int MaxDepth = 3;
 
@@ -33,6 +35,10 @@ public sealed class RadialMenuDef
 
     /// <summary>On-screen size 1–100 (same scale as the app's other sliders). Only the top menu's value is used.</summary>
     [JsonPropertyName("size")] public int Size { get; set; } = DefaultSize;
+
+    /// <summary>How see-through the slices are, 0 (solid) to 100 (clear). Labels, lines and icons stay fully visible.
+    /// Only the top menu's value is used; a menu saved before this existed reads as <see cref="DefaultTransparency"/>.</summary>
+    [JsonPropertyName("transparency")] public int Transparency { get; set; } = DefaultTransparency;
 }
 
 public sealed class RadialSlice
@@ -66,6 +72,7 @@ public static class RadialMenuDefExtensions
     public static RadialMenuDef Clone(this RadialMenuDef def) => new()
     {
         Size = def.Size,
+        Transparency = def.Transparency,
         Slices = def.Slices.Select(s => s.Clone()).ToList(),
     };
 }
@@ -123,6 +130,7 @@ public static class RadialMenuJson
         {
             Slices = slices,
             Size = Math.Clamp(def?.Size ?? RadialMenuDef.DefaultSize, RadialMenuDef.MinSize, RadialMenuDef.MaxSize),
+            Transparency = Math.Clamp(def?.Transparency ?? RadialMenuDef.DefaultTransparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency),
         };
     }
 
@@ -153,6 +161,7 @@ public static class RadialMenuDefaults
         return new RadialMenuDef
         {
             Size = RadialMenuDef.DefaultSize,
+            Transparency = RadialMenuDef.DefaultTransparency,
             Slices = new List<RadialSlice>
             {
                 Keys(T("undo", "Undo"), "Application+Z"),          // top
@@ -174,8 +183,17 @@ public static class RadialMenuDefaults
 /// <summary>Where things are on screen. Points, y downwards (macOS global coordinates, as CGEventGetLocation).</summary>
 public static class RadialMenuGeometry
 {
-    /// <summary>Tapped the centre (the X): close.</summary>
+    // The centre circle is four quarter buttons (TASKS #54), split by a cross:
+    //   top left: the X (close)     top right: the pencil (edit a slice)
+    //   bottom left: restore the default slices     bottom right: the open hand (drag the menu)
+    /// <summary>Top-left quarter, the X: close.</summary>
     public const int Centre = -1;
+    /// <summary>Bottom-right quarter, the open hand: press it and move to drag the menu; a press that doesn't move does nothing.</summary>
+    public const int Hand = -4;
+    /// <summary>Top-right quarter, the pencil: then tap a slice to choose what it does.</summary>
+    public const int Edit = -5;
+    /// <summary>Bottom-left quarter, the circular arrow: restore the 8 default slices (after a Yes / No).</summary>
+    public const int Restore = -6;
     /// <summary>Tapped outside the ring: close.</summary>
     public const int Outside = -2;
 
@@ -183,15 +201,24 @@ public static class RadialMenuGeometry
     public static double OuterRadius(int size) =>
         90 + 1.4 * Math.Clamp(size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
 
-    /// <summary>Radius of the centre circle (the X).</summary>
-    public static double InnerRadius(int size) => OuterRadius(size) * 0.26;
+    /// <summary>The centre circle's radius as a share of the outer radius (it holds four quarter buttons, so each
+    /// is a comfortable target for the pen).</summary>
+    public const double InnerRatio = 0.40;
+
+    /// <summary>Radius of the centre circle: the X on top, the hand below.</summary>
+    public static double InnerRadius(int size) => OuterRadius(size) * InnerRatio;
 
     /// <summary>The slice at offset (<paramref name="dx"/>, <paramref name="dy"/>) from the centre: 0 = top, then
-    /// clockwise; <see cref="Centre"/> inside the centre circle; <see cref="Outside"/> beyond the ring.</summary>
+    /// clockwise; one of the four centre quarters (<see cref="Centre"/>, <see cref="Edit"/>, <see cref="Restore"/>, <see cref="Hand"/>) inside the centre circle; <see cref="Outside"/> beyond the ring.</summary>
     public static int SliceAt(double dx, double dy, int size)
     {
         var r = Math.Sqrt(dx * dx + dy * dy);
-        if (r <= InnerRadius(size)) return Centre;
+        if (r <= InnerRadius(size))
+        {
+            // The dividing lines belong to the top-left (X) quarter's side: x <= 0 and y <= 0 count as left / top.
+            bool left = dx <= 0, top = dy <= 0;
+            return top ? (left ? Centre : Edit) : (left ? Restore : Hand);
+        }
         if (r > OuterRadius(size)) return Outside;
         // Angle from straight up, clockwise (screen y grows downwards).
         var deg = Math.Atan2(dx, -dy) * 180.0 / Math.PI;
@@ -202,4 +229,42 @@ public static class RadialMenuGeometry
 
     /// <summary>Middle of slice <paramref name="i"/>'s arc, in degrees clockwise from the top.</summary>
     public static double SliceAngle(int i) => i * 360.0 / RadialMenuDef.SliceCount;
+}
+
+/// <summary>What the app tells the driver when the menu is used with the Mac mouse (TASKS #54). The app can't
+/// press keys in other apps (the driver can), so a click is written to a small file the plugin polls while the
+/// menu is open; same folder as the state file. <see cref="Seq"/> only ever grows, so a command is acted on once.</summary>
+public sealed class RadialMenuCommand
+{
+    /// <summary>Run slice <see cref="Slice"/> of the open ring (a submenu slice opens it); the menu stays open.</summary>
+    public const string Tap = "tap";
+    /// <summary>The X (top-left centre quarter) was clicked: close.</summary>
+    public const string Centre = "centre";
+    /// <summary>Esc: close.</summary>
+    public const string Close = "close";
+    /// <summary>The menu was dragged: its centre is now (<see cref="X"/>, <see cref="Y"/>). It is then "parked": it stays until closed.</summary>
+    public const string Move = "move";
+    /// <summary>The pencil was clicked: the next slice tapped is edited instead of run.</summary>
+    public const string Edit = "edit";
+    /// <summary>The circular arrow was clicked: ask whether to restore the default slices.</summary>
+    public const string Restore = "restore";
+    /// <summary>The app finished an edit or a restore: <see cref="Menu"/> is the menu to use from now on (the same one when nothing changed).</summary>
+    public const string MenuChanged = "menu";
+
+    [JsonPropertyName("seq")] public long Seq { get; set; }
+    [JsonPropertyName("op")] public string Op { get; set; } = "";
+    [JsonPropertyName("slice")] public int Slice { get; set; } = -1;
+    [JsonPropertyName("x")] public double X { get; set; }
+    [JsonPropertyName("y")] public double Y { get; set; }
+    [JsonPropertyName("menu")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? Menu { get; set; }
+
+    public string ToJson() => JsonSerializer.Serialize(this);
+
+    /// <summary>The command in <paramref name="json"/>, or null when it can't be read. Never throws.</summary>
+    public static RadialMenuCommand? Parse(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try { return JsonSerializer.Deserialize<RadialMenuCommand>(json); }
+        catch (Exception) { return null; }
+    }
 }

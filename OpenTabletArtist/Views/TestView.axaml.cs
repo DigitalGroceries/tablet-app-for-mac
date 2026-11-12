@@ -1,6 +1,7 @@
 using System.Numerics;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Interactivity;
 using OpenTabletArtist.Domain;
@@ -13,6 +14,7 @@ namespace OpenTabletArtist.Views;
 public partial class TestView : UserControl
 {
     private TestViewModel? _vm;
+    private TopLevel? _top;
 
     public TestView()
     {
@@ -21,6 +23,8 @@ public partial class TestView : UserControl
         PaintCanvas.IgnorePointer = true;
         // The eraser end should rub out strokes here (the Pen preview pads leave this off).
         PaintCanvas.EraseWithEraser = true;
+        // Undo / redo of strokes, so the radial menu's Undo and Redo (and ⌘Z / ⌘⇧Z) work here (TASKS #53).
+        PaintCanvas.EnableUndo = true;
         DataContextChanged += OnDataContextChanged;
         ApplyLanguage();
         Localizer.LanguageChanged += ApplyLanguage;
@@ -97,9 +101,21 @@ public partial class TestView : UserControl
 
     // Typed nav creates a fresh TestView each visit; detach from the long-lived VM on unload so
     // discarded views don't keep handling driver samples / clears (Codex #94).
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+        // The radial menu (and the keyboard) send ⌘Z, ⌘⇧Z, ⌘C, ⌘V, ⌘X, ⌘A and ⌘- / ⌘= to the app in front. Listen on
+        // the whole window, before the focused control, so it works wherever the focus is on this page.
+        _top?.RemoveHandler(KeyDownEvent, OnShortcutKeyDown);
+        _top = TopLevel.GetTopLevel(this);
+        _top?.AddHandler(KeyDownEvent, OnShortcutKeyDown, RoutingStrategies.Tunnel);
+    }
+
     protected override void OnUnloaded(RoutedEventArgs e)
     {
         base.OnUnloaded(e);
+        _top?.RemoveHandler(KeyDownEvent, OnShortcutKeyDown);
+        _top = null;
         if (_vm != null)
         {
             _vm.DriverSample -= OnDriverSample;
@@ -111,12 +127,58 @@ public partial class TestView : UserControl
 
     // Copy the current drawing to the clipboard as an image (Windows CF_DIB), so it can be pasted into
     // another app. A snapshot/clipboard failure surfaces a toast instead of silently doing nothing (#609).
-    private void OnCopy(object? sender, RoutedEventArgs e)
+    private void OnCopy(object? sender, RoutedEventArgs e) => CopyDrawing();
+
+    private void CopyDrawing()
     {
         if (PaintCanvas.Snapshot() is not { } snap) return;
         if (ClipboardImage.CopyBgra(snap.Bgra, snap.Width, snap.Height))
             OpenTabletArtist.Services.ActionConfirmation.Show("confirm.image_copied", "Image copied");
         else
             ProfileToast.Show(ClipboardImage.FailureHint, "IconAlert");
+    }
+
+    private void OnShortcutKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Handled || !IsEffectivelyVisible) return;
+        if (e.Source is TextBox) return;   // typing in a text box keeps its own undo, copy and paste
+        var shortcut = ScribbleShortcuts.Classify(e.Key, e.KeyModifiers, OperatingSystem.IsMacOS());
+        if (shortcut == ScribbleShortcut.None) return;
+        Perform(shortcut);
+        e.Handled = true;
+    }
+
+    /// <summary>Do what a shortcut (or a radial menu slice, which sends one) asks for on this page: undo and redo
+    /// act on the strokes, Copy copies the drawing, and the rest say plainly that they belong to a drawing app,
+    /// so whoever tries the radial menu here can see the slice arrived.</summary>
+    internal void Perform(ScribbleShortcut shortcut)
+    {
+        switch (shortcut)
+        {
+            case ScribbleShortcut.Undo:
+                if (PaintCanvas.Undo()) OpenTabletArtist.Services.ActionConfirmation.Show("confirm.scribble_undone", "Undone");
+                else OpenTabletArtist.Services.ActionConfirmation.Show("confirm.scribble_nothing_undo", "Nothing to undo");
+                break;
+            case ScribbleShortcut.Redo:
+                if (PaintCanvas.Redo()) OpenTabletArtist.Services.ActionConfirmation.Show("confirm.scribble_redone", "Redone");
+                else OpenTabletArtist.Services.ActionConfirmation.Show("confirm.scribble_nothing_redo", "Nothing to redo");
+                break;
+            case ScribbleShortcut.Copy:
+                CopyDrawing();
+                break;
+            case ScribbleShortcut.Paste:
+                OpenTabletArtist.Services.ActionConfirmation.Show("confirm.scribble_paste", "Paste works in your drawing app");
+                break;
+            case ScribbleShortcut.Cut:
+                OpenTabletArtist.Services.ActionConfirmation.Show("confirm.scribble_cut", "Cut works in your drawing app");
+                break;
+            case ScribbleShortcut.SelectAll:
+                OpenTabletArtist.Services.ActionConfirmation.Show("confirm.scribble_select_all", "Select all works in your drawing app");
+                break;
+            case ScribbleShortcut.ZoomIn:
+            case ScribbleShortcut.ZoomOut:
+                OpenTabletArtist.Services.ActionConfirmation.Show("confirm.scribble_zoom", "Zoom works in your drawing app");
+                break;
+        }
     }
 }

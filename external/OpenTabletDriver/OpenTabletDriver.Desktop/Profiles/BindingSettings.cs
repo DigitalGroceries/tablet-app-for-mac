@@ -227,13 +227,19 @@ namespace OpenTabletDriver.Desktop.Profiles
             Debug.Assert(WheelBindings.Count == wheelCount, "WheelBindings.Count != wheelCount");
         }
 
+        /// <summary>TASKS #56: the default for pen button 2 is the app's Radial menu binding (a plugin type the
+        /// app ships; no Menu setting means its default menu). The daemon only keeps the type's name.</summary>
+        private static PluginSettingStore RadialMenuDefaultButton2() =>
+            new PluginSettingStore("OpenTabletArtist.Dynamics.RadialMenuBinding",
+                new System.Collections.ObjectModel.ObservableCollection<PluginSetting>()) { Enable = true };
+
         private void AddPenButtons(TabletSpecifications tabletSpecifications)
         {
             uint buttonCount = tabletSpecifications.Pen.ButtonCount;
             if (buttonCount >= 1)
                 PenButtons.Add(new PluginSettingStore(new AdaptiveBinding(PenAction.BarrelButton1)));
             if (buttonCount >= 2)
-                PenButtons.Add(new PluginSettingStore(new AdaptiveBinding(PenAction.BarrelButton2)));
+                PenButtons.Add(RadialMenuDefaultButton2());   // TASKS #56: pen button 2 starts as the Radial menu
             if (buttonCount >= 3)
                 PenButtons.Add(new PluginSettingStore(new AdaptiveBinding(PenAction.BarrelButton3)));
         }

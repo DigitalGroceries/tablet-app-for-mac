@@ -296,7 +296,7 @@ public class FullSweepTests : IDisposable
         {
             ("Softness", -0.9, 0.9, -0.45, () => vm.Softness),
             ("Pressure smoothing", 0, 0.5, 0.2, () => vm.PressureSmoothing),
-            ("Position smoothing", 0, 0.25, 0.1, () => vm.PositionSmoothing),
+            ("Position smoothing", 0, 10, 4, () => vm.PositionSmoothingScale),
             ("Max hover", 0, 255, 120, () => vm.MaxHoverDistance),
         };
         var found = new List<(string, double, Func<double>)>();

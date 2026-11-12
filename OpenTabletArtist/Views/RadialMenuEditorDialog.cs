@@ -29,8 +29,8 @@ public sealed class RadialMenuEditorDialog : Window
     {
         DataContext = vm;
         Title = vm.Heading;
-        Width = 880;
-        Height = 600;
+        Width = 1000;
+        Height = 830;
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         this[!BackgroundProperty] = new DynamicResourceExtension("BgBaseBrush");
@@ -46,9 +46,14 @@ public sealed class RadialMenuEditorDialog : Window
     }
 
     /// <summary>Open the editor over <paramref name="owner"/>; returns the new menu (JSON) or null on Cancel.</summary>
-    public static async Task<string?> ShowAsync(Window owner, string menuJson, string title)
+    public static Task<string?> ShowAsync(Window owner, string menuJson, string title) =>
+        ShowAsync(owner, menuJson, title, null, -1);
+
+    /// <summary>As above, opened on slice <paramref name="slice"/> of the ring reached by <paramref name="path"/>.</summary>
+    public static async Task<string?> ShowAsync(Window owner, string menuJson, string title, System.Collections.Generic.IReadOnlyList<int>? path, int slice)
     {
         var vm = new RadialMenuEditorViewModel(menuJson, title);
+        if (slice >= 0) vm.GoTo(path ?? Array.Empty<int>(), slice);
         var dialog = new RadialMenuEditorDialog(vm);
         vm.PickKeystroke = initial => BindingEditorDialog.ShowAsync(owner, initial, vm.Heading + " · " + vm.SliceCaption);
         vm.PickApp = () => PickAppAsync(owner);
@@ -95,19 +100,24 @@ public sealed class RadialMenuEditorDialog : Window
         DockPanel.SetDock(heading, Dock.Top);
 
         // Left: where we are, the ring, Back
-        var pie = new RadialMenuPie { Width = 320, Height = 320, Interactive = true, Cursor = new Cursor(StandardCursorType.Hand) };
+        var pie = new RadialMenuPie { Width = 320, Height = 320, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Interactive = true, Cursor = new Cursor(StandardCursorType.Hand) };
         pie[!RadialMenuPie.LabelsProperty] = new Binding(nameof(vm.Labels));
         pie[!RadialMenuPie.SetFlagsProperty] = new Binding(nameof(vm.SetFlags));
         pie[!RadialMenuPie.SubmenuFlagsProperty] = new Binding(nameof(vm.SubmenuFlags));
         pie[!RadialMenuPie.SelectedProperty] = new Binding(nameof(vm.SelectedSlice));
+        pie[!RadialMenuPie.TransparencyProperty] = new Binding(nameof(vm.Transparency));   // live preview of the transparency
+        pie[!Layoutable.WidthProperty] = new Binding(nameof(vm.PreviewDiameter));     // live preview: the ring has the size the slider says
+        pie[!Layoutable.HeightProperty] = new Binding(nameof(vm.PreviewDiameter));
         pie.SliceClicked += vm.SelectSlice;
+        var pieBox = new Grid { Width = 470, Height = 470 };      // room for the largest size, so nothing moves while the slider does
+        pieBox.Children.Add(pie);
         var where = new TextBlock { TextWrapping = TextWrapping.Wrap, FontWeight = FontWeight.SemiBold };
         where[!TextBlock.TextProperty] = new Binding(nameof(vm.Where));
         var back = new Button { Content = vm.BackLabel, Command = vm.BackCommand, Padding = new Thickness(12, 6) };
         back[!Visual.IsVisibleProperty] = new Binding(nameof(vm.InSubmenu));
-        var left = new StackPanel { Spacing = 10, Width = 340 };
+        var left = new StackPanel { Spacing = 10, Width = 490 };
         left.Children.Add(where);
-        left.Children.Add(pie);
+        left.Children.Add(pieBox);
         left.Children.Add(back);
 
         // Right: the selected slice
@@ -168,18 +178,51 @@ public sealed class RadialMenuEditorDialog : Window
         var size = new Slider { Minimum = 1, Maximum = 100, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220 };
         size[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.Size)) { Mode = BindingMode.TwoWay };
         Avalonia.Automation.AutomationProperties.SetName(size, vm.SizeCaption);
-        var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto,*,Auto,Auto"), Margin = new Thickness(0, 14, 0, 0) };
-        void Put(Control c, int col) { Grid.SetColumn(c, col); footer.Children.Add(c); }
+        var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto,Auto,*,Auto,Auto"), Margin = new Thickness(0, 14, 0, 0) };
+        footer.RowDefinitions = new RowDefinitions("Auto,Auto");
+        void Put(Control c, int col, int row = 0) { Grid.SetColumn(c, col); Grid.SetRow(c, row); footer.Children.Add(c); }
         Put(new TextBlock { Text = vm.SizeCaption, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) }, 0);
         Put(new TextBlock { Text = vm.SizeSmall, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) }, 1);
         Put(size, 2);
-        Put(new TextBlock { Text = vm.SizeLarge, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 16, 0) }, 3);
+        Put(new TextBlock { Text = vm.SizeLarge, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 10, 0) }, 3);
+        var sizeNumber = new TextBlock { VerticalAlignment = VerticalAlignment.Center, FontWeight = FontWeight.SemiBold, MinWidth = 34, Margin = new Thickness(0, 0, 16, 0) };
+        sizeNumber[!TextBlock.TextProperty] = new Binding(nameof(vm.SizeText));
+        Put(sizeNumber, 4);
+        // Menu transparency: 0 (solid) to 100 (clear), the ring on the left shows it while the slider moves.
+        var transparency = new Slider { Minimum = 0, Maximum = 100, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220, Margin = new Thickness(0, 6, 0, 0) };
+        transparency[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.Transparency)) { Mode = BindingMode.TwoWay };
+        Avalonia.Automation.AutomationProperties.SetName(transparency, vm.TransparencyCaption);
+        Put(new TextBlock { Text = vm.TransparencyCaption, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 6, 10, 0) }, 0, 1);
+        Put(new TextBlock { Text = vm.TransparencySolid, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 6, 6, 0) }, 1, 1);
+        Put(transparency, 2, 1);
+        Put(new TextBlock { Text = vm.TransparencyClear, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 6, 10, 0) }, 3, 1);
+        // The number is a box too (TASKS #59, Zak 18:21): type 0-100 and press Enter or leave the box; Up / Down change it by 1.
+        var transparencyBox = new TextBox
+        {
+            Width = 52, MinWidth = 0, HorizontalContentAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center,
+            FontWeight = FontWeight.SemiBold, MaxLength = 6, Margin = new Thickness(0, 6, 0, 0), Name = "TransparencyBox",
+        };
+        transparencyBox[!TextBox.TextProperty] = new Binding(nameof(vm.TransparencyInput)) { Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.LostFocus };
+        Avalonia.Automation.AutomationProperties.SetName(transparencyBox, vm.TransparencyCaption + " value");
+        transparencyBox.AddHandler(InputElement.KeyDownEvent, (_, e) =>
+        {
+            if (e.Key is Key.Enter or Key.Return) { vm.TransparencyInput = transparencyBox.Text ?? ""; transparencyBox.Text = vm.TransparencyInput; transparencyBox.SelectAll(); e.Handled = true; }
+            else if (e.Key == Key.Up) { vm.TransparencyInput = (vm.Transparency + 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+            else if (e.Key == Key.Down) { vm.TransparencyInput = (vm.Transparency - 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+        }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        // After leaving the box, show the real value (clamped, or the old one when the text was not a number).
+        transparencyBox.LostFocus += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => transparencyBox.Text = vm.TransparencyInput);
+        var transparencyPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 16, 0) };
+        transparencyPanel.Children.Add(transparencyBox);
+        transparencyPanel.Children.Add(new TextBlock { Text = "%", VerticalAlignment = VerticalAlignment.Center, FontWeight = FontWeight.SemiBold, Margin = new Thickness(4, 6, 0, 0) });
+        Put(transparencyPanel, 4, 1);
         var reset = new Button { Content = vm.ResetLabel, Command = vm.ResetCommand, Padding = new Thickness(12, 6), HorizontalAlignment = HorizontalAlignment.Left };
-        Put(reset, 4);
+        Put(reset, 5); Grid.SetRowSpan(reset, 2); reset.VerticalAlignment = VerticalAlignment.Center;
         var save = new Button { Content = vm.SaveLabel, Command = vm.SaveCommand, Padding = new Thickness(22, 8), Margin = new Thickness(0, 0, 8, 0) };
         if (Application.Current?.TryFindResource("AccentButton", out var accent) == true && accent is Avalonia.Styling.ControlTheme t) save.Theme = t;
-        Put(save, 5);
-        Put(new Button { Content = vm.CancelLabel, Command = vm.CancelCommand, Padding = new Thickness(16, 8) }, 6);
+        Put(save, 6); Grid.SetRowSpan(save, 2); save.VerticalAlignment = VerticalAlignment.Center;
+        var cancel = new Button { Content = vm.CancelLabel, Command = vm.CancelCommand, Padding = new Thickness(16, 8), VerticalAlignment = VerticalAlignment.Center };
+        Put(cancel, 7); Grid.SetRowSpan(cancel, 2);
         var footerWrap = new StackPanel();
         footerWrap.Children.Add(new Border { Height = 1, Margin = new Thickness(0, 16, 0, 0), [!Border.BackgroundProperty] = new DynamicResourceExtension("DividerBrush") });
         footerWrap.Children.Add(footer);

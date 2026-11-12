@@ -231,6 +231,8 @@ public class RadialMenuStateTests : IDisposable
         RadialMenuState.CursorProvider = () => _cursor;
         RadialMenuState.ActionRunner = (_, s) => _ran.Add(s.Label);
         RadialMenuState.IdleCloseMs = 60_000;
+        RadialMenuState.CommandFilePath = Path.Combine(_dir, "radial-menu-cmd");
+        RadialMenuState.CommandPollMs = 40;
     }
 
     public void Dispose()
@@ -381,11 +383,337 @@ public class RadialMenuStateTests : IDisposable
         Assert.Equal("open", st!.State);
         Assert.Equal(500, st.X);
         Assert.Equal(8, st.Labels.Count);
+        Assert.Equal(RadialMenuDef.DefaultTransparency, st.Transparency);   // TASKS #58: the overlay gets it from the driver's state
         Assert.All(st.Set, Assert.True);
         RadialMenuState.Close("test");
         var closed = RadialMenuOverlay.Parse(File.ReadAllText(RadialMenuState.StateFilePath));
         Assert.Equal("closed", closed!.State);
         Assert.True(closed.Seq > st.Seq);
+    }
+
+    // ── The Mac mouse (TASKS #54): the app passes clicks to the driver through a command file ──
+
+    private void Mouse(string op, int slice = -1, double x = 0, double y = 0) =>
+        RadialMenuState.HandleCommand(new RadialMenuCommand { Seq = 1, Op = op, Slice = slice, X = x, Y = y });
+
+    [Fact]
+    public void MouseTap_RunsTheSlice_AndTheMenuStaysOpen_EvenWithTheButtonUp()
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        Mouse(RadialMenuCommand.Tap, 0);   // Undo
+        Mouse(RadialMenuCommand.Tap, 1);   // Redo
+        Mouse(RadialMenuCommand.Tap, 0);
+        Assert.Equal(new[] { "Undo", "Redo", "Undo" }, _ran);
+        Assert.True(RadialMenuState.IsOpen);
+    }
+
+    [Theory]
+    [InlineData(RadialMenuCommand.Centre)]   // the X
+    [InlineData(RadialMenuCommand.Close)]    // Esc
+    public void MouseCentreOrEsc_CloseTheMenu_WithoutAnAction(string op)
+    {
+        Binding().Press(null!, null!);
+        Mouse(op);
+        Assert.Empty(_ran);
+        Assert.False(RadialMenuState.IsOpen);
+        Assert.Equal("closed", State().GetProperty("state").GetString());
+    }
+
+    [Fact]
+    public void MouseTap_OnAnEmptySlice_DoesNothing_AndStaysOpen()
+    {
+        var m = RadialMenuDefaults.Create();
+        m.Slices[2] = new RadialSlice();
+        Binding(m).Press(null!, null!);
+        Mouse(RadialMenuCommand.Tap, 2);
+        Assert.Empty(_ran);
+        Assert.True(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void MouseTap_OnASubmenu_OpensIt_ThenRunsFromIt_AndStaysOpen()
+    {
+        var m = RadialMenuDefaults.Create();
+        var sub = new RadialMenuDef { Slices = { new RadialSlice { Label = "Brush", Action = RadialActions.Keys, Keys = "B" } } };
+        m.Slices[2] = new RadialSlice { Label = "Tools", Action = RadialActions.Submenu, Submenu = sub };
+        Binding(m).Press(null!, null!);
+        Mouse(RadialMenuCommand.Tap, 2);
+        Assert.Equal(new[] { 2 }, RadialMenuState.OpenPath);
+        Assert.Equal(1, State().GetProperty("depth").GetInt32());
+        Mouse(RadialMenuCommand.Tap, 0);
+        Assert.Equal(new[] { "Brush" }, _ran);
+        Assert.True(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void MouseTap_OnAClickSlice_DoesNotClickUnderTheMenu()
+    {
+        var m = RadialMenuDefaults.Create();
+        m.Slices[3] = new RadialSlice { Label = "Right click", Action = RadialActions.Click, Click = "Right" };
+        Binding(m).Press(null!, null!);
+        Mouse(RadialMenuCommand.Tap, 3);
+        Assert.Empty(_ran);
+        Assert.True(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void MouseMove_ShiftsTheCentre_ForThePen_AndParksTheMenu()
+    {
+        Binding().Press(null!, null!);
+        Mouse(RadialMenuCommand.Move, x: 900, y: 700);
+        TapAt(0, -100);   // the pen taps relative to the cursor provider's frame; centre is now (900,700)
+        // (500,300) is far from (900,700): outside the ring, so it closes without running anything
+        Assert.Empty(_ran);
+        Assert.False(RadialMenuState.IsOpen);
+
+        Binding().Press(null!, null!);
+        Mouse(RadialMenuCommand.Move, x: 900, y: 700);
+        _cursor = (900, 600);              // 100 points above the new centre: Undo
+        RadialMenuState.TipDown();
+        Assert.Equal(new[] { "Undo" }, _ran);
+    }
+
+    [Fact]
+    public void ParkedMenu_DoesNotCloseByItself()
+    {
+        RadialMenuState.IdleCloseMs = 1;
+        Binding().Press(null!, null!);
+        Mouse(RadialMenuCommand.Move, x: 500, y: 400);
+        System.Threading.Thread.Sleep(20);
+        RadialMenuState.CloseIfIdle();
+        Assert.True(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void UnparkedMenu_StillClosesWhenIdle()
+    {
+        RadialMenuState.IdleCloseMs = 1;
+        Binding().Press(null!, null!);
+        System.Threading.Thread.Sleep(20);
+        RadialMenuState.CloseIfIdle();
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void Commands_WhenNoMenuIsOpen_AreIgnored()
+    {
+        Mouse(RadialMenuCommand.Tap, 0);
+        Mouse(RadialMenuCommand.Centre);
+        Assert.Empty(_ran);
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void CommandFile_IsActedOnOnce_AndOldOnesAreIgnored()
+    {
+        RadialMenuState.CommandFilePath = Path.Combine(_dir, "radial-menu-cmd");
+        File.WriteAllText(RadialMenuState.CommandFilePath, new RadialMenuCommand { Seq = 5, Op = RadialMenuCommand.Tap, Slice = 1 }.ToJson());
+        Binding().Press(null!, null!);            // opening notes the old command as already seen
+        RadialMenuState.PollCommands();
+        Assert.Empty(_ran);
+
+        File.WriteAllText(RadialMenuState.CommandFilePath, new RadialMenuCommand { Seq = 6, Op = RadialMenuCommand.Tap, Slice = 0 }.ToJson());
+        RadialMenuState.PollCommands();
+        RadialMenuState.PollCommands();           // the same command again: not run twice
+        Assert.Equal(new[] { "Undo" }, _ran);
+
+        File.WriteAllText(RadialMenuState.CommandFilePath, new RadialMenuCommand { Seq = 7, Op = RadialMenuCommand.Close }.ToJson());
+        RadialMenuState.PollCommands();
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void CommandFile_IsPickedUpByTheTimerWhileOpen()
+    {
+        RadialMenuState.CommandFilePath = Path.Combine(_dir, "radial-menu-cmd");
+        RadialMenuState.CommandPollMs = 10;
+        Binding().Press(null!, null!);
+        File.WriteAllText(RadialMenuState.CommandFilePath, new RadialMenuCommand { Seq = 1, Op = RadialMenuCommand.Tap, Slice = 0 }.ToJson());
+        for (int i = 0; i < 500 && _ran.Count == 0; i++) System.Threading.Thread.Sleep(10);
+        Assert.Equal(new[] { "Undo" }, _ran);
+        Assert.True(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void RadialMenuCommand_RoundTrips_AndBadJsonIsNull()
+    {
+        var c = RadialMenuCommand.Parse(new RadialMenuCommand { Seq = 9, Op = RadialMenuCommand.Move, X = 1.5, Y = 2.5 }.ToJson())!;
+        Assert.Equal((9L, "move", 1.5, 2.5), (c.Seq, c.Op, c.X, c.Y));
+        Assert.Null(RadialMenuCommand.Parse("{not json"));
+        Assert.Null(RadialMenuCommand.Parse(""));
+    }
+
+    [Fact]
+    public void TheAppWritesWhatThePluginReads()
+    {
+        var path = Path.Combine(_dir, "radial-menu-cmd");
+        var before = RadialMenuOverlay.CommandFilePath;
+        RadialMenuOverlay.CommandFilePath = path;
+        try
+        {
+            RadialMenuOverlay.SendCommand(RadialMenuCommand.Tap, 3);
+            var a = RadialMenuCommand.Parse(File.ReadAllText(path))!;
+            RadialMenuOverlay.SendCommand(RadialMenuCommand.Centre);
+            var b = RadialMenuCommand.Parse(File.ReadAllText(path))!;
+            Assert.Equal((RadialMenuCommand.Tap, 3), (a.Op, a.Slice));
+            Assert.Equal(RadialMenuCommand.Centre, b.Op);
+            Assert.True(b.Seq > a.Seq);
+        }
+        finally { RadialMenuOverlay.CommandFilePath = before; }
+    }
+
+    // ── The centre's four buttons (TASKS #54), with the pen ──
+
+    private JsonElement Req() => State().GetProperty("request");
+
+    [Theory]
+    [InlineData(-30, -30)]   // the X
+    [InlineData(0, 0)]
+    public void Pen_TheX_Closes(double dx, double dy)
+    {
+        Binding().Press(null!, null!);
+        TapAt(dx, dy);
+        Assert.False(RadialMenuState.IsOpen);
+        Assert.Empty(_ran);
+    }
+
+    [Fact]
+    public void Pen_TheHand_NeverCloses_AndATapWithoutMovingDoesNothing()
+    {
+        Binding().Press(null!, null!);
+        double cx = 500, cy = 400;
+        TapAt(30, 30);                       // bottom right: the hand
+        RadialMenuState.PenMoved();          // no movement
+        RadialMenuState.TipUp();
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.Equal(cx, State().GetProperty("x").GetDouble());
+        Assert.Equal(cy, State().GetProperty("y").GetDouble());
+        Assert.Empty(_ran);
+    }
+
+    [Fact]
+    public void Pen_DraggingTheHand_MovesTheMenu_AfterAFewPoints_AndParksIt()
+    {
+        RadialMenuState.IdleCloseMs = 1;
+        Binding().Press(null!, null!);
+        TapAt(30, 30);                       // pen down on the hand at (530,430)
+        _cursor = (532, 431);                // 2 pt: still not a drag
+        RadialMenuState.PenMoved();
+        Assert.Equal(500, State().GetProperty("x").GetDouble());
+        _cursor = (630, 380);                // moved by (+100, -50)
+        RadialMenuState.PenMoved();
+        RadialMenuState.TipUp();             // writes the final place
+        Assert.Equal(600, State().GetProperty("x").GetDouble());
+        Assert.Equal(350, State().GetProperty("y").GetDouble());
+        System.Threading.Thread.Sleep(20);
+        RadialMenuState.CloseIfIdle();
+        Assert.True(RadialMenuState.IsOpen);  // parked
+        // and the pen's taps are now measured from the new centre
+        _cursor = (600, 250);
+        RadialMenuState.TipDown();
+        Assert.Equal(new[] { "Undo" }, _ran);
+    }
+
+    [Fact]
+    public void Pen_Pencil_ThenASlice_AsksTheAppToEditIt_AndTheMenuStaysOpen()
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        TapAt(30, -30);                      // the pencil
+        Assert.True(RadialMenuState.Editing);
+        Assert.True(State().GetProperty("editing").GetBoolean());
+        TapAt(110, 0);                       // slice 2 (Copy): edited, not run
+        Assert.Empty(_ran);
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.False(RadialMenuState.Editing);
+        Assert.Equal("edit", Req().GetProperty("kind").GetString());
+        Assert.Equal(2, Req().GetProperty("slice").GetInt32());
+        Assert.True(RadialMenuState.Busy);
+        Assert.False(RadialMenuState.SwallowsPen);   // the pen can click in the app's editor meanwhile
+    }
+
+    [Fact]
+    public void PencilTappedTwice_PutsItDown()
+    {
+        Binding().Press(null!, null!);
+        TapAt(30, -30);
+        TapAt(30, -30);
+        Assert.False(RadialMenuState.Editing);
+    }
+
+    [Fact]
+    public void TheAppsAnswer_ChangesTheOpenMenu_AndLetsThePenBackIn()
+    {
+        Binding().Press(null!, null!);
+        TapAt(30, -30);
+        TapAt(0, -110);                      // edit slice 0 (Undo)
+        var m = RadialMenuDefaults.Create();
+        m.Slices[0] = new RadialSlice { Label = "Save", Action = RadialActions.Keys, Keys = "Application+S" };
+        Mouse(RadialMenuCommand.MenuChanged);   // unchanged (cancelled): no menu given
+        Assert.True(RadialMenuState.SwallowsPen);
+        TapAt(30, -30);
+        TapAt(0, -110);
+        RadialMenuState.HandleCommand(new RadialMenuCommand { Seq = 2, Op = RadialMenuCommand.MenuChanged, Menu = RadialMenuJson.Serialize(m) });
+        Assert.Equal("Save", State().GetProperty("slices")[0].GetProperty("label").GetString());
+        Assert.Equal(RadialMenuJson.Serialize(m), State().GetProperty("menu").GetString());
+        TapAt(0, -110);
+        Assert.Equal(new[] { "Save" }, _ran);
+    }
+
+    [Fact]
+    public void Pen_CircularArrow_AsksYesNo_YesRestores_AnythingElseCancels()
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        TapAt(-30, 30);                      // the circular arrow
+        Assert.True(RadialMenuState.Confirming);
+        Assert.True(State().GetProperty("confirm").GetBoolean());
+        // only Yes (right, slice 2) and No (left, slice 6) are live on the ring
+        var slices = State().GetProperty("slices");
+        for (int i = 0; i < 8; i++) Assert.Equal(i == 2 || i == 6, slices[i].GetProperty("set").GetBoolean());
+        TapAt(0, -110);                      // somewhere else: cancel
+        Assert.False(RadialMenuState.Confirming);
+        Assert.False(State().TryGetProperty("request", out var none) && none.ValueKind == JsonValueKind.Object);
+        Assert.Empty(_ran);
+
+        TapAt(-30, 30);
+        TapAt(110, 0);                       // Yes
+        Assert.Equal("restore", Req().GetProperty("kind").GetString());
+        Assert.False(RadialMenuState.Confirming);
+        Assert.True(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void Mouse_PencilAndArrow_DoWhatThePenDoes()
+    {
+        Binding().Press(null!, null!);
+        Mouse(RadialMenuCommand.Edit);
+        Assert.True(RadialMenuState.Editing);
+        Mouse(RadialMenuCommand.Tap, 3);
+        Assert.Equal("edit", Req().GetProperty("kind").GetString());
+        Mouse(RadialMenuCommand.MenuChanged);
+        Mouse(RadialMenuCommand.Restore);
+        Assert.True(RadialMenuState.Confirming);
+        Mouse(RadialMenuCommand.Tap, 6);     // No
+        Assert.False(RadialMenuState.Confirming);
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.Empty(_ran);
+    }
+
+    [Fact]
+    public void WhileTheAppEdits_TheMenuDoesNotCloseByItself()
+    {
+        RadialMenuState.IdleCloseMs = 1;
+        Binding().Press(null!, null!);
+        Mouse(RadialMenuCommand.Edit);
+        Mouse(RadialMenuCommand.Tap, 0);
+        System.Threading.Thread.Sleep(20);
+        RadialMenuState.CloseIfIdle();
+        Assert.True(RadialMenuState.IsOpen);
     }
 }
 
@@ -437,6 +765,91 @@ public class RadialMenuEditorTests
         Assert.False(vm.Menu.Slices[0].IsSet);
         vm.ResetCommand.Execute(null);
         Assert.True(vm.Menu.Slices[0].IsSet);
+    }
+
+    [Fact]
+    public void SizeSlider_ChangesThePreviewAtOnce_AndResetPutsItBackTo50()
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");
+        var seen = new System.Collections.Generic.List<string>();
+        vm.PropertyChanged += (_, e) => seen.Add(e.PropertyName!);
+        Assert.Equal(320, vm.PreviewDiameter, 1);
+        Assert.Equal("50", vm.SizeText);
+        vm.Size = 100;
+        Assert.Equal(2 * RadialMenuGeometry.OuterRadius(100), vm.PreviewDiameter, 1);
+        Assert.Equal("100", vm.SizeText);
+        Assert.Contains(nameof(vm.PreviewDiameter), seen);
+        Assert.Contains(nameof(vm.SizeText), seen);
+        vm.Size = 1;
+        Assert.True(vm.PreviewDiameter < 320);
+        vm.ResetCommand.Execute(null);
+        Assert.Equal(50, vm.Size);
+        Assert.Equal(320, vm.PreviewDiameter, 1);
+        Assert.Equal("50", vm.SizeText);
+    }
+
+    [Fact]
+    public void Transparency_DefaultsTo40_IsSavedWithTheMenu_AndResetBringsItBack()
+    {
+        Assert.Equal(40, RadialMenuDef.DefaultTransparency);   // TASKS #59 (Zak 18:21): was 70
+        Assert.Equal(40, RadialMenuDefaults.Create().Transparency);
+        Assert.Equal(40, new RadialMenuDef().Transparency);
+        var vm = new RadialMenuEditorViewModel(null, "x");
+        Assert.Equal(40, vm.Transparency);
+        Assert.Equal("40%", vm.TransparencyText);
+        Assert.Equal("40", vm.TransparencyInput);
+        vm.Transparency = 20;
+        Assert.Equal("20%", vm.TransparencyText);
+        Assert.Equal("20", vm.TransparencyInput);
+        vm.SaveCommand.Execute(null);
+        Assert.Equal(20, RadialMenuJson.Parse(vm.Result).Transparency);
+        Assert.Contains("\"transparency\":20", vm.Result);
+
+        var vm2 = new RadialMenuEditorViewModel(vm.Result, "x");
+        Assert.Equal(20, vm2.Transparency);
+        vm2.ResetCommand.Execute(null);
+        Assert.Equal(40, vm2.Transparency);
+        Assert.Equal("40", vm2.TransparencyInput);
+    }
+
+    [Theory]
+    [InlineData("55", 55, "55")]
+    [InlineData(" 7 ", 7, "7")]
+    [InlineData("33%", 33, "33")]
+    [InlineData("12,6", 13, "13")]
+    [InlineData("0", 0, "0")]
+    [InlineData("100", 100, "100")]
+    [InlineData("250", 100, "100")]     // clamped to 0-100
+    [InlineData("-9", 0, "0")]
+    [InlineData("abc", 40, "40")]       // not a number: the old value comes back
+    [InlineData("", 40, "40")]
+    public void Transparency_TypedInTheNumberBox_IsClamped_AndTheSliderValueFollows(string typed, int expected, string shown)
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");   // starts at the default, 40
+        vm.TransparencyInput = typed;
+        Assert.Equal(expected, vm.Transparency);              // the slider is bound to this value
+        Assert.Equal(shown, vm.TransparencyInput);
+        Assert.Equal(shown + "%", vm.TransparencyText);
+        vm.SaveCommand.Execute(null);
+        Assert.Equal(expected, RadialMenuJson.Parse(vm.Result).Transparency);
+    }
+
+    [Fact]
+    public void Transparency_SliderMovesTheNumberBox()
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");
+        vm.Transparency = 83;
+        Assert.Equal("83", vm.TransparencyInput);
+    }
+
+    [Fact]
+    public void Transparency_OfAnOldMenuWithoutIt_IsTheDefault_AndIsClamped()
+    {
+        Assert.Equal(40, RadialMenuJson.Parse("{\"slices\":[],\"size\":50}").Transparency);
+        Assert.Equal(100, RadialMenuJson.Parse("{\"slices\":[],\"transparency\":900}").Transparency);
+        Assert.Equal(0, RadialMenuJson.Parse("{\"slices\":[],\"transparency\":-5}").Transparency);
+        var menu = RadialMenuDefaults.Create(); menu.Transparency = 33;
+        Assert.Equal(33, menu.Clone().Transparency);
     }
 
     [Fact]

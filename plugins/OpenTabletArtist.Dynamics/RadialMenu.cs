@@ -22,7 +22,8 @@ namespace OpenTabletArtist.Dynamics;
 /// (Wacom's rule), so Undo can be tapped several times. Tapping the centre, an empty slice or outside the ring,
 /// or pressing the button again, closes it. The menu lives in this binding's "Menu" setting (JSON), so it is
 /// saved with the tablet's settings, per application and per pen like any other binding.
-/// The app draws the menu (Services/RadialMenuOverlay) from the state file this writes; it never takes clicks.
+/// The app draws the menu (Services/RadialMenuOverlay) from the state file this writes. The pen taps are read here;
+/// the Mac mouse's clicks come back from the app through a small command file (TASKS #54, <see cref="RadialMenuState.HandleCommand"/>).
 /// The pen tip is kept from the app underneath by <see cref="RadialMenuFilter"/> while the menu is open.
 /// </summary>
 [PluginName("Tablet App for Mac - Radial menu")]
@@ -72,20 +73,26 @@ public class RadialMenuFilter : IPositionedPipelineElement<IDeviceReport>
     {
         if (value is OutOfRangeReport)
         {
+            if (_swallow) RadialMenuState.TipUp();
             _down = false;
             _swallow = false;
         }
         else if (RingGestureGate.IsPenOnly(value) && value is ITabletReport pen)
         {
             bool down = pen.Pressure > 0;
-            if (down && !_down && RadialMenuState.IsOpen)
+            if (down && !_down && RadialMenuState.SwallowsPen)
             {
                 _swallow = true;               // this whole stroke belongs to the menu
                 RadialMenuState.TipDown();
             }
-            if (!down) _swallow = false;
+            else if (down && _swallow) RadialMenuState.PenMoved();   // a drag by the hand
+            if (!down)
+            {
+                if (_swallow) RadialMenuState.TipUp();
+                _swallow = false;
+            }
             _down = down;
-            if (_swallow || (down && RadialMenuState.IsOpen)) pen.Pressure = 0;
+            if (_swallow || (down && RadialMenuState.SwallowsPen)) pen.Pressure = 0;
             RadialMenuState.CloseIfIdle();
         }
         Emit?.Invoke(value);
@@ -106,6 +113,13 @@ public static class RadialMenuState
     public static string OffFlagPath { get; set; } =
         Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-menu-off");
 
+    /// <summary>The app writes the Mac mouse's clicks here (<see cref="RadialMenuCommand"/>); polled while the menu is open.</summary>
+    public static string CommandFilePath { get; set; } =
+        Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-menu-cmd");
+
+    /// <summary>How often the command file is looked at while the menu is open.</summary>
+    public static int CommandPollMs { get; set; } = 40;
+
     /// <summary>Where the pointer is (macOS global points); tests replace it.</summary>
     public static Func<(double X, double Y)?> CursorProvider { get; set; } = MacCursor.Location;
 
@@ -121,8 +135,42 @@ public static class RadialMenuState
     private static long _lastActivity;
     private static long _seq;
     private static readonly KeyPulse Pulse = new() { HoldMs = 30 };
+    private static Timer? _commandTimer;
+    private static long _commandSeqSeen;
+    private static bool _parked;   // the mouse used or moved the menu: it stays until closed (no idle close)
+    private static bool _editing;  // the pencil was tapped: the next slice tapped is edited, not run
+    private static bool _confirm;  // "Restore the 8 default slices?" is showing: Yes (right) / No (left)
+    private static bool _busy;     // the app is editing a slice: the menu stays shown but the pen goes through to the app
+    private static long _busySince;
+    private static long _reqSeq;
+    private static (long Seq, string Kind, int Slice, int[] Path)? _request;   // written once, with the next state
+    // A drag by the hand with the pen tip: where the pen and the menu were when it started.
+    private static bool _penDrag, _penDragMoved;
+    private static double _dragPx, _dragPy, _dragCx, _dragCy;
+    private static long _lastDragWrite;
+    /// <summary>The app edits a slice for at most this long before the pen is taken over by the menu again.</summary>
+    public static int BusyMaxMs { get; set; } = 300_000;
+    public const double DragThreshold = 4;
 
     public static bool IsOpen { get { lock (Gate) return _top != null; } }
+
+    /// <summary>The menu is open and takes the pen tip (it doesn't while the app is editing a slice, so the pen can click there).</summary>
+    public static bool SwallowsPen
+    {
+        get
+        {
+            lock (Gate)
+            {
+                if (_top == null) return false;
+                if (_busy && Environment.TickCount64 - _busySince > BusyMaxMs) _busy = false;
+                return !_busy;
+            }
+        }
+    }
+
+    public static bool Editing { get { lock (Gate) return _editing; } }
+    public static bool Confirming { get { lock (Gate) return _confirm; } }
+    public static bool Busy { get { lock (Gate) return _busy; } }
 
     /// <summary>Slice numbers of the open submenus, from the top (tests).</summary>
     public static IReadOnlyList<int> OpenPath { get { lock (Gate) return _path.ToArray(); } }
@@ -145,8 +193,11 @@ public static class RadialMenuState
             _path.Clear();
             _cx = c.X; _cy = c.Y;
             _held = true;
+            _parked = false;
+            _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null;
             Touch();
             WriteStateLocked();
+            StartCommandPollingLocked();
         }
     }
 
@@ -168,29 +219,130 @@ public static class RadialMenuState
             var at = CursorProvider();
             if (at is not { } c) { CloseLocked("no pointer"); return; }
             int slice = RadialMenuGeometry.SliceAt(c.X - _cx, c.Y - _cy, _top.Size);
-            if (slice == RadialMenuGeometry.Centre) { CloseLocked("centre"); return; }
             if (slice == RadialMenuGeometry.Outside) { CloseLocked("outside"); return; }
-            var level = RadialMenuJson.Level(_top, _path) ?? _top;
-            var s = level.Slices[slice];
-            if (!s.IsSet) { CloseLocked("empty slice"); return; }
-            if (s.Action == RadialActions.Submenu)
+            if (slice == RadialMenuGeometry.Hand)
             {
-                _path.Add(slice);
-                WriteStateLocked();
+                // The hand: only a drag does anything (see PenMoved); a tap that doesn't move changes nothing.
+                _penDrag = true; _penDragMoved = false;
+                _dragPx = c.X; _dragPy = c.Y; _dragCx = _cx; _dragCy = _cy;
                 return;
             }
-            run = s;
-            if (!_held) CloseLocked("used " + Describe(s));
-            else WriteStateLocked();   // flash the choice; the menu stays while the button is held
+            if (slice < 0) { CentreQuarterLocked(slice); return; }
+            run = SliceTappedLocked(slice, fromMouse: false);
+            if (run != null && !_held) CloseLocked("used " + Describe(run));
+            else if (run != null) WriteStateLocked();   // flash the choice; the menu stays while the button is held
         }
         if (run != null && owner != null) Run(owner, run);
+    }
+
+    /// <summary>The X, the pencil or the circular arrow was tapped (pen or mouse).</summary>
+    private static void CentreQuarterLocked(int quarter)
+    {
+        switch (quarter)
+        {
+            case RadialMenuGeometry.Centre:
+                CloseLocked("centre");
+                break;
+            case RadialMenuGeometry.Edit:
+                _confirm = false;
+                _editing = !_editing;   // tapping the pencil again puts it down
+                WriteStateLocked();
+                break;
+            case RadialMenuGeometry.Restore:
+                _editing = false;
+                _confirm = true;
+                WriteStateLocked();
+                break;
+        }
+    }
+
+    /// <summary>A slice was tapped. Normal: its action to run (null when it only opened a submenu, did nothing or was
+    /// used up by edit / restore). Pen taps on an empty slice close the menu; mouse taps leave it open.</summary>
+    private static RadialSlice? SliceTappedLocked(int slice, bool fromMouse)
+    {
+        if (_top == null) return null;
+        if (_confirm)
+        {
+            _confirm = false;
+            if (slice == 2) NewRequestLocked("restore", -1);   // Yes is on the right, No on the left
+            else WriteStateLocked();
+            return null;
+        }
+        var level = RadialMenuJson.Level(_top, _path) ?? _top;
+        if (_editing)
+        {
+            _editing = false;
+            _busy = true;
+            _busySince = Environment.TickCount64;
+            NewRequestLocked("edit", slice);
+            return null;
+        }
+        var s = level.Slices[slice];
+        if (!s.IsSet)
+        {
+            if (!fromMouse) CloseLocked("empty slice");
+            return null;
+        }
+        if (s.Action == RadialActions.Submenu)
+        {
+            _path.Add(slice);
+            WriteStateLocked();
+            return null;
+        }
+        if (s.Action == RadialActions.Click && fromMouse)
+        {
+            // "Click at the pointer" would land on the menu itself.
+            Log.Write("Radial menu", "A click slice needs the pen: the mouse pointer is on the menu.", LogLevel.Debug);
+            return null;
+        }
+        return s;
+    }
+
+    private static void NewRequestLocked(string kind, int slice)
+    {
+        _request = (++_reqSeq, kind, slice, _path.ToArray());
+        WriteStateLocked();
+        _request = null;
+    }
+
+    /// <summary>The pen moved while its tip is down on the hand: once it has moved a few points the menu follows it.</summary>
+    public static void PenMoved()
+    {
+        lock (Gate)
+        {
+            if (_top == null || !_penDrag) return;
+            if (CursorProvider() is not { } c) return;
+            double dx = c.X - _dragPx, dy = c.Y - _dragPy;
+            if (!_penDragMoved && Math.Sqrt(dx * dx + dy * dy) > DragThreshold) _penDragMoved = true;
+            if (!_penDragMoved) return;
+            _cx = _dragCx + dx; _cy = _dragCy + dy;
+            _parked = true;
+            Touch();
+            if (Environment.TickCount64 - _lastDragWrite >= 30)
+            {
+                _lastDragWrite = Environment.TickCount64;
+                WriteStateLocked();
+            }
+        }
+    }
+
+    /// <summary>The pen tip came up (or the pen left): a drag ends where it is.</summary>
+    public static void TipUp()
+    {
+        lock (Gate)
+        {
+            if (!_penDrag) return;
+            _penDrag = false;
+            if (_penDragMoved && _top != null) WriteStateLocked();
+            _penDragMoved = false;
+        }
     }
 
     public static void CloseIfIdle()
     {
         lock (Gate)
         {
-            if (_top != null && Environment.TickCount64 - Interlocked.Read(ref _lastActivity) > IdleCloseMs)
+            if (_top != null && !_parked && !_busy && Environment.TickCount64 - Interlocked.Read(ref _lastActivity) > IdleCloseMs)
                 CloseLocked("no tap for a minute");
         }
     }
@@ -204,6 +356,9 @@ public static class RadialMenuState
         _owner = null;
         _path.Clear();
         _held = false;
+        _parked = false;
+        _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null;
+        StopCommandPollingLocked();
         WriteStateLocked();
         Log.Write("Radial menu", "Closed: " + why, LogLevel.Debug);
     }
@@ -211,6 +366,95 @@ public static class RadialMenuState
     private static void Touch() => Interlocked.Exchange(ref _lastActivity, Environment.TickCount64);
 
     private static string Describe(RadialSlice s) => string.IsNullOrWhiteSpace(s.Label) ? s.Action : s.Label;
+
+    // --- the Mac mouse (TASKS #54) ---
+
+    private static void StartCommandPollingLocked()
+    {
+        StopCommandPollingLocked();
+        _commandSeqSeen = ReadCommandFile()?.Seq ?? 0;   // whatever is there now is old news
+        _commandTimer = new Timer(_ => PollCommands(), null, CommandPollMs, CommandPollMs);
+    }
+
+    private static void StopCommandPollingLocked()
+    {
+        _commandTimer?.Dispose();
+        _commandTimer = null;
+    }
+
+    private static RadialMenuCommand? ReadCommandFile()
+    {
+        try { return File.Exists(CommandFilePath) ? RadialMenuCommand.Parse(File.ReadAllText(CommandFilePath)) : null; }
+        catch (IOException) { return null; }
+        catch (UnauthorizedAccessException) { return null; }
+    }
+
+    /// <summary>Look at the command file once (the timer does this while the menu is open; tests call it).</summary>
+    public static void PollCommands()
+    {
+        var cmd = ReadCommandFile();
+        if (cmd == null) return;
+        lock (Gate)
+        {
+            if (_top == null || cmd.Seq <= _commandSeqSeen) return;
+            _commandSeqSeen = cmd.Seq;
+        }
+        HandleCommand(cmd);
+    }
+
+    /// <summary>The mouse used the menu (or the app finished an edit). A slice runs and the menu STAYS open (so the 8
+    /// commands can be used one after another); the X and Esc close it; a drag moves it; the pencil, the circular arrow and
+    /// the app's answer are handled as for the pen. Nothing happens when no menu is open.</summary>
+    public static void HandleCommand(RadialMenuCommand cmd)
+    {
+        RadialSlice? run = null;
+        RadialMenuBinding? owner;
+        lock (Gate)
+        {
+            if (_top == null) return;
+            owner = _owner;
+            Touch();
+            switch (cmd.Op)
+            {
+                case RadialMenuCommand.Centre:
+                case RadialMenuCommand.Close:
+                    CloseLocked("mouse " + cmd.Op);
+                    return;
+                case RadialMenuCommand.Edit:
+                    _parked = true;
+                    CentreQuarterLocked(RadialMenuGeometry.Edit);
+                    return;
+                case RadialMenuCommand.Restore:
+                    _parked = true;
+                    CentreQuarterLocked(RadialMenuGeometry.Restore);
+                    return;
+                case RadialMenuCommand.MenuChanged:
+                    // The app edited (or restored, or cancelled): use this menu from now on and let the pen back in.
+                    _busy = false;
+                    if (!string.IsNullOrWhiteSpace(cmd.Menu))
+                    {
+                        _top = RadialMenuJson.Parse(cmd.Menu);
+                        if (RadialMenuJson.Level(_top, _path) == null) _path.Clear();
+                    }
+                    WriteStateLocked();
+                    return;
+                case RadialMenuCommand.Move:
+                    // The app moved its window itself; keep the pen's idea of the centre the same. No state write:
+                    // the app would move the window back to an older position.
+                    _cx = cmd.X; _cy = cmd.Y;
+                    _parked = true;
+                    return;
+                case RadialMenuCommand.Tap:
+                    _parked = true;
+                    if (cmd.Slice < 0 || cmd.Slice >= RadialMenuDef.SliceCount) return;
+                    run = SliceTappedLocked(cmd.Slice, fromMouse: true);
+                    break;
+                default:
+                    return;
+            }
+        }
+        if (run != null && owner != null) Run(owner, run);
+    }
 
     private static void Run(RadialMenuBinding owner, RadialSlice s)
     {
@@ -283,9 +527,20 @@ public static class RadialMenuState
             {
                 var level = RadialMenuJson.Level(_top, _path) ?? _top;
                 var slices = new List<object>();
-                foreach (var s in level.Slices)
-                    slices.Add(new { label = s.Label, action = s.Action, set = s.IsSet });
-                payload = new { state = "open", seq, x = _cx, y = _cy, size = _top.Size, depth = _path.Count, slices };
+                for (int i = 0; i < level.Slices.Count; i++)
+                {
+                    var s = level.Slices[i];
+                    // While "Restore the 8 default slices?" is showing, only Yes (right) and No (left) are on the ring.
+                    if (_confirm) slices.Add(new { label = "", action = RadialActions.None, set = i == 2 || i == 6 });
+                    else slices.Add(new { label = s.Label, action = s.Action, set = s.IsSet });
+                }
+                object? request = _request is { } r ? new { seq = r.Seq, kind = r.Kind, slice = r.Slice, path = r.Path } : null;
+                payload = new
+                {
+                    state = "open", seq, x = _cx, y = _cy, size = _top.Size, transparency = _top.Transparency, depth = _path.Count, slices,
+                    editing = _editing, confirm = _confirm, busy = _busy,
+                    menu = RadialMenuJson.Serialize(_top), request,
+                };
             }
             var json = JsonSerializer.Serialize(payload);
             var dir = Path.GetDirectoryName(StateFilePath)!;
@@ -305,7 +560,9 @@ public static class RadialMenuState
     {
         lock (Gate)
         {
-            _top = null; _owner = null; _path.Clear(); _held = false; _seq = 0;
+            _top = null; _owner = null; _path.Clear(); _held = false; _seq = 0; _parked = false;
+            _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null;
+            StopCommandPollingLocked();
             Interlocked.Exchange(ref _lastActivity, Environment.TickCount64);
         }
     }

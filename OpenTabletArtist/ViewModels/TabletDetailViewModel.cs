@@ -719,8 +719,10 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
     public ChoiceOption[] MovementOptions { get; } =
     [
-        new("absolute", "Normal (Absolute)", "The pen maps 1:1 to the screen."),
-        new("relative", "Mouse-like (Relative)", "The pen moves the cursor like a mouse."),
+        new("absolute", Localizer.Te("tablet.pen.movement_absolute", "Normal (Absolute)"),
+            Localizer.Te("tablet.pen.movement_absolute_help", "The pen maps 1:1 to the screen.")),
+        new("relative", Localizer.Te("tablet.pen.movement_relative", "Relative (slow / no mouse-like speed-up)"),
+            Localizer.Te("tablet.pen.movement_relative_help", "The pointer moves from where it is, by how far the pen moves. No Mac-style speed-up.")),
     ];
 
     public ChoiceOption[] PressModeOptions { get; } =
@@ -1217,7 +1219,11 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
     private async Task<bool> ApplySettingsChange(Action<Profile> modify)
     {
-        if (_applyAction == null || _settings == null) return false;
+        if (_applyAction == null || _settings == null)
+        {
+            AppLog.Warn("Settings change refused: this page can't edit settings right now (no live driver connection for it).");
+            return false;
+        }
         // If a per-app or extra-pen overlay is on the daemon/workspace, restore All bindings first so this
         // edit (mapping, dynamics, All bindings) lands on the All table — not the transient overlay.
         // #74: an extra pen's overlay counts too (it was missed when only AppliedBundleId was checked).
@@ -1234,8 +1240,13 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         // e.g. the Double Click Fix slider jumping back to 50.
         if (overlayLive) PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);
         var outcome = await SubmitAsync(_settings);
-        if (draft != _draftGeneration || _unsubmitted != DraftGroup.None) return false;
+        if (draft != _draftGeneration || _unsubmitted != DraftGroup.None)
+        {
+            AppLog.Warn($"Settings change ({outcome}) not adopted: another edit on this page took over while it was being sent.");
+            return false;
+        }
         var adopted = TakeOutcome(outcome, draft);
+        if (!adopted) AppLog.Warn($"Settings change was not adopted by the page (driver outcome: {outcome}).");
         if (!adopted) RefreshFromProfile();
         PerAppBindingRuntime.Shared?.Kick();
         return adopted;
@@ -1731,17 +1742,26 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         if (_editBinding == null) return;
         var initial = AuxKeyBinding.ReadBinding(row.Store) ?? AuxBinding.Unbound;
+        var table = !string.IsNullOrEmpty(SelectedPenKey) ? $"extra pen '{SelectedPenKey}'"
+            : !string.IsNullOrEmpty(SelectedAppBundleId) ? $"application '{SelectedAppBundleId}'" : "All";
+        AppLog.Info($"Pen button {row.PenButtonIndex} on '{TabletName}' ({table} table): Change… opened, stored binding is '{row.Store?.Path ?? "none"}'.");
         var result = await _editBinding(initial, $"Pen button {row.PenButtonIndex}");
-        if (result == null) return;   // cancelled
-        if (initial.IsBound && result == initial) return;   // no change: keeps extra settings (e.g. pen scroll speed)
+        if (result == null) { AppLog.Info($"Pen button {row.PenButtonIndex}: editor cancelled, nothing changed."); return; }
+        if (initial.IsBound && result == initial)   // no change: keeps extra settings (e.g. pen scroll speed)
+        {
+            AppLog.Info($"Pen button {row.PenButtonIndex}: the chosen binding is the same as the current one, nothing to apply.");
+            return;
+        }
         // Clear (Unbound) makes no store: an empty slot is how OTD stores "this button does nothing".
         PluginSettingStore? store = result.IsBound ? AuxKeyBinding.MakeBinding(result) : null;
+        AppLog.Info($"Pen button {row.PenButtonIndex}: applying {(store == null ? "nothing (cleared)" : store.Path)} to the {table} table.");
         await ApplyPenSwitchBindingAsync(row.Kind, row.PenButtonIndex, store);
     }
 
     private async Task ApplyPenSwitchBindingAsync(PenSwitchKind kind, int penButtonIndex, PluginSettingStore? store)
     {
-        await ApplyBindingMutationAsync(b =>
+        bool mutated = false;
+        var applied = await ApplyBindingMutationAsync(b =>
         {
             switch (kind)
             {
@@ -1753,10 +1773,24 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                     break;
                 case PenSwitchKind.PenButton:
                     if (penButtonIndex >= 1 && penButtonIndex <= b.PenButtons.Count)
+                    {
                         b.PenButtons[penButtonIndex - 1] = store;
+                        mutated = true;
+                    }
+                    break;
+                default:
+                    mutated = true;
                     break;
             }
+            if (kind != PenSwitchKind.PenButton) mutated = true;
         });
+        var what = $"{kind}{(kind == PenSwitchKind.PenButton ? " " + penButtonIndex : "")} = {store?.Path ?? "nothing"}";
+        if (!mutated)
+            AppLog.Warn($"Pen binding NOT applied ({what}): this pen's table has only {WorkingBindings().PenButtons.Count} button(s).");
+        else if (!applied)
+            AppLog.Warn($"Pen binding NOT applied ({what}): see the preceding log line for why (page read-only, a newer edit took over, or the driver refused).");
+        else
+            AppLog.Info($"Pen binding applied ({what}) and sent to the driver / saved for the selected table.");
     }
 
     // ── ExpressKeys (auxiliary buttons): key bindings, enable-all toggle, clear-all ──────────────
@@ -2570,7 +2604,21 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _smoothAfterCurve = true;
 
     public string PressureSmoothingText => PressureSmoothing.ToString("0.00");
-    public string PositionSmoothingText => PositionSmoothing.ToString("0.00");
+    public string PositionSmoothingText => PositionSmoothingScale.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>TASKS #55: Position smoothing as the Pen page shows it, 0 to 10 (one decimal): the driver value
+    /// 0 to 0.25 scaled, so 10 is the old 0.25 and a saved 0.25 shows as 10.</summary>
+    public double PositionSmoothingScale
+    {
+        get => PenMovementPolicy.SmoothingToUi(PositionSmoothing, PenSmoothing.MaxPositionSmoothingAmount);
+        set
+        {
+            var ui = Math.Clamp(Math.Round(value, 1), 0, PenMovementPolicy.SmoothingUiMax);
+            // The slider echoes its own (rounded) value back; keep the exact saved number when it shows the same.
+            if (Math.Abs(PositionSmoothingScale - ui) < 1e-9) return;
+            PositionSmoothing = PenMovementPolicy.SmoothingFromUi(ui, PenSmoothing.MaxPositionSmoothingAmount);
+        }
+    }
 
     /// <summary>Upper bound for the position-smoothing slider (#487); heavier smoothing is too laggy to be
     /// useful, so the slider stops here (see <see cref="PenSmoothing.MaxPositionSmoothingAmount"/>).</summary>
@@ -2593,6 +2641,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     partial void OnPositionSmoothingChanged(double value)
     {
         OnPropertyChanged(nameof(PositionSmoothingText));
+        OnPropertyChanged(nameof(PositionSmoothingScale));
         NotifyDynamicsStatus();
         SchedulePersist();
     }
@@ -3085,7 +3134,13 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
     partial void OnSmootherCurvesChanged(bool value)
     {
-        if (_skipInBetweenPersist || _applyAction == null || _settings == null) return;
+        if (_skipInBetweenPersist) return;
+        if (_applyAction == null || _settings == null)
+        {
+            AppLog.Warn($"Smoother fast curves switched {(value ? "on" : "off")} on '{TabletName}' but not saved: this page can't edit settings right now.");
+            return;
+        }
+        AppLog.Info($"Smoother fast curves switched {(value ? "on" : "off")} on '{TabletName}'.");
         _ = PersistSmootherCurvesAsync(value);
     }
 
@@ -3095,7 +3150,13 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var draft = _draftGeneration;
         InBetweenProfile.Write(_settings, _profile.Tablet ?? "", on);
         UpdateFiltersDisplay();
-        TakeOutcome(await SubmitAsync(_settings), draft);
+        var outcome = await SubmitAsync(_settings);
+        var adopted = TakeOutcome(outcome, draft);
+        var now = InBetweenProfile.IsOn(_settings, _profile.Tablet ?? "");
+        if (now != on)
+            AppLog.Warn($"Smoother fast curves: asked for {(on ? "on" : "off")} but the profile now holds {(now ? "on" : "off")} (driver outcome {outcome}).");
+        else
+            AppLog.Info($"Smoother fast curves {(on ? "on" : "off")} sent to the driver (outcome {outcome}, adopted {adopted}).");
     }
 
     // ── Other plugins' filters (TASKS #17, Kert) ──────────────

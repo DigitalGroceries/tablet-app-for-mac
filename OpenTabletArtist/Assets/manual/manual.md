@@ -96,8 +96,8 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 | Current pressure | Live | Pressure after the curve; tooltip shows the raw value. |
 | Button 1 / Button 2 cards | Default (right click) / Default (middle click) | **Change…** opens the function editor; **Default** restores it. Under **Mouse** you can choose **Double Click** (posts a left-button double-click at the cursor). |
 | Pen button test | Live | Press a barrel button: its number on the pen picture lights while held, and the line above the cards reads "Button 2 pressed." (or 1). |
-| Movement | Normal (Absolute) | **Normal (Absolute)** maps the pen to the screen; **Mouse-like (Relative)** moves the cursor like a mouse. Clicks, click-drags and a button set to **Double Click** happen at the pointer, as with a mouse. Mouse-like mode also uses the tablet rotation set under Mapping. |
-| Position smoothing | 0.00 | Steadies the cursor, with some lag. |
+| Movement | Normal (Absolute) | **Normal (Absolute)** maps the pen to the screen. **Relative (slow / no mouse-like speed-up)**: the pointer moves from where it is, by how far the pen moves. No Mac-style speed-up. Both choices are always shown, and a saved Relative setting is never changed for you. Clicks, click-drags and a button set to **Double Click** happen at the pointer, as with a mouse. Relative mode also uses the tablet rotation set under Mapping. |
+| Position smoothing | 0.0 | Steadies the cursor, with some lag. The slider is under its name and runs from 0 (off) to 10 (strongest, the old 0.25); the number is shown next to the name. |
 | Smoother fast curves | Off | Adds smooth in-between pen points, so fast curves don't show flat pieces in drawing apps that join points with straight lines. About 5 ms of extra delay. New in Version 26. |
 | Disable pen tip | Off | The tip makes no strokes; the bar reads 0%. |
 | Disable pressure sensitivity | Off | Every stroke uses the Manual Pen Tip Pressure while pressed, in every app. |
@@ -109,7 +109,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 ![Eraser](img/17-eraser-tab.png)
 
-The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable eraser** and **Manual Eraser Pressure** (own frame under Eraser Feel; used while pressure sensitivity is off). Shared with Pen (marked "Shared with Pen"): tilt, the Feel curve (one curve for tip and eraser), pressure sensitivity, Movement and Position smoothing. The button cards are the pen's barrel buttons.
+The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable eraser** and **Manual Eraser Pressure** (own frame under Eraser Feel; used while pressure sensitivity is off). Shared with Pen (marked "Shared with Pen"): tilt, the Feel curve (one curve for tip and eraser), pressure sensitivity, Position smoothing (and Movement, when its choice is shown). The button cards are the pen's barrel buttons.
 
 ## Tablet › Mapping
 
@@ -118,7 +118,7 @@ The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable 
 | Control | Default | Function |
 |---|---|---|
 | Active area | Whole tablet | Drag the area or its corners. |
-| Rotation | 0° | 180° puts the ExpressKeys on the other side; 90° and 270° are portrait. This rotation is also used in Mouse-like (Relative) mode. After rotating, recalibrate (More › calibration) if the pointer no longer sits under the nib. |
+| Rotation | 0° | 180° puts the ExpressKeys on the other side; 90° and 270° are portrait. This rotation is also used in Relative (slow / no mouse-like speed-up) mode. After rotating, recalibrate (More › calibration) if the pointer no longer sits under the nib. |
 | Display / All displays | Main display | The display the area maps to. |
 | Force proportions | On | Keeps the area at the display's aspect ratio. |
 | Display Settings | – | Opens macOS Displays settings. |
@@ -145,10 +145,13 @@ Pen gestures under **Scroll**, each with a **Speed** slider (Slow to Fast, 1–1
 A pen button or an ExpressKey can open a radial menu, like the one in Wacom's driver: a round menu with 8 slices, centred on the pen.
 
 - Set it up: **Change…** on a pen button or an ExpressKey, then the **Radial menu** tab, **Save**. **Edit menu…** opens the menu editor.
-- Use it: press the button, then tap a slice with the pen tip. The menu closes after a choice. To use several slices in a row (for example Undo three times), hold the button while you tap. Tap the centre (×), an empty slice or outside the menu, or press the button again, to close it without a choice. The pen tip never draws in your app while the menu is open. A menu left open closes by itself after a minute.
-- Menu editor: click a slice, give it a **Name** and choose **What it does**: **Keystroke** (**Set keystroke…**), **Mouse click** (Left, Right, Middle or Double Click), **Submenu** (8 more slices; **Edit submenu** opens it, up to 3 levels), **Open an app** (**Choose app…**), or **Nothing** (the slice closes the menu). **Clear slice** empties one slice, **Reset menu** brings back the starting menu (Undo, Redo, Copy, Paste, Cut, Select all, Zoom out, Zoom in). **Menu size**: Small to Large.
+- Use it: press the button, then tap a slice with the pen tip. The menu closes after a choice. To use several slices in a row (for example Undo three times), hold the button while you tap. Tap the **×** in the centre, an empty slice or outside the menu, or press the button again, to close it without a choice. The pen tip never draws in your app while the menu is open. A menu left open closes by itself after a minute.
+- The **centre** has four buttons, each with its own highlight under the pen or the pointer: **× (top left)** closes the menu. **Pencil (top right)**: tap it, then tap a slice, and choose what that slice does from the same choices as **Edit menu…**; the change is saved at once and the menu stays open (tap the pencil again to put it down). **Circular arrow (bottom left)** asks "Restore the 8 default slices?": tap **Yes** (right) or **No** (left). **Open hand (bottom right)**: press it with the pen tip or the mouse and move more than a few points to drag the menu somewhere else; a press that doesn't move does nothing. A menu you have moved stays until you close it.
+- With the **Mac mouse**: click a slice to run it in the app underneath; the menu stays open, so you can open it with the pen and then use your 8 commands with the mouse. Click the **×**, or press **Esc**, to close it. Slices that click the mouse need the pen. The menu does not take the keyboard from your drawing app.
+- In **Scribble**, the radial menu's **Undo** and **Redo** undo and redo your strokes (so does **Cmd+Z** and **Cmd+Shift+Z**), so you can try the menu without a drawing app. **Copy** copies the drawing; Paste, Cut, Select all and Zoom only say that they work in your drawing app.
+- Menu editor: click a slice, give it a **Name** and choose **What it does**: **Keystroke** (**Set keystroke…**), **Mouse click** (Left, Right, Middle or Double Click), **Submenu** (8 more slices; **Edit submenu** opens it, up to 3 levels), **Open an app** (**Choose app…**), or **Nothing** (the slice closes the menu). **Clear slice** empties one slice, **Reset menu** brings back the starting menu (Undo, Redo, Copy, Paste, Cut, Select all, Zoom out, Zoom in). **Menu size**: Small to Large (1 to 100, the number is shown next to the slider). The ring on the left changes size live while you move the slider, so you see how big the menu will be. **Menu transparency** (0 to 100%, 0 is solid) makes the slices see-through: 40% unless you change it. Move the slider or click the number box and type a value (press Enter or click elsewhere; Up and Down change it by 1), and the ring on the left shows it live. Names, lines, the centre icons and the slice under the pen stay fully visible. **Reset menu** puts back 50 and 70%.
 - Each button keeps its own menu, and each application can have its own (Application row). The menus are saved with your tablet settings, so Save, Save as default, Revert and the settings backup include them.
-- **Settings › System › Radial menu** switches every radial menu off or on (on by default).
+- **Settings › System › Radial menu** switches every radial menu off or on (on by default). A new tablet and **Restore factory settings** start with the Radial menu on pen button 2.
 - New in Version 26 and not yet tried on a real Mac.
 
 ## Tablet › Functions › Touch ring
@@ -211,7 +214,7 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 
 ![Scribble](img/63-scribble-draw.png)
 
-**Mark positions** draws a dot for each position the tablet reports. **Clear**, **Copy**. **Record** and **Stop** save a stroke recording.
+**Mark positions** draws a dot for each position the tablet reports. **Clear**, **Copy**. **Cmd+Z** undoes the last stroke (or a Clear) and **Cmd+Shift+Z** does it again; the radial menu's Undo and Redo send the same keys. **Record** and **Stop** save a stroke recording.
 
 ## Settings
 
@@ -269,8 +272,8 @@ The footer of the tablet page has **Save**, **Save as default**, **Revert to sav
 
 - **Save** writes the settings so they survive a driver restart (Cmd+S). **Revert to saved** goes back to the last save, after asking **Revert to saved settings?**
 - **Save as default** stores the current settings as your own default. They survive a restart, and **Revert to default** brings them back. This includes each ExpressKey's and each Touch Ring's own On/Off, and the app's own switches.
-- **Revert to default** replaces the current settings with your saved default (or the factory settings if you have not saved one) and saves them, after asking **Revert to default?** Unsaved edits will be lost. If you have not saved your own default, the tooltip says this restores the factory settings. If the settings already match, the button is disabled (**Already matching your saved default.**).
-- **Restore factory settings** resets everything to the original factory defaults, including each ExpressKey's and each Touch Ring's own On/Off. It asks first: **Restore factory settings?** Your own saved default is kept, so you can still use **Revert to default** afterwards.
+- **Revert to default** replaces the current settings with your saved default (or the factory settings if you have not saved one) and saves them, after asking **Revert to default?** Unsaved edits will be lost. If you have not saved your own default, the tooltip says this restores the factory settings. If the settings already match, the button is disabled (**Already matching your saved default.**). Without a saved default it does the same as **Restore factory settings**, including the Radial menu on pen button 2.
+- **Restore factory settings** resets everything to the original factory defaults, including each ExpressKey's and each Touch Ring's own On/Off. It asks first: **Restore factory settings?** Your own saved default is kept, so you can still use **Revert to default** afterwards. After a factory restore the Radial menu is on **pen button 2** (and **Show the radial menu** is switched on); pen button 1 and the other buttons keep their factory settings.
 - After a shutdown or crash with unsaved changes, the app offers the snapshot again at the next launch.
 - **Save as preset** stores the whole configuration under a name. Preset **⋯**: **Update from current settings**, **Duplicate**, **Rename…**, **Delete**. **Load** applies it.
 

@@ -140,7 +140,21 @@ public partial class BindingEditorViewModel : ObservableObject
                 break;
         }
         UpdateCombo();
+        _logReady = true;
+        AppLog.Info($"Binding editor opened: '{title}', current binding: {Describe(initial)}, opened on the {TabName(SelectedTabIndex)} tab"
+            + (ShowRadialTab ? "" : " (Radial menu tab not offered here)")
+            + $"; Radial menu switch (Settings) is {(RadialMenuOverlay.Enabled ? "on" : "OFF")}.");
     }
+
+    private bool _logReady;
+
+    private static string TabName(int tab) => tab switch
+    {
+        KeyboardTab => "Keyboard", MouseTab => "Mouse", ScrollTab => "Scroll", MediaTab => "Media", RadialTab => "Radial menu", _ => $"tab {tab}",
+    };
+
+    private static string Describe(AuxBinding b) =>
+        b.Kind == AuxKind.RadialMenu ? "Radial menu" : $"{b.Kind}: {AuxKeyBinding.Describe(b)}";
 
     /// <summary>Save is enabled only when the active tab has a complete selection.</summary>
     public bool CanSave => SelectedTabIndex switch
@@ -163,6 +177,7 @@ public partial class BindingEditorViewModel : ObservableObject
 
     partial void OnSelectedTabIndexChanged(int value)
     {
+        if (_logReady) AppLog.Info($"Binding editor '{Title}': {TabName(value)} tab chosen (Save is {(CanSave ? "enabled" : "disabled until a choice is made on this tab")}).");
         SaveCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(IsKeyboardTab));
         OnPropertyChanged(nameof(IsMouseTab));
@@ -200,6 +215,9 @@ public partial class BindingEditorViewModel : ObservableObject
             RadialTab => AuxBinding.RadialMenu(RadialMenuText),
             _ => AuxBinding.Unbound,
         };
+        AppLog.Info($"Binding editor '{Title}': Save clicked on the {TabName(SelectedTabIndex)} tab, new binding: {Describe(Result)}.");
+        if (SelectedTabIndex == RadialTab && !RadialMenuOverlay.Enabled)
+            AppLog.Warn($"Binding editor '{Title}': Radial menu chosen, but the 'Show the radial menu' switch (Settings › System) is OFF, so the menu will not show until it is switched on.");
         CloseRequested?.Invoke();
     }
 
@@ -207,6 +225,7 @@ public partial class BindingEditorViewModel : ObservableObject
     private void Clear()
     {
         Result = AuxBinding.Unbound;
+        AppLog.Info($"Binding editor '{Title}': Clear clicked (the button will do nothing).");
         CloseRequested?.Invoke();
     }
 
@@ -214,6 +233,7 @@ public partial class BindingEditorViewModel : ObservableObject
     private void CancelDialog()
     {
         Result = null;
+        AppLog.Info($"Binding editor '{Title}': Cancel (nothing changed).");
         CloseRequested?.Invoke();
     }
 
