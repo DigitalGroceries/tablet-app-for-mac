@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-App version 25. British English. Screens are real screenshots from a Mac; a few come from earlier versions, so some may differ slightly.
+App version 26. British English. Screens are real screenshots from a Mac; a few come from earlier versions, so some may differ slightly.
 
 ## Before you start
 
@@ -10,12 +10,12 @@ Tested only on an Apple silicon Mac with macOS 27.0.1 and a Wacom Intuos4 Small 
 
 - Quit the Wacom driver if it is running (see Wacom driver conflict).
 - If the Wacom driver is installed, remove it first with Wacom's own uninstaller (Applications › Wacom Tablet › Wacom Tablet Utility › Tablet Software › Uninstall), then restart your Mac. The app warns you if it still finds it, but never removes it itself.
-- Open Tablet App for Mac. A setup window shows two rows, **Read the pen** and **Move the pointer**. Click each button and turn the app on in the list that opens; each row turns green with a tick.
-- In System Settings › Privacy & Security › **Input Monitoring**, turn on Tablet App for Mac. This lets the app read the pen.
+- Open Tablet App for Mac. The setup window **Set up Tablet App for Mac** guides you through the permissions.
+- On **Let the app read your pen**, click **Open Input Monitoring**. In System Settings › Privacy & Security › **Input Monitoring**, turn on Tablet App for Mac. A **Why:** line under the step explains this: macOS lets an app read a tablet only with Input Monitoring, and the app uses it to read your pen, ExpressKeys and Touch Ring.
 
 ![Input Monitoring, with the switch for Tablet App for Mac turned on](img/setup-read-pen.png)
 
-- In System Settings › Privacy & Security › **Accessibility** (called **Device Control and Data Access** on macOS 27), turn on Tablet App for Mac. This lets the pen move the pointer. Quit and reopen the app.
+- On **Let the pen move the pointer**, click **Open Device Control and Data Access** (called **Accessibility** on older macOS). In System Settings › Privacy & Security › **Accessibility** (called **Device Control and Data Access** on macOS 27), turn on Tablet App for Mac. The **Why:** line explains that macOS lets an app move the pointer, click and press keys only with this permission, and the app uses it to turn your pen and buttons into pointer moves, clicks and shortcuts. Then click **Restart the app**.
 
 ![Device Control and Data Access, with the switch for Tablet App for Mac turned on](img/setup-move-pointer.png)
 
@@ -70,6 +70,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 - **Your tablets**: one card per connected or remembered tablet. Click a card to open its settings.
 - Card **⋯** menu: **Open tablet settings**, **Forget this tablet**.
+- If a remembered tablet is not plugged in, the card tooltip says **Not detected**, and a hint reads **Not found. Double-click to see what to try.** On the tablet page a line says **Not detected. Showing this tablet's saved settings.** The help under it is: if it is plugged in, check it has power and that its USB cable goes straight into the Mac, not through a hub. Then click **Restart driver**. Still not found? **Send a report…**
 - Health rows: problems found, each with **Fix** or a specific action where one exists. **Fix** works with the pen even while the pen tip or eraser is disabled.
 - **Open driver page**: shown when the driver is not reachable.
 - **Check for updates now** and **Earlier versions…**: see Updating.
@@ -95,7 +96,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 | Current pressure | Live | Pressure after the curve; tooltip shows the raw value. |
 | Button 1 / Button 2 cards | Default (right click) / Default (middle click) | **Change…** opens the function editor; **Default** restores it. Under **Mouse** you can choose **Double Click** (posts a left-button double-click at the cursor). |
 | Pen button test | Live | Press a barrel button: its number on the pen picture lights while held, and the line above the cards reads "Button 2 pressed." (or 1). |
-| Movement | Normal (Absolute) | Absolute maps the pen to the screen; Mouse (Relative) moves the cursor like a mouse. Mouse-like mode also uses the tablet rotation set under Mapping. |
+| Movement | Normal (Absolute) | **Normal (Absolute)** maps the pen to the screen; **Mouse-like (Relative)** moves the cursor like a mouse. Clicks, click-drags and a button set to **Double Click** happen at the pointer, as with a mouse. Mouse-like mode also uses the tablet rotation set under Mapping. |
 | Position smoothing | 0.00 | Steadies the cursor, with some lag. |
 | Smoother fast curves | Off | Adds smooth in-between pen points, so fast curves don't show flat pieces in drawing apps that join points with straight lines. About 5 ms of extra delay. New in Version 26. |
 | Disable pen tip | Off | The tip makes no strokes; the bar reads 0%. |
@@ -131,7 +132,13 @@ The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable 
 - **All buttons** (Off / On switch) turns every ExpressKey off or on; actions and each key's own On/Off are kept. A key works only when **All buttons** and the key are both On. While **All buttons** is Off, the per-key item is greyed ("Turn on All buttons first").
 - **Default**: clears every ExpressKey action, after asking.
 
-Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left, Right, Middle click, Back and Forward button, or **Double Click**), **Scroll** (up, down, left, right, or **Move pen to scroll**: hold the button and move the pen to scroll like a mouse wheel; the cursor stays still and the tip does not click), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). **Save**, **Cancel**, **Clear**.
+Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left click, Right click, Middle click, Back button, Forward button, or **Double Click**), **Scroll** (up, down, left, right, or a pen gesture), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). **Radial menu** is on its own tab (see Radial menu). **Save**, **Cancel**, **Clear**.
+
+Pen gestures under **Scroll**, each with a **Speed** slider (Slow to Fast, 1–100, default 50):
+
+- **Move pen to scroll**: hold the button and move the pen to scroll like a mouse wheel; the cursor stays still and the tip does not click.
+- **Move pen to zoom**: hold the button and move the pen up or down to zoom. Uses Option+scroll, like the Touch Ring Zoom mode. Works in Photoshop and Affinity.
+- **Move pen to pan and zoom**: hold the button and move the pen: sideways to pan, up or down to zoom. Works in Photoshop and Affinity.
 
 ### Radial menu
 
@@ -180,7 +187,7 @@ A pen button or an ExpressKey can open a radial menu, like the one in Wacom's dr
 
 - **calibration**: **Start** shows full-screen targets; tap each, then **Apply**. **More calibration actions**: **View report…**, **Export calibration…**, **Import calibration…**, **Clear calibration**. The on/off switch turns the calibration correction off and on, so you can compare. Calibrate only if the pointer sits away from the nib.
 - **hover** (below): hover limit, off by default; 127 when first switched on (0 to 255). The pen stops moving the cursor when it is higher above the tablet than this limit.
-- **filters**: the OpenTabletDriver filters on this tablet.
+- **filters**: filters from other OpenTabletDriver plugins on this tablet, for example **Antichatter** or **Radial Follow** smoothing, which can calm a shaky pointer. Each filter has an **Off** / **On** switch (Off on the left, On on the right). Turn one on to use it with this app; if the pen starts to feel odd, turn it off again. A filter you turn on is remembered and is not switched off by the app. For simple smoothing while the pen touches, try **Pen › Position smoothing** first. If the profile has no filters, the page says **No filters configured**. A **Legacy** mark means a leftover from an older plugin: it has no effect and is removed automatically. New in Version 26.
 - **json**: the profile as the driver stores it.
 
 ![More › Hover](img/49-hover-limit.png)
@@ -218,8 +225,9 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 - **Settings files in Finder**: a `.tabletsettings` file shows the app icon on a page. Double-click it to open Tablet App for Mac at **Settings › System** with its Import preview; nothing changes until you click **Apply these settings**.
 - **App menu**: the **Tablet App for Mac** menu at the top left of the screen has **About Tablet App for Mac** (opens Home, with the version and links), **Report a problem or send a recommendation…** (see Report a problem or send a recommendation), **Export settings…** and **Import settings…** (the same as the buttons in Settings › System; results show in the main window). The pen menu in the menu bar has them too.
 - **System › Automatic backups**: when a new version starts for the first time, the app backs up all your settings by itself, and it does the same before every import. The last 5 are kept. **Preview…** shows what bringing one back would change; **Show in Finder** opens the folder.
-- **System › Diagnostic file**: **Create diagnostic file** saves one zip on your Desktop with a summary (app, driver and macOS versions, connected tablets, other tablet drivers found), the app and driver logs and your settings. Serial numbers and your user name are removed. The path shows under the button; attach the zip to a GitHub issue. The same button is on **Advanced › Diagnostics**.
+- **System › Diagnostic file**: **Create diagnostic file** saves one zip on your Desktop with a summary (app, driver and macOS versions, connected tablets, other tablet drivers found, and your mice and keyboards: name, IDs, connection and driver), the app and driver logs and your settings. Serial numbers, Bluetooth addresses and your user name are removed. The path shows under the button; attach the zip to a GitHub issue. The same button is on **Settings › Troubleshooting** (**Diagnostic report**) and on **Advanced › Diagnostics**.
 - **System**: **Start at login**. Switch on **Start automatically when I log in** to have the app start by itself when you log in to your Mac, with only the pen icon in the menu bar. **Open Login Items…** opens the same setting in macOS: System Settings › General › Login Items.
+- **Troubleshooting**: a page under Settings with quick fixes when the tablet stops responding, a setting will not stick, or you need to send a report. **Restart driver** stops the tablet driver and starts it again; use this when the pen stops moving or a tablet is not detected. **Diagnostic report** has **Create diagnostic file** (the same zip as **System › Diagnostic file**; **Show in Finder** appears once it is saved). **Reset permissions** clears this app's Input Monitoring and Accessibility entries so macOS will ask again.
 
 ## Advanced
 
@@ -257,10 +265,18 @@ The report opens inside the app window:
 
 ## Presets and saving
 
-- Changes apply at once; the footer shows **Save** and **Revert to saved** while there are unsaved changes.
-- **Save** writes the settings. **Revert to saved** goes back to the last save.
+The footer of the tablet page has **Save**, **Save as default**, **Revert to saved**, **Revert to default** and **Restore factory settings**. Changes apply at once.
+
+- **Save** writes the settings so they survive a driver restart (Cmd+S). **Revert to saved** goes back to the last save, after asking **Revert to saved settings?**
+- **Save as default** stores the current settings as your own default. They survive a restart, and **Revert to default** brings them back. This includes each ExpressKey's and each Touch Ring's own On/Off, and the app's own switches.
+- **Revert to default** replaces the current settings with your saved default (or the factory settings if you have not saved one) and saves them, after asking **Revert to default?** Unsaved edits will be lost. If you have not saved your own default, the tooltip says this restores the factory settings. If the settings already match, the button is disabled (**Already matching your saved default.**).
+- **Restore factory settings** resets everything to the original factory defaults, including each ExpressKey's and each Touch Ring's own On/Off. It asks first: **Restore factory settings?** Your own saved default is kept, so you can still use **Revert to default** afterwards.
 - After a shutdown or crash with unsaved changes, the app offers the snapshot again at the next launch.
 - **Save as preset** stores the whole configuration under a name. Preset **⋯**: **Update from current settings**, **Duplicate**, **Rename…**, **Delete**. **Load** applies it.
+
+## Confirmation messages
+
+Buttons that complete an action show a large on-screen message, the same size and style as the Touch Ring mode display (for example when you switch ring mode). It appears in the centre of the window, shows the app name and a short past-tense line such as **Settings saved**, **Saved as default**, **Reverted to default**, **Factory settings restored**, **Settings reverted**, **Driver restarted** or **Diagnostic file created**, then fades away. Switches, Cancel, and buttons that only open a menu, dialog or folder do not show it. New in Version 26.
 
 ## The pen menu
 
@@ -358,4 +374,4 @@ Tablet App for Mac is a modified version of OpenTabletArtist by TheSevenPens (GP
 
 ## Not written here
 
-Troubleshooting and the per-app notes (Photoshop, Affinity, PhotoCraft) are written separately. Per-app shortcuts: not yet tested.
+The per-app notes (Photoshop, Affinity, PhotoCraft) are written separately. Per-app shortcuts: not yet tested.

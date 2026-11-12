@@ -26,7 +26,7 @@ public class BuildV5Tests
     {
         var m = File.ReadAllText(Path.Combine(Root(), "OpenTabletArtist", "Assets", "manual", "manual.md"));
         Assert.DoesNotContain("Z" + "ak", m);
-        Assert.Contains("App version 25", m);   // the cover line follows the app version
+        Assert.Contains("App version 26", m);   // the cover line follows the app version
         Assert.Contains("macOS 27.0.1", m);
     }
 }
