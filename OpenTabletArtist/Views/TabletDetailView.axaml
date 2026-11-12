@@ -1547,36 +1547,9 @@
                             </StackPanel>
                         </HeaderedContentControl>
                     </StackPanel>
-                    <Grid Grid.Column="2" ColumnDefinitions="64,16,*,16,Auto">
+                    <Grid Grid.Column="2" ColumnDefinitions="64,24,Auto,24,*">
                         <views:PenDiagram VerticalAlignment="Center" />
-                        <!-- TASKS #63 (Zak 20:53): the radial menu's picture, always shown between the pen drawing and the Button cards, with
-                             the label above it. Clicking it opens the radial menu editor for the selected application and the pen button that
-                             has the Radial menu. Nothing on the radial menu: the picture is dimmed and says so, with "Use pen button 2".
-                             It has its own column, so the cards (and the "Press a pen button to test it" line with the lit badges) never overlap it. -->
-                        <StackPanel x:Name="RadialSpot" Grid.Column="2" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="230">
-                            <TextBlock x:Name="RadialSpotHeading" Text="{Binding RadialSpotHeading}" FontWeight="SemiBold" TextWrapping="Wrap"
-                                       HorizontalAlignment="Center" TextAlignment="Center" />
-                            <Button x:Name="RadialSpotButton" Padding="4" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0"
-                                    Cursor="Hand" IsEnabled="{Binding CanEditRadial}" Click="OnRadialSpotClick"
-                                    AutomationProperties.Name="{Binding RadialSpotHeading}"
-                                    Opacity="{Binding RadialSpotOpacity}">
-                                <Button.Styles>
-                                    <Style Selector="Button#RadialSpotButton /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
-                                    <Style Selector="Button#RadialSpotButton:disabled /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
-                                    <Style Selector="Button#RadialSpotButton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="#18FFFFFF" /></Style>
-                                </Button.Styles>
-                                <Viewbox Stretch="Uniform" MaxWidth="190" MaxHeight="190" MinWidth="120" MinHeight="120">
-                                    <ctrl:RadialMenuPie x:Name="RadialSpotPie" Width="220" Height="220" IsHitTestVisible="False"
-                                                        Labels="{Binding RadialPreview.Labels}" SetFlags="{Binding RadialPreview.SetFlags}"
-                                                        SubmenuFlags="{Binding RadialPreview.SubmenuFlags}" Transparency="{Binding RadialPreview.Transparency}" />
-                                </Viewbox>
-                            </Button>
-                            <TextBlock x:Name="RadialSpotLine" Text="{Binding RadialSpotLine}" FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
-                                       HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
-                            <Button x:Name="RadialUseButton" Content="{Binding RadialUseButtonLabel}" Command="{Binding UseRadialButtonCommand}"
-                                    IsVisible="{Binding CanUseRadialButton}" HorizontalAlignment="Center" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="4" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <StackPanel Grid.Column="2" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Left">
                             <TextBlock x:Name="PenButtonTestLine" Text="{Binding PenButtonTestText}" FontSize="12"
                                        Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HasPenButtons}" />
                             <views:PenSwitchCard DataContext="{Binding PenButton3Row}"
@@ -1586,6 +1559,58 @@
                             <views:PenSwitchCard DataContext="{Binding PenButton1Row}"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
                             <views:PenSwitchCard DataContext="{Binding PenTipRow}" Margin="0,8,0,0" />
+                        </StackPanel>
+                        <!-- TASKS #63 (Zak 20:53 / 21:00 / 21:02): "Radial Menu Settings" on the right, where the Button cards were: only the
+                             label above the picture; below it the line (Opens with... / No pen button...) with "Use pen button 2", then the
+                             Menu transparency slider + box and the Menu size slider + number. The picture is always shown (dimmed when no pen
+                             button opens the menu); clicking it opens the radial menu editor for the selected application and the pen button
+                             that has the Radial menu. The pen buttons (cards, "Press a pen button to test it", lit badges) are in the middle
+                             column next to the pen drawing, so nothing overlaps. The picture is never larger than the biggest menu (320 pt). -->
+                        <StackPanel x:Name="RadialSpot" Grid.Column="4" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="240">
+                            <TextBlock x:Name="RadialSpotHeading" Text="{Binding RadialSpotHeading}" FontWeight="SemiBold" TextWrapping="Wrap"
+                                       HorizontalAlignment="Center" TextAlignment="Center" />
+                            <Grid Width="198" Height="198" HorizontalAlignment="Center">
+                                <Button x:Name="RadialSpotButton" Padding="4" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
+                                        BorderThickness="0" Cursor="Hand" IsEnabled="{Binding CanEditRadial}" Click="OnRadialSpotClick"
+                                        AutomationProperties.Name="{Binding RadialSpotHeading}"
+                                        Opacity="{Binding RadialSpotOpacity}">
+                                    <Button.Styles>
+                                        <Style Selector="Button#RadialSpotButton /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+                                        <Style Selector="Button#RadialSpotButton:disabled /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+                                        <Style Selector="Button#RadialSpotButton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="#18FFFFFF" /></Style>
+                                    </Button.Styles>
+                                    <Viewbox x:Name="RadialSpotViewbox" Stretch="Uniform" Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}">
+                                        <ctrl:RadialMenuPie x:Name="RadialSpotPie" Width="220" Height="220" IsHitTestVisible="False"
+                                                            Labels="{Binding RadialPreview.Labels}" SetFlags="{Binding RadialPreview.SetFlags}"
+                                                            SubmenuFlags="{Binding RadialPreview.SubmenuFlags}" Transparency="{Binding RadialPreview.Transparency}" />
+                                    </Viewbox>
+                                </Button>
+                            </Grid>
+                            <TextBlock x:Name="RadialSpotLine" Text="{Binding RadialSpotLine}" FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
+                                       HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                            <Button x:Name="RadialUseButton" Content="{Binding RadialUseButtonLabel}" Command="{Binding UseRadialButtonCommand}"
+                                    IsVisible="{Binding CanUseRadialButton}" HorizontalAlignment="Center" />
+                            <StackPanel x:Name="RadialSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}" Opacity="{Binding RadialSpotOpacity}">
+                                <TextBlock Text="{Binding RadialPreview.TransparencyCaption}" FontSize="12" />
+                                <Grid ColumnDefinitions="*,8,Auto,2,Auto">
+                                    <Slider x:Name="RadialTransparencySlider" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
+                                            Value="{Binding RadialPreview.Transparency, Mode=TwoWay}" VerticalAlignment="Center"
+                                            AutomationProperties.Name="Menu transparency" />
+                                    <TextBox x:Name="RadialTransparencyBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
+                                             VerticalAlignment="Center" FontWeight="SemiBold" MaxLength="6"
+                                             Text="{Binding RadialPreview.TransparencyInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                             AutomationProperties.Name="Menu transparency value" />
+                                    <TextBlock Grid.Column="4" Text="%" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                </Grid>
+                                <TextBlock Text="{Binding RadialPreview.SizeCaption}" FontSize="12" Margin="0,6,0,0" />
+                                <Grid ColumnDefinitions="*,8,Auto">
+                                    <Slider x:Name="RadialSizeSlider" Minimum="1" Maximum="50" TickFrequency="1" IsSnapToTickEnabled="True"
+                                            Value="{Binding RadialPreview.Size, Mode=TwoWay}" VerticalAlignment="Center"
+                                            AutomationProperties.Name="Menu size" />
+                                    <TextBlock x:Name="RadialSizeNumber" Grid.Column="2" Text="{Binding RadialPreview.SizeText}" MinWidth="34" TextAlignment="Right"
+                                               VerticalAlignment="Center" FontWeight="SemiBold" />
+                                </Grid>
+                            </StackPanel>
                         </StackPanel>
                     </Grid>
                 </Grid>
