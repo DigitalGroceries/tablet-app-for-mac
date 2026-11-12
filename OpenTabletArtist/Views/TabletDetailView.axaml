@@ -1398,6 +1398,8 @@
             <StackPanel>
                 <!-- No heading: "FILTERS" restated the tab's own name, the last of three that did
                      (#aux-clear-all). It was also the last user of the TabTitle style, which goes too. -->
+                <TextBlock Text="{Binding FiltersIntro}" TextWrapping="Wrap" Margin="2,0,2,10"
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
                 <ItemsControl ItemsSource="{Binding Filters}" IsVisible="{Binding HasFilters}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -1420,7 +1422,17 @@
                                                 VerticalAlignment="Center">
                                         <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   VerticalAlignment="Center" />
+                                                   VerticalAlignment="Center" IsVisible="{Binding ShowStatus}" />
+                                        <!-- TASKS #17: Off on the switch's left, On on its right (like All buttons, #28). -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding CanToggle}">
+                                            <TextBlock Text="{Binding OffText}" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                            <ToggleSwitch IsChecked="{Binding Enabled, Mode=TwoWay}" OnContent="" OffContent=""
+                                                          MinWidth="0" VerticalAlignment="Center"
+                                                          AutomationProperties.Name="{Binding Title}" />
+                                            <TextBlock Text="{Binding OnText}" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Grid>
                             </ctrl:Section>

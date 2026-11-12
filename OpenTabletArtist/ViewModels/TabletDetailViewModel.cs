@@ -896,9 +896,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _suppressMappingApply = false;
     }
 
-    /// <summary>Show the Filters tab — a developer-only view of the profile's raw filters, hidden unless
-    /// enabled on Advanced → Developer (users never need it).</summary>
-    public bool ShowFiltersTab => DeveloperSettings.Instance.ShowFiltersTab;
+    /// <summary>Show the Filters tab (under More). TASKS #17: for everyone now, so plugin filters such as
+    /// Antichatter can be turned on (Kert, 8 Nov); it used to be developer-only.</summary>
+    public bool ShowFiltersTab => true;
     /// <summary>Show the JSON tab — the raw settings JSON, hidden unless enabled on Advanced → Developer.</summary>
     public bool ShowJsonTab => DeveloperSettings.Instance.ShowJsonTab;
     /// <summary>Show the "Cut below input minimum" dead-zone checkbox in Pressure Dynamics — hidden unless
@@ -1619,7 +1619,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 title: FriendlyFilterName(typeName),
                 fullPath: path,
                 enabled: f?.Enable ?? true,
-                origin: ProfileFilterMaintenance.Classify(path)));
+                origin: ProfileFilterMaintenance.Classify(path),
+                toggle: _applyAction == null ? null : on => _ = PersistUserFilterAsync(path, on)));
         }
         HasFilters = Filters.Count > 0;
 
@@ -3096,6 +3097,29 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         UpdateFiltersDisplay();
         TakeOutcome(await SubmitAsync(_settings), draft);
     }
+
+    // ── Other plugins' filters (TASKS #17, Kert) ──────────────
+
+    /// <summary>Turns a filter from another OpenTabletDriver plugin on or off, and remembers the choice so the
+    /// app no longer switches it off by itself (<see cref="UserFilterChoices"/>).</summary>
+    private async Task PersistUserFilterAsync(string path, bool on)
+    {
+        if (_settings == null) return;
+        var draft = _draftGeneration;
+        UserFilterChoices.Set(path, on);
+        var profile = _settings.Profiles?.FirstOrDefault(p => p.Tablet == _profile.Tablet) ?? _profile;
+        foreach (var store in profile.Filters?.OfType<PluginSettingStore>().Where(f => f.Path == path) ?? Enumerable.Empty<PluginSettingStore>())
+            store.Enable = on;
+        AppLog.Info($"Filters tab: {(on ? "on" : "off")} {path}");
+        // Rebuild the cards after the switch has finished its own click (rebuilding now would remove the switch
+        // that is still handling it); this also updates a duplicate card for the same filter, and the JSON tab.
+        Dispatcher.UIThread.Post(UpdateFiltersDisplay, DispatcherPriority.Background);
+        TakeOutcome(await SubmitAsync(_settings), draft);
+    }
+
+    /// <summary>Filters tab intro: what the switches do.</summary>
+    public string FiltersIntro => Localizer.Te("filters.intro",
+        "Filters from other OpenTabletDriver plugins, for example Antichatter or Radial Follow smoothing, can calm a shaky pointer. Turn one on to use it with this app. If the pen starts to feel odd, turn it off again. For simple smoothing while the pen touches, try Pen › Position smoothing first.");
 
     // ── Touch trackpad (Discussion #31, BETA) ──────────────────
 

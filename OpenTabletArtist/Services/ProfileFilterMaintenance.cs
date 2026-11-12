@@ -134,7 +134,8 @@ public static class ProfileFilterMaintenance
             foreach (var store in filters)
             {
                 if (store is not { Enable: true }) continue;
-                if (Classify(store.Path) == FilterOrigin.Unknown)
+                // TASKS #17: a plugin filter the user turned on in the Filters tab stays on.
+                if (Classify(store.Path) == FilterOrigin.Unknown && !UserFilterChoices.IsAllowed(store.Path))
                 {
                     store.Enable = false;
                     changed = true;

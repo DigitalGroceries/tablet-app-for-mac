@@ -576,5 +576,6 @@
   "radial.default.cut": "Cut",
   "radial.default.select_all": "Select all",
   "radial.default.zoom_out": "Zoom out",
-  "radial.default.zoom_in": "Zoom in"
+  "radial.default.zoom_in": "Zoom in",
+  "filters.intro": "Filters from other OpenTabletDriver plugins, for example Antichatter or Radial Follow smoothing, can calm a shaky pointer. Turn one on to use it with this app. If the pen starts to feel odd, turn it off again. For simple smoothing while the pen touches, try Pen › Position smoothing first."
 }

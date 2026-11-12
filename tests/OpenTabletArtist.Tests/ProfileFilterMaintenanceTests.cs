@@ -169,4 +169,86 @@ public class ProfileFilterMaintenanceTests
 
         Assert.False(ProfileFilterMaintenance.DisableUnapprovedFilters(settings)); // nothing to change
     }
+
+    // ── TASKS #17 (Kert): other plugins' filters the user turned on in the Filters tab ──
+
+    private const string Antichatter = "TabletDriverFilters.Devocub.Antichatter";
+
+    /// <summary>Runs <paramref name="body"/> with UserFilterChoices kept in memory, then puts the real store back.</summary>
+    private static void WithChoices(string? initial, Action<Func<string?>> body)
+    {
+        var (read, write) = (UserFilterChoices.Read, UserFilterChoices.Write);
+        string? value = initial;
+        UserFilterChoices.Read = () => value;
+        UserFilterChoices.Write = v => value = v;
+        try { body(() => value); }
+        finally { (UserFilterChoices.Read, UserFilterChoices.Write) = (read, write); }
+    }
+
+    [Fact]
+    public void UserFilterChoices_SetOnAndOff_RoundTrips()
+    {
+        WithChoices(null, stored =>
+        {
+            Assert.False(UserFilterChoices.IsAllowed(Antichatter));
+            UserFilterChoices.Set(Antichatter, true);
+            UserFilterChoices.Set("Other.Plugin.Filter", true);
+            Assert.True(UserFilterChoices.IsAllowed(Antichatter));
+            Assert.Equal("Other.Plugin.Filter|" + Antichatter, stored());
+            UserFilterChoices.Set(Antichatter, false);
+            Assert.False(UserFilterChoices.IsAllowed(Antichatter));
+            Assert.Equal("Other.Plugin.Filter", stored());
+            Assert.False(UserFilterChoices.IsAllowed(null));
+            Assert.False(UserFilterChoices.IsAllowed(""));
+        });
+    }
+
+    [Fact]
+    public void DisableUnapproved_KeepsAFilterTheUserTurnedOn_ButStillTurnsOffOthers()
+    {
+        WithChoices(Antichatter, _ =>
+        {
+            var settings = WithFilters(PressureCurveProfile.FilterTypeName, Antichatter,
+                "OpenTabletDriver.Filters.Noise.NoiseReduction");
+            foreach (var f in settings.Profiles.First().Filters) f.Enable = true;
+
+            Assert.True(ProfileFilterMaintenance.DisableUnapprovedFilters(settings));
+            var filters = settings.Profiles.First().Filters;
+            Assert.True(filters.First(f => f.Path == Antichatter).Enable);
+            Assert.False(filters.First(f => f.Path == "OpenTabletDriver.Filters.Noise.NoiseReduction").Enable);
+            Assert.True(filters.First(f => f.Path == PressureCurveProfile.FilterTypeName).Enable);
+        });
+    }
+
+    [Fact]
+    public void FilterCard_ThirdParty_HasASwitchThatReportsTheChange()
+    {
+        bool? got = null;
+        var card = new OpenTabletArtist.ViewModels.FilterCardViewModel("Antichatter", Antichatter, enabled: false,
+            ProfileFilterMaintenance.Classify(Antichatter), toggle: on => got = on);
+        Assert.True(card.IsThirdParty);
+        Assert.True(card.CanToggle);
+        Assert.False(card.ShowStatus);
+
+        card.Enabled = true;
+        Assert.True(card.Enabled);
+        Assert.True(got);
+        got = null;
+        card.Enabled = true;   // same value: nothing to do
+        Assert.Null(got);
+    }
+
+    [Fact]
+    public void FilterCard_OwnFilter_HasNoSwitch_AndIgnoresWrites()
+    {
+        bool called = false;
+        var card = new OpenTabletArtist.ViewModels.FilterCardViewModel("Pen Dynamics", PressureCurveProfile.FilterTypeName,
+            enabled: true, ProfileFilterMaintenance.Classify(PressureCurveProfile.FilterTypeName), toggle: _ => called = true);
+        Assert.False(card.IsThirdParty);
+        Assert.False(card.CanToggle);
+        Assert.True(card.ShowStatus);
+        card.Enabled = false;
+        Assert.True(card.Enabled);
+        Assert.False(called);
+    }
 }
