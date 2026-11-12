@@ -41,7 +41,10 @@ public static class FactorySettingsMerge
         }
 
         foreach (var profile in merged.Profiles)
+        {
             ApplyFactoryDoubleClickFix(profile.BindingSettings);
+            ApplyFactoryRadialButton(profile);
+        }
 
         SyncAllStashes(merged);
         return merged;
@@ -62,6 +65,18 @@ public static class FactorySettingsMerge
     {
         bindings.DoubleClickFix = ClickJitterGate.UiDefault;
         bindings.TipDoubleClickDistance = DoubleClickState.DefaultMoveTolerance;
+    }
+
+    /// <summary>TASKS #56 (Zak 17:12): factory settings put the Radial menu on pen button 2 (and its filter in the
+    /// profile). Button 1 and every other binding stay as the daemon made them. A pen with fewer than two
+    /// buttons is left alone. Only the reset paths call this, never a normal load.</summary>
+    public static bool ApplyFactoryRadialButton(Profile profile)
+    {
+        var buttons = profile.BindingSettings?.PenButtons;
+        if (buttons == null || buttons.Count < 2) return false;
+        buttons[1] = Domain.RadialMenuBinding.Make();
+        Domain.RadialMenuBinding.SyncFilter(profile);
+        return true;
     }
 
     private static Profile CloneProfile(Profile profile) =>

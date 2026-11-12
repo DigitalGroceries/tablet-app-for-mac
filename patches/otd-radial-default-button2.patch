@@ -1,0 +1,45 @@
+diff --git a/OpenTabletDriver.Desktop/Profiles/BindingSettings.cs b/OpenTabletDriver.Desktop/Profiles/BindingSettings.cs
+index 4668a65..31b99fa 100644
+--- a/OpenTabletDriver.Desktop/Profiles/BindingSettings.cs
++++ b/OpenTabletDriver.Desktop/Profiles/BindingSettings.cs
+@@ -227,13 +227,19 @@ namespace OpenTabletDriver.Desktop.Profiles
+             Debug.Assert(WheelBindings.Count == wheelCount, "WheelBindings.Count != wheelCount");
+         }
+ 
++        /// <summary>TASKS #56: the default for pen button 2 is the app's Radial menu binding (a plugin type the
++        /// app ships; no Menu setting means its default menu). The daemon only keeps the type's name.</summary>
++        private static PluginSettingStore RadialMenuDefaultButton2() =>
++            new PluginSettingStore("OpenTabletArtist.Dynamics.RadialMenuBinding",
++                new System.Collections.ObjectModel.ObservableCollection<PluginSetting>()) { Enable = true };
++
+         private void AddPenButtons(TabletSpecifications tabletSpecifications)
+         {
+             uint buttonCount = tabletSpecifications.Pen.ButtonCount;
+             if (buttonCount >= 1)
+                 PenButtons.Add(new PluginSettingStore(new AdaptiveBinding(PenAction.BarrelButton1)));
+             if (buttonCount >= 2)
+-                PenButtons.Add(new PluginSettingStore(new AdaptiveBinding(PenAction.BarrelButton2)));
++                PenButtons.Add(RadialMenuDefaultButton2());   // TASKS #56: pen button 2 starts as the Radial menu
+             if (buttonCount >= 3)
+                 PenButtons.Add(new PluginSettingStore(new AdaptiveBinding(PenAction.BarrelButton3)));
+         }
+diff --git a/OpenTabletDriver.Desktop/Profiles/Profile.cs b/OpenTabletDriver.Desktop/Profiles/Profile.cs
+index ff82621..c17a82d 100644
+--- a/OpenTabletDriver.Desktop/Profiles/Profile.cs
++++ b/OpenTabletDriver.Desktop/Profiles/Profile.cs
+@@ -66,8 +66,15 @@ namespace OpenTabletDriver.Desktop.Profiles
+ 
+         public static Profile GetDefaults(TabletReference tablet)
+         {
++            // TASKS #56: the Radial menu on pen button 2 needs its filter (keeps the pen tip from the app under the menu).
++            var filters = new PluginSettingStoreCollection
++            {
++                new PluginSettingStore("OpenTabletArtist.Dynamics.RadialMenuFilter",
++                    new System.Collections.ObjectModel.ObservableCollection<PluginSetting>()) { Enable = true }
++            };
+             return new Profile
+             {
++                Filters = filters,
+                 Tablet = tablet.Properties.Name,
+                 OutputMode = new PluginSettingStore(DefaultOutputModeType),
+                 AbsoluteModeSettings = AbsoluteModeSettings.GetDefaults(tablet.Properties.Specifications.Digitizer),

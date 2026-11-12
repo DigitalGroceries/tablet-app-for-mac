@@ -66,8 +66,15 @@ namespace OpenTabletDriver.Desktop.Profiles
 
         public static Profile GetDefaults(TabletReference tablet)
         {
+            // TASKS #56: the Radial menu on pen button 2 needs its filter (keeps the pen tip from the app under the menu).
+            var filters = new PluginSettingStoreCollection
+            {
+                new PluginSettingStore("OpenTabletArtist.Dynamics.RadialMenuFilter",
+                    new System.Collections.ObjectModel.ObservableCollection<PluginSetting>()) { Enable = true }
+            };
             return new Profile
             {
+                Filters = filters,
                 Tablet = tablet.Properties.Name,
                 OutputMode = new PluginSettingStore(DefaultOutputModeType),
                 AbsoluteModeSettings = AbsoluteModeSettings.GetDefaults(tablet.Properties.Specifications.Digitizer),

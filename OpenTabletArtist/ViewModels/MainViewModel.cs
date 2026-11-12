@@ -868,6 +868,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             // #38: the app's own switches back to factory too (All buttons and Touch Ring On, no key or ring
             // Off, nothing put aside), so they match the factory bindings.
             TabletAppState.ResetToFactory(TabletsOf(merged));
+            RadialMenuOverlay.Enabled = true;   // TASKS #56: the radial menu is shown / on again with the factory bindings
             // Force every open tablet page to adopt the factory profile (including re-added ones).
             ReconcileOpenTabletDetails();
             foreach (var editor in _tabletDetails.Values)

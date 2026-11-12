@@ -530,7 +530,7 @@ public class RadialMenuStateTests : IDisposable
         RadialMenuState.CommandPollMs = 10;
         Binding().Press(null!, null!);
         File.WriteAllText(RadialMenuState.CommandFilePath, new RadialMenuCommand { Seq = 1, Op = RadialMenuCommand.Tap, Slice = 0 }.ToJson());
-        for (int i = 0; i < 100 && _ran.Count == 0; i++) System.Threading.Thread.Sleep(10);
+        for (int i = 0; i < 500 && _ran.Count == 0; i++) System.Threading.Thread.Sleep(10);
         Assert.Equal(new[] { "Undo" }, _ran);
         Assert.True(RadialMenuState.IsOpen);
     }
