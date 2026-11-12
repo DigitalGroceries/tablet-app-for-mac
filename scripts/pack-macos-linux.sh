@@ -11,7 +11,7 @@
 #   Version names are simple (the owner, 4 Nov 2026): "Version 23 BETA", then "Version 23"; no BETA numbers.
 #   Apple silicon only: no Intel builds (the owner, 4 Nov 2026).
 #   (Older numbered BETAs: BETA=2 gives "-beta2".)
-#   Test build for Zak: TEST=8 scripts/pack-macos-linux.sh 26 /tmp/b8 arm64  (About says "Test version (build 8)").
+#   Test build for Zak: TEST=yes scripts/pack-macos-linux.sh 26 /tmp/b8 arm64  (About says "Version 26 test").
 set -euo pipefail
 VER=${1:?version, e.g. 14}
 OUT=${2:?output folder}
@@ -20,10 +20,11 @@ ARCHES=${*:-arm64}
 BETA=${BETA:-0}
 INFO=$VER
 case "$BETA" in 0|no|"") ;; yes) INFO="$VER-beta" ;; *) INFO="$VER-beta$BETA" ;; esac
-# Unpublished test build for Zak (10 Nov 2026): TEST=8 gives "26-test8", and Home's About line then says
-# "Test version (build 8)" (AppVersionInfo.TestBuild). Never publish a test build.
+# Unpublished test build for Zak: TEST=yes gives "26-test", and Home's About line says "Version 26 test".
+# Zak, 4 and 12 Nov 2026: a version name is one number, or one number and one word; test builds never carry a build
+# number (the team counts builds in its own notes, not in the app). Never publish a test build.
 TEST=${TEST:-}
-[ -z "$TEST" ] || { [ "$BETA" = 0 ] || [ "$BETA" = no ] || [ -z "$BETA" ] || { echo "TEST and BETA can't be used together." >&2; exit 1; }; INFO="$VER-test$TEST"; }
+[ -z "$TEST" ] || { [ "$BETA" = 0 ] || [ "$BETA" = no ] || [ -z "$BETA" ] || { echo "TEST and BETA can't be used together." >&2; exit 1; }; INFO="$VER-test"; }
 for a in $ARCHES; do [ "$a" = arm64 ] || { echo "Apple silicon only: '$a' is not built (no Intel builds)." >&2; exit 1; }; done
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 RC=${RCODESIGN:-$HOME/.cargo/bin/rcodesign}

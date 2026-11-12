@@ -536,7 +536,6 @@
   "tablet.strip.needs_all": "Activez d'abord « Bandes tactiles »",
   "tablet.ring.one": "Anneau tactile",
   "tablet.ring.n": "Anneau tactile {number}",
-  "home.version_test": "Version de test (build {build})",
   "update.donor_thanks": "Merci à toutes les personnes qui ont fait un don et qui font vivre ce projet.",
   "update.thanks_title": "Merci",
   "update.installed_title": "Version {version} – installée",

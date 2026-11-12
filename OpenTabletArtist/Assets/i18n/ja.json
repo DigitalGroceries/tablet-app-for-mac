@@ -536,7 +536,6 @@
   "tablet.strip.needs_all": "先に「タッチストリップ」をオンにしてください",
   "tablet.ring.one": "タッチリング",
   "tablet.ring.n": "タッチリング {number}",
-  "home.version_test": "テスト版（ビルド {build}）",
   "update.donor_thanks": "寄付してくださり、このプロジェクトを支えてくださっているすべての方に感謝します。",
   "update.thanks_title": "ありがとうございます",
   "update.installed_title": "バージョン {version} – インストール済み",

@@ -121,11 +121,8 @@ public partial class AboutViewModel : ObservableObject
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
     readonly string _versionNumber = AppVersionInfo.Number(InfoVersion);
 
-    /// <summary>Localised "Version N" for Home's About line; an unpublished test build says "Test version (build N)"
-    /// (Zak, 10 Nov 2026), so he can see which build he is testing.</summary>
-    public string AppVersion => AppVersionInfo.TestBuild(InfoVersion) is { } build
-        ? Services.Localizer.Tf("home.version_test", ("build", build))
-        : Services.Localizer.Tf("home.version", ("version", _versionNumber));
+    /// <summary>Localised "Version N" for Home's About line; a test build says "Version 26 test" (Zak, 12 Nov 2026).</summary>
+    public string AppVersion => Services.Localizer.Tf("home.version", ("version", _versionNumber));
 
     /// <summary>"Version N." — a closing sentence for the About paragraph rather than a line or
     /// a heading suffix of its own. The version is reference matter: worth having to hand when reporting a

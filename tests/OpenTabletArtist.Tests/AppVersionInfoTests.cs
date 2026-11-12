@@ -23,16 +23,16 @@ public class AppVersionInfoTests
     public void Format_MissingOrEmpty_ReturnsPlaceholder(string? input)
         => Assert.Equal("Version ?", AppVersionInfo.Format(input));
 
-    // Build 8 (Zak, 10 Nov 2026): an unpublished test build says which build it is.
+    // Zak, 4 and 12 Nov 2026: a version name is one number, or one number and one word. A test build is the number
+    // followed by "test", never a build number; a finished version is just the number.
     [Theory]
-    [InlineData("26-test8", "8", "26 test build 8", "Test version (build 8)")]
-    [InlineData("26-test8+abc1234", "8", "26 test build 8", "Test version (build 8)")]
-    [InlineData("26-test", "", "26 test build", "Test version")]
-    [InlineData("26", null, "26", "Version 26")]
-    [InlineData("26-beta", null, "26 BETA", "Version 26 BETA")]
-    public void TestBuilds_SayTestVersion(string info, string? build, string number, string format)
+    [InlineData("26-test", "26 test", "Version 26 test")]
+    [InlineData("26-test+abc1234", "26 test", "Version 26 test")]
+    [InlineData("26-test8", "26 test", "Version 26 test")]
+    [InlineData("26", "26", "Version 26")]
+    [InlineData("26-beta", "26 BETA", "Version 26 BETA")]
+    public void TestBuilds_AreTheNumberAndTheWordTest(string info, string number, string format)
     {
-        Assert.Equal(build, AppVersionInfo.TestBuild(info));
         Assert.Equal(number, AppVersionInfo.Number(info));
         Assert.Equal(format, AppVersionInfo.Format(info));
     }

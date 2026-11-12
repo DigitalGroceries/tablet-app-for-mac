@@ -536,7 +536,6 @@
   "tablet.strip.needs_all": "Сначала включите «Сенсорные полосы»",
   "tablet.ring.one": "Тач-ринг",
   "tablet.ring.n": "Тач-ринг {number}",
-  "home.version_test": "Тестовая версия (сборка {build})",
   "update.donor_thanks": "Мы благодарны всем, кто сделал пожертвование и поддерживает этот проект.",
   "update.thanks_title": "Спасибо",
   "update.installed_title": "Версия {version} – установлена",

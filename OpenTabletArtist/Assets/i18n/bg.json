@@ -536,7 +536,6 @@
   "tablet.strip.needs_all": "Първо включи „Сензорни ленти“",
   "tablet.ring.one": "Сензорен пръстен",
   "tablet.ring.n": "Сензорен пръстен {number}",
-  "home.version_test": "Тестова версия (компилация {build})",
   "update.donor_thanks": "Благодарни сме на всички, които дариха и поддържат този проект жив.",
   "update.thanks_title": "Благодарим",
   "update.installed_title": "Версия {version} – инсталирана",

@@ -536,7 +536,6 @@
   "tablet.strip.needs_all": "请先打开“触控条”",
   "tablet.ring.one": "触控环",
   "tablet.ring.n": "触控环 {number}",
-  "home.version_test": "测试版（构建 {build}）",
   "update.donor_thanks": "感谢所有捐助并让这个项目得以延续的人。",
   "update.thanks_title": "谢谢",
   "update.installed_title": "版本 {version} – 已安装",

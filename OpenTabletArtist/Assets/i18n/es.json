@@ -545,7 +545,6 @@
   "tablet.strip.needs_all": "Activa primero «Tiras táctiles»",
   "tablet.ring.one": "Anillo táctil",
   "tablet.ring.n": "Anillo táctil {number}",
-  "home.version_test": "Versión de prueba (compilación {build})",
   "radial.title": "Menú radial",
   "radial.intro": "Pulsa este botón para mostrar un menú redondo de 8 sectores alrededor del lápiz. Toca un sector con la punta del lápiz para usarlo. Toca el centro, un sector vacío o fuera del menú, o vuelve a pulsar el botón, para cerrarlo. Mantén pulsado el botón mientras tocas para que el menú siga abierto.",
   "radial.edit": "Editar menú…",

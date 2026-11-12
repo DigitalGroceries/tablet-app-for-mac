@@ -536,7 +536,6 @@
   "tablet.strip.needs_all": "Schalte zuerst „Touch Strips“ ein",
   "tablet.ring.one": "Touch-Ring",
   "tablet.ring.n": "Touch-Ring {number}",
-  "home.version_test": "Testversion (Build {build})",
   "update.donor_thanks": "Wir danken allen, die gespendet haben und dieses Projekt am Leben halten.",
   "update.thanks_title": "Danke",
   "update.installed_title": "Version {version} – installiert",
