@@ -69,7 +69,7 @@ public class RadialMenuShots
         vm.Transparency = 100;
         Dispatcher.UIThread.RunJobs();
         Snap(w, "radial-editor-transparency100.png");
-        vm.Transparency = 70;
+        vm.Transparency = RadialMenuDef.DefaultTransparency;
         Dispatcher.UIThread.RunJobs();
         vm.ActionIndex = RadialMenuEditorViewModel.ActOpen;
         Dispatcher.UIThread.RunJobs();

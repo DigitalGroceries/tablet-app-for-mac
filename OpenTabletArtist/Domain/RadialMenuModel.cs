@@ -26,8 +26,8 @@ public sealed class RadialMenuDef
 {
     public const int SliceCount = 8;
     public const int MinSize = 1, MaxSize = 100, DefaultSize = 50;
-    /// <summary>Menu transparency in percent: 0 is solid, 100 is clear. TASKS #58 (Zak 17:29): 70 unless chosen.</summary>
-    public const int MinTransparency = 0, MaxTransparency = 100, DefaultTransparency = 70;
+    /// <summary>Menu transparency in percent: 0 is solid, 100 is clear. TASKS #58 / #59 (Zak 18:21): 40 unless chosen (was 70).</summary>
+    public const int MinTransparency = 0, MaxTransparency = 100, DefaultTransparency = 40;
     /// <summary>Top menu + 2 levels of submenus.</summary>
     public const int MaxDepth = 3;
 

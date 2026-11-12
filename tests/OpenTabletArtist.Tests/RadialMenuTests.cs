@@ -789,15 +789,18 @@ public class RadialMenuEditorTests
     }
 
     [Fact]
-    public void Transparency_DefaultsTo70_IsSavedWithTheMenu_AndResetBringsItBack()
+    public void Transparency_DefaultsTo40_IsSavedWithTheMenu_AndResetBringsItBack()
     {
-        Assert.Equal(70, RadialMenuDef.DefaultTransparency);
-        Assert.Equal(70, RadialMenuDefaults.Create().Transparency);
+        Assert.Equal(40, RadialMenuDef.DefaultTransparency);   // TASKS #59 (Zak 18:21): was 70
+        Assert.Equal(40, RadialMenuDefaults.Create().Transparency);
+        Assert.Equal(40, new RadialMenuDef().Transparency);
         var vm = new RadialMenuEditorViewModel(null, "x");
-        Assert.Equal(70, vm.Transparency);
-        Assert.Equal("70%", vm.TransparencyText);
+        Assert.Equal(40, vm.Transparency);
+        Assert.Equal("40%", vm.TransparencyText);
+        Assert.Equal("40", vm.TransparencyInput);
         vm.Transparency = 20;
         Assert.Equal("20%", vm.TransparencyText);
+        Assert.Equal("20", vm.TransparencyInput);
         vm.SaveCommand.Execute(null);
         Assert.Equal(20, RadialMenuJson.Parse(vm.Result).Transparency);
         Assert.Contains("\"transparency\":20", vm.Result);
@@ -805,13 +808,44 @@ public class RadialMenuEditorTests
         var vm2 = new RadialMenuEditorViewModel(vm.Result, "x");
         Assert.Equal(20, vm2.Transparency);
         vm2.ResetCommand.Execute(null);
-        Assert.Equal(70, vm2.Transparency);
+        Assert.Equal(40, vm2.Transparency);
+        Assert.Equal("40", vm2.TransparencyInput);
+    }
+
+    [Theory]
+    [InlineData("55", 55, "55")]
+    [InlineData(" 7 ", 7, "7")]
+    [InlineData("33%", 33, "33")]
+    [InlineData("12,6", 13, "13")]
+    [InlineData("0", 0, "0")]
+    [InlineData("100", 100, "100")]
+    [InlineData("250", 100, "100")]     // clamped to 0-100
+    [InlineData("-9", 0, "0")]
+    [InlineData("abc", 40, "40")]       // not a number: the old value comes back
+    [InlineData("", 40, "40")]
+    public void Transparency_TypedInTheNumberBox_IsClamped_AndTheSliderValueFollows(string typed, int expected, string shown)
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");   // starts at the default, 40
+        vm.TransparencyInput = typed;
+        Assert.Equal(expected, vm.Transparency);              // the slider is bound to this value
+        Assert.Equal(shown, vm.TransparencyInput);
+        Assert.Equal(shown + "%", vm.TransparencyText);
+        vm.SaveCommand.Execute(null);
+        Assert.Equal(expected, RadialMenuJson.Parse(vm.Result).Transparency);
+    }
+
+    [Fact]
+    public void Transparency_SliderMovesTheNumberBox()
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");
+        vm.Transparency = 83;
+        Assert.Equal("83", vm.TransparencyInput);
     }
 
     [Fact]
     public void Transparency_OfAnOldMenuWithoutIt_IsTheDefault_AndIsClamped()
     {
-        Assert.Equal(70, RadialMenuJson.Parse("{\"slices\":[],\"size\":50}").Transparency);
+        Assert.Equal(40, RadialMenuJson.Parse("{\"slices\":[],\"size\":50}").Transparency);
         Assert.Equal(100, RadialMenuJson.Parse("{\"slices\":[],\"transparency\":900}").Transparency);
         Assert.Equal(0, RadialMenuJson.Parse("{\"slices\":[],\"transparency\":-5}").Transparency);
         var menu = RadialMenuDefaults.Create(); menu.Transparency = 33;

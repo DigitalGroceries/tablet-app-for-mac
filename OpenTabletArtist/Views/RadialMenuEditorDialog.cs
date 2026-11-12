@@ -196,9 +196,26 @@ public sealed class RadialMenuEditorDialog : Window
         Put(new TextBlock { Text = vm.TransparencySolid, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 6, 6, 0) }, 1, 1);
         Put(transparency, 2, 1);
         Put(new TextBlock { Text = vm.TransparencyClear, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 6, 10, 0) }, 3, 1);
-        var transparencyNumber = new TextBlock { VerticalAlignment = VerticalAlignment.Center, FontWeight = FontWeight.SemiBold, MinWidth = 40, Margin = new Thickness(0, 6, 16, 0) };
-        transparencyNumber[!TextBlock.TextProperty] = new Binding(nameof(vm.TransparencyText));
-        Put(transparencyNumber, 4, 1);
+        // The number is a box too (TASKS #59, Zak 18:21): type 0-100 and press Enter or leave the box; Up / Down change it by 1.
+        var transparencyBox = new TextBox
+        {
+            Width = 52, MinWidth = 0, HorizontalContentAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center,
+            FontWeight = FontWeight.SemiBold, MaxLength = 6, Margin = new Thickness(0, 6, 0, 0), Name = "TransparencyBox",
+        };
+        transparencyBox[!TextBox.TextProperty] = new Binding(nameof(vm.TransparencyInput)) { Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.LostFocus };
+        Avalonia.Automation.AutomationProperties.SetName(transparencyBox, vm.TransparencyCaption + " value");
+        transparencyBox.AddHandler(InputElement.KeyDownEvent, (_, e) =>
+        {
+            if (e.Key is Key.Enter or Key.Return) { vm.TransparencyInput = transparencyBox.Text ?? ""; transparencyBox.Text = vm.TransparencyInput; transparencyBox.SelectAll(); e.Handled = true; }
+            else if (e.Key == Key.Up) { vm.TransparencyInput = (vm.Transparency + 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+            else if (e.Key == Key.Down) { vm.TransparencyInput = (vm.Transparency - 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+        }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        // After leaving the box, show the real value (clamped, or the old one when the text was not a number).
+        transparencyBox.LostFocus += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => transparencyBox.Text = vm.TransparencyInput);
+        var transparencyPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 16, 0) };
+        transparencyPanel.Children.Add(transparencyBox);
+        transparencyPanel.Children.Add(new TextBlock { Text = "%", VerticalAlignment = VerticalAlignment.Center, FontWeight = FontWeight.SemiBold, Margin = new Thickness(4, 6, 0, 0) });
+        Put(transparencyPanel, 4, 1);
         var reset = new Button { Content = vm.ResetLabel, Command = vm.ResetCommand, Padding = new Thickness(12, 6), HorizontalAlignment = HorizontalAlignment.Left };
         Put(reset, 5); Grid.SetRowSpan(reset, 2); reset.VerticalAlignment = VerticalAlignment.Center;
         var save = new Button { Content = vm.SaveLabel, Command = vm.SaveCommand, Padding = new Thickness(22, 8), Margin = new Thickness(0, 0, 8, 0) };

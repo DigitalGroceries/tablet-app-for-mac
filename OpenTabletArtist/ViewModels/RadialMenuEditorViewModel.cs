@@ -43,6 +43,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         Title = title;
         _size = _top.Size;
         _transparency = _top.Transparency;
+        _transparencyInput = _transparency.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _selectedSlice = 0;
         LoadSlice();
         Refresh();
@@ -195,6 +196,40 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     {
         _top.Transparency = Math.Clamp(value, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency);
         OnPropertyChanged(nameof(TransparencyText));
+        _transparencyInput = Math.Clamp(value, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency)
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+        OnPropertyChanged(nameof(TransparencyInput));
+    }
+
+    private string _transparencyInput = "";
+
+    /// <summary>The transparency as typed in the number box beside the slider (TASKS #59, Zak 18:21: also editable from the
+    /// keyboard). Whatever is committed (Enter or leaving the box) is read as a number, "40", "40%" or "40,5", clamped to
+    /// 0-100 and applied, so the slider and the live preview follow; text that is not a number puts the old value back.
+    /// The box always ends up showing the real value.</summary>
+    public string TransparencyInput
+    {
+        get => _transparencyInput;
+        set
+        {
+            if (TryParsePercent(value, out var v)) Transparency = v;
+            // Show the real value even when nothing changed (clamped, "abc", "40%").
+            _transparencyInput = Math.Clamp(Transparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency)
+                .ToString(System.Globalization.CultureInfo.InvariantCulture);
+            OnPropertyChanged(nameof(TransparencyInput));
+        }
+    }
+
+    /// <summary>Reads a typed percent: optional % sign, comma or dot, rounded and clamped to the transparency range.</summary>
+    public static bool TryParsePercent(string? text, out int percent)
+    {
+        percent = 0;
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        var t = text.Trim().TrimEnd('%').Trim().Replace(',', '.');
+        if (!double.TryParse(t, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d)
+            || double.IsNaN(d) || double.IsInfinity(d)) return false;
+        percent = (int)Math.Round(Math.Clamp(d, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency), MidpointRounding.AwayFromZero);
+        return true;
     }
 
     /// <summary>The transparency shown as a number next to its slider, "70%".</summary>
