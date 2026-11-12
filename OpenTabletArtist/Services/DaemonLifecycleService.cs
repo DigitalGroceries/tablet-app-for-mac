@@ -172,7 +172,7 @@ public class DaemonLifecycleService : IDaemonLifecycleService
                 AppLog.Warn($"Not stopping pid {processId}: it is \"{proc.ProcessName}\", not {ProcessName}.");
                 return false;
             }
-            proc.Kill();
+            GracefulProcessStop.Stop(proc);   // SIGTERM first (#73): the driver lets go of held mouse buttons, then kill
             return true;
         }
         catch (ArgumentException)
@@ -193,7 +193,7 @@ public class DaemonLifecycleService : IDaemonLifecycleService
         foreach (var proc in Process.GetProcessesByName(ProcessName))
         {
             // A failed Kill means the Stop didn't fully take — worth a Warn, not a silent no-op (#21).
-            try { proc.Kill(); }
+            try { GracefulProcessStop.Stop(proc); }
             catch (Exception ex) { AppLog.Warn($"Couldn't stop daemon process (pid {proc.Id}).", ex); }
         }
     }

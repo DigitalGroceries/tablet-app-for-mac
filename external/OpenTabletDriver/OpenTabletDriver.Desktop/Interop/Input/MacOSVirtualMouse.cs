@@ -11,7 +11,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
 {
     using static OSX;
 
-    public abstract class MacOSVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer, ITiltHandler, IEraserHandler, IPressureHandler, IMouseDoubleClickHandler
+    public abstract class MacOSVirtualMouse : IMouseButtonHandler, IMouseScrollHandler, ISynchronousPointer, ITiltHandler, IEraserHandler, IPressureHandler, IMouseDoubleClickHandler, IHeldButtonReleaser
     {
         private const int ProximityExpiresDurationInMs = 200;
 
@@ -82,6 +82,16 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         /// <inheritdoc />
         public void PostDoubleClick()
         {
+            // Tablet App for Mac (#73): the double-click below is four raw events that bypass the held-button
+            // bookkeeping. While the pen tip (or a Left click binding) holds the left button, they would let
+            // macOS's left button go while this mouse still believes it is held, and the real "up" later would
+            // be a second, unmatched one. A double-click in the middle of a held button has no sensible
+            // meaning, so it is skipped, and said so in the log.
+            if (IsButtonSet(_prevButtonStates, CGMouseButton.kCGMouseButtonLeft))
+            {
+                Log.Write("MacOSVirtualMouse", "Double Click skipped: the left button is held down by the pen.", LogLevel.Info);
+                return;
+            }
             if (!_pendingX.HasValue || !_pendingY.HasValue)
                 QueuePendingPositionFromSystem();
             // Tablet App for Mac (Maxime, 11 Nov): in Mouse-like (relative) mode the pending values are movement,
@@ -179,10 +189,13 @@ namespace OpenTabletDriver.Desktop.Interop.Input
 
         public void Reset()
         {
-            // send a key up for all currently held keys
-            if (_currButtonStates > 0)
+            // Send an up for every button macOS was told is down. Tablet App for Mac (#73): this used the
+            // requested state (_currButtonStates) as "what is held". When it differed from what was posted (the
+            // left button held, a Right click binding pressed in the same report as the pen leaving), the up for
+            // the left button was never posted and macOS kept it pressed.
+            if (_prevButtonStates != 0 || _currButtonStates != 0)
             {
-                ProcessKeyStates(_currButtonStates, 0);
+                ProcessKeyStates(_prevButtonStates, 0);
                 _prevButtonStates = 0;
                 _currButtonStates = 0;
             }
