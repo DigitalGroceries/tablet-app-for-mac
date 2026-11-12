@@ -283,6 +283,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     /// a number, or an empty box, puts the old value back). Up / Down change it by 1.</summary>
     private void HookRadialSliders()
     {
+        HookRadialCentreHints();
         HookRadialNumberBox("RadialTransparencyBox",
             pv => pv.TransparencyInput,
             (pv, text) => pv.TransparencyInput = text,
@@ -293,6 +294,19 @@ public partial class TabletDetailView : UserControl, ITabbedContent
             (pv, text) => pv.SizeInput = text,
             pv => pv.Size,
             "size");
+    }
+
+    /// <summary>v27 (Zak 21:56): a click on one of the four inner icons (X, pencil, circular arrow, hand) explains
+    /// what that button does in the real menu, under the picture, and does not open the editor or change a slice.</summary>
+    private void HookRadialCentreHints()
+    {
+        var pie = this.FindControl<RadialMenuPie>("RadialSpotPie");
+        if (pie == null)
+        {
+            AppLog.Warn("Radial menu settings: the picture or its inner icons could not be hooked.");
+            return;
+        }
+        pie.CentreClicked += code => Vm?.RadialPreview?.ExplainCentre(code);
     }
 
     private void HookRadialNumberBox(string name,

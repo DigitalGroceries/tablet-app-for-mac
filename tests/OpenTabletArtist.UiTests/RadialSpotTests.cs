@@ -509,7 +509,8 @@ public class RadialSpotTests
     [AvaloniaFact]
     public void TheStrings_ExistInAll8Languages()
     {
-        var keys = new[] { "radial_spot.heading", "radial_spot.opens_with", "radial_spot.none", "radial_spot.use_button", "radial_spot.pen_button" };
+        var keys = new[] { "radial_spot.heading", "radial_spot.opens_with", "radial_spot.none", "radial_spot.use_button", "radial_spot.pen_button",
+            "radial.centre.close", "radial.centre.edit", "radial.centre.restore", "radial.centre.hand" };
         var dir = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "OpenTabletArtist", "Assets", "i18n"));
         foreach (var code in new[] { "en", "bg", "de", "es", "fr", "ja", "ru", "zh-CN" })
         {
@@ -517,6 +518,61 @@ public class RadialSpotTests
             foreach (var k in keys) Assert.False(string.IsNullOrWhiteSpace((string?)json[k]), $"{code} misses {k}");
             Assert.Contains("{buttons}", (string)json["radial_spot.opens_with"]!);
             foreach (var k in new[] { "radial_spot.use_button", "radial_spot.pen_button" }) Assert.Contains("{number}", (string)json[k]!);
+            if (code != "en")
+                foreach (var k in new[] { "radial.centre.close", "radial.centre.edit", "radial.centre.restore", "radial.centre.hand" })
+                    Assert.NotEqual((string)json[k]!, (string)Newtonsoft.Json.Linq.JObject.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(dir, "en.json")))[k]!);
         }
+    }
+
+    [AvaloniaFact]
+    public async Task ClickingACentreIcon_ShowsWhatItDoesUnderThePicture_Logs_AndDoesNotOpenTheEditor()
+    {
+        var (vm, view, window, _) = Open(NewProfile(Name(), new PluginSettingStore?[] { null, Radial("Zoomy") }));
+        try
+        {
+            var pie = Find<RadialMenuPie>(view, "RadialSpotPie");
+            var hint = Find<TextBlock>(view, "RadialCentreHint");
+            var btn = Find<Button>(view, "RadialSpotButton");
+            Assert.False(hint.IsVisible);
+
+            Point At(int code)
+            {
+                var c = new Point(pie.Bounds.Width / 2, pie.Bounds.Height / 2);
+                double outer = Math.Max(10, Math.Min(pie.Bounds.Width, pie.Bounds.Height) / 2 - 2);
+                double d = outer * RadialMenuGeometry.InnerRatio * 0.45;
+                return code switch
+                {
+                    RadialMenuGeometry.Centre => new Point(c.X - d, c.Y - d),
+                    RadialMenuGeometry.Edit => new Point(c.X + d, c.Y - d),
+                    RadialMenuGeometry.Restore => new Point(c.X - d, c.Y + d),
+                    _ => new Point(c.X + d, c.Y + d),
+                };
+            }
+
+            Assert.Equal(RadialMenuGeometry.Centre, pie.CentreAt(At(RadialMenuGeometry.Centre)));
+            Assert.Equal(RadialMenuGeometry.Edit, pie.CentreAt(At(RadialMenuGeometry.Edit)));
+            Assert.Equal(RadialMenuGeometry.Restore, pie.CentreAt(At(RadialMenuGeometry.Restore)));
+            Assert.Equal(RadialMenuGeometry.Hand, pie.CentreAt(At(RadialMenuGeometry.Hand)));
+
+            var lines = await Logged(async () =>
+            {
+                Assert.True(pie.HandleClick(At(RadialMenuGeometry.Centre)));
+                Settle(window);
+                await Pump(30);
+            });
+            Assert.Equal("Closes the menu.", vm.RadialPreview!.CentreHint);
+            Assert.True(hint.IsVisible);
+            Assert.Equal("Closes the menu.", hint.Text);
+            Assert.Contains(lines, l => l.Contains("the X in the picture was clicked") && l.Contains("Closes the menu."));
+            Assert.Empty(window.OwnedWindows.OfType<RadialMenuEditorDialog>());
+            Assert.True(In(btn, view).Bottom <= In(hint, view).Top + 0.5);
+            Assert.True(In(hint, view).Bottom <= In(Find<TextBlock>(view, "RadialSpotLine"), view).Top + 0.5);
+
+            Assert.True(pie.HandleClick(At(RadialMenuGeometry.Hand)));
+            Settle(window);
+            Assert.Equal("Drag to move the menu.", hint.Text);
+            Assert.Empty(window.OwnedWindows.OfType<RadialMenuEditorDialog>());
+        }
+        finally { window.Close(); }
     }
 }

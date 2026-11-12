@@ -1580,12 +1580,15 @@
                                         <Style Selector="Button#RadialSpotButton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" /></Style>
                                     </Button.Styles>
                                     <Viewbox x:Name="RadialSpotViewbox" Stretch="Uniform" Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}">
-                                        <ctrl:RadialMenuPie x:Name="RadialSpotPie" Width="220" Height="220" IsHitTestVisible="False"
+                                        <ctrl:RadialMenuPie x:Name="RadialSpotPie" Width="220" Height="220" IsHitTestVisible="True"
                                                             Labels="{Binding RadialPreview.Labels}" SetFlags="{Binding RadialPreview.SetFlags}"
                                                             SubmenuFlags="{Binding RadialPreview.SubmenuFlags}" Transparency="{Binding RadialPreview.Transparency}" />
                                     </Viewbox>
                                 </Button>
                             </Grid>
+                            <TextBlock x:Name="RadialCentreHint" Text="{Binding RadialPreview.CentreHint}" FontSize="12" TextWrapping="Wrap"
+                                       TextAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
+                                       IsVisible="{Binding RadialPreview.HasCentreHint}" />
                             <TextBlock x:Name="RadialSpotLine" Text="{Binding RadialSpotLine}" FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
                                        HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
                             <Button x:Name="RadialUseButton" Content="{Binding RadialUseButtonLabel}" Command="{Binding UseRadialButtonCommand}"

@@ -87,6 +87,42 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     public string SaveLabel => Localizer.Te("save.button", "Save");
     public string CancelLabel => Localizer.Te("app.cancel", "Cancel");
 
+    /// <summary>Short line under the picture (editor and Pen page) that explains a centre button just clicked.
+    /// Empty until one of the four inner icons is clicked.</summary>
+    [ObservableProperty] private string _centreHint = "";
+    public bool HasCentreHint => !string.IsNullOrEmpty(CentreHint);
+    partial void OnCentreHintChanged(string value) => OnPropertyChanged(nameof(HasCentreHint));
+
+    /// <summary>What the four centre buttons do in the real on-screen menu, taken from the driver
+    /// (<see cref="OpenTabletArtist.Dynamics"/> RadialMenu.CentreQuarterLocked) and the overlay (drag, Yes / No).</summary>
+    public static string CentreHintFor(int code) => code switch
+    {
+        RadialMenuGeometry.Centre => Localizer.Te("radial.centre.close", "Closes the menu."),
+        RadialMenuGeometry.Edit => Localizer.Te("radial.centre.edit", "Then tap a slice to choose what it does."),
+        RadialMenuGeometry.Restore => Localizer.Te("radial.centre.restore", "Asks whether to restore the 8 default slices."),
+        RadialMenuGeometry.Hand => Localizer.Te("radial.centre.hand", "Drag to move the menu."),
+        _ => "",
+    };
+
+    /// <summary>The icon's name in the Info log (English, like other radial log lines).</summary>
+    public static string CentreHintLogName(int code) => code switch
+    {
+        RadialMenuGeometry.Centre => "X",
+        RadialMenuGeometry.Edit => "pencil",
+        RadialMenuGeometry.Restore => "circular arrow",
+        RadialMenuGeometry.Hand => "hand",
+        _ => "centre button",
+    };
+
+    /// <summary>Show what this centre button does under the picture, and log it. Does not change any slice.</summary>
+    public void ExplainCentre(int code)
+    {
+        var text = CentreHintFor(code);
+        if (string.IsNullOrEmpty(text)) return;
+        CentreHint = text;
+        AppLog.Info($"Radial menu: the {CentreHintLogName(code)} in the picture was clicked: {text}");
+    }
+
     // ── The ring on screen ────────────────────────────────────────────────────
     [ObservableProperty] private IReadOnlyList<string> _labels = Array.Empty<string>();
     [ObservableProperty] private IReadOnlyList<bool> _setFlags = Array.Empty<bool>();

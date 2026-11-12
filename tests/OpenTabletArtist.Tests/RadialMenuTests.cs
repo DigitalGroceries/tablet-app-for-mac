@@ -947,6 +947,42 @@ public class RadialMenuEditorTests
     }
 
     [Fact]
+    public void CentreHintFor_MatchesWhatTheRealButtonsDo()
+    {
+        Assert.Equal("Closes the menu.", RadialMenuEditorViewModel.CentreHintFor(RadialMenuGeometry.Centre));
+        Assert.Equal("Then tap a slice to choose what it does.", RadialMenuEditorViewModel.CentreHintFor(RadialMenuGeometry.Edit));
+        Assert.Equal("Asks whether to restore the 8 default slices.", RadialMenuEditorViewModel.CentreHintFor(RadialMenuGeometry.Restore));
+        Assert.Equal("Drag to move the menu.", RadialMenuEditorViewModel.CentreHintFor(RadialMenuGeometry.Hand));
+        Assert.Equal("", RadialMenuEditorViewModel.CentreHintFor(0));   // a slice is not a centre button
+        Assert.Equal("X", RadialMenuEditorViewModel.CentreHintLogName(RadialMenuGeometry.Centre));
+        Assert.Equal("pencil", RadialMenuEditorViewModel.CentreHintLogName(RadialMenuGeometry.Edit));
+        Assert.Equal("circular arrow", RadialMenuEditorViewModel.CentreHintLogName(RadialMenuGeometry.Restore));
+        Assert.Equal("hand", RadialMenuEditorViewModel.CentreHintLogName(RadialMenuGeometry.Hand));
+    }
+
+    [Fact]
+    public void ExplainCentre_SetsTheHint_Logs_AndDoesNotChangeASlice()
+    {
+        var vm = new RadialMenuEditorViewModel(null, "x");
+        int slice = vm.SelectedSlice;
+        var label = vm.SliceLabel;
+        var lines = new System.Collections.Generic.List<string>();
+        void H(string l) => lines.Add(l);
+        AppLog.LineWritten += H;
+        try
+        {
+            Assert.False(vm.HasCentreHint);
+            vm.ExplainCentre(RadialMenuGeometry.Edit);
+            Assert.Equal("Then tap a slice to choose what it does.", vm.CentreHint);
+            Assert.True(vm.HasCentreHint);
+            Assert.Equal(slice, vm.SelectedSlice);
+            Assert.Equal(label, vm.SliceLabel);
+            Assert.Contains(lines, l => l.Contains("the pencil in the picture was clicked") && l.Contains("Then tap a slice to choose what it does."));
+        }
+        finally { AppLog.LineWritten -= H; }
+    }
+
+    [Fact]
     public void Transparency_DefaultsTo40_IsSavedWithTheMenu_AndResetBringsItBack()
     {
         Assert.Equal(40, RadialMenuDef.DefaultTransparency);   // TASKS #59 (Zak 18:21): was 70

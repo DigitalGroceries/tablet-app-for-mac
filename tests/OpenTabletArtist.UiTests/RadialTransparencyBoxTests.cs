@@ -120,4 +120,44 @@ public class RadialTransparencyBoxTests
         Assert.Equal("40", box.Text);
         w.Close();
     }
+
+    [AvaloniaFact]
+    public void SizeBox_StartsAt50_AndIsTheSamePropertyThePenPageUses()
+    {
+        var (w, _, _, pie, vm) = Open();
+        var box = w.GetVisualDescendants().OfType<TextBox>().First(t => t.Name == "SizeBox");
+        var slider = w.GetVisualDescendants().OfType<Slider>().First(s => s.Maximum == RadialMenuDef.MaxSize && s.Minimum == RadialMenuDef.MinSize);
+        Assert.Equal("50", box.Text);
+        Assert.Equal(50, slider.Value);
+        Assert.Equal(vm.SizeInput, box.Text);          // Pen page binds the same SizeInput
+        vm.Size = 20;
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("20", box.Text);
+        Assert.Equal(20, slider.Value);
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public void SizeBox_Typing12_ThenEnter_MovesTheSlider_AndClampsTooBig()
+    {
+        var (w, _, _, _, vm) = Open();
+        var box = w.GetVisualDescendants().OfType<TextBox>().First(t => t.Name == "SizeBox");
+        var slider = w.GetVisualDescendants().OfType<Slider>().First(s => s.Maximum == RadialMenuDef.MaxSize && s.Minimum == RadialMenuDef.MinSize);
+        box.Focus(); box.SelectAll();
+        w.KeyTextInput("12");
+        w.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(12, vm.Size);
+        Assert.Equal(12, slider.Value);
+        Assert.Equal("12", box.Text);
+        Assert.Equal("12", vm.SizeInput);
+
+        box.Focus(); box.SelectAll();
+        w.KeyTextInput("87");
+        w.GetVisualDescendants().OfType<TextBox>().First(t => t != box && t.Name != "SizeBox").Focus();
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(RadialMenuDef.MaxSize, vm.Size);
+        Assert.Equal("50", box.Text);
+        w.Close();
+    }
 }

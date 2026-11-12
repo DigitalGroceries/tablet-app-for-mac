@@ -112,6 +112,7 @@ public sealed class RadialMenuEditorDialog : Window
         pie[!RadialMenuPie.SelectedProperty] = new Binding(nameof(vm.SelectedSlice));
         pie[!RadialMenuPie.TransparencyProperty] = new Binding(nameof(vm.Transparency));   // live preview of the transparency
         pie.SliceClicked += vm.SelectSlice;
+        pie.CentreClicked += vm.ExplainCentre;   // v27: the four inner icons explain themselves; they do not select a slice
         // TASKS #60: the ring has the size the slider says (live preview) but never more than the free space, and never less than
         // MinPieDiameter (smaller windows scroll instead). The old fixed 470 x 470 box was taller than the area in a 1100x720 window.
         var pieBox = new PieFit { Child = pie, MinDiameter = MinPieDiameter };
@@ -120,10 +121,19 @@ public sealed class RadialMenuEditorDialog : Window
         where[!TextBlock.TextProperty] = new Binding(nameof(vm.Where));
         var back = new Button { Content = vm.BackLabel, Command = vm.BackCommand, Padding = new Thickness(12, 6) };
         back[!Visual.IsVisibleProperty] = new Binding(nameof(vm.InSubmenu));
-        var left = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto"), RowSpacing = 10, MinWidth = MinPieDiameter };
-        Grid.SetRow(where, 0); Grid.SetRow(pieBox, 1); Grid.SetRow(back, 2);
+        var centreHint = new TextBlock
+        {
+            Name = "CentreHint", FontSize = 12, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            [!TextBlock.ForegroundProperty] = new DynamicResourceExtension("TextMutedBrush"),
+        };
+        centreHint[!TextBlock.TextProperty] = new Binding(nameof(vm.CentreHint));
+        centreHint[!Visual.IsVisibleProperty] = new Binding(nameof(vm.HasCentreHint));
+        var left = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto,Auto"), RowSpacing = 10, MinWidth = MinPieDiameter };
+        Grid.SetRow(where, 0); Grid.SetRow(pieBox, 1); Grid.SetRow(centreHint, 2); Grid.SetRow(back, 3);
         left.Children.Add(where);
         left.Children.Add(pieBox);
+        left.Children.Add(centreHint);
         left.Children.Add(back);
 
         // Right: the selected slice
@@ -192,9 +202,22 @@ public sealed class RadialMenuEditorDialog : Window
         Put(new TextBlock { Text = vm.SizeSmall, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) }, 1);
         Put(size, 2);
         Put(new TextBlock { Text = vm.SizeLarge, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 10, 0) }, 3);
-        var sizeNumber = new TextBlock { VerticalAlignment = VerticalAlignment.Center, FontWeight = FontWeight.SemiBold, MinWidth = 34, Margin = new Thickness(0, 0, 16, 0) };
-        sizeNumber[!TextBlock.TextProperty] = new Binding(nameof(vm.SizeText));
-        Put(sizeNumber, 4);
+        // v27 (Zak): the size is a box you can type in, the same as Menu transparency and the Pen page.
+        var sizeBox = new TextBox
+        {
+            Width = 52, MinWidth = 0, HorizontalContentAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center,
+            FontWeight = FontWeight.SemiBold, MaxLength = 6, Margin = new Thickness(0, 0, 16, 0), Name = "SizeBox",
+        };
+        sizeBox[!TextBox.TextProperty] = new Binding(nameof(vm.SizeInput)) { Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.LostFocus };
+        Avalonia.Automation.AutomationProperties.SetName(sizeBox, vm.SizeCaption + " value");
+        sizeBox.AddHandler(InputElement.KeyDownEvent, (_, e) =>
+        {
+            if (e.Key is Key.Enter or Key.Return) { vm.SizeInput = sizeBox.Text ?? ""; sizeBox.Text = vm.SizeInput; sizeBox.SelectAll(); e.Handled = true; }
+            else if (e.Key == Key.Up) { vm.SizeInput = (vm.Size + 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+            else if (e.Key == Key.Down) { vm.SizeInput = (vm.Size - 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+        }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        sizeBox.LostFocus += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => sizeBox.Text = vm.SizeInput);
+        Put(sizeBox, 4);
         // Menu transparency: 0 (solid) to 100 (clear), the ring on the left shows it while the slider moves.
         var transparency = new Slider { Minimum = 0, Maximum = 100, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220, Margin = new Thickness(0, 6, 0, 0) };
         transparency[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.Transparency)) { Mode = BindingMode.TwoWay };

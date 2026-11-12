@@ -50,6 +50,9 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     public bool Interactive { get => GetValue(InteractiveProperty); set => SetValue(InteractiveProperty, value); }
 
     public event Action<int>? SliceClicked;
+    /// <summary>A centre-icon click (the X, pencil, circular arrow or hand). The editor and the Pen page
+    /// picture subscribe so they can explain the button; a slice is never selected.</summary>
+    public event Action<int>? CentreClicked;
 
     /// <summary>Clickable inside the round menu only (the corners of the square stay see-through).</summary>
     public bool HitTest(Point point)
@@ -339,20 +342,49 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
         return g;
     }
 
-    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    /// <summary>Which centre button is under <paramref name="point"/> (this control's space), or null when the
+    /// point is not inside the centre circle. Same quarters as <see cref="RadialMenuGeometry.SliceAt"/>.</summary>
+    public int? CentreAt(Point point)
     {
-        base.OnPointerPressed(e);
-        if (!Interactive) return;
-        var (c, outer, inner) = Layout();
-        var p = e.GetPosition(this);
-        double dx = p.X - c.X, dy = p.Y - c.Y, r = Math.Sqrt(dx * dx + dy * dy);
-        if (r <= inner || r > outer) return;
+        var (c, _, inner) = Layout();
+        double dx = point.X - c.X, dy = point.Y - c.Y;
+        if (Math.Sqrt(dx * dx + dy * dy) > inner) return null;
+        // The dividing lines belong to the top-left (X) quarter: x <= 0 and y <= 0 count as left / top.
+        bool left = dx <= 0, top = dy <= 0;
+        return top ? (left ? RadialMenuGeometry.Centre : RadialMenuGeometry.Edit)
+                   : (left ? RadialMenuGeometry.Restore : RadialMenuGeometry.Hand);
+    }
+
+    /// <summary>Handles a click in this control's space (tests, and <see cref="OnPointerPressed"/>). A centre icon
+    /// raises <see cref="CentreClicked"/> and never a slice. A slice raises <see cref="SliceClicked"/> only when
+    /// <see cref="Interactive"/> is on.</summary>
+    public bool HandleClick(Point point)
+    {
+        if (CentreAt(point) is int code)
+        {
+            CentreClicked?.Invoke(code);
+            return true;
+        }
+        if (!Interactive) return false;
+        var (c, outer, _) = Layout();
+        double dx = point.X - c.X, dy = point.Y - c.Y, r = Math.Sqrt(dx * dx + dy * dy);
+        if (r > outer) return false;
         // Same maths as the driver, at this control's scale.
         double deg = Math.Atan2(dx, -dy) * 180 / Math.PI;
         if (deg < 0) deg += 360;
         double step = 360.0 / RadialMenuDef.SliceCount;
         int slice = (int)Math.Floor((deg + step / 2) / step) % RadialMenuDef.SliceCount;
         SliceClicked?.Invoke(slice);
+        return true;
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        // Only mark the click handled when we have something to do: the live on-screen menu has its own
+        // handlers and must still receive centre and slice presses (it does not subscribe CentreClicked).
+        if (!HandleClick(e.GetPosition(this))) return;
+        if (CentreClicked == null && !Interactive) return;
         e.Handled = true;
     }
 
