@@ -942,6 +942,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _profile = new Profile { Tablet = "Design Tablet", OutputMode = new PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)) };
         TabletName = "Design Tablet";
         Displays = [];
+        PenMovementPolicy.Changed += OnMovementChoiceChanged;   // TASKS #55 (the page shows or hides Movement live)
     }
 
     private static string? GetPluginFriendlyName(string? path) =>
