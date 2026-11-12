@@ -33,10 +33,14 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         // Not while a control that uses the arrows has focus (text box, slider, dropdown, list).
         AddHandler(KeyDownEvent, OnTabKeyDown, RoutingStrategies.Bubble, handledEventsToo: false);
         // Build O: the Tool tile follows the open tab (and picks the tab group), from load on.
-        foreach (var t in new[] { ButtonsTab, WheelsTab, PenTab, EraserTab, MappingTab, AboutTab, CalibrationTab, FiltersTab, JsonTab, HoverTab })
+        foreach (var t in new[] { ButtonsTab, WheelsTab, PenTab, EraserTab, RadialTab, MappingTab, AboutTab, CalibrationTab, FiltersTab, JsonTab, HoverTab })
             t.IsCheckedChanged += (_, _) => SyncToolChips();
         PenTab.IsCheckedChanged += OnLiveTabChanged;
         EraserTab.IsCheckedChanged += OnLiveTabChanged;
+        // TASKS #63: the Radial menu tab shows the editor of the selected table's radial menu; an edit is sent when the tab is left.
+        RadialTab.IsCheckedChanged += (_, _) => { if (RadialTab.IsChecked != true) _ = Vm?.FlushRadialAsync(); };
+        DataContextChanged += (_, _) => HookRadialHost();
+        HookRadialHost();
         SyncToolChips();
         ApplyLanguage();
         // Zak 9 Nov: About ExpressKeys beside the key list when there is room, under it when there is not.
@@ -101,6 +105,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (WheelsTab != null) WheelsTab.Content = Localizer.T("tablet.tab.touch_ring");
         if (PenTab != null) PenTab.Content = Localizer.T("tablet.tab.pen");
         if (EraserTab != null) EraserTab.Content = Localizer.T("tablet.tab.eraser");
+        if (RadialTab != null) RadialTab.Content = Localizer.Te("tablet.tab.radial", "radial menu");
         if (MappingTab != null) MappingTab.Content = Localizer.T("tablet.tab.mapping");
         if (AboutTab != null) AboutTab.Content = Localizer.T("tablet.tab.about");
         if (CalibrationTab != null) CalibrationTab.Content = Localizer.T("tablet.tab.calibration");
@@ -206,7 +211,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     internal void SyncToolChips()
     {
         if (ButtonsTab.IsChecked == true || WheelsTab.IsChecked == true) SelectTool(ToolFunctionsButton);
-        else if (PenTab.IsChecked == true || EraserTab.IsChecked == true || MappingTab.IsChecked == true)
+        else if (PenTab.IsChecked == true || EraserTab.IsChecked == true || RadialTab.IsChecked == true || MappingTab.IsChecked == true)
         {
             // Version 14: an extra pen tile stays selected while you move between Pen, Eraser and Mapping.
             if (string.IsNullOrEmpty(Vm?.SelectedPenKey)) SelectTool(ToolPenButton);
@@ -235,7 +240,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (s is not Control { Tag: string key } || Vm is null) return;
         foreach (var t in new[] { ToolFunctionsButton, ToolPenButton, ToolMoreButton }) t.IsChecked = false;
         Vm.PenToolActive = true;
-        if (PenTab.IsChecked != true && EraserTab.IsChecked != true && MappingTab.IsChecked != true) PenTab.IsChecked = true;
+        if (PenTab.IsChecked != true && EraserTab.IsChecked != true && RadialTab.IsChecked != true && MappingTab.IsChecked != true) PenTab.IsChecked = true;
         Vm.SelectPenProfileCommand.Execute(key);
     }
 
@@ -354,6 +359,37 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     }
 
     private TabletDetailViewModel? Vm => DataContext as TabletDetailViewModel;
+
+    // ── TASKS #63: the Radial menu tab's editor ──────────────────────────────────────────────────────────
+    private TabletDetailViewModel? _radialHooked;
+
+    private void HookRadialHost()
+    {
+        if (_radialHooked != null) _radialHooked.PropertyChanged -= OnVmRadialChanged;
+        _radialHooked = Vm;
+        if (_radialHooked != null) _radialHooked.PropertyChanged += OnVmRadialChanged;
+        ShowRadialEditor();
+    }
+
+    private void OnVmRadialChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(TabletDetailViewModel.RadialEditor)) ShowRadialEditor();
+    }
+
+    private void ShowRadialEditor()
+    {
+        try
+        {
+            RadialEditorHost.Content = Vm?.RadialEditor is { } editor
+                ? RadialMenuEditorDialog.BuildEmbedded(editor, () => TopLevel.GetTopLevel(this) as Window)
+                : null;
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn("Radial menu tab: the editor could not be shown.", ex);
+            RadialEditorHost.Content = null;
+        }
+    }
 
     /// <summary>The tab rail's currently-visible tab buttons, in order (#437: the screenshot sweep checks
     /// each in turn to capture every sub-tab of a connected tablet).</summary>

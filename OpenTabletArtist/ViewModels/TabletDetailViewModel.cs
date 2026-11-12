@@ -1041,6 +1041,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(PenButtonTestText));
         OnPropertyChanged(nameof(WheelEnableLabel));
         OnPropertyChanged(nameof(WheelAboutEnableText));
+        RefreshRadialTab(rebuildEditor: true);   // TASKS #63: the Radial menu tab's texts follow the language
     }
 
     // ── ABOUT tab's active-area diagram ─────────────────────────────────────────────────────────────
@@ -1726,6 +1727,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             rows.Add(new(PenSwitchKind.PenButton, i + 1, bindings.PenButtons[i], canEdit, ApplyPenSwitchBindingAsync,
                 _editBinding != null ? ChoosePenButtonActionAsync : null));
         if (rows.Count > 0) rows[0].IsFirst = true; // suppresses the leading divider in the merged card
+        RefreshRadialTab();                         // TASKS #63: the Radial menu tab follows the same table
 
         // Expose each switch by slot so the visual pen diagram can bind tip/eraser/buttons (#pen-switch-diagram).
         PenTipRow = rows[0];

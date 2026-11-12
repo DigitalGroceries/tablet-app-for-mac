@@ -31,6 +31,19 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     public string Title { get; }
     public string? Result { get; private set; }
     public event Action? CloseRequested;
+    /// <summary>TASKS #63: raised after any edit to the menu (a slice, its action, the size, the transparency, Reset). The in-page
+    /// editor applies the change from here; the dialog does not need it. Selecting a slice or opening a submenu does not raise it.</summary>
+    public event Action? Changed;
+    private void RaiseChanged() => Changed?.Invoke();
+
+    /// <summary>The menu as it stands now, as the JSON a radial-menu binding stores (size and transparency included).</summary>
+    public string CurrentJson()
+    {
+        var copy = RadialMenuJson.Parse(RadialMenuJson.Serialize(_top));
+        copy.Size = Math.Clamp(Size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
+        copy.Transparency = Math.Clamp(Transparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency);
+        return RadialMenuJson.Serialize(copy);
+    }
 
     /// <summary>Opens the keystroke picker (the binding editor, keyboard only); set by the dialog.</summary>
     public Func<AuxBinding, Task<AuxBinding?>>? PickKeystroke { get; set; }
@@ -154,7 +167,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     {
         if (_loading) return;
         Slice.Label = value ?? "";
-        Refresh();
+        Edited();
     }
 
     partial void OnActionIndexChanged(int value)
@@ -167,7 +180,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         s.Action = action;
         if (action == RadialActions.Click && string.IsNullOrEmpty(s.Click)) s.Click = ClickValues[Math.Max(0, ClickIndex)];
         if (action == RadialActions.Submenu && s.Submenu == null) s.Submenu = new RadialMenuDef();
-        Refresh();
+        Edited();
     }
 
     partial void OnClickIndexChanged(int value)
@@ -175,14 +188,14 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         if (_loading || value < 0) return;
         Slice.Click = ClickValues[Math.Clamp(value, 0, ClickValues.Length - 1)];
         if (string.IsNullOrWhiteSpace(Slice.Label)) { Slice.Label = ClickNames[value]; SliceLabel = Slice.Label; }
-        Refresh();
+        Edited();
     }
 
     partial void OnAppTextChanged(string value)
     {
         if (_loading) return;
         Slice.App = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-        Refresh();
+        Edited();
     }
 
     partial void OnSizeChanged(int value)
@@ -190,12 +203,14 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         _top.Size = Math.Clamp(value, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
         OnPropertyChanged(nameof(PreviewDiameter));
         OnPropertyChanged(nameof(SizeText));
+        if (!_loading) RaiseChanged();
     }
 
     partial void OnTransparencyChanged(int value)
     {
         _top.Transparency = Math.Clamp(value, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency);
         OnPropertyChanged(nameof(TransparencyText));
+        if (!_loading) RaiseChanged();
         _transparencyInput = Math.Clamp(value, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency)
             .ToString(System.Globalization.CultureInfo.InvariantCulture);
         OnPropertyChanged(nameof(TransparencyInput));
@@ -270,6 +285,9 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(CanAddSubmenu));
     }
 
+    /// <summary>Refresh() after a real edit of the menu.</summary>
+    private void Edited() { Refresh(); RaiseChanged(); }
+
     private static string DescribeKeys(string? keys)
     {
         if (string.IsNullOrWhiteSpace(keys)) return Localizer.Te("radial.no_keys", "No keystroke yet");
@@ -308,7 +326,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
             s.Keys = null;
         }
         LoadSlice();
-        Refresh();
+        Edited();
     }
 
     [RelayCommand]
@@ -323,7 +341,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(s.Label))
             s.Label = System.IO.Path.GetFileNameWithoutExtension(path.TrimEnd('/'));
         LoadSlice();
-        Refresh();
+        Edited();
     }
 
     [RelayCommand]
@@ -356,7 +374,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         var level = Level;
         level.Slices[SelectedSlice] = new RadialSlice();
         LoadSlice();
-        Refresh();
+        Edited();
     }
 
     [RelayCommand]
@@ -368,7 +386,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         Transparency = _top.Transparency;
         SelectedSlice = 0;
         LoadSlice();
-        Refresh();
+        Edited();
     }
 
     [RelayCommand]

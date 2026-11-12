@@ -66,7 +66,7 @@ public sealed class RadialMenuEditorDialog : Window
         return await dialog._result.Task;
     }
 
-    private static async Task<string?> PickAppAsync(Window owner)
+    internal static async Task<string?> PickAppAsync(Window owner)
     {
         var top = TopLevel.GetTopLevel(owner);
         if (top?.StorageProvider == null) return null;
@@ -82,7 +82,29 @@ public sealed class RadialMenuEditorDialog : Window
         return files.FirstOrDefault()?.TryGetLocalPath();
     }
 
-    private static Control Build(RadialMenuEditorViewModel vm)
+    /// <summary>TASKS #63: the same editor inside a page (Tablet › Pen › Radial menu): no heading and no Save / Cancel (the page
+    /// applies each change and its own Save keeps it). Same pie (<see cref="PieFit"/>), slice settings, size, transparency and Reset.
+    /// <paramref name="owner"/> finds the window that hosts the keystroke and app pickers when they are used.</summary>
+    public static Control BuildEmbedded(RadialMenuEditorViewModel vm, Func<Window?> owner)
+    {
+        vm.PickKeystroke = async initial =>
+        {
+            var w = owner();
+            if (w == null) { Services.AppLog.Warn("Radial menu tab: no window to open the keystroke picker in."); return null; }
+            return await BindingEditorDialog.ShowAsync(w, initial, vm.Heading + " · " + vm.SliceCaption);
+        };
+        vm.PickApp = async () =>
+        {
+            var w = owner();
+            if (w == null) { Services.AppLog.Warn("Radial menu tab: no window to open the app picker in."); return null; }
+            return await PickAppAsync(w);
+        };
+        var root = Build(vm, embedded: true);
+        root.DataContext = vm;
+        return root;
+    }
+
+    private static Control Build(RadialMenuEditorViewModel vm, bool embedded = false)
     {
         TextBlock Caption(string text) => new()
         {
@@ -176,7 +198,7 @@ public sealed class RadialMenuEditorDialog : Window
             Content = vm.ClearSliceLabel, Command = vm.ClearSliceCommand, Padding = new Thickness(12, 6), Margin = new Thickness(0, 14, 0, 0),
         });
 
-        var body = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto") };
+        var body = new Grid { ColumnDefinitions = new ColumnDefinitions(embedded ? "*,Auto" : "Auto,Auto") };
         Grid.SetColumn(right, 1);
         body.Children.Add(left);
         body.Children.Add(right);
@@ -227,13 +249,23 @@ public sealed class RadialMenuEditorDialog : Window
         Put(reset, 5); Grid.SetRowSpan(reset, 2); reset.VerticalAlignment = VerticalAlignment.Center;
         var save = new Button { Content = vm.SaveLabel, Command = vm.SaveCommand, Padding = new Thickness(22, 8), Margin = new Thickness(0, 0, 8, 0) };
         if (Application.Current?.TryFindResource("AccentButton", out var accent) == true && accent is Avalonia.Styling.ControlTheme t) save.Theme = t;
-        Put(save, 6); Grid.SetRowSpan(save, 2); save.VerticalAlignment = VerticalAlignment.Center;
+        if (!embedded) { Put(save, 6); Grid.SetRowSpan(save, 2); save.VerticalAlignment = VerticalAlignment.Center; }
         var cancel = new Button { Content = vm.CancelLabel, Command = vm.CancelCommand, Padding = new Thickness(16, 8), VerticalAlignment = VerticalAlignment.Center };
-        Put(cancel, 7); Grid.SetRowSpan(cancel, 2);
+        if (!embedded) { Put(cancel, 7); Grid.SetRowSpan(cancel, 2); }
         var footerWrap = new StackPanel();
         footerWrap.Children.Add(new Border { Height = 1, Margin = new Thickness(0, 16, 0, 0), [!Border.BackgroundProperty] = new DynamicResourceExtension("DividerBrush") });
         footerWrap.Children.Add(footer);
         DockPanel.SetDock(footerWrap, Dock.Bottom);
+
+        if (embedded)
+        {
+            // In a page that scrolls by itself (Tablet › Pen › Radial menu) nothing is clipped: the ring scales to the page's width
+            // (PieFit), the page's own scrollbar takes care of the height, and the size / transparency row sits under the ring.
+            var page = new StackPanel { Name = AreaName };
+            page.Children.Add(body);
+            page.Children.Add(footerWrap);
+            return page;
+        }
 
         var root = new DockPanel { Margin = new Thickness(24) };
         root.Children.Add(heading);
