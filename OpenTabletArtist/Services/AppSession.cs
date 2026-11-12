@@ -1195,13 +1195,19 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         }
         _pluginEnsured = true;
         var dir = PluginDirectory;
-        var outcome = await Task.Run(() => _pluginInstaller.EnsureInstalled(dir));
-        AppLog.Info(outcome switch
-        {
-            PluginInstallOutcome.Installed => "Plugin: installed the bundled plugin; the driver loads it now.",
-            PluginInstallOutcome.Updated => "Plugin: the installed plugin differed from the bundled one; replaced it and restarting the driver.",
-            _ => "Plugin: the installed plugin matches the bundled one.",
-        });
+        string? installError = null;
+        var outcome = await Task.Run(() => _pluginInstaller.EnsureInstalled(dir, out installError));
+        // Build 8: say what really happened. "Failed" used to be reported as "matches the bundled one".
+        if (outcome == PluginInstallOutcome.Failed)
+            AppLog.Warn($"Plugin: couldn't replace the installed plugin in {dir}; the driver keeps the old one. {installError}");
+        else
+            AppLog.Info(outcome switch
+            {
+                PluginInstallOutcome.Installed => "Plugin: installed the bundled plugin; the driver loads it now.",
+                PluginInstallOutcome.Updated => "Plugin: the installed plugin differed from the bundled one; replaced it and restarting the driver.",
+                PluginInstallOutcome.SourceMissing => "Plugin: no bundled plugin found next to the app; nothing installed.",
+                _ => "Plugin: the installed plugin matches the bundled one.",
+            });
 
         // Narrowly: stops the installer's RESULT being applied to a daemon this application is leaving.
         // Applying reaches the daemon, and this is fire-and-forget, so nothing would observe it failing

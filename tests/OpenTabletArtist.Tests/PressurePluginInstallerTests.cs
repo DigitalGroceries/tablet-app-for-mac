@@ -103,9 +103,55 @@ public class PressurePluginInstallerTests
     }
 
     [Fact]
-    public void CopyIfNeeded_MissingSource_IsNone()
-        => Assert.Equal(PluginInstallOutcome.None,
+    public void CopyIfNeeded_MissingSource_IsSourceMissing()
+        => Assert.Equal(PluginInstallOutcome.SourceMissing,
             PressurePluginInstaller.CopyIfNeeded(Path.Combine("C:", "nope", "x.dll"), Path.Combine("C:", "plugins")));
+
+    // Build 8 (Zak, 12 Nov 2026): his installed plugin was an old, READ-ONLY copy from 23 Oct. The copy failed,
+    // the failure was reported as "up to date", and the driver kept the old plugin (no radial menu). The test
+    // makes exactly that file. (Run as root, a read-only file is writable anyway; checked as a normal user on
+    // 12 Nov: the old File.Copy threw UnauthorizedAccessException, PluginFileCopy.Replace replaced the file.)
+    [Fact]
+    public void CopyIfNeeded_ReplacesAReadOnlyOldCopy_AndLeavesItWritable()
+    {
+        if (OperatingSystem.IsWindows()) return;
+        var dir = TempDir();
+        try
+        {
+            var src = Path.Combine(dir, "new.dll");
+            File.WriteAllText(src, "new plugin with the radial menu");
+            var pluginDir = Path.Combine(dir, "Plugins");
+            var dest = Path.Combine(pluginDir, PressurePluginPaths.PluginFolderName, PressurePluginPaths.DllName);
+            Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+            File.WriteAllText(dest, "old plugin from 23 Oct");
+            File.SetUnixFileMode(dest, UnixFileMode.UserRead | UnixFileMode.GroupRead | UnixFileMode.OtherRead);
+
+            Assert.Equal(PluginInstallOutcome.Updated, PressurePluginInstaller.CopyIfNeeded(src, pluginDir, out var error));
+            Assert.Null(error);
+            Assert.Equal("new plugin with the radial menu", File.ReadAllText(dest));
+            Assert.True(File.GetUnixFileMode(dest).HasFlag(UnixFileMode.UserWrite));
+        }
+        finally { Directory.Delete(dir, true); }
+    }
+
+    // A copy that really can't be made is reported as Failed with the reason, never as "up to date".
+    [Fact]
+    public void CopyIfNeeded_WhenTheCopyFails_SaysFailed_NotUpToDate()
+    {
+        var dir = TempDir();
+        try
+        {
+            var src = Path.Combine(dir, "new.dll");
+            File.WriteAllText(src, "new");
+            // The plugin "folder" is a file, so nothing can be created inside it.
+            var pluginDir = Path.Combine(dir, "Plugins");
+            File.WriteAllText(pluginDir, "not a folder");
+
+            Assert.Equal(PluginInstallOutcome.Failed, PressurePluginInstaller.CopyIfNeeded(src, pluginDir, out var error));
+            Assert.False(string.IsNullOrEmpty(error));
+        }
+        finally { Directory.Delete(dir, true); }
+    }
 
     private static string TempDir()
     {

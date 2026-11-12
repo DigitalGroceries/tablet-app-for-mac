@@ -104,13 +104,13 @@ public class WindowsInkBundledInstaller
             var existed = File.Exists(Path.Combine(destDir, "metadata.json"));
             Directory.CreateDirectory(destDir);
             foreach (var file in Directory.GetFiles(sourceDir))
-                File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), overwrite: true);
+                PluginFileCopy.Replace(file, Path.Combine(destDir, Path.GetFileName(file)));   // build 8: read-only old copies too
             return existed ? PluginInstallOutcome.Updated : PluginInstallOutcome.Installed;
         }
         catch (Exception ex)
         {
             AppLog.Warn($"Couldn't copy the bundled Windows Ink plugin into {pluginDirectory}.", ex);
-            return PluginInstallOutcome.None;
+            return PluginInstallOutcome.Failed;
         }
     }
 }
