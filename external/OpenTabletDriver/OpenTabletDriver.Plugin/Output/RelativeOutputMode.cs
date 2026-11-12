@@ -136,6 +136,15 @@ namespace OpenTabletDriver.Plugin.Output
             return report;
         }
 
+        /// <summary>Tablet App for Mac (#73): a dropped output mode (tablet unplugged, settings change, driver
+        /// closing) must not leave its pointer's buttons pressed in the system.</summary>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                HeldButtonRelease.TryRelease(Pointer, nameof(RelativeOutputMode), "output mode closed");
+            base.Dispose(disposing);
+        }
+
         protected override void OnOutput(IDeviceReport report)
         {
             // this should be ordered from least to most chance of having a
