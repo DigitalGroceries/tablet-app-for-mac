@@ -27,12 +27,22 @@ public static class ObjCSelectors
     // Version 7 test 9: Dock hide while only the pen menu-bar icon is showing.
     public const string SharedApplication = "sharedApplication";
     public const string SetActivationPolicy = "setActivationPolicy:";
+    // TASKS #54: the radial menu takes mouse clicks without taking the keyboard from the app underneath.
+    public const string SetPreventsActivation = "_setPreventsActivation:";
+    public const string SharedWorkspace = "sharedWorkspace";
+    public const string FrontmostApplication = "frontmostApplication";
+    public const string ProcessIdentifier = "processIdentifier";
+    public const string RunningApplicationWithPid = "runningApplicationWithProcessIdentifier:";
+    public const string ActivateWithOptions = "activateWithOptions:";
+    public const string IsActive = "isActive";
 
     public static IReadOnlyList<string> All { get; } = new[]
     {
         MainAppService, Status, Register, Unregister, LocalizedDescription, Utf8String, SetIgnoresMouseEvents,
         SetCollectionBehavior, Window, SetLevel, Screen, Frame, SetFrameDisplay, AgentServiceWithPlistName, StringWithUtf8String,
         SharedApplication, SetActivationPolicy,
+        SetPreventsActivation, SharedWorkspace, FrontmostApplication, ProcessIdentifier, RunningApplicationWithPid,
+        ActivateWithOptions, IsActive,
     };
 }
 

@@ -36,7 +36,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     public IReadOnlyList<bool>? SetFlags { get => GetValue(SetFlagsProperty); set => SetValue(SetFlagsProperty, value); }
     /// <summary>Which slices open a submenu (drawn with a small arrow).</summary>
     public IReadOnlyList<bool>? SubmenuFlags { get => GetValue(SubmenuFlagsProperty); set => SetValue(SubmenuFlagsProperty, value); }
-    /// <summary>Slice under the pen (on-screen menu), or <see cref="RadialMenuGeometry.Centre"/> for the X.</summary>
+    /// <summary>Slice under the pen (on-screen menu), <see cref="RadialMenuGeometry.Centre"/> for the X, <see cref="RadialMenuGeometry.Hand"/> for the hand.</summary>
     public int Highlight { get => GetValue(HighlightProperty); set => SetValue(HighlightProperty, value); }
     /// <summary>Slice picked in the editor.</summary>
     public int Selected { get => GetValue(SelectedProperty); set => SetValue(SelectedProperty, value); }
@@ -72,7 +72,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     {
         var c = new Point(Bounds.Width / 2, Bounds.Height / 2);
         double outer = Math.Max(10, Math.Min(Bounds.Width, Bounds.Height) / 2 - 2);
-        return (c, outer, outer * 0.26);
+        return (c, outer, outer * RadialMenuGeometry.InnerRatio);
     }
 
     public override void Render(DrawingContext ctx)
@@ -101,12 +101,53 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
             ctx.DrawText(ft, new Point(p.X - maxW / 2, p.Y - ft.Height / 2));
         }
 
-        // Centre: the X closes the menu.
-        ctx.DrawEllipse(Highlight == RadialMenuGeometry.Centre ? HighlightFill : CentreFill, Edge, c, inner, inner);
-        double x = inner * 0.32;
-        var xPen = new Pen(TextBrush, Math.Max(2, inner / 10), lineCap: PenLineCap.Round);
-        ctx.DrawLine(xPen, new Point(c.X - x, c.Y - x), new Point(c.X + x, c.Y + x));
-        ctx.DrawLine(xPen, new Point(c.X - x, c.Y + x), new Point(c.X + x, c.Y - x));
+        // Centre: two half-circle buttons with a divider. Top: the X closes the menu. Bottom: the open hand, press
+        // and move to drag the menu somewhere else.
+        ctx.DrawGeometry(Highlight == RadialMenuGeometry.Centre ? HighlightFill : CentreFill, Edge, Half(c, inner, top: true));
+        ctx.DrawGeometry(Highlight == RadialMenuGeometry.Hand ? HighlightFill : CentreFill, Edge, Half(c, inner, top: false));
+        var divider = new Pen(new SolidColorBrush(Color.FromArgb(220, 228, 228, 228)), Math.Max(2, inner / 22));
+        ctx.DrawLine(divider, new Point(c.X - inner, c.Y), new Point(c.X + inner, c.Y));
+
+        double x = inner * 0.2;
+        var xc = new Point(c.X, c.Y - inner * 0.5);
+        var xPen = new Pen(TextBrush, Math.Max(2, inner / 12), lineCap: PenLineCap.Round);
+        ctx.DrawLine(xPen, new Point(xc.X - x, xc.Y - x), new Point(xc.X + x, xc.Y + x));
+        ctx.DrawLine(xPen, new Point(xc.X - x, xc.Y + x), new Point(xc.X + x, xc.Y - x));
+
+        DrawHand(ctx, new Point(c.X, c.Y + inner * 0.5), inner * 0.62);
+    }
+
+    /// <summary>Our own open-hand "pan" icon (four fingers, a thumb and a palm, all rounded), drawn from simple shapes.
+    /// <paramref name="s"/> is the unit: the icon is about 1.1 s tall.</summary>
+    private static void DrawHand(DrawingContext ctx, Point at, double s)
+    {
+        var o = new Point(at.X, at.Y + 0.05 * s);   // y 0 = the top of the palm
+        double w = 0.17 * s;
+        var pen = new Pen(TextBrush, w, lineCap: PenLineCap.Round);
+        Point P(double x, double y) => new(o.X + x * s, o.Y + y * s);
+        // fingers: from the palm up to their tips (the middle one is the longest)
+        ctx.DrawLine(pen, P(-0.30, 0.05), P(-0.30, -0.38));
+        ctx.DrawLine(pen, P(-0.10, 0.05), P(-0.10, -0.55));
+        ctx.DrawLine(pen, P(0.10, 0.05), P(0.10, -0.50));
+        ctx.DrawLine(pen, P(0.30, 0.05), P(0.30, -0.33));
+        // thumb: out to the left and up
+        ctx.DrawLine(pen, P(-0.30, 0.28), P(-0.52, 0.02));
+        // palm
+        ctx.DrawGeometry(TextBrush, null, new RectangleGeometry(new Rect(P(-0.39, 0.0), P(0.39, 0.46)), 0.2 * s, 0.2 * s));
+    }
+
+    /// <summary>The top or bottom half of the centre disc.</summary>
+    private static Geometry Half(Point c, double r, bool top)
+    {
+        var g = new StreamGeometry();
+        using (var ctx = g.Open())
+        {
+            // Clockwise from the left point over the top, or from the right point under the bottom.
+            ctx.BeginFigure(top ? new Point(c.X - r, c.Y) : new Point(c.X + r, c.Y), true);
+            ctx.ArcTo(top ? new Point(c.X + r, c.Y) : new Point(c.X - r, c.Y), new Size(r, r), 0, false, SweepDirection.Clockwise);
+            ctx.EndFigure(true);
+        }
+        return g;
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)

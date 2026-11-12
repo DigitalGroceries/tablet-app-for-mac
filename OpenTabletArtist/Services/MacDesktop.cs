@@ -35,6 +35,13 @@ internal static class MacDesktop
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern void SendBool(IntPtr obj, IntPtr sel, [MarshalAs(UnmanagedType.I1)] bool value);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern void SendNUInt(IntPtr obj, IntPtr sel, nuint value);
 
+    [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern IntPtr SendPtr(IntPtr obj, IntPtr sel);
+    [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern IntPtr SendPtrInt(IntPtr obj, IntPtr sel, int value);
+    [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern int SendIntRet(IntPtr obj, IntPtr sel);
+    [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)] private static extern bool SendBoolRet(IntPtr obj, IntPtr sel);
+    [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)] private static extern bool SendActivate(IntPtr obj, IntPtr sel, nuint options);
+    [DllImport(CoreGraphics)] [return: MarshalAs(UnmanagedType.I1)] private static extern bool CGEventSourceKeyState(int stateId, ushort key);
+
     [DllImport(CoreGraphics)] private static extern IntPtr CGEventCreateKeyboardEvent(IntPtr src, ushort key, [MarshalAs(UnmanagedType.I1)] bool down);
     [DllImport(CoreGraphics)] private static extern IntPtr CGEventCreateMouseEvent(IntPtr src, uint type, CGPoint pos, uint button);
     [DllImport(CoreGraphics)] private static extern void CGEventSetFlags(IntPtr e, ulong flags);
@@ -126,14 +133,69 @@ internal static class MacDesktop
 
     /// <summary>Click-through (ignoresMouseEvents), on every Space and over full-screen apps, and left out of
     /// the window cycle. Never makes the window key or activates the app.</summary>
-    public static void MakeOverlay(IntPtr nsWindow)
+    public static void MakeOverlay(IntPtr nsWindow) => MakeOverlay(nsWindow, clickThrough: true);
+
+    /// <summary>The radial menu's window (TASKS #54): takes the Mac mouse (<paramref name="clickThrough"/> false) but
+    /// asks macOS not to activate this app when it is clicked, so the shortcut a slice sends still goes to the app
+    /// that was in front. Everything else as <see cref="MakeOverlay(IntPtr)"/>.</summary>
+    public static void MakeOverlay(IntPtr nsWindow, bool clickThrough)
     {
         if (!OperatingSystem.IsMacOS() || nsWindow == IntPtr.Zero) return;
         // Build Q: only send what the window answers to.
         if (ObjCGuard.RespondsTo(nsWindow, ObjCSelectors.SetIgnoresMouseEvents))
-            SendBool(nsWindow, sel_registerName(ObjCSelectors.SetIgnoresMouseEvents), true);
+            SendBool(nsWindow, sel_registerName(ObjCSelectors.SetIgnoresMouseEvents), clickThrough);
+        if (!clickThrough && ObjCGuard.RespondsTo(nsWindow, ObjCSelectors.SetPreventsActivation))
+            SendBool(nsWindow, sel_registerName(ObjCSelectors.SetPreventsActivation), true);
         // NSWindowCollectionBehaviorCanJoinAllSpaces (1) | Stationary (16) | IgnoresCycle (64) | FullScreenAuxiliary (256)
         if (ObjCGuard.RespondsTo(nsWindow, ObjCSelectors.SetCollectionBehavior))
             SendNUInt(nsWindow, sel_registerName(ObjCSelectors.SetCollectionBehavior), (nuint)(1 | 16 | 64 | 256));
+    }
+
+    private static int _frontPid;
+
+    /// <summary>Remember which app is in front now (not this one), so <see cref="GiveFocusBack"/> can return to it.</summary>
+    public static void RememberFrontmost()
+    {
+        _frontPid = 0;
+        if (!OperatingSystem.IsMacOS()) return;
+        try
+        {
+            var ws = SendPtr(ObjCGuard.Class("NSWorkspace"), sel_registerName(ObjCSelectors.SharedWorkspace));
+            if (ws == IntPtr.Zero || !ObjCGuard.RespondsTo(ws, ObjCSelectors.FrontmostApplication)) return;
+            var app = SendPtr(ws, sel_registerName(ObjCSelectors.FrontmostApplication));
+            if (app == IntPtr.Zero || !ObjCGuard.RespondsTo(app, ObjCSelectors.ProcessIdentifier)) return;
+            int pid = SendIntRet(app, sel_registerName(ObjCSelectors.ProcessIdentifier));
+            if (pid > 0 && pid != Environment.ProcessId) _frontPid = pid;
+        }
+        catch (Exception) { _frontPid = 0; }
+    }
+
+    /// <summary>Safety net for a click on the radial menu: if macOS made this app active anyway, hand the keyboard back
+    /// to the app that was in front. True when it had to. Does nothing when this app isn't active.</summary>
+    public static bool GiveFocusBack()
+    {
+        if (!OperatingSystem.IsMacOS() || _frontPid == 0) return false;
+        try
+        {
+            var me = SendPtr(ObjCGuard.Class("NSApplication"), sel_registerName(ObjCSelectors.SharedApplication));
+            if (me == IntPtr.Zero || !ObjCGuard.RespondsTo(me, ObjCSelectors.IsActive)
+                || !SendBoolRet(me, sel_registerName(ObjCSelectors.IsActive))) return false;
+            var cls = ObjCGuard.Class("NSRunningApplication");
+            if (cls == IntPtr.Zero || !ObjCGuard.RespondsTo(cls, ObjCSelectors.RunningApplicationWithPid)) return false;
+            var target = SendPtrInt(cls, sel_registerName(ObjCSelectors.RunningApplicationWithPid), _frontPid);
+            if (target == IntPtr.Zero || !ObjCGuard.RespondsTo(target, ObjCSelectors.ActivateWithOptions)) return false;
+            SendActivate(target, sel_registerName(ObjCSelectors.ActivateWithOptions), 0);
+            return true;
+        }
+        catch (Exception) { return false; }
+    }
+
+    /// <summary>Is the Esc key down right now (the hardware or any app's synthetic event)? Reading the key state needs
+    /// no permission and doesn't need this app to be in front. False off macOS.</summary>
+    public static bool IsEscapeDown()
+    {
+        if (!OperatingSystem.IsMacOS()) return false;
+        try { return CGEventSourceKeyState(0 /* combined session state */, 0x35 /* kVK_Escape */); }
+        catch (Exception) { return false; }
     }
 }
