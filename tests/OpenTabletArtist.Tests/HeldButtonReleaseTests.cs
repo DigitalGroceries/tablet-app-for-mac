@@ -178,6 +178,22 @@ public class HeldButtonReleaseTests
         Assert.Contains("Couldn't release the held mouse buttons on exit", program);   // a failure is logged, not hidden
     }
 
+    /// <summary>Version 27 (review of #107): .NET does not run the Unloading handler on SIGTERM (a test process with the
+    /// daemon's exact shutdown shape exited 143 without its clean-up), so the polite stop never reached
+    /// ReleaseAllHeldButtons. The daemon must handle SIGTERM itself, cancel the default termination and close the same way.</summary>
+    [Fact]
+    public void TheDaemon_HandlesSigTermItself_SoThePoliteStopReleasesHeldButtons()
+    {
+        var program = Source(Program);
+        var reg = program.IndexOf("PosixSignalRegistration.Create(PosixSignal.SIGTERM", StringComparison.Ordinal);
+        Assert.True(reg >= 0, "the daemon registers its own SIGTERM handler");
+        var body = program.Substring(reg, program.IndexOf("});", reg, StringComparison.Ordinal) - reg);
+        Assert.Contains("ctx.Cancel = true;", body);   // the main thread finishes (release, then exit), not the default kill
+        Assert.Contains("CloseDaemon();", body);       // the same path as SIGHUP / Ctrl+C: cancel the host, wait for the release
+        Assert.True(reg < program.IndexOf("await host.Run(daemon, cts.Token);", StringComparison.Ordinal), "registered before the host runs");
+        Assert.Contains("GC.KeepAlive(sigTerm);", program);   // a collected registration would quietly stop handling SIGTERM
+    }
+
     [Fact]
     public void TheApp_StopsTheDriverPolitelyBeforeKillingIt()
     {

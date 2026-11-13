@@ -52,6 +52,9 @@ internal sealed class RadialMenuToast
             if (!_window.IsVisible) _window.Show();
             if (_window.TryGetPlatformHandle() is Avalonia.Platform.IMacOSTopLevelPlatformHandle mac && mac.NSWindow != IntPtr.Zero)
                 MacDesktop.MakeOverlay(mac.NSWindow, clickThrough: true);
+            // v27: where the bubble went, so a test can check it sits beside the menu (menu centre and radius given).
+            AppLog.Info($"Radial menu text bubble ({(hold ? "hint" : "confirmation")}): \"{text}\" at {_window.Position.X},{_window.Position.Y} " +
+                        $"({w:0}x{h:0} pt), menu centre {cx:0},{cy:0}, radius {radius:0}.");
         }
         catch (Exception e)
         {
@@ -79,10 +82,13 @@ internal sealed class RadialMenuToast
             FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = UiColors.SoftWhiteBrush, TextAlignment = TextAlignment.Center,
             MaxWidth = 320, TextWrapping = TextWrapping.Wrap,
         };
+        // v27 (Zak 13 Nov: the hint was "too transparent"): fully solid, with a light edge so it stands out on dark work
+        // too. It never follows the menu's own transparency.
         _box = new Border
         {
-            Background = new SolidColorBrush(Color.FromArgb(0xE6, 0x1E, 0x1E, 0x1E)), CornerRadius = new CornerRadius(10),
-            Padding = new Thickness(14, 8), Child = _text,
+            Background = new SolidColorBrush(Color.FromRgb(0x1E, 0x1E, 0x1E)), CornerRadius = new CornerRadius(10),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0xE4, 0xE4, 0xE4)), BorderThickness = new Thickness(1.5),
+            Padding = new Thickness(14, 8), Child = _text, Opacity = 1,
         };
         _window = new Window
         {

@@ -1,0 +1,35 @@
+diff --git a/OpenTabletDriver.Daemon/Program.cs b/OpenTabletDriver.Daemon/Program.cs
+index f46c4d4..b7bd299 100644
+--- a/OpenTabletDriver.Daemon/Program.cs
++++ b/OpenTabletDriver.Daemon/Program.cs
+@@ -105,6 +105,22 @@ namespace OpenTabletDriver.Daemon
+                         });
+             }
+ 
++            // Tablet App for Mac (#73, v27): handle SIGTERM ourselves. The app stops the driver politely with SIGTERM so the
++            // driver can let go of a held mouse button, but .NET does NOT run the Unloading handler below on SIGTERM:
++            // a test process with exactly this shape was simply terminated (exit 143) and its clean-up never ran. With
++            // this registration the clean-up runs (exit 0). Cancel = true: the main thread finishes on its own, after
++            // ReleaseAllHeldButtons, instead of the process dying the moment this handler returns.
++            PosixSignalRegistration? sigTerm = null;
++            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
++            {
++                sigTerm = PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx =>
++                {
++                    ctx.Cancel = true;
++                    Log.Write("signal", "SIGTERM: stopping the driver and letting go of held mouse buttons");
++                    CloseDaemon();
++                });
++            }
++
+             // Handle other termination operations (SIGTERM, etc.)
+             AssemblyLoadContext.Default.Unloading += _ =>
+             {
+@@ -123,6 +139,7 @@ namespace OpenTabletDriver.Daemon
+                 catch (Exception e) { Log.Write("ProgramMain", $"Couldn't release the held mouse buttons on exit: {e.Message}", LogLevel.Warning); }
+                 daemonRunning = false;
+                 Log.Write("ProgramMain", "Daemon gracefully stopped");
++                GC.KeepAlive(sigTerm); // a collected registration would stop handling SIGTERM
+             }
+             catch (Exception e)
+             {

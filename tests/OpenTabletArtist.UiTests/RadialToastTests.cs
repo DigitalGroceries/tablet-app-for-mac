@@ -72,6 +72,33 @@ public class RadialToastTests
         finally { ActionConfirmation.Recorder = null; overlay.Dispose(); }
     }
 
+    /// <summary>v27 (Zak 13 Nov 14:47: the hint was "too transparent"): the text box is fully solid with a light edge, even when the menu itself is
+    /// set to 100% transparency, and where it went is logged next to the menu centre.</summary>
+    [AvaloniaFact]
+    public async Task ThePencilHint_IsSolid_EvenOnAFullySeeThroughMenu_AndWhereItWentIsLogged()
+    {
+        _ = new ThemeViewModel();
+        var overlay = new RadialMenuOverlay();
+        try
+        {
+            var lines = await Logged(async () =>
+            {
+                overlay.ShowNowForTest(Open(600, 400, editing: true) with { Transparency = 100 });
+                await Task.Yield();
+            });
+            Pump();
+            Assert.True(overlay.Toast.IsVisible);
+            var box = Assert.IsType<Avalonia.Controls.Border>(overlay.Toast.ToastWindow!.Content);
+            var back = Assert.IsAssignableFrom<Avalonia.Media.ISolidColorBrush>(box.Background);
+            Assert.Equal(255, back.Color.A);                    // no see-through background
+            Assert.Equal(1.0, box.Opacity);
+            Assert.True(box.BorderThickness.Left > 0);          // a light edge so it shows on dark work too
+            Assert.Equal(RadialMenuDef.MinVisibleOpacity, Assert.IsType<OpenTabletArtist.Controls.RadialMenuPie>(overlay.MenuWindow!.Content).Opacity);
+            Assert.Contains(lines, l => l.Contains("Radial menu text bubble (hint)") && l.Contains("menu centre 600,400"));
+        }
+        finally { overlay.Dispose(); }
+    }
+
     [AvaloniaFact]
     public void TheHint_GoesWhenTheMenuCloses()
     {
