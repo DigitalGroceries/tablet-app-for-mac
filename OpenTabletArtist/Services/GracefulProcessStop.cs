@@ -30,15 +30,36 @@ internal static class GracefulProcessStop
         {
             try
             {
-                if (PosixKill(proc.Id, SigTerm) == 0 && proc.WaitForExit((int)wait.TotalMilliseconds))
+                // No silent failures (#107 review, 13 Nov): every outcome gets its own log line, so a driver that
+                // had to be killed (and could not let go of a held mouse button) shows up in the diagnostics.
+                if (PosixKill(proc.Id, SigTerm) != 0)
+                {
+                    AppLog.Info($"Driver stop: the polite stop request to process {proc.Id} failed (errno {Marshal.GetLastPInvokeError()}); killing it.");
+                }
+                else if (proc.WaitForExit((int)wait.TotalMilliseconds))
+                {
+                    AppLog.Info($"Driver stop: process {proc.Id} exited by itself after the polite stop request.");
                     return true;
+                }
+                else
+                {
+                    AppLog.Info($"Driver stop: process {proc.Id} did not exit within {wait.TotalSeconds:0.#} s of the polite stop request; killing it.");
+                }
             }
             catch (Exception ex)
             {
-                AppLog.Debug($"Couldn't ask process {proc.Id} to exit politely; killing it.", ex);
+                AppLog.Warn($"Driver stop: couldn't ask process {proc.Id} to exit politely; killing it.", ex);
             }
         }
-        proc.Kill();
+        try
+        {
+            proc.Kill();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn($"Driver stop: killing process {proc.Id} failed.", ex);
+            throw;
+        }
         return false;
     }
 }

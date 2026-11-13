@@ -213,4 +213,39 @@ public class HeldButtonReleaseTests
         Assert.False(politely);
         Assert.True(proc.WaitForExit(5000));
     }
+
+    // #107 review (13 Nov, "No silent failures"): each way the stop can go leaves its own log line.
+    [Fact]
+    public void GracefulStop_LogsWhenItHadToKill()
+    {
+        if (OperatingSystem.IsWindows()) return;
+        var lines = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        void Capture(string line) => lines.Enqueue(line);
+        AppLog.LineWritten += Capture;
+        try
+        {
+            using var proc = Process.Start(new ProcessStartInfo("/bin/sh") { ArgumentList = { "-c", "trap '' TERM; while :; do sleep 1; done" }, UseShellExecute = false })!;
+            System.Threading.Thread.Sleep(300);
+            GracefulProcessStop.Stop(proc, TimeSpan.FromMilliseconds(400));
+            proc.WaitForExit(5000);
+            Assert.Contains(lines, l => l.Contains($"process {proc.Id} did not exit within") && l.Contains("killing it"));
+        }
+        finally { AppLog.LineWritten -= Capture; }
+    }
+
+    [Fact]
+    public void GracefulStop_LogsAPoliteExit()
+    {
+        if (OperatingSystem.IsWindows()) return;
+        var lines = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        void Capture(string line) => lines.Enqueue(line);
+        AppLog.LineWritten += Capture;
+        try
+        {
+            using var proc = Process.Start(new ProcessStartInfo("/bin/sh") { ArgumentList = { "-c", "exec sleep 30" }, UseShellExecute = false })!;
+            Assert.True(GracefulProcessStop.Stop(proc, TimeSpan.FromSeconds(5)));
+            Assert.Contains(lines, l => l.Contains($"process {proc.Id} exited by itself"));
+        }
+        finally { AppLog.LineWritten -= Capture; }
+    }
 }
