@@ -610,7 +610,7 @@
   "confirm.radial_edit_hint": "Modifiez la part que vous touchez ensuite",
   "confirm.radial_restored": "Menu rétabli",
   "confirm.radial_saved": "Part enregistrée",
-  "radial.done.undo": "Annulé",
+  "radial.done.undo": "Action annulée",
   "radial.done.redo": "Rétabli",
   "radial.done.copy": "Sélection copiée",
   "radial.done.paste": "Collé",

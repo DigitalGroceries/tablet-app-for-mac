@@ -584,7 +584,7 @@
   "radial.transparency_clear": "Durchsichtig",
   "radial_spot.heading": "Radialmenü-Einstellungen",
   "radial_spot.opens_with": "Öffnet sich mit: {buttons}",
-  "radial_spot.none": "Noch keine Stift-Taste öffnet das Radialmenü",
+  "radial_spot.none": "Noch öffnet keine Stift-Taste das Radialmenü",
   "radial_spot.use_button": "Stift-Taste {number} verwenden",
   "radial_spot.pen_button": "Stift-Taste {number}",
   "radial.top": "Hauptmenü",

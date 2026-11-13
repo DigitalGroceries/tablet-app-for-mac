@@ -584,7 +584,7 @@
   "radial.transparency_clear": "Transparente",
   "radial_spot.heading": "Ajustes del menú radial",
   "radial_spot.opens_with": "Se abre con: {buttons}",
-  "radial_spot.none": "Todavía ningún botón del lápiz abre el menú radial",
+  "radial_spot.none": "Todavía no hay ningún botón del lápiz que abra el menú radial",
   "radial_spot.use_button": "Usar el botón {number} del lápiz",
   "radial_spot.pen_button": "Botón {number} del lápiz",
   "radial.top": "Menú principal",
