@@ -152,7 +152,7 @@ public class RadialCentreIconTests
     /// pixel comes out brighter than the icon's own colour. Before the fix the overlaps were up to ~30 levels brighter.</summary>
     [AvaloniaTheory]
     [InlineData(40)]
-    [InlineData(70)]
+    [InlineData(60)]
     public void SeeThroughMenu_IconOverlapsAreNotBrighter(int transparency)
     {
         const int diameter = 460;

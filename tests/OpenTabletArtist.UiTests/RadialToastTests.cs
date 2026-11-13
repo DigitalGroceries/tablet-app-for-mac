@@ -93,7 +93,7 @@ public class RadialToastTests
             Assert.Equal(255, back.Color.A);                    // no see-through background
             Assert.Equal(1.0, box.Opacity);
             Assert.True(box.BorderThickness.Left > 0);          // a light edge so it shows on dark work too
-            Assert.Equal(RadialMenuDef.MinVisibleOpacity, Assert.IsType<OpenTabletArtist.Controls.RadialMenuPie>(overlay.MenuWindow!.Content).Opacity);
+            Assert.Equal(RadialMenuDef.OpacityFor(RadialMenuDef.MaxTransparency), Assert.IsType<OpenTabletArtist.Controls.RadialMenuPie>(overlay.MenuWindow!.Content).Opacity);
             Assert.Contains(lines, l => l.Contains("Radial menu text bubble (hint)") && l.Contains("menu centre 600,400"));
         }
         finally { overlay.Dispose(); }
@@ -247,12 +247,12 @@ public class RadialToastTests
             var pie = Assert.IsType<OpenTabletArtist.Controls.RadialMenuPie>(w.Content);
             Assert.Equal(40, pie.Transparency);
             Assert.Equal(RadialMenuDef.OpacityFor(40), pie.Opacity);
-            Assert.Contains(lines, l => l.Contains("transparency 40%") && l.Contains("opacity 0.64"));
+            Assert.Contains(lines, l => l.Contains("transparency 40%") && l.Contains($"opacity {RadialMenuDef.OpacityFor(40):0.00}"));
 
             overlay.ShowNowForTest(new RadialMenuOverlay.MenuState("open", 2, 400, 300, 50, 0, labels, set, sub, Transparency: 100));
             Pump();
             Assert.Equal(100, pie.Transparency);
-            Assert.Equal(RadialMenuDef.MinVisibleOpacity, pie.Opacity);
+            Assert.Equal(RadialMenuDef.OpacityFor(RadialMenuDef.MaxTransparency), pie.Opacity);   // 100 stops at the 60% limit
         }
         finally { overlay.Dispose(); }
     }

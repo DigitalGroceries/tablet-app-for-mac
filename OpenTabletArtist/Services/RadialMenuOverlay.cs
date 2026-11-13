@@ -103,8 +103,56 @@ public sealed class RadialMenuOverlay : IDisposable
     /// <summary>The pointer in global points: the OS cursor on a Mac; tests replace it.</summary>
     internal Func<Point?> CursorProbe { get; set; } = MacDesktop.CursorLocation;
 
+    /// <summary>The overlay the app started (null in tests that don't start one).</summary>
+    internal static RadialMenuOverlay? Current { get; private set; }
+
+    private MenuState? _shown;
+    private long _lastLiveLog;
+
+    /// <summary>v27 (Zak 13 Nov 16:02): a menu that is already open on screen follows the Menu transparency and Menu size
+    /// sliders at once, not only after it is closed and opened again. When the open menu is the same menu (the same
+    /// slices) as <paramref name="previewMenuJson"/>, the driver is told to use it now; the driver writes its state and the
+    /// window follows, so the pen measures taps on the same size as the picture shows. Nothing happens when no menu is
+    /// open, when another menu is open, or while a slice is being edited or a Yes / No question shows. UI thread.</summary>
+    public static bool ShowLookLive(string previewMenuJson) => Current?.TryLook(previewMenuJson) ?? false;
+
+    internal bool TryLook(string previewMenuJson)
+    {
+        try
+        {
+            if (_window?.IsVisible != true || _shown is not { State: "open" } st) return false;
+            if (st.Editing || st.Confirm || st.Busy) return false;
+            if (!SameSlices(st.Menu, previewMenuJson)) return false;
+            var preview = RadialMenuJson.Parse(previewMenuJson);
+            if (preview.Size == st.Size && preview.Transparency == st.Transparency) return true;
+            SendCommand(RadialMenuCommand.MenuChanged, menu: previewMenuJson);
+            if (Environment.TickCount64 - _lastLiveLog > 2000)
+            {
+                _lastLiveLog = Environment.TickCount64;
+                AppLog.Info($"Radial menu: the open menu now follows the settings (size {preview.Size}, transparency {preview.Transparency}%).");
+            }
+            return true;
+        }
+        catch (Exception e)
+        {
+            AppLog.Warn("Radial menu: couldn't show the new size / transparency on the open menu", e);
+            return false;
+        }
+    }
+
+    /// <summary>Same slices (labels, actions, submenus), whatever the size and transparency.</summary>
+    internal static bool SameSlices(string? openMenuJson, string previewMenuJson)
+    {
+        if (string.IsNullOrWhiteSpace(openMenuJson)) return false;
+        var a = RadialMenuJson.Parse(openMenuJson);
+        var b = RadialMenuJson.Parse(previewMenuJson);
+        a.Size = b.Size; a.Transparency = b.Transparency;
+        return RadialMenuJson.Serialize(a) == RadialMenuJson.Serialize(b);
+    }
+
     public void Start()
     {
+        Current = this;
         SyncOffFlag();
         try
         {
@@ -129,7 +177,7 @@ public sealed class RadialMenuOverlay : IDisposable
     public sealed record MenuState(string State, long Seq, double X, double Y, int Size, int Depth,
         IReadOnlyList<string> Labels, IReadOnlyList<bool> Set, IReadOnlyList<bool> Submenu,
         bool Editing = false, bool Confirm = false, string? Menu = null, RadialRequest? Request = null,
-        int Transparency = RadialMenuDef.DefaultTransparency, UsedSlice? Used = null);
+        int Transparency = RadialMenuDef.DefaultTransparency, UsedSlice? Used = null, bool Busy = false);
 
     /// <summary>The slice the driver ran last and whether it worked (TASKS #65). <see cref="Seq"/> is new for each run.</summary>
     public sealed record UsedSlice(long Seq, string Label, string Keys, string Action, bool Ok);
@@ -201,7 +249,8 @@ public sealed class RadialMenuOverlay : IDisposable
                 r.TryGetProperty("menu", out var mn) ? mn.GetString() : null, request,
                 r.TryGetProperty("transparency", out var tr) && tr.ValueKind == JsonValueKind.Number
                     ? Math.Clamp(tr.GetInt32(), RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency) : RadialMenuDef.DefaultTransparency,
-                used);
+                used,
+                r.TryGetProperty("busy", out var bz) && bz.ValueKind == JsonValueKind.True);
         }
         catch (Exception)
         {
@@ -241,6 +290,7 @@ public sealed class RadialMenuOverlay : IDisposable
         {
             EnsureWindow();
             bool wasVisible = _window!.IsVisible;
+            _shown = st;
             _cx = st.X; _cy = st.Y; _size = st.Size;
             double r = RadialMenuGeometry.OuterRadius(st.Size);
             double d = 2 * r + 4;
@@ -295,6 +345,7 @@ public sealed class RadialMenuOverlay : IDisposable
     private void Hide()
     {
         _press = null;
+        _shown = null;
         _pointerTimer?.Stop();
         _toast.HideHint();
         if (_window?.IsVisible == true) _window.Hide();
@@ -457,6 +508,7 @@ public sealed class RadialMenuOverlay : IDisposable
 
     public void Dispose()
     {
+        if (ReferenceEquals(Current, this)) Current = null;
         _pointerTimer?.Stop();
         _watcher?.Dispose();
         _toast.Dispose();

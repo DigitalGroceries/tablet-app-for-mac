@@ -292,7 +292,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         HookRadialNumberBox("RadialSizeBox",
             pv => pv.SizeInput,
             (pv, text) => pv.SizeInput = text,
-            pv => pv.Size,
+            pv => pv.SizeStep,
             "size");
     }
 

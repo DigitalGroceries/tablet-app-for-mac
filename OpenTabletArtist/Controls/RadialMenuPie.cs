@@ -298,7 +298,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
             }
             return poly;
         }
-        var pen = new Pen(Brushes.White, part.Stroke * k, lineCap: PenLineCap.Round);
+        var pen = new Pen(TextBrush, part.Stroke * k, lineCap: PenLineCap.Round);   // only its width matters here
         var path = new StreamGeometry();
         using (var gc = path.Open())
         {

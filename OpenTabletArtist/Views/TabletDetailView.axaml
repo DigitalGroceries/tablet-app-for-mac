@@ -1595,8 +1595,10 @@
                                     IsVisible="{Binding CanUseRadialButton}" HorizontalAlignment="Center" />
                             <StackPanel x:Name="RadialSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}" Opacity="{Binding RadialSpotOpacity}">
                                 <TextBlock Text="{Binding RadialPreview.TransparencyCaption}" FontSize="12" />
-                                <Grid ColumnDefinitions="*,8,Auto,2,Auto">
-                                    <Slider x:Name="RadialTransparencySlider" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
+                                <!-- v27 (Zak 16:05): both rows use the same columns (box 52, unit 18) so the two boxes line up exactly; the
+                                     size has no unit (it is a step from 1 to 50, not a percentage), its unit column stays empty. -->
+                                <Grid x:Name="RadialTransparencyRow" ColumnDefinitions="*,8,52,4,18">
+                                    <Slider x:Name="RadialTransparencySlider" Minimum="0" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True"
                                             Value="{Binding RadialPreview.Transparency, Mode=TwoWay}" VerticalAlignment="Center"
                                             AutomationProperties.Name="Menu transparency" />
                                     <TextBox x:Name="RadialTransparencyBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
@@ -1606,9 +1608,9 @@
                                     <TextBlock Grid.Column="4" Text="%" VerticalAlignment="Center" FontWeight="SemiBold" />
                                 </Grid>
                                 <TextBlock Text="{Binding RadialPreview.SizeCaption}" FontSize="12" Margin="0,6,0,0" />
-                                <Grid ColumnDefinitions="*,8,Auto,2,Auto">
-                                    <Slider x:Name="RadialSizeSlider" Minimum="1" Maximum="50" TickFrequency="1" IsSnapToTickEnabled="True"
-                                            Value="{Binding RadialPreview.Size, Mode=TwoWay}" VerticalAlignment="Center"
+                                <Grid x:Name="RadialSizeRow" ColumnDefinitions="*,8,52,4,18">
+                                    <Slider x:Name="RadialSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
+                                            Value="{Binding RadialPreview.SizeStep, Mode=TwoWay}" VerticalAlignment="Center"
                                             AutomationProperties.Name="Menu size" />
                                     <TextBox x:Name="RadialSizeBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
                                              VerticalAlignment="Center" FontWeight="SemiBold" MaxLength="6"

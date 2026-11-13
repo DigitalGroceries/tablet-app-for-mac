@@ -22,7 +22,7 @@ public class RadialTransparencyBoxTests
         var vm = new RadialMenuEditorViewModel(null, "Pen button 1");
         var window = new RadialMenuEditorDialogHost(vm).Window;
         return (window, window.GetVisualDescendants().OfType<TextBox>().First(t => t.Name == "TransparencyBox"),
-            window.GetVisualDescendants().OfType<Slider>().First(s => s.Maximum == 100 && s.Minimum == 0),
+            window.GetVisualDescendants().OfType<Slider>().First(s => s.Maximum == RadialMenuDef.MaxTransparency && s.Minimum == 0),
             window.GetVisualDescendants().OfType<RadialMenuPie>().First(), vm);
     }
 
@@ -72,9 +72,9 @@ public class RadialTransparencyBoxTests
         w.KeyTextInput("350");
         w.GetVisualDescendants().OfType<TextBox>().First(t => t != box).Focus();   // leave the box
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(100, vm.Transparency);
-        Assert.Equal(100, slider.Value);
-        Assert.Equal("100", box.Text);
+        Assert.Equal(60, vm.Transparency);   // v27: the limit is 60 (Zak 16:01)
+        Assert.Equal(60, slider.Value);
+        Assert.Equal("60", box.Text);
         w.Close();
     }
 
@@ -82,16 +82,16 @@ public class RadialTransparencyBoxTests
     public void MovingTheSlider_UpdatesTheBox_AndUpDownKeysStepByOne()
     {
         var (w, box, slider, pie, vm) = Open();
-        slider.Value = 61;
+        slider.Value = 51;
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal("61", box.Text);
+        Assert.Equal("51", box.Text);
         box.Focus();
         w.KeyPress(Key.Up, RawInputModifiers.None, PhysicalKey.ArrowUp, null);
-        Assert.Equal(62, vm.Transparency);
+        Assert.Equal(52, vm.Transparency);
         w.KeyPress(Key.Down, RawInputModifiers.None, PhysicalKey.ArrowDown, null);
         w.KeyPress(Key.Down, RawInputModifiers.None, PhysicalKey.ArrowDown, null);
-        Assert.Equal(60, vm.Transparency);
-        Assert.Equal("60", box.Text);
+        Assert.Equal(50, vm.Transparency);
+        Assert.Equal("50", box.Text);
         w.Close();
     }
 
@@ -126,14 +126,15 @@ public class RadialTransparencyBoxTests
     {
         var (w, _, _, pie, vm) = Open();
         var box = w.GetVisualDescendants().OfType<TextBox>().First(t => t.Name == "SizeBox");
-        var slider = w.GetVisualDescendants().OfType<Slider>().First(s => s.Maximum == RadialMenuDef.MaxSize && s.Minimum == RadialMenuDef.MinSize);
-        Assert.Equal("50", box.Text);
-        Assert.Equal(50, slider.Value);
+        var slider = w.GetVisualDescendants().OfType<Slider>().First(s => s.Maximum == RadialMenuDef.MaxSizeStep && s.Minimum == RadialMenuDef.MinSizeStep);
+        Assert.Equal("10", box.Text);                  // v27 (Zak 16:07): steps 1-10; 10 is the largest (size 50)
+        Assert.Equal(10, slider.Value);
         Assert.Equal(vm.SizeInput, box.Text);          // Pen page binds the same SizeInput
-        vm.Size = 20;
+        vm.SizeStep = 4;
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal("20", box.Text);
-        Assert.Equal(20, slider.Value);
+        Assert.Equal("4", box.Text);
+        Assert.Equal(4, slider.Value);
+        Assert.Equal(RadialMenuDef.SizeForStep(4), vm.Size);
         w.Close();
     }
 
@@ -142,22 +143,22 @@ public class RadialTransparencyBoxTests
     {
         var (w, _, _, _, vm) = Open();
         var box = w.GetVisualDescendants().OfType<TextBox>().First(t => t.Name == "SizeBox");
-        var slider = w.GetVisualDescendants().OfType<Slider>().First(s => s.Maximum == RadialMenuDef.MaxSize && s.Minimum == RadialMenuDef.MinSize);
+        var slider = w.GetVisualDescendants().OfType<Slider>().First(s => s.Maximum == RadialMenuDef.MaxSizeStep && s.Minimum == RadialMenuDef.MinSizeStep);
         box.Focus(); box.SelectAll();
-        w.KeyTextInput("12");
+        w.KeyTextInput("3");
         w.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, null);
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(12, vm.Size);
-        Assert.Equal(12, slider.Value);
-        Assert.Equal("12", box.Text);
-        Assert.Equal("12", vm.SizeInput);
+        Assert.Equal(RadialMenuDef.SizeForStep(3), vm.Size);
+        Assert.Equal(3, slider.Value);
+        Assert.Equal("3", box.Text);
+        Assert.Equal("3", vm.SizeInput);
 
         box.Focus(); box.SelectAll();
         w.KeyTextInput("87");
         w.GetVisualDescendants().OfType<TextBox>().First(t => t != box && t.Name != "SizeBox").Focus();
         Dispatcher.UIThread.RunJobs();
         Assert.Equal(RadialMenuDef.MaxSize, vm.Size);
-        Assert.Equal("50", box.Text);
+        Assert.Equal("10", box.Text);
         w.Close();
     }
 }

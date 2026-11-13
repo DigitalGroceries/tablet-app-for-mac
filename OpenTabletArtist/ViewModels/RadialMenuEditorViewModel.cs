@@ -42,7 +42,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         _top = string.IsNullOrWhiteSpace(menuJson) ? RadialMenuDefaults.Create(Localizer.Te) : RadialMenuJson.Parse(menuJson);
         Title = title;
         _size = _top.Size;
-        _sizeInput = _size.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        _sizeInput = RadialMenuDef.StepForSize(_size).ToString(System.Globalization.CultureInfo.InvariantCulture);
         _transparency = _top.Transparency;
         _transparencyInput = _transparency.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _selectedSlice = 0;
@@ -227,32 +227,45 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         _top.Size = Math.Clamp(value, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
         OnPropertyChanged(nameof(PreviewDiameter));
         OnPropertyChanged(nameof(SizeText));
-        _sizeInput = Math.Clamp(value, RadialMenuDef.MinSize, RadialMenuDef.MaxSize)
-            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+        _sizeInput = RadialMenuDef.StepForSize(value).ToString(System.Globalization.CultureInfo.InvariantCulture);
         OnPropertyChanged(nameof(SizeInput));
+        OnPropertyChanged(nameof(SizeStep));
+        OpenTabletArtist.Services.RadialMenuOverlay.ShowLookLive(CurrentJson());   // v27: an open menu follows at once
+    }
+
+    /// <summary>v27 test (Zak 16:07): the size as the user sees and sets it, 1 to 10 (the sliders and the number box use this).
+    /// <see cref="Size"/> stays the saved 1-50 the driver uses.</summary>
+    public int SizeStep
+    {
+        get => RadialMenuDef.StepForSize(Size);
+        set
+        {
+            int step = Math.Clamp(value, RadialMenuDef.MinSizeStep, RadialMenuDef.MaxSizeStep);
+            if (step == SizeStep) return;
+            Size = RadialMenuDef.SizeForStep(step);
+        }
     }
 
     private string _sizeInput = "";
 
-    /// <summary>The size as typed in the number box beside the slider (v27, Zak: the size was a read-only number).
-    /// Whatever is committed (Enter or leaving the box) is read as a number, clamped to
-    /// <see cref="RadialMenuDef.MinSize"/>..<see cref="RadialMenuDef.MaxSize"/> (50 = 320 pt) and applied, so the
-    /// slider and the live preview follow; text that is not a number, or an empty box, puts the old value back.
-    /// The box always ends up showing the real value.</summary>
+    /// <summary>The size as typed in the number box beside the slider (v27, Zak: the size was a read-only number), as a step
+    /// 1 to 10 (Zak 16:07). Whatever is committed (Enter or leaving the box) is read as a number, clamped to 1-10 and applied,
+    /// so the slider and the live preview follow; text that is not a number, or an empty box, puts the old value back.
+    /// The box always ends up showing the real step.</summary>
     public string SizeInput
     {
         get => _sizeInput;
         set
         {
             if (TryParseSize(value, out var v)) Size = v;
-            _sizeInput = Math.Clamp(Size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize)
-                .ToString(System.Globalization.CultureInfo.InvariantCulture);
+            _sizeInput = SizeStep.ToString(System.Globalization.CultureInfo.InvariantCulture);
             OnPropertyChanged(nameof(SizeInput));
             OpenTabletArtist.Services.AppLog.Info($"Radial menu settings: menu size {_sizeInput} was entered in the number box.");
         }
     }
 
-    /// <summary>Reads a typed menu size: comma or dot, rounded and clamped to the size range.</summary>
+    /// <summary>Reads a typed menu size step (1-10): comma or dot, rounded and clamped to 1-10, and gives the saved size
+    /// (1-50) for it.</summary>
     public static bool TryParseSize(string? text, out int size)
     {
         size = 0;
@@ -260,17 +273,22 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         var t = text.Trim().Replace(',', '.');
         if (!double.TryParse(t, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d)
             || double.IsNaN(d) || double.IsInfinity(d)) return false;
-        size = (int)Math.Round(Math.Clamp(d, RadialMenuDef.MinSize, RadialMenuDef.MaxSize), MidpointRounding.AwayFromZero);
+        int step = (int)Math.Round(Math.Clamp(d, RadialMenuDef.MinSizeStep, RadialMenuDef.MaxSizeStep), MidpointRounding.AwayFromZero);
+        size = RadialMenuDef.SizeForStep(step);
         return true;
     }
 
     partial void OnTransparencyChanged(int value)
     {
+        // v27: the value itself never goes past the limits (a slider or a typed value can't, a program might).
+        int clamped = Math.Clamp(value, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency);
+        if (clamped != value) { Transparency = clamped; return; }
         _top.Transparency = Math.Clamp(value, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency);
         OnPropertyChanged(nameof(TransparencyText));
         _transparencyInput = Math.Clamp(value, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency)
             .ToString(System.Globalization.CultureInfo.InvariantCulture);
         OnPropertyChanged(nameof(TransparencyInput));
+        OpenTabletArtist.Services.RadialMenuOverlay.ShowLookLive(CurrentJson());   // v27: an open menu follows at once
     }
 
     private string _transparencyInput = "";
@@ -309,7 +327,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         .ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
 
     /// <summary>The size shown as a number next to the slider (1-50).</summary>
-    public string SizeText => Math.Clamp(Size, RadialMenuDef.MinSize, RadialMenuDef.MaxSize).ToString(System.Globalization.CultureInfo.InvariantCulture);
+    public string SizeText => SizeStep.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     /// <summary>Width and height in points of the live preview ring: the same size the menu has on screen
     /// (50 gives 320, 1 gives 180, 100 gives 460), so the slider shows what you will get.</summary>

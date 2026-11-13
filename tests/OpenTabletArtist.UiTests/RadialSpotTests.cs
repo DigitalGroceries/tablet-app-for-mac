@@ -270,6 +270,25 @@ public class RadialSpotTests
 
     // ── the sliders ──────────────────────────────────────────────────────────────────────────────────────
 
+    /// <summary>v27 (Zak 16:05): the Menu transparency and Menu size boxes line up (same left edge, same width) and the sliders are
+    /// the same length; only transparency has the % sign (the size is a step from 1 to 50, not a percentage).</summary>
+    [AvaloniaFact]
+    public void TheTwoNumberBoxes_LineUp_AndTheSlidersAreTheSameLength()
+    {
+        var (_, view, window, _) = Open(NewProfile(Name(), new PluginSettingStore?[] { null, Radial("A") }));
+        try
+        {
+            Settle(window);
+            var tBox = Find<TextBox>(view, "RadialTransparencyBox"); var sBox = Find<TextBox>(view, "RadialSizeBox");
+            var tSlider = Find<Slider>(view, "RadialTransparencySlider"); var sSlider = Find<Slider>(view, "RadialSizeSlider");
+            var t = tBox.TranslatePoint(new Point(0, 0), view)!.Value; var z = sBox.TranslatePoint(new Point(0, 0), view)!.Value;
+            Assert.Equal(t.X, z.X, 1);
+            Assert.Equal(tBox.Bounds.Width, sBox.Bounds.Width, 1);
+            Assert.Equal(tSlider.Bounds.Width, sSlider.Bounds.Width, 1);
+        }
+        finally { window.Close(); }
+    }
+
     [AvaloniaFact]
     public async Task TransparencySlider_ChangesThePictureLive_AndTheNumberBoxBehavesLikeTheEditors()
     {
@@ -278,7 +297,7 @@ public class RadialSpotTests
         {
             var slider = Find<Slider>(view, "RadialTransparencySlider"); var box = Find<TextBox>(view, "RadialTransparencyBox");
             var pie = Find<RadialMenuPie>(view, "RadialSpotPie");
-            Assert.Equal(0, slider.Minimum); Assert.Equal(100, slider.Maximum);
+            Assert.Equal(0, slider.Minimum); Assert.Equal(60, slider.Maximum);   // v27 (Zak 16:01): 60% is the maximum
             Assert.Equal(40, (int)slider.Value); Assert.Equal("40", box.Text);
 
             slider.Value = 10; Settle(window);
@@ -287,19 +306,19 @@ public class RadialSpotTests
             Assert.Equal("10", box.Text);                              // synced
             Assert.NotEqual(RadialMenuDef.OpacityFor(0), pie.Opacity);
 
-            vm.RadialPreview!.TransparencyInput = "75%"; Settle(window);   // typing, as the editor accepts it
-            Assert.Equal(75, (int)slider.Value); Assert.Equal(75, pie.Transparency);
+            vm.RadialPreview!.TransparencyInput = "55%"; Settle(window);   // typing, as the editor accepts it
+            Assert.Equal(55, (int)slider.Value); Assert.Equal(55, pie.Transparency);
             vm.RadialPreview.TransparencyInput = "abc"; Settle(window);
-            Assert.Equal("75", box.Text);                              // not a number: the old value comes back
+            Assert.Equal("55", box.Text);                              // not a number: the old value comes back
             vm.RadialPreview.TransparencyInput = "250"; Settle(window);
-            Assert.Equal(100, (int)slider.Value);                      // clamped
+            Assert.Equal(60, (int)slider.Value);                       // clamped to the 60% limit
 
             box.Focus(); Settle(window);
             box.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Down });
             Settle(window);
-            Assert.Equal(99, (int)slider.Value); Assert.Equal("99", box.Text);   // Down changes it by 1
+            Assert.Equal(59, (int)slider.Value); Assert.Equal("59", box.Text);   // Down changes it by 1
             box.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Up });
-            Assert.Equal(100, (int)slider.Value);
+            Assert.Equal(60, (int)slider.Value);
             box.Text = "33";
             box.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });   // Enter applies
             Settle(window);
@@ -317,33 +336,34 @@ public class RadialSpotTests
         {
             var slider = Find<Slider>(view, "RadialSizeSlider"); var number = Find<TextBox>(view, "RadialSizeBox");
             var box = Find<Viewbox>(view, "RadialSpotViewbox");
-            Assert.Equal(RadialMenuDef.MaxSize, (int)slider.Maximum);
+            Assert.Equal(RadialMenuDef.MaxSizeStep, (int)slider.Maximum);   // v27 (Zak 16:07): the size is set from 1 to 10
             Assert.Equal(RadialMenuDef.MaxSize, 50);
             Assert.Equal(320, 2 * RadialMenuGeometry.OuterRadius(RadialMenuDef.MaxSize), 3);   // the picture in Zak's screenshot: 320 pt across
             Assert.Equal(320, 2 * RadialMenuGeometry.OuterRadius(100), 3);                     // nothing bigger, whatever number is stored
-            Assert.Equal("50", number.Text);
+            Assert.Equal("10", number.Text);
             double large = box.Width;
             Assert.Equal(TabletDetailViewModel.RadialPictureMax, large, 1);
 
-            slider.Value = 10; Settle(window);
-            Assert.Equal("10", number.Text);                          // the number box follows the slider
+            slider.Value = 2; Settle(window);
+            Assert.Equal("2", number.Text);                           // the number box follows the slider
             Assert.True(box.Width < large - 30, $"the picture did not get smaller: {box.Width} vs {large}");
-            vm.RadialPreview!.SizeInput = "25"; Settle(window);       // typing, as transparency does
-            Assert.Equal(25, (int)slider.Value);
-            Assert.Equal("25", number.Text);
+            vm.RadialPreview!.SizeInput = "5"; Settle(window);        // typing, as transparency does
+            Assert.Equal(5, (int)slider.Value);
+            Assert.Equal("5", number.Text);
+            Assert.Equal(RadialMenuDef.SizeForStep(5), vm.RadialPreview.Size);
             vm.RadialPreview.SizeInput = "abc"; Settle(window);
-            Assert.Equal("25", number.Text);                          // not a number: the old value comes back
+            Assert.Equal("5", number.Text);                           // not a number: the old value comes back
             vm.RadialPreview.SizeInput = "87"; Settle(window);
-            Assert.Equal(RadialMenuDef.MaxSize, (int)slider.Value);    // clamped to 1-50
-            Assert.Equal("50", number.Text);
+            Assert.Equal(RadialMenuDef.MaxSizeStep, (int)slider.Value);   // clamped to 1-10
+            Assert.Equal("10", number.Text);
             number.Focus(); Settle(window);
             number.Text = "8";
             number.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
             Settle(window);
             Assert.Equal(8, (int)slider.Value); Assert.Equal("8", number.Text);   // Enter applies
             slider.Value = 1000; Settle(window);                          // above the range: held at the largest
-            Assert.Equal(RadialMenuDef.MaxSize, (int)slider.Value);
-            Assert.Equal("50", number.Text);
+            Assert.Equal(RadialMenuDef.MaxSizeStep, (int)slider.Value);
+            Assert.Equal("10", number.Text);
             Assert.Equal(large, box.Width, 1);
             await Pump(TabletDetailViewModel.RadialApplyDelay.Milliseconds + 80);
         }
@@ -360,7 +380,7 @@ public class RadialSpotTests
         {
             var slider = Find<Slider>(view, "RadialTransparencySlider");
             foreach (var v in new[] { 30, 31, 32, 33 }) slider.Value = v;
-            Find<Slider>(view, "RadialSizeSlider").Value = 20;
+            Find<Slider>(view, "RadialSizeSlider").Value = 4;    // step 4 (v27: 1-10) = size 17
             Assert.Equal(0, applies);
             vm.RefreshRadialSpot();                                        // a refresh while the change is on its way keeps the sliders
             Assert.Equal(33, (int)slider.Value);
@@ -368,7 +388,7 @@ public class RadialSpotTests
             await Pump(TabletDetailViewModel.RadialApplyDelay.Milliseconds + 100);
             Assert.Equal(1, applies);
             var stored = RadialMenuBinding.ReadMenu(profile.BindingSettings.PenButtons[1]);
-            Assert.Equal(33, stored.Transparency); Assert.Equal(20, stored.Size);
+            Assert.Equal(33, stored.Transparency); Assert.Equal(RadialMenuDef.SizeForStep(4), stored.Size);
         }
         finally { window.Close(); }
     }
@@ -402,21 +422,21 @@ public class RadialSpotTests
         {
             Assert.False(app.HasUnsavedChanges);
             Find<Slider>(view, "RadialTransparencySlider").Value = 12;
-            Find<Slider>(view, "RadialSizeSlider").Value = 25;
+            Find<Slider>(view, "RadialSizeSlider").Value = 5;    // step 5 (v27: 1-10) = size 23
             await vm.FlushRadialSpotAsync();
             await PumpUntil(() => !app.SettingsBusy && app.SaveState != SettingsSaveState.Applying);
 
             var stored = RadialMenuBinding.ReadMenu(app.CurrentSettings!.Profiles[0].BindingSettings.PenButtons[1]);
-            Assert.Equal(12, stored.Transparency); Assert.Equal(25, stored.Size);
+            Assert.Equal(12, stored.Transparency); Assert.Equal(RadialMenuDef.SizeForStep(5), stored.Size);
             Assert.True(app.HasUnsavedChanges);                       // like the rest of the page: kept by the footer's Save
             Assert.Equal(40, RadialMenuBinding.ReadMenu(store.Saved!.Profiles[0].BindingSettings.PenButtons[1]).Transparency);
 
             Assert.True(await app.SaveSettingsAsync());
             Assert.False(app.HasUnsavedChanges);
             var saved = RadialMenuBinding.ReadMenu(store.Saved!.Profiles[0].BindingSettings.PenButtons[1]);
-            Assert.Equal(12, saved.Transparency); Assert.Equal(25, saved.Size);
+            Assert.Equal(12, saved.Transparency); Assert.Equal(RadialMenuDef.SizeForStep(5), saved.Size);
             Assert.Equal(12, (int)Find<Slider>(view, "RadialTransparencySlider").Value);   // the page still shows it after the save refreshed it
-            Assert.Equal(25, (int)Find<Slider>(view, "RadialSizeSlider").Value);
+            Assert.Equal(5, (int)Find<Slider>(view, "RadialSizeSlider").Value);
         }
         finally { window.Close(); }
     }

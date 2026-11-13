@@ -12,7 +12,7 @@ using Xunit;
 namespace OpenTabletArtist.SweepTests;
 
 /// <summary>v27 (Zak 21:49): Menu transparency fades the whole menu (slices, labels, icons, ring and highlight)
-/// so work behind shows through. 0% is solid; 100% is still <see cref="RadialMenuDef.MinVisibleOpacity"/> (10%)
+/// so work behind shows through. 0% is solid; the slider stops at 60% (v27, Zak 16:01), which still leaves almost half of the menu
 /// so the menu stays usable. The Pen page preview uses the same pie, so it changes with the slider.</summary>
 public class RadialTransparencyTests
 {
@@ -50,27 +50,29 @@ public class RadialTransparencyTests
     public void WholeMenu_FollowsTheTransparency_WithAUsableFloor_AndThePreviewWouldMatch()
     {
         Assert.Equal(1.0, RadialMenuDef.OpacityFor(0));
-        Assert.Equal(RadialMenuDef.MinVisibleOpacity, RadialMenuDef.OpacityFor(100));
+        Assert.Equal(60, RadialMenuDef.MaxTransparency);   // v27 test (Zak 16:01): "60% should be the maximum"
+        Assert.Equal(RadialMenuDef.OpacityFor(60), RadialMenuDef.OpacityFor(100));   // anything above 60 is 60
 
         var solid = Sample(0);
         var mid = Sample(40);
-        var clear = Sample(100);
+        var clear = Sample(RadialMenuDef.MaxTransparency);
 
         Assert.Equal(1.0, solid.Opacity);
         Assert.Equal(RadialMenuDef.OpacityFor(40), mid.Opacity);
-        Assert.Equal(RadialMenuDef.MinVisibleOpacity, clear.Opacity);
+        Assert.Equal(RadialMenuDef.OpacityFor(60), clear.Opacity);
+        Assert.True(clear.Opacity > 0.4, "at the 60% limit almost half of the menu still shows, so the names stay readable");
 
         // Slice background over the red window: solid = the dark grey; 100% lets most of the red show through.
         Assert.True(solid.Slice.R < 80 && solid.Slice.G < 80, $"solid slice {solid.Slice}");
         Assert.True(mid.Slice.R > solid.Slice.R + 40, $"40% slice {mid.Slice} vs solid {solid.Slice}");
-        Assert.True(clear.Slice.R > mid.Slice.R + 40, $"100% slice {clear.Slice} vs 40% {mid.Slice}");
-        Assert.True(clear.Slice.R > 200, $"100% slice should show the red window through: {clear.Slice}");
-        // Not fully invisible: a little of the grey remains (the 10% floor).
-        Assert.True(clear.Slice.G > 0 || clear.Slice.B > 0 || clear.Slice.R < 255, $"100% slice vanished: {clear.Slice}");
+        Assert.True(clear.Slice.R > mid.Slice.R + 15, $"60% slice {clear.Slice} vs 40% {mid.Slice}");
+        Assert.True(clear.Slice.R > 120, $"60% slice should show the red window through: {clear.Slice}");
+        // Not invisible: at the 60% limit almost half of the grey remains (v27, Zak 16:01).
+        Assert.True(clear.Slice.R < 200, $"60% slice is too see-through: {clear.Slice}");
 
-        // The highlighted slice fades too, so the preview at 0% and 100% cannot look the same.
+        // The highlighted slice fades too, so the preview at 0% and 60% cannot look the same.
         Assert.True(solid.Highlighted.B > solid.Highlighted.R + 40, $"highlight {solid.Highlighted}");
-        Assert.True(clear.Highlighted.R > solid.Highlighted.R + 40, $"100% highlight {clear.Highlighted} vs solid {solid.Highlighted}");
+        Assert.True(clear.Highlighted.R > solid.Highlighted.R + 40, $"60% highlight {clear.Highlighted} vs solid {solid.Highlighted}");
         Assert.NotEqual(solid.Highlighted, clear.Highlighted);
         Assert.NotEqual(solid.Slice, clear.Slice);
     }

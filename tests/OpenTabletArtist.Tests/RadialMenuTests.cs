@@ -871,8 +871,8 @@ public class RadialMenuEditorTests
         Assert.Equal(320, vm.PreviewDiameter, 1);
         vm.Size = 100;                                    // even if something sets more, the menu and the number stay at the largest
         Assert.Equal(320, vm.PreviewDiameter, 1);
-        Assert.Equal("50", vm.SizeText);
-        Assert.Equal("50", vm.SizeInput);
+        Assert.Equal("10", vm.SizeText);                  // v27 (Zak 16:07): shown as a step 1-10; 10 is the largest
+        Assert.Equal("10", vm.SizeInput);
         Assert.Equal(50, RadialMenuJson.Parse(vm.CurrentJson()).Size);
     }
 
@@ -883,12 +883,12 @@ public class RadialMenuEditorTests
         var seen = new System.Collections.Generic.List<string>();
         vm.PropertyChanged += (_, e) => seen.Add(e.PropertyName!);
         Assert.Equal(320, vm.PreviewDiameter, 1);
-        Assert.Equal("50", vm.SizeText);
-        Assert.Equal("50", vm.SizeInput);
+        Assert.Equal("10", vm.SizeText);
+        Assert.Equal("10", vm.SizeInput);
         vm.Size = 25;
         Assert.Equal(2 * RadialMenuGeometry.OuterRadius(25), vm.PreviewDiameter, 1);
-        Assert.Equal("25", vm.SizeText);
-        Assert.Equal("25", vm.SizeInput);
+        Assert.Equal("5", vm.SizeText);                   // size 25 is shown as step 5
+        Assert.Equal("5", vm.SizeInput);
         Assert.Contains(nameof(vm.PreviewDiameter), seen);
         Assert.Contains(nameof(vm.SizeText), seen);
         Assert.Contains(nameof(vm.SizeInput), seen);
@@ -898,21 +898,22 @@ public class RadialMenuEditorTests
         vm.ResetCommand.Execute(null);
         Assert.Equal(50, vm.Size);
         Assert.Equal(320, vm.PreviewDiameter, 1);
-        Assert.Equal("50", vm.SizeText);
-        Assert.Equal("50", vm.SizeInput);
+        Assert.Equal("10", vm.SizeText);
+        Assert.Equal("10", vm.SizeInput);
     }
 
     [Theory]
-    [InlineData("25", 25, "25")]
-    [InlineData(" 7 ", 7, "7")]
-    [InlineData("12,6", 13, "13")]
+    // v27 (Zak 16:07): typed as a step 1-10; the saved size is 1-50 (step 5 = 23, 7 = 34, 3 = 12, 10 = 50).
+    [InlineData("5", 23, "5")]
+    [InlineData(" 7 ", 34, "7")]
+    [InlineData("2,6", 12, "3")]
     [InlineData("1", 1, "1")]
-    [InlineData("50", 50, "50")]
-    [InlineData("87", 50, "50")]       // clamped to 1-50 (MaxSize = 320 pt)
+    [InlineData("10", 50, "10")]
+    [InlineData("87", 50, "10")]       // clamped to 1-10 (10 = size 50 = 320 pt)
     [InlineData("0", 1, "1")]
     [InlineData("-9", 1, "1")]
-    [InlineData("abc", 50, "50")]      // not a number: the old value comes back
-    [InlineData("", 50, "50")]
+    [InlineData("abc", 50, "10")]      // not a number: the old value comes back
+    [InlineData("", 50, "10")]
     public void Size_TypedInTheNumberBox_IsClamped_AndTheSliderValueFollows(string typed, int expected, string shown)
     {
         var vm = new RadialMenuEditorViewModel(null, "x");   // starts at the default, 50
@@ -929,19 +930,45 @@ public class RadialMenuEditorTests
     {
         var vm = new RadialMenuEditorViewModel(null, "x");
         vm.Size = 12;
-        Assert.Equal("12", vm.SizeInput);
-        Assert.Equal("12", vm.SizeText);
+        Assert.Equal("3", vm.SizeInput);
+        Assert.Equal("3", vm.SizeText);
+        vm.SizeStep = 7;                                   // the sliders are bound to the step
+        Assert.Equal(34, vm.Size);
+        Assert.Equal("7", vm.SizeInput);
+    }
+
+    /// <summary>v27 test (Zak 13 Nov 16:07): "the menu size should go from 1 to 10 within the same values of 1 to 50".</summary>
+    [Fact]
+    public void SizeSteps_1To10_SpanTheSameSizes_1To50_AndRoundTrip()
+    {
+        Assert.Equal(1, RadialMenuDef.SizeForStep(1));
+        Assert.Equal(50, RadialMenuDef.SizeForStep(10));
+        int previous = 0;
+        for (int step = 1; step <= 10; step++)
+        {
+            int size = RadialMenuDef.SizeForStep(step);
+            Assert.True(size > previous, $"step {step} gives {size}, not bigger than {previous}");
+            Assert.Equal(step, RadialMenuDef.StepForSize(size));
+            previous = size;
+        }
+        Assert.Equal(1, RadialMenuDef.SizeForStep(-3));
+        Assert.Equal(50, RadialMenuDef.SizeForStep(99));
+        Assert.Equal(10, RadialMenuDef.StepForSize(50));
+        Assert.Equal(1, RadialMenuDef.StepForSize(1));
     }
 
     [Fact]
     public void OpacityFor_IsSolidAt0_AndKeepsAUsableFloorAt100()
     {
+        // v27 test (Zak 13 Nov 16:01): "60% should be the maximum" - the fading scale is unchanged, the limit is 60.
         Assert.Equal(0.10, RadialMenuDef.MinVisibleOpacity);
+        Assert.Equal(60, RadialMenuDef.MaxTransparency);
         Assert.Equal(1.0, RadialMenuDef.OpacityFor(0));
-        Assert.Equal(0.10, RadialMenuDef.OpacityFor(100));
+        Assert.Equal(0.46, RadialMenuDef.OpacityFor(60), 2);   // what Zak saw at 60% on the V27 test
+        Assert.Equal(0.46, RadialMenuDef.OpacityFor(100), 2);  // stops at the limit
         Assert.Equal(0.64, RadialMenuDef.OpacityFor(40), 2);   // default 40% → 64% opaque (36% see-through)
         Assert.Equal(1.0, RadialMenuDef.OpacityFor(-5));
-        Assert.Equal(0.10, RadialMenuDef.OpacityFor(200));
+        Assert.Equal(0.46, RadialMenuDef.OpacityFor(200), 2);
         Assert.True(RadialMenuDef.OpacityFor(100) < RadialMenuDef.OpacityFor(40));
         Assert.True(RadialMenuDef.OpacityFor(40) < RadialMenuDef.OpacityFor(0));
     }
@@ -1012,8 +1039,8 @@ public class RadialMenuEditorTests
     [InlineData("33%", 33, "33")]
     [InlineData("12,6", 13, "13")]
     [InlineData("0", 0, "0")]
-    [InlineData("100", 100, "100")]
-    [InlineData("250", 100, "100")]     // clamped to 0-100
+    [InlineData("100", 60, "60")]
+    [InlineData("250", 60, "60")]       // clamped to 0-60 (v27: 60% is the maximum)
     [InlineData("-9", 0, "0")]
     [InlineData("abc", 40, "40")]       // not a number: the old value comes back
     [InlineData("", 40, "40")]
@@ -1032,15 +1059,18 @@ public class RadialMenuEditorTests
     public void Transparency_SliderMovesTheNumberBox()
     {
         var vm = new RadialMenuEditorViewModel(null, "x");
-        vm.Transparency = 83;
-        Assert.Equal("83", vm.TransparencyInput);
+        vm.Transparency = 53;
+        Assert.Equal("53", vm.TransparencyInput);
+        vm.Transparency = 83;                                  // above the 60% limit
+        Assert.Equal(60, vm.Transparency);
+        Assert.Equal("60", vm.TransparencyInput);
     }
 
     [Fact]
     public void Transparency_OfAnOldMenuWithoutIt_IsTheDefault_AndIsClamped()
     {
         Assert.Equal(40, RadialMenuJson.Parse("{\"slices\":[],\"size\":50}").Transparency);
-        Assert.Equal(100, RadialMenuJson.Parse("{\"slices\":[],\"transparency\":900}").Transparency);
+        Assert.Equal(60, RadialMenuJson.Parse("{\"slices\":[],\"transparency\":900}").Transparency);   // v27: limit 60
         Assert.Equal(0, RadialMenuJson.Parse("{\"slices\":[],\"transparency\":-5}").Transparency);
         var menu = RadialMenuDefaults.Create(); menu.Transparency = 33;
         Assert.Equal(33, menu.Clone().Transparency);

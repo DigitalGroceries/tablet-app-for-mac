@@ -192,8 +192,9 @@ public sealed class RadialMenuEditorDialog : Window
         body.Children.Add(right);
 
         // Footer: size, reset, save / cancel
-        var size = new Slider { Minimum = RadialMenuDef.MinSize, Maximum = RadialMenuDef.MaxSize, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220 };
-        size[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.Size)) { Mode = BindingMode.TwoWay };
+        // v27 test (Zak 16:07): the size is set from 1 to 10 (SizeStep); the saved size stays 1-50.
+        var size = new Slider { Minimum = RadialMenuDef.MinSizeStep, Maximum = RadialMenuDef.MaxSizeStep, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220 };
+        size[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.SizeStep)) { Mode = BindingMode.TwoWay };
         Avalonia.Automation.AutomationProperties.SetName(size, vm.SizeCaption);
         var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto,Auto,*,Auto,Auto"), Margin = new Thickness(0, 14, 0, 0), Name = FooterName };
         footer.RowDefinitions = new RowDefinitions("Auto,Auto");
@@ -213,13 +214,13 @@ public sealed class RadialMenuEditorDialog : Window
         sizeBox.AddHandler(InputElement.KeyDownEvent, (_, e) =>
         {
             if (e.Key is Key.Enter or Key.Return) { vm.SizeInput = sizeBox.Text ?? ""; sizeBox.Text = vm.SizeInput; sizeBox.SelectAll(); e.Handled = true; }
-            else if (e.Key == Key.Up) { vm.SizeInput = (vm.Size + 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
-            else if (e.Key == Key.Down) { vm.SizeInput = (vm.Size - 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+            else if (e.Key == Key.Up) { vm.SizeInput = (vm.SizeStep + 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
+            else if (e.Key == Key.Down) { vm.SizeInput = (vm.SizeStep - 1).ToString(System.Globalization.CultureInfo.InvariantCulture); e.Handled = true; }
         }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
         sizeBox.LostFocus += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => sizeBox.Text = vm.SizeInput);
         Put(sizeBox, 4);
         // Menu transparency: 0 (solid) to 100 (clear), the ring on the left shows it while the slider moves.
-        var transparency = new Slider { Minimum = 0, Maximum = 100, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220, Margin = new Thickness(0, 6, 0, 0) };
+        var transparency = new Slider { Minimum = RadialMenuDef.MinTransparency, Maximum = RadialMenuDef.MaxTransparency, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220, Margin = new Thickness(0, 6, 0, 0) };
         transparency[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.Transparency)) { Mode = BindingMode.TwoWay };
         Avalonia.Automation.AutomationProperties.SetName(transparency, vm.TransparencyCaption);
         Put(new TextBlock { Text = vm.TransparencyCaption, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 6, 10, 0) }, 0, 1);

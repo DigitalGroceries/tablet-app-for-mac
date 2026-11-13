@@ -29,19 +29,39 @@ public sealed class RadialMenuDef
     /// <summary>TASKS #63 (Zak 21:01): the menu is never bigger than the one on his screen, which is size 50: 320 pt across
     /// (<see cref="RadialMenuGeometry.OuterRadius"/> 160). The slider's largest value is this; a saved larger size is used as this.</summary>
     public const int MaxSize = 50;
+    /// <summary>v27 test (Zak 13 Nov 16:07): the user sets the menu size from 1 to 10. Step 1 is the smallest menu (size 1) and
+    /// step 10 the largest (size 50); the steps in between are spread evenly over the same sizes. Menus are still saved with
+    /// the size (1-50) the driver uses, so nothing saved before changes.</summary>
+    public const int MinSizeStep = 1, MaxSizeStep = 10;
+    /// <summary>The menu size for a step 1-10 (rounded to a whole size).</summary>
+    public static int SizeForStep(int step)
+    {
+        int st = Math.Clamp(step, MinSizeStep, MaxSizeStep);
+        return (int)Math.Round(MinSize + (st - MinSizeStep) * (double)(MaxSize - MinSize) / (MaxSizeStep - MinSizeStep), MidpointRounding.AwayFromZero);
+    }
+    /// <summary>The step 1-10 a menu size is shown as (the nearest one).</summary>
+    public static int StepForSize(int size)
+    {
+        int sz = Math.Clamp(size, MinSize, MaxSize);
+        return (int)Math.Round(MinSizeStep + (sz - MinSize) * (double)(MaxSizeStep - MinSizeStep) / (MaxSize - MinSize), MidpointRounding.AwayFromZero);
+    }
     /// <summary>The widest a menu can be, in points (the picture in the Pen page's Radial Menu Settings is never larger).</summary>
     public const double MaxDiameter = 320;
-    /// <summary>Menu transparency in percent: 0 is solid, 100 is clear. TASKS #58 / #59 (Zak 18:21): 40 unless chosen (was 70).</summary>
-    public const int MinTransparency = 0, MaxTransparency = 100, DefaultTransparency = 40;
-    /// <summary>At 100% transparency the menu is still this opaque (10% = 90% see-through), so labels and slices stay usable.
-    /// 0% transparency is fully solid. v27 (Zak 21:49): the whole menu fades, not only the slice backgrounds.</summary>
+    /// <summary>Menu transparency in percent: 0 is solid. TASKS #58 / #59 (Zak 18:21): 40 unless chosen (was 70).
+    /// v27 test (Zak 13 Nov 16:01, looking at the open menu over a white web page): "60% should be the maximum" - above that
+    /// the slice names can't be read, so the slider, the number box and every saved menu stop at 60.</summary>
+    public const int MinTransparency = 0, MaxTransparency = 60, DefaultTransparency = 40;
+    /// <summary>The percent scale the fading is measured on (unchanged by the 60% limit, so 60% looks exactly as Zak saw it).</summary>
+    public const int TransparencyScale = 100;
+    /// <summary>Opacity left at <see cref="TransparencyScale"/> (100%) on the fading scale: 10%. Since the v27 test the
+    /// slider stops at <see cref="MaxTransparency"/> (60%), which leaves 46% of the menu visible.</summary>
     public const double MinVisibleOpacity = 0.10;
     /// <summary>Opacity of the whole menu (slices, labels, icons, ring and highlight) for a transparency 0–100.</summary>
     public static double OpacityFor(int transparency)
     {
         int t = Math.Clamp(transparency, MinTransparency, MaxTransparency);
-        // Weighted from fully solid (0%) to MinVisibleOpacity (100%), exact at both ends.
-        return MinVisibleOpacity + (1.0 - MinVisibleOpacity) * (MaxTransparency - t) / MaxTransparency;
+        // Weighted from fully solid (0%) to MinVisibleOpacity (100% on the scale); the limit stops it at 60%.
+        return MinVisibleOpacity + (1.0 - MinVisibleOpacity) * (TransparencyScale - t) / TransparencyScale;
     }
     /// <summary>Top menu + 2 levels of submenus.</summary>
     public const int MaxDepth = 3;
