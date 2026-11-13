@@ -61,7 +61,10 @@
         </Style>
     </UserControl.Styles>
 
-    <StackPanel Spacing="12" Width="300" HorizontalAlignment="Right">
+    <!-- v27 (Zak 16:39): 240 wide (was 300). Every row is at most 220 (heading 84 + 10 + value box 126; Change… 104 + 12 + Default 104),
+         so nothing on screen moves; the 60 points freed on the right let the Radial Menu Settings picture sit at its real size where the
+         open menu was in Zak's screenshot. "Modified to X" wraps a little earlier. -->
+    <StackPanel Spacing="12" Width="240" HorizontalAlignment="Right">
         <!-- Heading, with the current action on the same line for side buttons ("BUTTON 2:  Right click"). -->
         <!-- R14 (the user's mock-up): the button's current action in a dark value box. The heading column has a fixed
              width so every card's box starts at the same x; the boxes are one width (the two buttons below). -->

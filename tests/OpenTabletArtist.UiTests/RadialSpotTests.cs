@@ -81,7 +81,9 @@ public class RadialSpotTests
 
     private static void Settle(Window w) { for (int i = 0; i < 4; i++) { Dispatcher.UIThread.RunJobs(); w.UpdateLayout(); } }
 
-    private static Rect In(Visual v, Visual root) => new Rect(v.TranslatePoint(new Point(0, 0), root) ?? default, v.Bounds.Size);
+    // both corners, so a control inside a scaling Viewbox (the picture in a narrow window) is measured as drawn
+    private static Rect In(Visual v, Visual root) =>
+        new Rect(v.TranslatePoint(new Point(0, 0), root) ?? default, v.TranslatePoint(new Point(v.Bounds.Width, v.Bounds.Height), root) ?? default);
 
     private static T Find<T>(TabletDetailView v, string name) where T : Control => v.FindControl<T>(name)!;
 
@@ -343,10 +345,18 @@ public class RadialSpotTests
             Assert.Equal("10", number.Text);
             double large = box.Width;
             Assert.Equal(TabletDetailViewModel.RadialPictureMax, large, 1);
+            var sliders = Find<StackPanel>(view, "RadialSliders"); var spot = Find<StackPanel>(view, "RadialSpot");
+            AssertRealSize(view, vm.RadialPreview!.Size);                   // v27 (Zak 16:35): the picture is the menu's real size
+            // measured inside the radial column, so a page scroll (focusing the number box scrolls it into view) does not count as a move
+            double slidersTop = In(sliders, spot).Top, slidersLeft = In(sliders, spot).Left;
 
             slider.Value = 2; Settle(window);
             Assert.Equal("2", number.Text);                           // the number box follows the slider
             Assert.True(box.Width < large - 30, $"the picture did not get smaller: {box.Width} vs {large}");
+            AssertRealSize(view, vm.RadialPreview.Size);
+            // the square kept for the largest menu does not shrink, so the sliders stay where they are while the size is dragged
+            Assert.Equal(slidersTop, In(sliders, spot).Top, 1);
+            Assert.Equal(slidersLeft, In(sliders, spot).Left, 1);
             vm.RadialPreview!.SizeInput = "5"; Settle(window);        // typing, as transparency does
             Assert.Equal(5, (int)slider.Value);
             Assert.Equal("5", number.Text);
@@ -365,9 +375,25 @@ public class RadialSpotTests
             Assert.Equal(RadialMenuDef.MaxSizeStep, (int)slider.Value);
             Assert.Equal("10", number.Text);
             Assert.Equal(large, box.Width, 1);
+            AssertRealSize(view, vm.RadialPreview.Size);
+            Assert.Equal(slidersTop, In(sliders, spot).Top, 1);
             await Pump(TabletDetailViewModel.RadialApplyDelay.Milliseconds + 80);
         }
         finally { window.Close(); }
+    }
+
+    /// <summary>The picture is drawn exactly as big as the menu the pen opens: the same edge as the menu window (2 x outer radius + 4,
+    /// RadialMenuOverlay.Show) and nothing scales it, so it is the real size on the screen.</summary>
+    private static void AssertRealSize(TabletDetailView view, int size)
+    {
+        double real = 2 * RadialMenuGeometry.OuterRadius(size) + 4;
+        var pie = Find<RadialMenuPie>(view, "RadialSpotPie");
+        // within half a point: layout rounds to whole pixels, as the menu window's own size is
+        Assert.Equal(real, pie.Bounds.Width, tolerance: 0.5);
+        Assert.Equal(real, pie.Bounds.Height, tolerance: 0.5);
+        var onScreen = In(pie, view);   // after every scale on the way up (the inner Viewbox and the fit Viewbox)
+        Assert.Equal(real, onScreen.Width, tolerance: 0.5);
+        Assert.Equal(real, onScreen.Height, tolerance: 0.5);
     }
 
     [AvaloniaFact]
@@ -483,6 +509,7 @@ public class RadialSpotTests
     [InlineData(1100, 720, false)]
     [InlineData(900, 600, false)]
     [InlineData(1500, 1000, true)]
+    [InlineData(1046, 1365, true)]    // Zak's window in his 16:39 screenshot
     public async Task Fits_NothingOverlaps_AndThePenButtonTestStillWorks(double w, double h, bool hasMenu)
     {
         var profile = NewProfile(Name(), new PluginSettingStore?[] { null, hasMenu ? Radial("A") : AuxKeyBinding.MakeKeyBinding("E") });
@@ -507,9 +534,12 @@ public class RadialSpotTests
             var rects = new[] { "RadialSpotHeading", "RadialSpotButton", "RadialSpotLine", "RadialSliders" }.Select(n => In(Find<Control>(view, n), page)).ToList();
             for (int i = 0; i < rects.Count - 1; i++) Assert.True(rects[i].Bottom <= rects[i + 1].Top + 0.5, $"spot part {i} overlaps part {i + 1}: {rects[i]} / {rects[i + 1]}");
             if (!hasMenu) { var useRect = In(Find<Button>(view, "RadialUseButton"), page); Assert.True(useRect.Bottom <= In(Find<StackPanel>(view, "RadialSliders"), page).Top + 0.5); }
-            // the picture is never bigger than the largest menu (190 pt for 320 pt)
-            Assert.True(Find<RadialMenuPie>(view, "RadialSpotPie").Bounds.Width <= 220 + 0.5);
+            // the picture is never bigger than the largest menu (320 pt + the window's 4)
+            Assert.True(Find<RadialMenuPie>(view, "RadialSpotPie").Bounds.Width <= TabletDetailViewModel.RadialPictureMax + 0.5);
             Assert.True(Find<Viewbox>(view, "RadialSpotViewbox").Bounds.Width <= TabletDetailViewModel.RadialPictureMax + 0.5);
+            Assert.Equal(TabletDetailViewModel.RadialSpotAreaSize, Find<Grid>(view, "RadialSpotArea").Width);
+            // v27 (Zak 16:39): in Zak's window size and larger the picture is the real size; only a narrower window shrinks the square to fit
+            if (w >= 1046 && hasMenu) AssertRealSize(view, vm.RadialPreview!.Size);
             // a short window scrolls instead of squeezing; scrolled down, the sliders are reachable
             page.ScrollToEnd(); Settle(window);
             Assert.True(In(Find<StackPanel>(view, "RadialSliders"), page).Bottom <= page.Viewport.Height + 0.5 + page.Extent.Height, "sliders unreachable");

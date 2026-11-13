@@ -46,8 +46,11 @@ public partial class TabletDetailViewModel
     /// <summary>How long after the last slider change the menu is sent to the driver.</summary>
     internal static TimeSpan RadialApplyDelay { get; set; } = TimeSpan.FromMilliseconds(250);
 
-    /// <summary>The picture's edge in points: 190 at the largest menu (<see cref="RadialMenuDef.MaxDiameter"/>), smaller with the size slider.</summary>
-    public const double RadialPictureMax = 190;
+    /// <summary>v27 (Zak 16:35): the picture is the menu at its real size, the same edge as the menu window (2 x outer radius + 4):
+    /// 324 points at the largest menu (<see cref="RadialMenuDef.MaxDiameter"/> 320), smaller with the size slider.</summary>
+    public const double RadialPictureMax = RadialMenuDef.MaxDiameter + 4;
+    /// <summary>The fixed square kept for the picture on the page: the largest picture (the button around it has no padding).</summary>
+    public const double RadialSpotAreaSize = RadialPictureMax;
     [ObservableProperty] private double _radialPictureSize = RadialPictureMax;
 
     /// <summary>The sliders only work when a pen button opens the menu and the page can write settings.</summary>
@@ -73,8 +76,9 @@ public partial class TabletDetailViewModel
         value.PropertyChanged += OnRadialPreviewPropertyChanged;
     }
 
-    private static double PictureSizeFor(RadialMenuEditorViewModel vm) =>
-        Math.Round(RadialPictureMax * Math.Min(1.0, vm.PreviewDiameter / RadialMenuDef.MaxDiameter), 1);
+    /// <summary>The picture's edge: exactly the menu window's edge (see RadialMenuOverlay.Show: 2 x outer radius + 4), never above the largest.</summary>
+    internal static double PictureSizeFor(RadialMenuEditorViewModel vm) =>
+        Math.Min(RadialPictureMax, vm.PreviewDiameter + 4);
 
     private void OnRadialPreviewPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

@@ -57,6 +57,7 @@ public class RadialSpotShots
     [InlineData(1100, 720)]
     [InlineData(900, 600)]
     [InlineData(1100, 1000)]
+    [InlineData(1046, 1365)]   // Zak's window (16:39 screenshot)
     public void RadialSpot(double w, double h)
     {
         Directory.CreateDirectory(Dir);

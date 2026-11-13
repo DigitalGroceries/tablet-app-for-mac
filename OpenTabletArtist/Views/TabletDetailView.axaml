@@ -1565,12 +1565,18 @@
                              Menu transparency slider + box and the Menu size slider + box. The picture is always shown (dimmed when no pen
                              button opens the menu); clicking it opens the radial menu editor for the selected application and the pen button
                              that has the Radial menu. The pen buttons (cards, "Press a pen button to test it", lit badges) are in the middle
-                             column next to the pen drawing, so nothing overlaps. The picture is never larger than the biggest menu (320 pt). -->
-                        <StackPanel x:Name="RadialSpot" Grid.Column="4" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="240">
+                             column next to the pen drawing, so nothing overlaps. The picture is never larger than the biggest menu (320 pt).
+                             v27 (Zak 16:35 / 16:39): the picture is the menu at its REAL size (the same 2 x radius + 4 points as the menu window), so
+                             what the page shows is what the pen opens. It sits in a fixed square kept for the largest menu (324 pt, the button has
+                             no padding), where the open menu was in Zak's screenshot; the heading is above it, the line and the sliders below,
+                             so nothing moves while the size slider is dragged and the window never changes size. Only a window too narrow for the
+                             square shrinks the whole square to fit (RadialSpotFit, DownOnly). -->
+                        <StackPanel x:Name="RadialSpot" Grid.Column="4" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="324">
                             <TextBlock x:Name="RadialSpotHeading" Text="{Binding RadialSpotHeading}" FontWeight="SemiBold" TextWrapping="Wrap"
                                        HorizontalAlignment="Center" TextAlignment="Center" />
-                            <Grid Width="198" Height="198" HorizontalAlignment="Center">
-                                <Button x:Name="RadialSpotButton" Padding="4" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
+                            <Viewbox x:Name="RadialSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center">
+                            <Grid x:Name="RadialSpotArea" Width="324" Height="324">
+                                <Button x:Name="RadialSpotButton" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
                                         BorderThickness="0" Cursor="Hand" IsEnabled="{Binding CanEditRadial}" Click="OnRadialSpotClick"
                                         AutomationProperties.Name="{Binding RadialSpotHeading}"
                                         Opacity="{Binding RadialSpotOpacity}">
@@ -1580,12 +1586,13 @@
                                         <Style Selector="Button#RadialSpotButton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" /></Style>
                                     </Button.Styles>
                                     <Viewbox x:Name="RadialSpotViewbox" Stretch="Uniform" Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}">
-                                        <ctrl:RadialMenuPie x:Name="RadialSpotPie" Width="220" Height="220" IsHitTestVisible="True"
+                                        <ctrl:RadialMenuPie x:Name="RadialSpotPie" Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}" IsHitTestVisible="True"
                                                             Labels="{Binding RadialPreview.Labels}" SetFlags="{Binding RadialPreview.SetFlags}"
                                                             SubmenuFlags="{Binding RadialPreview.SubmenuFlags}" Transparency="{Binding RadialPreview.Transparency}" />
                                     </Viewbox>
                                 </Button>
                             </Grid>
+                            </Viewbox>
                             <TextBlock x:Name="RadialCentreHint" Text="{Binding RadialPreview.CentreHint}" FontSize="12" TextWrapping="Wrap"
                                        TextAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
                                        IsVisible="{Binding RadialPreview.HasCentreHint}" />
