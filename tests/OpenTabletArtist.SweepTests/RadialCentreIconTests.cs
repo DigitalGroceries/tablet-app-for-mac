@@ -146,4 +146,33 @@ public class RadialCentreIconTests
         big.Transparency = RadialMenuDef.DefaultTransparency;
         Render(big, 700, 700).Save($"{Dir}/radial-centre-icons-v26-large.png");
     }
+
+    /// <summary>v27 (Zak 13 Nov 15:44: "an ovoid artefact in the palm of the hand icon"): on a see-through menu each icon is
+    /// drawn as one shape, so where its parts overlap (fingers on the palm, the X's crossing, the arrow head on its arc) no
+    /// pixel comes out brighter than the icon's own colour. Before the fix the overlaps were up to ~30 levels brighter.</summary>
+    [AvaloniaTheory]
+    [InlineData(40)]
+    [InlineData(70)]
+    public void SeeThroughMenu_IconOverlapsAreNotBrighter(int transparency)
+    {
+        const int diameter = 460;
+        var pie = MakePie(diameter);
+        pie.Transparency = transparency;
+        var frame = Render(pie, diameter, diameter);
+        double c = diameter / 2.0, outer = Math.Max(10, diameter / 2.0 - 2), inner = outer * RadialMenuGeometry.InnerRatio;
+        double half = inner * RadialMenuPie.QuarterIconBox / 2 + 2;
+        foreach (int q in new[] { 0, 2, 3 })   // X, hand, restore arrow (the pencil's cuts are dark on purpose)
+        {
+            var at = RadialMenuPie.QuarterCentroid(new Point(c, c), inner, q);
+            var levels = new List<int>();
+            for (int y = (int)(at.Y - half); y <= (int)(at.Y + half); y++)
+                for (int x = (int)(at.X - half); x <= (int)(at.X + half); x++)
+                    levels.Add(PixelAt(frame, x, y).G);
+            // The icon body is the most common bright level; anti-aliased edges are darker than it, never brighter.
+            int floor = (levels.Min() + levels.Max()) / 2;   // between the quarter's background and the icon
+            var body = levels.Where(l => l > floor).GroupBy(l => l).OrderByDescending(g => g.Count()).First().Key;
+            int brightest = levels.Max();
+            Assert.True(brightest <= body + 3, $"quarter {q}, transparency {transparency}: body {body}, brightest {brightest} (an overlap shows through)");
+        }
+    }
 }

@@ -69,7 +69,15 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
         TransparencyProperty.Changed.AddClassHandler<RadialMenuPie>((pie, _) => pie.ApplyTransparencyOpacity());
     }
 
-    public RadialMenuPie() => ApplyTransparencyOpacity();
+    public RadialMenuPie()
+    {
+        // v27 (Zak 13 Nov 15:44: "an ovoid artefact in the palm of the hand icon"): without this, Avalonia applies the
+        // control's Opacity to each shape on its own, so wherever two shapes overlap (a finger over the palm, the two
+        // strokes of the X, the arrow head on its arc, text over a slice) the overlap shows brighter. With full opacity
+        // handling the whole menu is drawn first and then faded as one picture.
+        RenderOptions.SetRequiresFullOpacityHandling(this, true);
+        ApplyTransparencyOpacity();
+    }
 
     /// <summary>The whole control fades with the transparency, so the Pen page preview and the popup match what you will get.</summary>
     private void ApplyTransparencyOpacity() => Opacity = RadialMenuDef.OpacityFor(Transparency);
@@ -142,8 +150,14 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
             bool on = code == RadialMenuGeometry.Edit && Editing;
             ctx.DrawGeometry(Highlight == code ? HighlightFill : on ? SelectedFill : CentreBack, Edge, Quarter(c, inner, quarter));
         }
-        ctx.DrawLine(divider, new Point(c.X - inner, c.Y), new Point(c.X + inner, c.Y));
-        ctx.DrawLine(divider, new Point(c.X, c.Y - inner), new Point(c.X, c.Y + inner));
+        // One shape for both lines, so the crossing point is not drawn twice (brighter) on a see-through menu.
+        var cross = new StreamGeometry();
+        using (var gc = cross.Open())
+        {
+            gc.BeginFigure(new Point(c.X - inner, c.Y), false); gc.LineTo(new Point(c.X + inner, c.Y)); gc.EndFigure(false);
+            gc.BeginFigure(new Point(c.X, c.Y - inner), false); gc.LineTo(new Point(c.X, c.Y + inner)); gc.EndFigure(false);
+        }
+        ctx.DrawGeometry(null, divider, cross);
 
         // TASKS #59 (Zak 18:21): the four icons have the same visual size (one square box, QuarterIconBox of the inner
         // radius) and sit centred on the centroid of their quarter, away from the dividing lines. Each icon is drawn in
@@ -243,42 +257,95 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
         var b = icon.Bounds;
         double k = box / Math.Max(b.Width, b.Height);
         Point T(Point p) => new(at.X + (p.X - b.Center.X) * k, at.Y + (p.Y - b.Center.Y) * k);
+
+        // v27 (Zak 13 Nov 15:44, "an ovoid artefact in the palm of the hand icon"): an icon is several overlapping shapes
+        // (fingers over the palm, the two strokes of the X, the arrow head on its arc). When the menu is see-through each
+        // shape was faded on its own, so every overlap showed brighter. Each icon is now ONE outline (all its light parts
+        // joined, its dark cuts taken out) and drawn once; the dark cuts are drawn once on their own, beside it.
+        Geometry? light = null, dark = null;
+        bool joined = true;
         foreach (var part in icon.Parts)
         {
-            var brush = part.Dark ? PencilCut : TextBrush;
+            var g = PartGeometry(part, T, k);
+            if (g == null) { joined = false; break; }
+            if (part.Dark) dark = dark == null ? g : new CombinedGeometry(GeometryCombineMode.Union, dark, g);
+            else light = light == null ? g : new CombinedGeometry(GeometryCombineMode.Union, light, g);
+        }
+        if (joined && light != null)
+        {
+            ctx.DrawGeometry(TextBrush, null, dark == null ? light : new CombinedGeometry(GeometryCombineMode.Exclude, light, dark));
+            if (dark != null) ctx.DrawGeometry(PencilCut, null, dark);
+            return;
+        }
+        // A renderer that can't turn a stroke into an outline: draw the parts one by one, as before.
+        foreach (var part in icon.Parts) DrawPart(ctx, part, T, k);
+    }
+
+    /// <summary>The filled outline of one icon part (a stroke is widened into its outline), or null when the renderer
+    /// can't widen a stroke.</summary>
+    private static Geometry? PartGeometry(IconPart part, Func<Point, Point> T, double k)
+    {
+        if (part.CornerRadius > 0)
+            return new RectangleGeometry(new Rect(T(part.Points[0]), T(part.Points[1])), part.CornerRadius * k, part.CornerRadius * k);
+        if (part.Stroke <= 0)
+        {
+            var poly = new StreamGeometry();
+            using (var gc = poly.Open())
+            {
+                gc.BeginFigure(T(part.Points[0]), true);
+                for (int i = 1; i < part.Points.Length; i++) gc.LineTo(T(part.Points[i]));
+                gc.EndFigure(true);
+            }
+            return poly;
+        }
+        var pen = new Pen(Brushes.White, part.Stroke * k, lineCap: PenLineCap.Round);
+        var path = new StreamGeometry();
+        using (var gc = path.Open())
+        {
+            gc.BeginFigure(T(part.Points[0]), false);
             if (part.ArcRadius > 0)
-            {
-                var pen = new Pen(brush, part.Stroke * k, lineCap: PenLineCap.Round);
-                var first = part.Points[0]; var last = part.Points[^1];
-                var g = new StreamGeometry();
-                using (var gc = g.Open())
-                {
-                    gc.BeginFigure(T(first), false);
-                    // Our arcs are 270 degrees, so always the large arc.
-                    gc.ArcTo(T(last), new Size(part.ArcRadius * k, part.ArcRadius * k), 0, true, SweepDirection.Clockwise);
-                    gc.EndFigure(false);
-                }
-                ctx.DrawGeometry(null, pen, g);
-            }
-            else if (part.CornerRadius > 0)
-            {
-                ctx.DrawGeometry(brush, null, new RectangleGeometry(new Rect(T(part.Points[0]), T(part.Points[1])), part.CornerRadius * k, part.CornerRadius * k));
-            }
-            else if (part.Stroke > 0)
-            {
-                ctx.DrawLine(new Pen(brush, part.Stroke * k, lineCap: PenLineCap.Round), T(part.Points[0]), T(part.Points[1]));
-            }
+                gc.ArcTo(T(part.Points[^1]), new Size(part.ArcRadius * k, part.ArcRadius * k), 0, true, SweepDirection.Clockwise);
             else
+                gc.LineTo(T(part.Points[1]));
+            gc.EndFigure(false);
+        }
+        return path.GetWidenedGeometry(pen);
+    }
+
+    private static void DrawPart(DrawingContext ctx, IconPart part, Func<Point, Point> T, double k)
+    {
+        var brush = part.Dark ? PencilCut : TextBrush;
+        if (part.ArcRadius > 0)
+        {
+            var pen = new Pen(brush, part.Stroke * k, lineCap: PenLineCap.Round);
+            var g = new StreamGeometry();
+            using (var gc = g.Open())
             {
-                var g = new StreamGeometry();
-                using (var gc = g.Open())
-                {
-                    gc.BeginFigure(T(part.Points[0]), true);
-                    for (int i = 1; i < part.Points.Length; i++) gc.LineTo(T(part.Points[i]));
-                    gc.EndFigure(true);
-                }
-                ctx.DrawGeometry(brush, null, g);
+                gc.BeginFigure(T(part.Points[0]), false);
+                // Our arcs are 270 degrees, so always the large arc.
+                gc.ArcTo(T(part.Points[^1]), new Size(part.ArcRadius * k, part.ArcRadius * k), 0, true, SweepDirection.Clockwise);
+                gc.EndFigure(false);
             }
+            ctx.DrawGeometry(null, pen, g);
+        }
+        else if (part.CornerRadius > 0)
+        {
+            ctx.DrawGeometry(brush, null, new RectangleGeometry(new Rect(T(part.Points[0]), T(part.Points[1])), part.CornerRadius * k, part.CornerRadius * k));
+        }
+        else if (part.Stroke > 0)
+        {
+            ctx.DrawLine(new Pen(brush, part.Stroke * k, lineCap: PenLineCap.Round), T(part.Points[0]), T(part.Points[1]));
+        }
+        else
+        {
+            var g = new StreamGeometry();
+            using (var gc = g.Open())
+            {
+                gc.BeginFigure(T(part.Points[0]), true);
+                for (int i = 1; i < part.Points.Length; i++) gc.LineTo(T(part.Points[i]));
+                gc.EndFigure(true);
+            }
+            ctx.DrawGeometry(brush, null, g);
         }
     }
 

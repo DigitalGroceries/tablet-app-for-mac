@@ -108,6 +108,16 @@ public partial class App : Application
             _ringHud = new RingModeHud();
             _ringHud.Start();
             Services.ActionConfirmation.Attach(_ringHud);
+            // v27: confirmations for our own buttons are centred on our own window (the active dialog, else the main
+            // window), not on the last other app in front.
+            RingModeHud.OwnWindowBounds = () =>
+            {
+                Avalonia.Controls.Window? w = null;
+                foreach (var candidate in desktop.Windows)
+                    if (candidate.IsActive && candidate.IsVisible) { w = candidate; break; }
+                w ??= desktop.MainWindow is { IsVisible: true } m && m.WindowState != Avalonia.Controls.WindowState.Minimized ? m : null;
+                return w == null ? null : new Avalonia.Rect(w.Position.X, w.Position.Y, w.Bounds.Width, w.Bounds.Height);
+            };
             _radialMenu = new RadialMenuOverlay();   // TASKS #42: draws the radial menu the driver opens
             RadialMenuOverlay.RequestHandler = RadialLiveEdit.HandleAsync;   // TASKS #54: the pencil and the circular arrow
             _radialMenu.Start();

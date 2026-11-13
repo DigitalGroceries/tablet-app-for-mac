@@ -130,17 +130,22 @@ public sealed class RingModeHud : IDisposable
         Dispatcher.UIThread.Post(() =>
         {
             _lastContent = "";
-            Show(0, 0, message, header, "✓");
+            Show(0, 0, message, header, "✓", overOwnWindow: true);
         });
+
+    /// <summary>v27 (Zak 13 Nov 15:52: pressing Save showed "Settings saved" over the Claude window, the last app in front):
+    /// the bounds (global points) of this app's own window that a confirmation belongs to: the active one (a dialog such
+    /// as the radial menu editor) or else the visible, not minimised main window. Wired by App; null when none is up.</summary>
+    public static Func<Rect?>? OwnWindowBounds { get; set; }
 
     /// <summary>The popup window once it exists (tests only: screenshots).</summary>
     internal Window? PopupWindow => _window;
 
     /// <summary>Show a popup right now, on the calling (UI) thread (tests only).</summary>
-    internal void ShowNowForTest(int mode, int count, string name, string header = RingHeader, string? dots = null) =>
-        Show(mode, count, name, header, dots);
+    internal void ShowNowForTest(int mode, int count, string name, string header = RingHeader, string? dots = null, bool overOwnWindow = false) =>
+        Show(mode, count, name, header, dots, overOwnWindow);
 
-    private void Show(int mode, int count, string name, string header = RingHeader, string? dots = null)
+    private void Show(int mode, int count, string name, string header = RingHeader, string? dots = null, bool overOwnWindow = false)
     {
         try
         {
@@ -153,7 +158,9 @@ public sealed class RingModeHud : IDisposable
             // else centred on the display holding the cursor (the pen moves it), else the primary display.
             // On macOS Avalonia's screen and window coordinates are global points with a top-left origin —
             // the same space as CGEventGetLocation and CGWindowListCopyWindowInfo bounds.
-            var (target, where) = PickTarget();
+            // A confirmation for one of our own buttons (Save, Restore factory settings...) goes over our own window, never
+            // over whatever other app happens to be frontmost (v27).
+            var (target, where) = PickTarget(overOwnWindow);
 
             // Size: a third of the target's width (at least 360 pt), half as tall; the text scales with it.
             double w = Math.Max(360, target.Width / 3), h = w * 0.5;
@@ -175,8 +182,21 @@ public sealed class RingModeHud : IDisposable
         }
     }
 
-    private (Rect Target, string Where) PickTarget()
+    private (Rect Target, string Where) PickTarget(bool overOwnWindow = false)
     {
+        if (overOwnWindow)
+        {
+            Rect? own = null;
+            try { own = OwnWindowBounds?.Invoke(); }
+            catch (Exception e) { AppLog.Warn("Confirmation popup: couldn't read the app window's position; using the display instead", e); }
+            if (own is { } o && o.Width >= 200 && o.Height >= 150)
+            {
+                var ownScreen = _window!.Screens.ScreenFromPoint(new PixelPoint((int)o.Center.X, (int)o.Center.Y));
+                var visibleOwn = ownScreen == null ? o
+                    : o.Intersect(new Rect(ownScreen.WorkingArea.X, ownScreen.WorkingArea.Y, ownScreen.WorkingArea.Width, ownScreen.WorkingArea.Height));
+                if (visibleOwn.Width >= 200 && visibleOwn.Height >= 150) return (visibleOwn, "the app's own window");
+            }
+        }
         var screens = _window!.Screens;
         var cursor = MacDesktop.CursorLocation();
         var cursorScreen = cursor is { } c ? screens.ScreenFromPoint(new PixelPoint((int)c.X, (int)c.Y)) : null;
