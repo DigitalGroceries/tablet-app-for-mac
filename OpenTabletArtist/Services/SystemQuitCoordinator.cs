@@ -38,6 +38,8 @@ internal sealed class SystemQuitCoordinator
     public bool OnShutdownRequested()
     {
         if (Interlocked.Exchange(ref _started, 1) != 0) return false;
+        // TASKS #74: every quit leaves a line in the log, so it shows how a copy of the app went away.
+        AppLog.Info("System quit (Cmd+Q, Dock, logout or shutdown): keeping unsaved changes and stopping this app's own driver.");
         try { _allowClose(); } catch (Exception ex) { _warn($"System quit: allow close failed: {ex}"); }
         try { _waitBlocking(RunAsync, TotalBudget); }
         catch (Exception ex) { _warn($"System quit: shutdown work failed: {ex}"); }

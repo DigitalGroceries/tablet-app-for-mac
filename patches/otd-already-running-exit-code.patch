@@ -1,0 +1,53 @@
+diff --git a/OpenTabletDriver.Daemon/Program.cs b/OpenTabletDriver.Daemon/Program.cs
+index b7bd299..06a2ea7 100644
+--- a/OpenTabletDriver.Daemon/Program.cs
++++ b/OpenTabletDriver.Daemon/Program.cs
+@@ -48,6 +48,20 @@ namespace OpenTabletDriver.Daemon
+             await StartDaemon();
+         }
+ 
++        /// <summary>Tablet App for Mac (TASKS #74): exit code when another driver already holds the lock. The app
++        /// reads it (DriverProcessFinder.AlreadyRunningExitCode).</summary>
++        internal const int AlreadyRunningExitCode = 3;
++
++        [System.Runtime.InteropServices.DllImport("libc", EntryPoint = "getppid")]
++        private static extern int GetParentPid();
++
++        private static string ParentProcessId()
++        {
++            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return "unknown";
++            try { return GetParentPid().ToString(); }
++            catch { return "unknown"; }
++        }
++
+         // A client (the app) closing its connection leaves StreamJsonRpc tasks that fail with
+         // "Cannot access a disposed object" or ConnectionLostException; that is normal, not an error.
+         internal static bool IsClosedRpcConnection(AggregateException ex)
+@@ -65,9 +79,17 @@ namespace OpenTabletDriver.Daemon
+             {
+                 Console.WriteLine("OpenTabletDriver Daemon is already running.");
+                 Thread.Sleep(1000);
++                // Tablet App for Mac (TASKS #74): say so with our own exit code. Exit 0 here looked like a driver
++                // that started and stopped by itself, and the app reported "an incomplete install" while the real
++                // cause was another driver still holding this lock.
++                Environment.ExitCode = AlreadyRunningExitCode;
+                 return;
+             }
+ 
++            // Tablet App for Mac (TASKS #74): who started this driver and from where, so a driver left behind by
++            // another copy of the app can be traced in the log.
++            Log.Write("Daemon", $"Driver started: process {Environment.ProcessId}, parent process {ParentProcessId()}, {Environment.ProcessPath}");
++
+             TaskScheduler.UnobservedTaskException += (_, e) =>
+             {
+                 if (IsClosedRpcConnection(e.Exception))
+@@ -100,7 +122,8 @@ namespace OpenTabletDriver.Daemon
+                     PosixSignalRegistration.Create(signal,
+                         [SuppressMessage("ReSharper", "AccessToModifiedClosure")] (_) =>
+                         {
+-                            Log.Debug("signal", Enum.GetName(signal) ?? "<unknown signal>");
++                            // Tablet App for Mac (TASKS #74): at Write level, so a stop by SIGHUP shows in the log file.
++                            Log.Write("signal", (Enum.GetName(signal) ?? "<unknown signal>") + ": stopping the driver");
+                             CloseDaemon();
+                         });
+             }

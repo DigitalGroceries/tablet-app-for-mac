@@ -468,6 +468,10 @@ public sealed class AppTray : IDisposable
         // have it ask a session that has gone -- and stop every daemon on the machine instead of ours.
         var stop = stopDaemon && _onPrepareStopAsync != null ? await _onPrepareStopAsync() : null;
 
+        // TASKS #74: every quit leaves a line, so the log shows how a copy went away and whether its driver stayed.
+        AppLog.Info(stop != null ? "Quit from the menu bar: stopping the driver too."
+                                 : "Quit from the menu bar: the driver keeps running for the next start.");
+
         // The order matters and is documented where it lives, in QuitSequence.
         await QuitSequence.RunAsync(
             closeSession: _onCloseAsync,

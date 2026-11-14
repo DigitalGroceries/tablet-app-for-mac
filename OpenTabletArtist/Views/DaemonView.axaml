@@ -283,7 +283,11 @@
                                     </StackPanel>
                                     <TextBlock Classes="nodeName" Text="not running"
                                                Foreground="{DynamicResource TextMutedBrush}"
-                                               IsVisible="{Binding !Process.IsRunning}" />
+                                               IsVisible="{Binding Process.IsAbsent}" />
+                                    <!-- TASKS #74: a driver that is closing can't answer but may still block a new one. -->
+                                    <TextBlock Classes="nodeName" Text="closing, not answering"
+                                               Foreground="{DynamicResource TextMutedBrush}"
+                                               IsVisible="{Binding Process.IsClosing}" />
                                     <!-- Version and uptime are one line for the same reason as the wire's.
                                          Provenance is a chip beside the name rather than a "Source" row: it
                                          qualifies WHICH OpenTabletDriver this is, so it belongs with the

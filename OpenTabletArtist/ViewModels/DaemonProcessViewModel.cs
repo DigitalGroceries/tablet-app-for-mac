@@ -42,6 +42,15 @@ public sealed partial class DaemonProcessViewModel : ObservableObject, IDisposab
 
     [ObservableProperty] private bool _isRunning;
 
+    /// <summary>TASKS #74: no driver can answer, but one is still closing (it may block a new one).</summary>
+    [ObservableProperty] private bool _isClosing;
+
+    /// <summary>Neither running nor closing: the card says "not running".</summary>
+    public bool IsAbsent => !IsRunning && !IsClosing;
+
+    partial void OnIsRunningChanged(bool value) => OnPropertyChanged(nameof(IsAbsent));
+    partial void OnIsClosingChanged(bool value) => OnPropertyChanged(nameof(IsAbsent));
+
     /// <summary>Start polling the process state (when the card comes on screen). Refreshes immediately.</summary>
     public void StartPolling() { Refresh(); _pollTimer.Start(); }
 
@@ -65,6 +74,7 @@ public sealed partial class DaemonProcessViewModel : ObservableObject, IDisposab
     {
         var info = DaemonProcess.Query();
         IsRunning = info.Running;
+        IsClosing = info.Closing;
         _startTime = info.StartTime;
         OnPropertyChanged(nameof(ProcessUptime));
         OnPropertyChanged(nameof(ShowProcessUptime));

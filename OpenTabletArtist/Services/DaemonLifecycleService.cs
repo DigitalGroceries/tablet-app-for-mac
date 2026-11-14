@@ -1,6 +1,9 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
 using OpenTabletArtist.Domain;
 using OtdInterop;
 
@@ -64,12 +67,38 @@ public interface IDaemonLifecycleService : IDaemonProcessLocator
     /// effectively a singleton anyway.</summary>
     void StopAll();
 
+    /// <summary>TASKS #74: <see cref="Launch"/>, and when the new driver refuses to start because another one
+    /// still holds the "only one driver" lock but can't answer (a driver left closing by another copy of the
+    /// app), stop that one and start ours once more. A driver that is running normally is connected to instead,
+    /// and an OpenTabletDriver the user installed is never stopped without asking. Every step is logged.</summary>
+    /// <returns>The problem to report, or null when a driver is up (ours, or a running one to connect to).</returns>
+    string? LaunchOrReplaceStuck(string? executablePath = null) => Launch(executablePath);
+
+    /// <summary>TASKS #74: stops every driver process that came from a copy of Tablet App for Mac (or is already
+    /// closing), so a fresh one can start. Used when the driver the app attached to never answered. Returns false
+    /// when there was one it wasn't allowed to stop (the user's own install) or one that wouldn't go away.</summary>
+    bool StopUnansweringDrivers() => false;
 }
 
 /// <inheritdoc />
 public class DaemonLifecycleService : IDaemonLifecycleService
 {
-    private const string ProcessName = "OpenTabletDriver.Daemon";
+    private const string ProcessName = DriverProcessFinder.ProcessName;
+
+    private readonly Func<IReadOnlyList<DriverProcessInfo>> _find;
+    private readonly Func<int, int, int> _signal;
+    private readonly Action<TimeSpan> _sleep;
+
+    public DaemonLifecycleService() : this(DriverProcessFinder.FindAll, null, null) { }
+
+    /// <summary>Tests: a fake process table, signal sender (pid, signal) → 0 on success, and clock.</summary>
+    internal DaemonLifecycleService(Func<IReadOnlyList<DriverProcessInfo>> find, Func<int, int, int>? signal,
+        Action<TimeSpan>? sleep)
+    {
+        _find = find;
+        _signal = signal ?? SendSignal;
+        _sleep = sleep ?? Thread.Sleep;
+    }
 
     private readonly string? _startupPath =
         DaemonExePaths.Candidates(AppContext.BaseDirectory).FirstOrDefault(File.Exists);
@@ -83,15 +112,12 @@ public class DaemonLifecycleService : IDaemonLifecycleService
         if (expected != null) return expected;
 
         // Fallback: if a daemon is already running, use its path.
-        foreach (var proc in Process.GetProcessesByName(ProcessName))
-        {
-            try { var p = proc.MainModule?.FileName; if (p != null) return p; }
-            catch (Exception ex) { AppLog.Debug($"Couldn't read a running daemon's exe path (pid {proc.Id}).", ex); }
-        }
-        return null;
+        return _find().FirstOrDefault(p => p.State == DriverProcessState.Running && p.Path != null)?.Path;
     }
 
-    public bool IsRunning() => Process.GetProcessesByName(ProcessName).Length > 0;
+    /// <summary>A driver that can answer is running. A closing one (TASKS #74) doesn't count: it can't be
+    /// connected to, so the app must start its own (and clear the closing one if it blocks that).</summary>
+    public bool IsRunning() => _find().Any(p => p.State == DriverProcessState.Running);
 
     public bool HasBundledDaemon() => File.Exists(DaemonExePaths.BundledPath(AppContext.BaseDirectory));
 
@@ -122,6 +148,7 @@ public class DaemonLifecycleService : IDaemonLifecycleService
         }
 
         if (proc == null) return $"The driver at {daemonPath} couldn't be started.";
+        LastLaunchBlockers = Array.Empty<DriverProcessInfo>();
 
         // Deliberately no stdout/stderr redirection: the pipes would outlive this call for a healthy
         // daemon, and tearing them down when OTA quits can break a daemon that was working fine. The exit
@@ -143,6 +170,16 @@ public class DaemonLifecycleService : IDaemonLifecycleService
                      + $"{Domain.DotnetRuntime.DaemonMajor}.0\" (x64) from Microsoft and try again. If "
                      + "you have another OpenTabletDriver that runs, start it yourself and Tablet App for Mac will "
                      + "connect to it.";
+            }
+
+            // TASKS #74: "another driver already holds the lock". Our patched driver says so with its own exit
+            // code; older drivers exit 0 after printing it, so 0 counts when a driver process is still there.
+            var others = _find();
+            if (proc.ExitCode == DriverProcessFinder.AlreadyRunningExitCode || (proc.ExitCode == 0 && others.Count > 0))
+            {
+                LastLaunchBlockers = others;
+                AppLog.Warn($"The new driver refused to start: another driver holds the driver lock ({Describe(others)}).");
+                return AlreadyRunningMessage(others);
             }
 
             return $"The driver at {daemonPath} started and exited immediately (exit code {proc.ExitCode}). "
@@ -190,13 +227,148 @@ public class DaemonLifecycleService : IDaemonLifecycleService
 
     public void StopAll()
     {
-        foreach (var proc in Process.GetProcessesByName(ProcessName))
-        {
-            // A failed Kill means the Stop didn't fully take — worth a Warn, not a silent no-op (#21).
-            try { GracefulProcessStop.Stop(proc); }
-            catch (Exception ex) { AppLog.Warn($"Couldn't stop daemon process (pid {proc.Id}).", ex); }
-        }
+        // TASKS #74: the finder also sees a driver that is closing, which Process.GetProcessesByName misses on macOS.
+        var all = _find();
+        if (all.Count == 0) return;
+        var left = StopPids(all.Select(p => p.Pid).ToList());
+        // A failed stop means the Stop didn't fully take — worth a Warn, not a silent no-op (#21).
+        if (left.Count > 0) AppLog.Warn($"Couldn't stop driver process(es) {string.Join(", ", left)}.");
     }
+
+    /// <summary>The drivers <see cref="Launch"/> found holding the lock when it last refused to start (TASKS #74).</summary>
+    internal IReadOnlyList<DriverProcessInfo> LastLaunchBlockers { get; private set; } = Array.Empty<DriverProcessInfo>();
+
+    public string? LaunchOrReplaceStuck(string? executablePath = null)
+    {
+        var problem = Launch(executablePath);
+        var blockers = LastLaunchBlockers;
+        if (problem == null || blockers.Count == 0) return problem;
+
+        // A driver that is running normally appeared meanwhile (another copy of the app started it): connect to
+        // it rather than stopping a working driver. If it never answers, Fix replaces it (StopUnansweringDrivers).
+        if (blockers.Any(b => b.State == DriverProcessState.Running))
+        {
+            AppLog.Info($"Another driver is running ({Describe(blockers)}); connecting to it instead of starting ours.");
+            return null;
+        }
+
+        // Only closing drivers left: they can't answer, but they hold the lock. Clear them and start ours.
+        AppLog.Info($"Replacing a driver that is closing and can't answer ({Describe(blockers)}): stopping it, then starting ours.");
+        var left = StopPids(blockers.Select(b => b.Pid).ToList());
+        if (left.Count > 0)
+        {
+            AppLog.Warn($"Couldn't stop the closing driver process(es) {string.Join(", ", left)}; the new driver can't start.");
+            return $"An old tablet driver (process {string.Join(", ", left)}) is stuck while closing and couldn't be stopped, "
+                 + "so a new one can't start. Restart your Mac to clear it.";
+        }
+        var again = Launch(executablePath);
+        if (again == null) AppLog.Info("The stuck driver is gone; the new driver started.");
+        else AppLog.Warn($"The stuck driver is gone, but the new driver still didn't start: {again}");
+        return again;
+    }
+
+    public bool StopUnansweringDrivers()
+    {
+        var all = _find();
+        if (all.Count == 0) { AppLog.Info("Unanswering driver: none running any more."); return true; }
+        var notOurs = all.Where(p => p.State == DriverProcessState.Running && !IsOursToReplace(p)).ToList();
+        if (notOurs.Count > 0)
+        {
+            AppLog.Info($"Unanswering driver: not stopping {Describe(notOurs)}: it isn't Tablet App for Mac's own driver.");
+            return false;
+        }
+        AppLog.Info($"Unanswering driver: stopping {Describe(all)}.");
+        var left = StopPids(all.Select(p => p.Pid).ToList());
+        if (left.Count == 0) { AppLog.Info("Unanswering driver: stopped."); return true; }
+        AppLog.Warn($"Unanswering driver: process(es) {string.Join(", ", left)} would not stop.");
+        return false;
+    }
+
+    /// <summary>A driver we may stop without asking: closing (it is going anyway), the driver of this copy, or the
+    /// driver inside any other copy of Tablet App for Mac.</summary>
+    private bool IsOursToReplace(DriverProcessInfo p) =>
+        p.State == DriverProcessState.Closing || IsAppManaged(p.Path) || DriverProcessFinder.IsTabletAppDriverPath(p.Path);
+
+    /// <summary>How long a driver gets to exit after SIGTERM, and then after SIGKILL.</summary>
+    internal static readonly TimeSpan StopGrace = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan StopPoll = TimeSpan.FromMilliseconds(200);
+    private const int SigTerm = 15, SigKill = 9;
+
+    /// <summary>Asks each process to exit (SIGTERM, so it can let go of a held mouse button, #73), waits, then
+    /// kills what is left and waits again. Only processes the finder still lists as drivers are signalled, so a
+    /// reused process id is never hit. Returns the ids still there at the end.</summary>
+    internal IReadOnlyList<int> StopPids(IReadOnlyCollection<int> pids)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            foreach (var pid in pids)
+            {
+                try { using var p = Process.GetProcessById(pid); p.Kill(); }
+                catch (Exception ex) { AppLog.Warn($"Driver stop: couldn't stop process {pid}.", ex); }
+            }
+            return Remaining(pids);
+        }
+
+        var targets = Remaining(pids);
+        foreach (var pid in targets)
+        {
+            int rc = _signal(pid, SigTerm);
+            AppLog.Info(rc == 0 ? $"Driver stop: asked process {pid} to exit (SIGTERM)."
+                                : $"Driver stop: SIGTERM to process {pid} failed (result {rc}).");
+        }
+        targets = WaitGone(targets);
+        if (targets.Count == 0) { AppLog.Info("Driver stop: every driver exited after the polite request."); return targets; }
+
+        foreach (var pid in targets)
+        {
+            int rc = _signal(pid, SigKill);
+            AppLog.Info(rc == 0 ? $"Driver stop: process {pid} didn't exit in {StopGrace.TotalSeconds:0} s; killed it (SIGKILL)."
+                                : $"Driver stop: SIGKILL to process {pid} failed (result {rc}).");
+        }
+        targets = WaitGone(targets);
+        if (targets.Count == 0) AppLog.Info("Driver stop: every driver is gone.");
+        return targets;
+    }
+
+    private List<int> Remaining(IReadOnlyCollection<int> pids)
+    {
+        var alive = _find().Select(p => p.Pid).ToHashSet();
+        return pids.Where(alive.Contains).ToList();
+    }
+
+    private List<int> WaitGone(List<int> pids)
+    {
+        var waited = TimeSpan.Zero;
+        var left = Remaining(pids);
+        while (left.Count > 0 && waited < StopGrace)
+        {
+            _sleep(StopPoll);
+            waited += StopPoll;
+            left = Remaining(left);
+        }
+        return left;
+    }
+
+    [DllImport("libc", EntryPoint = "kill", SetLastError = true)]
+    private static extern int PosixKill(int pid, int signal);
+
+    private static int SendSignal(int pid, int signal)
+    {
+        try { return PosixKill(pid, signal) == 0 ? 0 : Marshal.GetLastPInvokeError(); }
+        catch (Exception ex) { AppLog.Warn($"Driver stop: couldn't send signal {signal} to process {pid}.", ex); return -1; }
+    }
+
+    internal static string Describe(IEnumerable<DriverProcessInfo> list) =>
+        string.Join("; ", list.Select(p => $"process {p.Pid}, {(p.State == DriverProcessState.Closing ? "closing" : "running")}"
+            + (p.Path != null ? $", {p.Path}" : ", no path")
+            + (p.StartTime is { } t ? $", started {t:yyyy-MM-dd HH:mm:ss}" : "")));
+
+    /// <summary>What the user reads when a new driver can't start because another one holds the lock.</summary>
+    internal static string AlreadyRunningMessage(IReadOnlyList<DriverProcessInfo> others) => others.Count == 0
+        ? "Another tablet driver is holding the driver lock, so a new one can't start, and it can't be found. "
+          + "Restart your Mac to clear it."
+        : $"Another tablet driver is already running (process {string.Join(", ", others.Select(o => o.Pid))}) but isn't "
+          + "answering, so a new one can't start. Press Fix to stop it and start the driver again.";
 
     public string? PathOf(int processId)
     {
@@ -215,17 +387,8 @@ public class DaemonLifecycleService : IDaemonLifecycleService
 
     public string? SingleRunningDaemonPath()
     {
-        var procs = Process.GetProcessesByName(ProcessName);
-        try
-        {
-            // Only when unambiguous — with multiple daemons we can't tell which the pipe connects to.
-            return procs.Length == 1 ? procs[0].MainModule?.FileName : null;
-        }
-        catch (Exception ex)
-        {
-            AppLog.Debug("Couldn't read the running daemon's exe path.", ex);
-            return null;
-        }
-        finally { foreach (var p in procs) p.Dispose(); }
+        // Only when unambiguous — with multiple daemons we can't tell which the pipe connects to.
+        var running = _find().Where(p => p.State == DriverProcessState.Running).ToList();
+        return running.Count == 1 ? running[0].Path : null;
     }
 }

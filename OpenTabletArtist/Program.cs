@@ -60,10 +60,15 @@ class Program
         // Item 26 (#28): a settings file given to this copy goes to the running one, not lost when we exit.
         if (!Instance.TryAcquire(Services.SettingsFileArgs.From(args)))
         {
+            // TASKS #74: leave a trace, so two copies opened one after the other can be told apart in the log.
+            AppLog.Info($"Another copy of Tablet App for Mac is already running; it was asked to come to the front. "
+                      + $"This copy (process {Environment.ProcessId}, {AppContext.BaseDirectory}) quits.");
             Instance.Dispose();
             return;
         }
 
+        // TASKS #74: which copy is running, so a driver left behind by another copy can be traced.
+        AppLog.Info($"App started: process {Environment.ProcessId}, from {AppContext.BaseDirectory}");
         try
         {
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
@@ -72,6 +77,7 @@ class Program
         {
             Instance.Dispose();
         }
+        AppLog.Info($"App closed normally (process {Environment.ProcessId}).");
 
         // By here the app has shut down gracefully: the window's Closed handler already ran the full
         // MainViewModel.Dispose() chain (cancelling the connect/poll loops, disposing the daemon RPC +

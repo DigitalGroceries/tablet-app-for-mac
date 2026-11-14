@@ -836,7 +836,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             // No flat delay: the pipe connect below already waits for the daemon's pipe to come up,
             // so a fixed sleep only adds latency (and risks eating the connect timeout). (#246)
             ConnectPhase = "Starting the driver…";
-            if (_daemonLifecycle.Launch(_daemonPath) is { } launchProblem)
+            if (_daemonLifecycle.LaunchOrReplaceStuck(_daemonPath) is { } launchProblem)
             {
                 DaemonOperationError = launchProblem;
                 ConnectionStatus = "Disconnected";
@@ -1568,7 +1568,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             else
             {
                 DaemonOperationStatus = "Starting driver…";
-                if (_daemonLifecycle.Launch(_daemonPath) is { } launchProblem)
+                if (_daemonLifecycle.LaunchOrReplaceStuck(_daemonPath) is { } launchProblem)
                 {
                     // It died on the spot. Waiting out the 30s connect timeout would replace a precise
                     // explanation with a generic one.
@@ -1589,8 +1589,16 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
 
             if (!await WaitForConnectionStateAsync(connected: true, DaemonOperationTimeout))
             {
-                DaemonOperationError = "The driver didn't come online within 30 seconds.";
-                ConnectionStatus = "Disconnected"; // clear the Connecting… indicator on failure
+                // TASKS #74: the driver we attached to never answered (e.g. one left behind by another copy of the
+                // app). Pressing Fix/Start is the user asking for a working driver, so replace it once — only a
+                // driver of Tablet App for Mac's own; the user's own OpenTabletDriver is left alone.
+                if (attachingToExisting && await ReplaceUnansweringDriverAsync())
+                    ActionConfirmation.Show("confirm.driver_started", "Driver started");
+                else
+                {
+                    DaemonOperationError = "The driver didn't come online within 30 seconds.";
+                    ConnectionStatus = "Disconnected"; // clear the Connecting… indicator on failure
+                }
             }
             else ActionConfirmation.Show("confirm.driver_started", "Driver started");
         }
@@ -1767,6 +1775,36 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         }
     }
 
+    /// <summary>TASKS #74: the running driver didn't answer within the timeout. Stop it (only if it is Tablet App
+    /// for Mac's own, from any copy, or already closing), start ours and wait for it. True when connected.</summary>
+    private async Task<bool> ReplaceUnansweringDriverAsync()
+    {
+        AppLog.Warn("The running driver didn't answer within the timeout; replacing it with this app's driver.");
+        DaemonOperationStatus = "Restarting the driver…";
+        _session.AutoReconnect = false;
+        var stopped = _daemonLifecycle.StopUnansweringDrivers();
+        _session.AutoReconnect = true;
+        if (!stopped)
+        {
+            AppLog.Warn("Replacing the unanswering driver: it wasn't stopped, so a new one can't start.");
+            return false;
+        }
+        if (_daemonLifecycle.LaunchOrReplaceStuck(_daemonPath) is { } problem)
+        {
+            AppLog.Warn($"Replacing the unanswering driver: the new driver didn't start: {problem}");
+            DaemonOperationError = problem;
+            return false;
+        }
+        DaemonOperationStatus = "Connecting…";
+        ConnectionStatus = "Connecting...";
+        _connectAttempt++; // invalidate any pending startup/Refresh monitor
+        await _session.ConnectAsync(_cts.Token);
+        var ok = await WaitForConnectionStateAsync(connected: true, DaemonOperationTimeout);
+        AppLog.Info(ok ? "Replacing the unanswering driver: connected to the new driver."
+                       : "Replacing the unanswering driver: the new driver didn't come online either.");
+        return ok;
+    }
+
     [RelayCommand]
     private async Task RestartDaemon()
     {
@@ -1798,7 +1836,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             // Start phase: relaunch and connect to the fresh instance.
             DaemonOperationStatus = "Starting driver…";
             _session.AutoReconnect = true;
-            if (_daemonLifecycle.Launch(_daemonPath) is { } launchProblem)
+            if (_daemonLifecycle.LaunchOrReplaceStuck(_daemonPath) is { } launchProblem)
             {
                 // Worth being loud here: the old daemon is already stopped, so a silent failure leaves
                 // the user with no driver at all and no idea why.
