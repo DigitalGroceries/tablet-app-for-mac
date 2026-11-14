@@ -303,7 +303,7 @@ public class DaemonLifecycleService : IDaemonLifecycleService
         {
             foreach (var pid in pids)
             {
-                try { using var p = Process.GetProcessById(pid); p.Kill(); }
+                try { using var p = Process.GetProcessById(pid); GracefulProcessStop.Stop(p); }
                 catch (Exception ex) { AppLog.Warn($"Driver stop: couldn't stop process {pid}.", ex); }
             }
             return Remaining(pids);
