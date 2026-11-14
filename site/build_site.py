@@ -46,7 +46,8 @@ def stale_files(out, src=SRC):
 def render(text, cfg):
     p = cfg['previous']
     return (text.replace('{{V}}', str(cfg['current']))
-                .replace('{{P1}}', str(p[0])).replace('{{P2}}', str(p[1])))
+                .replace('{{P1}}', str(p[0])).replace('{{P2}}', str(p[1]))
+                .replace('{{D}}', str(cfg.get('discussion', ''))))
 
 
 def manual_matches(new_pdf, published):
