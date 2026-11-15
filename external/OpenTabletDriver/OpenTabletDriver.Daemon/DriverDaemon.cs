@@ -715,7 +715,8 @@ namespace OpenTabletDriver.Daemon
 
         public Task<IEnumerable<SerializedDeviceEndpoint>> GetDevices()
         {
-            return Task.FromResult(Driver.CompositeDeviceHub.GetDevices().Select(d => new SerializedDeviceEndpoint(d)));
+            // Tablet App for Mac V28 (#80): a finished array, so JSON-RPC never enumerates the hub's list later.
+            return Task.FromResult<IEnumerable<SerializedDeviceEndpoint>>(Driver.CompositeDeviceHub.GetDevices().Select(d => new SerializedDeviceEndpoint(d)).ToArray());
         }
 
         public Task<AppInfo> GetApplicationInfo()

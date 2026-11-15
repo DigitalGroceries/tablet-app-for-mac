@@ -45,9 +45,13 @@ namespace OpenTabletDriver.Devices
                 .RegisterServiceProvider(provider);
         }
 
+        // Tablet App for Mac V28 (#80, Daniel's log 15 Nov 12:38:48: GetDevices failed with 'Collection was modified'
+        // while a tablet was being plugged in): hand out a copy taken under the lock, never the live list that a
+        // device change rewrites while JSON-RPC is still writing it out on another thread.
         public IEnumerable<IDeviceEndpoint> GetDevices()
         {
-            return endpoints;
+            lock (syncObject)
+                return endpoints.ToArray();
         }
 
         public void ConnectDeviceHub<T>() where T : IDeviceHub
@@ -100,7 +104,8 @@ namespace OpenTabletDriver.Devices
             if (Interlocked.Increment(ref currentlyDebouncing) == 1)
             {
                 // This event is the first of a potential sequence of events, copy old endpoint list
-                oldEndpoints = new List<IDeviceEndpoint>(endpoints);
+                lock (syncObject)
+                    oldEndpoints = new List<IDeviceEndpoint>(endpoints);
             }
 
             lock (syncObject)
@@ -114,7 +119,7 @@ namespace OpenTabletDriver.Devices
             if (version == lastVersion)
             {
                 Log.Write(nameof(RootHub), "Invoking DevicesChanged", LogLevel.Debug);
-                DevicesChanged?.Invoke(this, new DevicesChangedEventArgs(oldEndpoints, endpoints));
+                DevicesChanged?.Invoke(this, new DevicesChangedEventArgs(oldEndpoints, GetDevices()));
             }
             else
             {
@@ -145,16 +150,22 @@ namespace OpenTabletDriver.Devices
 
         private void CommitHubChange()
         {
-            oldEndpoints = new List<IDeviceEndpoint>(endpoints);
-            ForceEnumeration();
-            DevicesChanged?.Invoke(this, new DevicesChangedEventArgs(endpoints, oldEndpoints));
-            oldEndpoints.Clear();
+            List<IDeviceEndpoint> before;
+            lock (syncObject)
+            {
+                before = new List<IDeviceEndpoint>(endpoints);
+                ForceEnumeration();
+            }
+            DevicesChanged?.Invoke(this, new DevicesChangedEventArgs(GetDevices(), before));
         }
 
         private void ForceEnumeration()
         {
-            endpoints.Clear();
-            endpoints.AddRange(hubs.SelectMany(h => h.GetDevices()));
+            lock (syncObject)
+            {
+                endpoints.Clear();
+                endpoints.AddRange(hubs.SelectMany(h => h.GetDevices()));
+            }
         }
 
         private RootHub RegisterServiceProvider(IServiceProvider serviceProvider)

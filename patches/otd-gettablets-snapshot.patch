@@ -1,5 +1,5 @@
 diff --git a/OpenTabletDriver/Driver.cs b/OpenTabletDriver/Driver.cs
-index ca78153..a93fc0b 100644
+index ca78153..320b88d 100644
 --- a/OpenTabletDriver/Driver.cs
 +++ b/OpenTabletDriver/Driver.cs
 @@ -32,7 +32,9 @@ namespace OpenTabletDriver
@@ -7,8 +7,8 @@ index ca78153..a93fc0b 100644
          public ICompositeDeviceHub CompositeDeviceHub { get; }
          public ImmutableArray<InputDeviceTree> InputDevices => _inputDeviceTrees;
 -        public IEnumerable<TabletReference> Tablets => InputDevices.Select(c => c.CreateReference());
-+        // Tablet App for Mac V28 (#80, Daniel's log: 'Collection was modified' while reading the device list):
-+        // hand out a finished array, not a lazy query that JSON-RPC enumerates later on its own thread.
++        // Tablet App for Mac V28 (#80): hand out a finished array, not a lazy query that JSON-RPC enumerates later on
++        // its own thread. (Daniel's 'Collection was modified' was GetDevices: see RootHub.GetDevices.)
 +        public IEnumerable<TabletReference> Tablets => InputDevices.Select(c => c.CreateReference()).ToArray();
  
          private Dictionary<IDeviceEndpoint, Dictionary<byte, string?>> DeviceStringCache = [];
