@@ -69,6 +69,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 ![Home](img/02-home-overview.png)
 
 - **Your tablets**: one card per connected or remembered tablet. Click a card to open its settings.
+- **No tablet yet?** Click **Choose your tablet**, search for your model (the model number is on the label on the back of the tablet, for example PTK-440) and click **Set up this tablet**, or click **Use a sample tablet**. Every page of that tablet opens, so you can set everything up before you plug it in. Your settings are used as soon as that model is connected. If a different model that this Mac hasn't seen before is plugged in instead, Home offers to copy the pen and screen mapping settings to it (**Copy settings** or **Not now**).
 - Card **⋯** menu: **Open tablet settings**, **Forget this tablet**.
 - If a remembered tablet is not plugged in, the card tooltip says **Not detected**, and a hint reads **Not found. Double-click to see what to try.** On the tablet page a line says **Not detected. Showing this tablet's saved settings.** The help under it is: if it is plugged in, check it has power and that its USB cable goes straight into the Mac, not through a hub. Then click **Restart driver**. Still not found? **Send a report…**
 - Health rows: problems found, each with **Fix** or a specific action where one exists. **Fix** works with the pen even while the pen tip or eraser is disabled.
@@ -110,7 +111,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 ![Eraser](img/17-eraser-tab.png)
 
-The Eraser tab has the same controls as Pen. Separate for the eraser: **Disable eraser** and **Manual Eraser Pressure** (own frame under Eraser Feel; used while pressure sensitivity is off). Shared with Pen (marked "Shared with Pen"): tilt, the Feel curve (one curve for tip and eraser), pressure sensitivity, Position smoothing (and Movement, when its choice is shown). The button cards are the pen's barrel buttons.
+The Eraser tab has the same controls as Pen. The eraser card has **Change…** and **Default**, like the pen buttons: **Default (erase)** erases, and **Change…** makes the eraser end send a key, a mouse button, scroll, the radial menu or (on tablets with finger touch) **Touch on/off** instead. Separate for the eraser: **Disable eraser** and **Manual Eraser Pressure** (own frame under Eraser Feel; used while pressure sensitivity is off). Shared with Pen (marked "Shared with Pen"): tilt, the Feel curve (one curve for tip and eraser), pressure sensitivity, Position smoothing (and Movement, when its choice is shown). The button cards are the pen's barrel buttons.
 
 ## Tablet › Mapping
 
@@ -201,9 +202,11 @@ A pen button or an ExpressKey can open a radial menu, like the one in Wacom's dr
 
 ![More › Hover](img/49-hover-limit.png)
 
-## Finger touch (Intuos Pro M, PTH-651)
+## Finger touch (Intuos Pro M PTH-651; Bamboo Pen & Touch CTH-460, CTH-461, CTH-661)
 
-On the Intuos Pro M (PTH-651), finger touch works like a Mac trackpad. Switch it on or off with **Touch trackpad** on **Tablet › More › about**.
+On these tablets finger touch works like a Mac trackpad. Switch it on or off with **Touch trackpad** on **Tablet › More › about**. On the PTH-651 it starts on; on the Bamboo Pen & Touch models it starts off.
+
+**Touch on/off key**: set a pen button, the eraser or an ExpressKey to **Touch on/off** (**Change…** › **Touch**; the tab is only there on tablets with finger touch). Each press turns finger touch on or off, like Wacom's Touch On/Off. Changing the **Touch trackpad** switch sets touch again.
 
 - One finger moves the pointer.
 - Two fingers scroll.
@@ -235,7 +238,7 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 - **App menu**: the **Tablet App for Mac** menu at the top left of the screen has **About Tablet App for Mac** (opens Home, with the version and links), **Report a problem or send a recommendation…** (see Report a problem or send a recommendation), **Export settings…** and **Import settings…** (the same as the buttons in Settings › System; results show in the main window). The pen menu in the menu bar has them too.
 - **System › Automatic backups**: when a new version starts for the first time, the app backs up all your settings by itself, and it does the same before every import. The last 5 are kept. **Preview…** shows what bringing one back would change; **Show in Finder** opens the folder.
 - **System › Diagnostic file**: **Create diagnostic file** saves one zip on your Desktop with a summary (app, driver and macOS versions, connected tablets, other tablet drivers found, and your mice and keyboards: name, IDs, connection and driver), the app and driver logs and your settings. Serial numbers, Bluetooth addresses and your user name are removed. The path shows under the button; attach the zip to a GitHub issue. The same button is on **Settings › Troubleshooting** (**Diagnostic report**) and on **Advanced › Diagnostics**.
-- **System**: **Start at login**. Switch on **Start automatically when I log in** to have the app start by itself when you log in to your Mac, with only the pen icon in the menu bar. **Open Login Items…** opens the same setting in macOS: System Settings › General › Login Items.
+- **System**: **Start at login**. Switch on **Start automatically when I log in** to have the app start by itself when you log in to your Mac, with only the pen icon in the menu bar. If it is off and macOS reopens the app after a restart, the app opens its window as usual. In the first minute after login a second click on the app always shows the window. **Open Login Items…** opens the same setting in macOS: System Settings › General › Login Items.
 - **Troubleshooting**: a page under Settings with quick fixes when the tablet stops responding, a setting will not stick, or you need to send a report. **Restart driver** stops the tablet driver and starts it again; use this when the pen stops moving or a tablet is not detected. **Diagnostic report** has **Create diagnostic file** (the same zip as **System › Diagnostic file**; **Show in Finder** appears once it is saved). **Reset permissions** clears this app's Input Monitoring and Accessibility entries so macOS will ask again.
 
 ## Advanced
