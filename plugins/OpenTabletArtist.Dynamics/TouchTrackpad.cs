@@ -22,13 +22,24 @@ namespace OpenTabletArtist.Dynamics;
 [PluginName("Tablet App for Mac - Touch trackpad")]
 public class TouchTrackpadFilter : IPositionedPipelineElement<IDeviceReport>, IDisposable
 {
-    [TabletReference] public TabletReference? Tablet { get; set; }
+    private TabletReference? _tablet;
+    private bool _touchOn = true, _touchOnSet;
+
+    [TabletReference] public TabletReference? Tablet { get => _tablet; set { _tablet = value; Register(); } }
 
     /// <summary>Version 28 (#77): the switch on the tablet's page. The filter always runs, so a Touch on/off key
     /// (<see cref="TouchToggleBinding"/>) can turn touch on even when this is off. Profiles from before Version 28
     /// have no such setting and were only written while on, so it defaults to on.</summary>
     [Property("Touch on"), DefaultPropertyValue(true)]
-    public bool TouchOn { set; get; } = true;
+    public bool TouchOn { get => _touchOn; set { _touchOn = value; _touchOnSet = true; Register(); } }
+
+    /// <summary>Devin's review of #77: tell <see cref="TouchSwitch"/> the switch's value as soon as the settings are
+    /// applied, so a Touch on/off key pressed before any finger touch turns touch ON on a model that starts off.
+    /// Only once both the tablet and an explicit TouchOn are known, so no passing default can clear the key's choice.</summary>
+    private void Register()
+    {
+        if (_touchOnSet && _tablet?.Properties?.Name is { Length: > 0 } name) TouchSwitch.Seen(name, _touchOn);
+    }
 
     public PipelinePosition Position => PipelinePosition.PreTransform;
     public event Action<IDeviceReport>? Emit;
@@ -160,7 +171,8 @@ public class TouchTrackpadFilter : IPositionedPipelineElement<IDeviceReport>, ID
 /// <summary>
 /// Version 28 (#77): the Touch on/off key's state, per tablet, for the driver's lifetime. A key press flips touch
 /// from whatever it is now; a change of the switch on the tablet's page (a new TouchOn) clears the key's override,
-/// so the switch always wins when the user changes it. Thread-safe.
+/// so the switch always wins when the user changes it. Thread-safe. Keyed by tablet name, so two identical tablets
+/// share one switch (rare; Devin's review). A tablet not seen yet counts as on (a PTH-651 from before Version 28).
 /// </summary>
 public static class TouchSwitch
 {

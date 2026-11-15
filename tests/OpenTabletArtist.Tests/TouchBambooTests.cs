@@ -148,6 +148,26 @@ public class TouchBambooTests
     }
 
     [Fact]
+    public void FirstKeyPress_BeforeAnyTouch_TurnsAStartingOffModelOn()
+    {
+        // Devin's review (2): the filter registers its TouchOn when the settings are applied, before any report.
+        TouchSwitch.Reset();
+        var config = OfflineTablet.ConfigFor("Wacom CTH-461")!;
+        var filter = new TouchTrackpadFilter
+        {
+            Tablet = new TabletReference(config, System.Array.Empty<OpenTabletDriver.Plugin.Tablet.DeviceIdentifier>()),
+            TouchOn = false,
+        };
+        Assert.False(TouchSwitch.IsOn("Wacom CTH-461", filter.TouchOn));
+        Assert.True(TouchSwitch.Toggle("Wacom CTH-461"));
+        // Applying the same settings again (a new filter, same switch) keeps the key's choice.
+        _ = new TouchTrackpadFilter { TouchOn = false, Tablet = new TabletReference(config, System.Array.Empty<OpenTabletDriver.Plugin.Tablet.DeviceIdentifier>()) };
+        Assert.True(TouchSwitch.IsOn("Wacom CTH-461", false));
+        filter.Dispose();
+        TouchSwitch.Reset();
+    }
+
+    [Fact]
     public void TouchOnOff_ReadsWritesAndDescribes()
     {
         var store = AuxKeyBinding.MakeBinding(AuxBinding.TouchToggle)!;
