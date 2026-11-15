@@ -1,0 +1,39 @@
+diff --git a/OpenTabletDriver/Driver.cs b/OpenTabletDriver/Driver.cs
+index ca78153..a93fc0b 100644
+--- a/OpenTabletDriver/Driver.cs
++++ b/OpenTabletDriver/Driver.cs
+@@ -32,7 +32,9 @@ namespace OpenTabletDriver
+ 
+         public ICompositeDeviceHub CompositeDeviceHub { get; }
+         public ImmutableArray<InputDeviceTree> InputDevices => _inputDeviceTrees;
+-        public IEnumerable<TabletReference> Tablets => InputDevices.Select(c => c.CreateReference());
++        // Tablet App for Mac V28 (#80, Daniel's log: 'Collection was modified' while reading the device list):
++        // hand out a finished array, not a lazy query that JSON-RPC enumerates later on its own thread.
++        public IEnumerable<TabletReference> Tablets => InputDevices.Select(c => c.CreateReference()).ToArray();
+ 
+         private Dictionary<IDeviceEndpoint, Dictionary<byte, string?>> DeviceStringCache = [];
+ 
+@@ -78,7 +80,7 @@ namespace OpenTabletDriver
+                             }, tree);
+ 
+                             // use here, we do this to avoid using an _inputDeviceTrees that may have been updated
+-                            TabletsChanged?.Invoke(this, updatedTrees.Select(c => c.CreateReference()));
++                            TabletsChanged?.Invoke(this, updatedTrees.Select(c => c.CreateReference()).ToArray());
+                         };
+                     }
+                 }
+diff --git a/OpenTabletDriver/InputDeviceTree.cs b/OpenTabletDriver/InputDeviceTree.cs
+index 1f8ad7e..c98ccef 100644
+--- a/OpenTabletDriver/InputDeviceTree.cs
++++ b/OpenTabletDriver/InputDeviceTree.cs
+@@ -52,7 +52,9 @@ namespace OpenTabletDriver
+         /// </summary>
+         public IOutputMode? OutputMode { set; get; }
+ 
+-        public TabletReference CreateReference() => new TabletReference(Properties, InputDevices.Select(c => c.Identifier));
++        // Tablet App for Mac V28 (#80): a snapshot of the identifiers, so a reference sent over JSON-RPC never
++        // enumerates this tree's live device list later.
++        public TabletReference CreateReference() => new TabletReference(Properties, InputDevices.Select(c => c.Identifier).ToArray());
+ 
+         private void HandleReport(object? sender, IDeviceReport report)
+         {

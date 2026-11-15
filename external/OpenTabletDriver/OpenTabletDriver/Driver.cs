@@ -32,7 +32,9 @@ namespace OpenTabletDriver
 
         public ICompositeDeviceHub CompositeDeviceHub { get; }
         public ImmutableArray<InputDeviceTree> InputDevices => _inputDeviceTrees;
-        public IEnumerable<TabletReference> Tablets => InputDevices.Select(c => c.CreateReference());
+        // Tablet App for Mac V28 (#80, Daniel's log: 'Collection was modified' while reading the device list):
+        // hand out a finished array, not a lazy query that JSON-RPC enumerates later on its own thread.
+        public IEnumerable<TabletReference> Tablets => InputDevices.Select(c => c.CreateReference()).ToArray();
 
         private Dictionary<IDeviceEndpoint, Dictionary<byte, string?>> DeviceStringCache = [];
 
@@ -78,7 +80,7 @@ namespace OpenTabletDriver
                             }, tree);
 
                             // use here, we do this to avoid using an _inputDeviceTrees that may have been updated
-                            TabletsChanged?.Invoke(this, updatedTrees.Select(c => c.CreateReference()));
+                            TabletsChanged?.Invoke(this, updatedTrees.Select(c => c.CreateReference()).ToArray());
                         };
                     }
                 }

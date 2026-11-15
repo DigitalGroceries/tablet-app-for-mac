@@ -52,7 +52,9 @@ namespace OpenTabletDriver
         /// </summary>
         public IOutputMode? OutputMode { set; get; }
 
-        public TabletReference CreateReference() => new TabletReference(Properties, InputDevices.Select(c => c.Identifier));
+        // Tablet App for Mac V28 (#80): a snapshot of the identifiers, so a reference sent over JSON-RPC never
+        // enumerates this tree's live device list later.
+        public TabletReference CreateReference() => new TabletReference(Properties, InputDevices.Select(c => c.Identifier).ToArray());
 
         private void HandleReport(object? sender, IDeviceReport report)
         {
