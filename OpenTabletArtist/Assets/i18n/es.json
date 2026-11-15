@@ -492,6 +492,7 @@
   "report.record.hint": "Haz clic en Grabar el problema, haz que el problema ocurra con tu tableta y luego haz clic en Detener la grabación. Lo que envió la tableta se añade al informe.",
   "report.record.recording": "Grabando… mensajes de la tableta hasta ahora: {n}",
   "report.record.done": "Grabación añadida al informe: {n} mensajes de la tableta.",
+  "report.record.limit": "La grabación se detuvo al llegar al límite de 2 minutos: {n} mensajes de la tableta añadidos al informe.",
   "tablet.pen.double_click_distance": "Corrección de doble clic",
   "tablet.pen.double_click_off": "Desactivado",
   "tablet.pen.double_click_default": "Predeterminado",

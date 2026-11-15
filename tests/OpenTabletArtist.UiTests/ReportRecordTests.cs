@@ -62,13 +62,13 @@ public class ReportRecordTests
             Assert.Equal("Stop recording", record.Content);
             d.Emit();
             Dispatcher.UIThread.RunJobs();
-            Assert.Equal("Recording… tablet reports so far: 1", Named<TextBlock>(sheet, "ReportRecordStatus").Text);
+            Assert.Equal("Recording… messages from the tablet so far: 1", Named<TextBlock>(sheet, "ReportRecordStatus").Text);
 
             await vm.ToggleRecordCommand.ExecuteAsync(null);
             Dispatcher.UIThread.RunJobs();
             Assert.False(vm.IsRecording);
             Assert.Equal("Record the problem", record.Content);
-            Assert.Equal("Recording added to the report: 1 tablet reports.", Named<TextBlock>(sheet, "ReportRecordStatus").Text);
+            Assert.Equal("Recording added to the report: 1 messages from the tablet.", Named<TextBlock>(sheet, "ReportRecordStatus").Text);
             Assert.Equal(new[] { true, false }, d.Debug);
         }
         finally
@@ -131,7 +131,7 @@ public class ReportRecordTests
         foreach (var lang in new[] { "bg", "de", "en", "es", "fr", "ja", "ru", "zh-CN" })
         {
             var json = JObject.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(dir, lang + ".json")));
-            foreach (var key in new[] { "report.record.start", "report.record.stop", "report.record.hint", "report.record.recording", "report.record.done" })
+            foreach (var key in new[] { "report.record.start", "report.record.stop", "report.record.hint", "report.record.recording", "report.record.done", "report.record.limit" })
                 Assert.False(string.IsNullOrWhiteSpace(json[key]?.ToString()), $"{lang}: {key}");
             Assert.Contains("{n}", json["report.record.recording"]!.ToString());
             Assert.Contains("{n}", json["report.record.done"]!.ToString());

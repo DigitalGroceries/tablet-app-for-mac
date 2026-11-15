@@ -98,9 +98,11 @@ public partial class ReportViewModel : ObservableObject
         "Click Record the problem, make the problem happen with your tablet, then click Stop recording. What the tablet sent goes into the report.");
     public string RecordStatus => _recorder == null ? ""
         : IsRecording
-            ? Localizer.Te("report.record.recording", "Recording… tablet reports so far: {n}").Replace("{n}", _recorder.EventCount.ToString())
+            ? Localizer.Te("report.record.recording", "Recording… messages from the tablet so far: {n}").Replace("{n}", _recorder.EventCount.ToString())
             : _recorder.Trace != null
-                ? Localizer.Te("report.record.done", "Recording added to the report: {n} tablet reports.").Replace("{n}", _recorder.EventCount.ToString())
+                ? (_recorder.StoppedAtLimit
+                    ? Localizer.Te("report.record.limit", "Recording stopped at the 2-minute limit: {n} messages from the tablet added to the report.")
+                    : Localizer.Te("report.record.done", "Recording added to the report: {n} messages from the tablet.")).Replace("{n}", _recorder.EventCount.ToString())
                 : "";
 
     private void RecordingChanged()
@@ -275,7 +277,7 @@ public partial class ReportViewModel : ObservableObject
         (List<string> Devices, IReadOnlyList<string> Conflicts, string? Version) inputs, bool includeEmail)
     {
         await StopRecordingAsync();
-        var trace = _recorder?.Trace;
+        var trace = _recorder?.Trace is { } t ? DiagnosticBundle.CleanText(t) : null;
         var (devices, conflicts, version) = inputs;
         var pictures = Pictures;
         var recommendation = IsRecommendation;

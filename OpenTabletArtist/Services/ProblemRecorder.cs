@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -43,6 +44,10 @@ public sealed class ProblemRecorder
 
     public bool IsRecording { get; private set; }
 
+    /// <summary>True when the last recording stopped by itself at <see cref="MaxLength"/>.</summary>
+    public bool StoppedAtLimit { get { lock (_lock) return _timeUp; } }
+    private CancellationTokenSource? _limit;
+
     /// <summary>The finished recording (recording.txt), or null before the first Stop.</summary>
     public string? Trace { get; private set; }
 
@@ -63,6 +68,8 @@ public sealed class ProblemRecorder
         }
         Trace = null;
         IsRecording = true;
+        _limit = new CancellationTokenSource();
+        _ = StopAtLimitAsync(_limit.Token);
         AppLog.Info("=== Report: recording started (Record the problem) ===");
         if (_daemon == null)
         {
@@ -89,8 +96,13 @@ public sealed class ProblemRecorder
     /// <summary>Ends the recording and returns recording.txt. Safe to call when not recording.</summary>
     public async Task<string> StopAsync()
     {
-        if (!IsRecording) return Trace ?? "";
-        IsRecording = false;
+        lock (_lock)
+        {
+            if (!IsRecording) return Trace ?? "";
+            IsRecording = false;
+        }
+        _limit?.Cancel();
+        _limit = null;
         if (_daemon != null)
         {
             _daemon.DeviceReport -= OnReport;
@@ -141,14 +153,26 @@ public sealed class ProblemRecorder
         {
             if (!IsRecording) return;
             var at = _now() - _started;
-            if (at > MaxLength) { _timeUp = true; _dropped++; return; }
-            if (_lines.Count >= MaxEvents) { _dropped++; return; }
-            var kind = Kind(data);
-            _kinds[kind] = _kinds.TryGetValue(kind, out var n) ? n + 1 : 1;
-            _lines.Add(FormatReport(at, kind, data));
-            notify = _lines.Count == 1 || _lines.Count % 25 == 0;
+            if (at > MaxLength) { _timeUp = true; _dropped++; notify = false; }
+            else if (_lines.Count >= MaxEvents) { _dropped++; return; }
+            else
+            {
+                var kind = Kind(data);
+                _kinds[kind] = _kinds.TryGetValue(kind, out var n) ? n + 1 : 1;
+                _lines.Add(FormatReport(at, kind, data));
+                notify = _lines.Count == 1 || _lines.Count % 25 == 0;
+            }
         }
+        if (StoppedAtLimit && IsRecording) { _ = StopAsync(); return; }
         if (notify) Changed?.Invoke();
+    }
+
+    private async Task StopAtLimitAsync(CancellationToken token)
+    {
+        try { await Task.Delay(MaxLength, token); }
+        catch (OperationCanceledException) { return; }
+        lock (_lock) _timeUp = true;
+        await StopAsync();
     }
 
     /// <summary>The report type from the daemon's "Path" (e.g. "…Wacom.IntuosV2.IntuosV2AuxReport" → "IntuosV2AuxReport").</summary>

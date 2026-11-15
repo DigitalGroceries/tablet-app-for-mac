@@ -80,6 +80,7 @@ public static class UnsavedSettingsReport
         var sb = new StringBuilder();
         if (state == null) return "Settings state: not available (the report was made outside the main window)." + Environment.NewLine;
         sb.AppendLine("Save state: " + state.SaveState + (state.HasUnsavedChanges ? " (there are unsaved changes)" : ""));
+        sb.AppendLine("Compared here: the driver settings only. The app's own settings (per-app ExpressKeys and pen bindings, ring modes) are saved as soon as they change, so they are not compared; their saved copy is in settings/ of this report.");
         if (state.Problem != null) sb.AppendLine("The working settings couldn't be read: " + state.Problem);
         if (livePortableJson == null) { sb.AppendLine("Working settings: none (no settings loaded from the driver)."); return sb.ToString(); }
         if (savedJson == null) { sb.AppendLine("Saved settings file: not found or unreadable."); return sb.ToString(); }

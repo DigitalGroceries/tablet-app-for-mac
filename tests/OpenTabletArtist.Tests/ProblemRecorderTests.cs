@@ -259,4 +259,33 @@ public class ProblemRecorderTests
         Assert.DoesNotContain("305419896", line);
         Assert.Contains("left out", line);
     }
+
+    [Fact]
+    public async Task AReportAfterTheTimeLimit_StopsTheRecordingByItself()
+    {
+        var t = new DateTime(2026, 11, 15, 12, 0, 0);
+        var daemon = new LimitDaemon();
+        var rec = new ProblemRecorder(daemon, () => t);
+        await rec.StartAsync();
+        daemon.Emit();
+        t += ProblemRecorder.MaxLength + TimeSpan.FromSeconds(1);
+        daemon.Emit();
+        for (var i = 0; i < 50 && rec.IsRecording; i++) await Task.Delay(20);
+        Assert.False(rec.IsRecording);
+        Assert.True(rec.StoppedAtLimit);
+        Assert.Equal(1, rec.EventCount);
+        Assert.Equal(new[] { true, false }, daemon.Debug);
+        Assert.Contains("after the 2 minute limit", rec.Trace);
+        await rec.StartAsync();
+        Assert.False(rec.StoppedAtLimit);
+        await rec.StopAsync();
+    }
+
+    private sealed class LimitDaemon : OtdInterop.IDaemonDebugSession
+    {
+        public event Action<JObject>? DeviceReport;
+        public List<bool> Debug { get; } = new();
+        public Task SetTabletDebugAsync(bool enabled) { Debug.Add(enabled); return Task.CompletedTask; }
+        public void Emit() => DeviceReport?.Invoke(new JObject { ["Path"] = "X.PenReport", ["Data"] = new JObject { ["Pressure"] = 1 } });
+    }
 }

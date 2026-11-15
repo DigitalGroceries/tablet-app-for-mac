@@ -483,6 +483,7 @@
   "report.record.hint": "Cliquez sur Enregistrer le problème, reproduisez le problème avec votre tablette, puis cliquez sur Arrêter l'enregistrement. Ce que la tablette a envoyé est ajouté au rapport.",
   "report.record.recording": "Enregistrement… messages de la tablette jusqu'ici : {n}",
   "report.record.done": "Enregistrement ajouté au rapport : {n} messages de la tablette.",
+  "report.record.limit": "Enregistrement arrêté à la limite de 2 minutes : {n} messages de la tablette ajoutés au rapport.",
   "tablet.pen.double_click_distance": "Correction du double-clic",
   "tablet.pen.double_click_off": "Désactivé",
   "tablet.pen.double_click_default": "Par défaut",

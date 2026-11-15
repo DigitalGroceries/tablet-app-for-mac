@@ -483,6 +483,7 @@
   "report.record.hint": "Klicke auf Problem aufzeichnen, lass das Problem mit deinem Tablett auftreten und klicke dann auf Aufzeichnung beenden. Was das Tablett gesendet hat, kommt in den Bericht.",
   "report.record.recording": "Aufzeichnung läuft… Tablett-Meldungen bisher: {n}",
   "report.record.done": "Aufzeichnung zum Bericht hinzugefügt: {n} Tablett-Meldungen.",
+  "report.record.limit": "Aufzeichnung an der 2-Minuten-Grenze beendet: {n} Tablett-Meldungen zum Bericht hinzugefügt.",
   "tablet.pen.double_click_distance": "Doppelklick-Hilfe",
   "tablet.pen.double_click_off": "Aus",
   "tablet.pen.double_click_default": "Standard",
