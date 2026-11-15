@@ -75,6 +75,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnFooterFlashMessageChanged(string value) => OnPropertyChanged(nameof(FooterStatusText));
 
+    /// <summary>V28 #80 (Daniel; agreed by Claude and Devin): every edit already works on the driver, but only Save keeps
+    /// it after a driver restart, which a Wacom user doesn't expect. While there are unsaved changes, one quiet line
+    /// under the status says so. A help line, not a feedback prompt.</summary>
+    public bool ShowUnsavedHint => _session.SaveState == SettingsSaveState.Unsaved;
+    public string UnsavedHint => Localizer.Te("save.status.unsaved_hint", "Your changes work now. Click Save to keep them after a restart.");
+
     /// <summary>Monitor-cycle switch events (#89) — the shell subscribes to show a toast on cycle.</summary>
     public MonitorCycleService MonitorCycle => _monitorCycle;
 
@@ -924,7 +930,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
             RefreshDefaultButtons();
         if (e.PropertyName is nameof(AppSession.SaveStatusText) or nameof(AppSession.HasUnsavedChanges)
             or nameof(AppSession.CanEditSettings))
+        {
             OnPropertyChanged(nameof(FooterStatusText));
+            OnPropertyChanged(nameof(ShowUnsavedHint));
+        }
     }
 
     /// <summary>Refresh HasUserDefault / CanRevertToDefault / Revert-to-saved from disk + live settings.</summary>

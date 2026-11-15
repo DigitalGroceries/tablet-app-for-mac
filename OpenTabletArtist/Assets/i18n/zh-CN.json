@@ -651,5 +651,6 @@
   "binding.touch.tab": "触控",
   "binding.touch.text": "每按一次此按钮，就会开启或关闭手指触控，就像 Wacom 的 Touch On/Off。平板页面上的“触控板模式”开关决定触控开始时的状态。",
   "binding.touch.name": "触控 开/关",
-  "tablet.eraser.default_action": "默认（擦除）"
+  "tablet.eraser.default_action": "默认（擦除）",
+  "save.status.unsaved_hint": "更改已生效。点击“保存”，重启后也会保留。"
 }

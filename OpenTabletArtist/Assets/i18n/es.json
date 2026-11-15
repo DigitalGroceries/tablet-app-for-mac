@@ -651,5 +651,6 @@
   "binding.touch.tab": "Táctil",
   "binding.touch.text": "Cada pulsación de este botón activa o desactiva el uso táctil con los dedos, como Touch On/Off de Wacom. El interruptor «Trackpad táctil» de la página de la tableta indica cómo empieza el táctil.",
   "binding.touch.name": "Táctil sí/no",
-  "tablet.eraser.default_action": "Predeterminado (borrar)"
+  "tablet.eraser.default_action": "Predeterminado (borrar)",
+  "save.status.unsaved_hint": "Tus cambios ya funcionan. Haz clic en «Guardar» para conservarlos después de reiniciar."
 }

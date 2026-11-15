@@ -651,5 +651,6 @@
   "binding.touch.tab": "Touch",
   "binding.touch.text": "Jeder Druck auf diese Taste schaltet die Fingerbedienung ein oder aus, wie Touch On/Off bei Wacom. Der Schalter „Touch-Trackpad“ auf der Seite des Tabletts legt fest, wie Touch startet.",
   "binding.touch.name": "Touch ein/aus",
-  "tablet.eraser.default_action": "Standard (radieren)"
+  "tablet.eraser.default_action": "Standard (radieren)",
+  "save.status.unsaved_hint": "Deine Änderungen wirken sofort. Klicke auf „Speichern“, damit sie einen Neustart überstehen."
 }

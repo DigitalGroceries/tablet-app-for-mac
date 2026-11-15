@@ -34,6 +34,10 @@
         <Grid ColumnDefinitions="*,Auto">
             <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
                 <TextBlock Text="{Binding FooterStatusText}" TextWrapping="Wrap" />
+                <!-- V28 #80: what "Unsaved changes" means for the artist, while there are some. -->
+                <TextBlock x:Name="UnsavedHint" Text="{Binding UnsavedHint}" TextWrapping="Wrap" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           IsVisible="{Binding ShowUnsavedHint, FallbackValue=False}" />
                 <!-- The two notices describe something that already happened and ask for nothing, which
                      is the opposite of what text beside Save usually means. They leave when the artist
                      says so, or when they become history (an edit, a save, a reload, a reconnect). -->
