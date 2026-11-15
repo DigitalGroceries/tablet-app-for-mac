@@ -8,13 +8,14 @@ namespace OpenTabletArtist.Services;
 
 /// <summary>One HID interface of a tablet and the programs that opened it.</summary>
 public sealed record TabletInterface(string Product, int VendorId, int ProductId, string Role, int UsagePage, int Usage,
-    int MaxInputReport, string? Transport, IReadOnlyList<string> OpenedBy);
+    int MaxInputReport, string? Transport, IReadOnlyList<string> OpenedBy, string? Device = null);
 
 /// <summary>
 /// TASKS #81 (d): every HID interface of each tablet (pen, touch, ExpressKeys/vendor channel, the mouse and keyboard
 /// interfaces some tablets add) and which of them our driver opened. Read from <c>ioreg -r -c IOHIDDevice -l -a</c>:
 /// a program that opens an interface shows up as a child user client with <c>IOUserClientCreator = "pid N, name"</c>.
-/// The serial number and location are never read.
+/// The serial number is never read. The location (or Bluetooth device id) is read only to tell two identical
+/// tablets apart (<see cref="TabletInterface.Device"/>) and is never written into the report.
 /// </summary>
 public static class TabletInterfaceReport
 {
@@ -35,7 +36,7 @@ public static class TabletInterfaceReport
             var page = Int(node, "PrimaryUsagePage"); var usage = Int(node, "PrimaryUsage");
             var product = InputDeviceReport.RemoveOwner(Str(node, "Product") ?? Str(node, "IORegistryEntryName") ?? "(unnamed)");
             list.Add(new TabletInterface(product, vid, Int(node, "ProductID"), Role(page, usage), page, usage,
-                Int(node, "MaxInputReportSize"), Str(node, "Transport"), Openers(node)));
+                Int(node, "MaxInputReportSize"), Str(node, "Transport"), Openers(node), DeviceKey(node)));
         }
         return list;
     }
@@ -83,10 +84,15 @@ public static class TabletInterfaceReport
         var all = Parse(ioregXml);
         if (all.Count == 0) return "  (no tablet interface found)";
         var sb = new StringBuilder();
-        foreach (var g in all.GroupBy(i => (i.VendorId, i.ProductId)))
+        var groups = all.GroupBy(i => (i.VendorId, i.ProductId, i.Device)).ToList();
+        var seen = new Dictionary<(int, int), int>();
+        foreach (var g in groups)
         {
             var first = g.First();
-            sb.AppendLine($"  {first.Product} · VID 0x{first.VendorId:X4} PID 0x{first.ProductId:X4}{(first.Transport != null ? " · " + first.Transport : "")} · {g.Count()} interface(s)");
+            var model = (first.VendorId, first.ProductId);
+            var nth = seen[model] = seen.GetValueOrDefault(model) + 1;
+            var twin = groups.Count(x => (x.Key.VendorId, x.Key.ProductId) == model) > 1 ? $" (tablet {nth})" : "";
+            sb.AppendLine($"  {first.Product}{twin} · VID 0x{first.VendorId:X4} PID 0x{first.ProductId:X4}{(first.Transport != null ? " · " + first.Transport : "")} · {g.Count()} interface(s)");
             foreach (var i in g)
             {
                 var ours = i.OpenedBy.Any(IsOurDriver);
@@ -112,6 +118,11 @@ public static class TabletInterfaceReport
             return "  (could not be read: " + ex.GetType().Name + ")";
         }
     }
+
+    /// <summary>Same for every interface of one physical tablet; used only for grouping, never printed.</summary>
+    static string? DeviceKey(Dictionary<string, object?> n) =>
+        n.TryGetValue("LocationID", out var v) && v is long l ? "loc:" + l
+        : Str(n, "PhysicalDeviceUniqueID") is { } u ? "id:" + u : null;
 
     static bool HasPenUsage(Dictionary<string, object?> n) =>
         n.TryGetValue("DeviceUsagePairs", out var dup) && dup is List<object?> l

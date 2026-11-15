@@ -99,4 +99,23 @@ public class TabletInterfaceReportTests
         Assert.Contains("opened by our driver", s);
         Assert.DoesNotContain("8HIS003190", s);
     }
+
+    [Fact]
+    public void Format_KeepsTwoIdenticalTablets_Apart_WithoutPrintingTheirLocation()
+    {
+        Dictionary<string, object?> At(Dictionary<string, object?> iface, int loc) { iface["LocationID"] = loc; return iface; }
+        var xml = Plist(
+            At(Iface(0x0D, 0x02, 10, Client("pid 812, OpenTabletDriver.Daemon")), 0x14100000),
+            At(Iface(0xFF00, 0x01, 64, Client("pid 812, OpenTabletDriver.Daemon")), 0x14100000),
+            At(Iface(0x0D, 0x02, 10), 0x14200000),
+            At(Iface(0xFF00, 0x01, 64), 0x14200000));
+        var text = TabletInterfaceReport.Format(xml);
+        Assert.Contains("Intuos PTK-440 (tablet 1) · VID 0x056A PID 0x00B8 · USB · 2 interface(s)", text);
+        Assert.Contains("Intuos PTK-440 (tablet 2) · VID 0x056A PID 0x00B8 · USB · 2 interface(s)", text);
+        var second = text[text.IndexOf("(tablet 2)", StringComparison.Ordinal)..];
+        Assert.Contains("Our driver has none of this tablet's interfaces open.", second);
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(text, "Our driver has none"));
+        Assert.DoesNotContain("14100000", text);
+        Assert.DoesNotContain(0x14100000.ToString(), text);
+    }
 }
