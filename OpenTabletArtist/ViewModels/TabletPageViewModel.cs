@@ -45,6 +45,9 @@ public partial class TabletPageViewModel : ObservableObject
     private TabletChoiceViewModel? _lastSelected;
     private bool _restoringSelection;
 
+    /// <summary>TASKS #76: "Choose your tablet" on the no-tablet page (set by the shell).</summary>
+    public System.Windows.Input.ICommand? ChooseTabletCommand { get; set; }
+
     public TabletPageViewModel(Func<string, TabletDetailViewModel?> resolve,
         Func<string?>? getLastUsed = null, Action<string>? setLastUsed = null)
     {

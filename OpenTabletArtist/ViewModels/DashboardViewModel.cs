@@ -316,7 +316,40 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(HasTablet));
             TabletStatusText = _session.HasTablet ? $"{_session.TabletName} detected" : "No tablet detected";
         }
+        if (e.PropertyName is nameof(AppSession.PendingOfflineOffer))
+        {
+            OnPropertyChanged(nameof(HasOfflineOffer));
+            OnPropertyChanged(nameof(OfflineOfferText));
+        }
     }
+
+    // ------------------------------------------------------------------ TASKS #76
+
+    /// <summary>"Choose your tablet" in the no-tablet state (set by the shell).</summary>
+    public System.Windows.Input.ICommand? ChooseTabletCommand { get; set; }
+
+    /// <summary>A different model is connected than the one set up beforehand: offer to copy the shared settings.</summary>
+    public bool HasOfflineOffer => _session.PendingOfflineOffer != null;
+
+    public string OfflineOfferText => _session.PendingOfflineOffer is { } o
+        ? Localizer.Te("offer.text", OfflineOfferEnglish)
+            .Replace("{connected}", o.Connected, StringComparison.Ordinal)
+            .Replace("{chosen}", o.Chosen, StringComparison.Ordinal)
+        : "";
+
+    internal const string OfflineOfferEnglish =
+        "Your {connected} is connected, but it isn't set up yet. You set up the {chosen} before. "
+        + "Copy its pen and screen mapping settings to the {connected}?";
+
+    [RelayCommand]
+    private async System.Threading.Tasks.Task CopyOfflineSetup()
+    {
+        if (await _session.AnswerOfflineOfferAsync(copy: true))
+            ActionConfirmation.Show("confirm.settings_copied", "Settings copied");
+    }
+
+    [RelayCommand]
+    private async System.Threading.Tasks.Task DismissOfflineOffer() => await _session.AnswerOfflineOfferAsync(copy: false);
 
     public void Dispose()
     {

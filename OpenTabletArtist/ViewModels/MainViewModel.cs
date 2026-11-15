@@ -376,6 +376,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
         TabletPage = new TabletPageViewModel(ResolveTabletDetail,
             getLastUsed: () => _session.ActiveTabletName,
             setLastUsed: name => _session.SetActiveTablet(name));
+        // TASKS #76: set a tablet up before it is plugged in, from the no-tablet page and from Home.
+        TabletPage.ChooseTabletCommand = ChooseTabletCommand;
+        Dashboard.ChooseTabletCommand = ChooseTabletCommand;
 
         // The whole top-level nav as one ordered list (Zune Phase 0.2). Presets live in
         // SETTINGS tabs (#571). Selection is synced in OnCurrentPageChanged. TABLET's page carries a
@@ -572,6 +575,23 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         TabletPage.Select(name, tab);
         CurrentPage = TabletPage;
+    }
+
+    /// <summary>TASKS #76: pick a model (or the sample tablet), create and save its settings, open its page.</summary>
+    [RelayCommand]
+    private async Task ChooseTablet()
+    {
+        var name = await _dialogs.ShowChooseTabletAsync();
+        if (string.IsNullOrWhiteSpace(name)) return;
+        var problem = await _session.SetUpTabletBeforeConnectingAsync(name);
+        if (problem != null)
+        {
+            await _dialogs.ShowMessageAsync(Localizer.Te("choose.title", "Choose your tablet"), problem);
+            return;
+        }
+        ActionConfirmation.Show("confirm.tablet_set_up", "Tablet set up");
+        var added = _session.Profiles.FirstOrDefault(p => string.Equals(p.Profile.Tablet, name, StringComparison.OrdinalIgnoreCase));
+        NavigateToTabletByName(added?.Profile.Tablet ?? name);
     }
 
     private async Task ForgetTabletByNameAsync(string name)

@@ -16,7 +16,7 @@
         <ContentControl Content="{Binding Content}" IsVisible="{Binding HasTablet}" />
 
         <!-- Placeholder when nothing is detected or remembered (#542/#580). -->
-        <views:NoTabletHero IsVisible="{Binding !HasTablet}"
-                            Description="Connect a tablet and it'll show up here — remembered tablets appear too." />
+        <!-- TASKS #76: the hero's own (translated) text says how to set a tablet up before it is plugged in. -->
+        <views:NoTabletHero IsVisible="{Binding !HasTablet}" />
     </Grid>
 </UserControl>

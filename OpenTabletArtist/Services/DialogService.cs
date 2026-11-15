@@ -52,6 +52,10 @@ public interface IDialogService
     /// the connected tablet when <paramref name="detectedName"/> matches one (#155).</summary>
     Task ShowSupportedTabletsAsync(string? detectedName);
 
+    /// <summary>TASKS #76: the "Choose your tablet" picker (set up a tablet before it is plugged in). Returns the
+    /// chosen tablet name, or null when cancelled.</summary>
+    Task<string?> ShowChooseTabletAsync() => Task.FromResult<string?>(null);
+
     /// <summary>Shows the review-and-save window for a recording that has just been stopped, and completes when it
     /// is closed (after saving, discarding, or declining to). The recording's own view model carries everything.</summary>
     Task ShowRecordingReviewAsync(StrokeRecordingViewModel recording);
@@ -199,6 +203,12 @@ public class DialogService : IDialogService
     {
         var owner = Dialogs.GetMainWindow();
         if (owner != null) await Views.SupportedTabletsDialog.ShowAsync(owner, detectedName);
+    }
+
+    public async Task<string?> ShowChooseTabletAsync()
+    {
+        var owner = Dialogs.GetMainWindow();
+        return owner != null ? await Views.ChooseTabletDialog.ShowAsync(owner) : null;
     }
 
     public async Task ShowRecordingReviewAsync(StrokeRecordingViewModel recording)

@@ -25,6 +25,13 @@ public partial class DashboardView : UserControl
     {
         Localizer.EnsureLoaded();
         if (LblYourTablets != null) LblYourTablets.Text = Localizer.T("home.your_tablets");
+        // TASKS #76: the no-tablet state and the copy-settings offer.
+        if (LblNoTablets != null) LblNoTablets.Text = Localizer.Te("home.no_tablets", "No tablets connected or remembered");
+        if (LblNoTabletsHint != null) LblNoTabletsHint.Text = Localizer.Te("home.no_tablets_hint",
+            "Connect a tablet and it appears here, or choose your model and set it up now.");
+        if (ChooseTabletButton != null) ChooseTabletButton.Content = Localizer.Te("notablet.choose", "Choose your tablet");
+        if (OfflineOfferCopyButton != null) OfflineOfferCopyButton.Content = Localizer.Te("offer.copy", "Copy settings");
+        if (OfflineOfferNotNowButton != null) OfflineOfferNotNowButton.Content = Localizer.Te("offer.not_now", "Not now");
     }
 
     private void OnCardContextRequested(object? sender, ContextRequestedEventArgs e)

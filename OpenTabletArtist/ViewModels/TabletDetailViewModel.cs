@@ -968,7 +968,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         RefreshTabletArea();
         RefreshAbout(); // the ABOUT facts come from the same specs, so recover them on reconnect too
         // Version 16: whether the wheels are touch strips also comes from the specs; relabel once they arrive.
-        bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.Tablets, TabletName)?.WheelsAreTouchStrips == true;
+        bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.TabletsWithRemembered, TabletName)?.WheelsAreTouchStrips == true;
         if (Wheels.Count > 0 && Wheels[0].IsStrip != strips) RefreshWheels();
         // The tablet's size may only now be known: finish an All displays choice made before detection.
         MaybeRefitAllDisplays();
@@ -1027,7 +1027,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// <summary>Rebuild the ABOUT tab's fact lists from the tablet's live specs (empty when not detected).</summary>
     private void RefreshAbout()
     {
-        var info = _deviceData != null ? TabletAboutInfo.From(_deviceData.Tablets, TabletName) : null;
+        var info = _deviceData != null ? TabletAboutInfo.From(_deviceData.TabletsWithRemembered, TabletName) : null;
         TabletFacts = info != null ? TabletAboutFacts.BuildFacts(info) : System.Array.Empty<TabletFact>();
         ActiveAreaFacts = info != null ? TabletAboutFacts.BuildActiveAreaFacts(info) : System.Array.Empty<TabletFact>();
         TabletFeatures = info != null ? TabletAboutFacts.BuildFeatures(info, TouchTrackpadEnabled) : System.Array.Empty<TabletFact>();
@@ -1966,7 +1966,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var stepSync = new List<(int Wheel, List<RingMode> Modes)>();
         bool multi = wheels.Count > 1;
         // Version 16: Intuos3 and the older Cintiqs report their touch strips as wheels; label them Up / Down.
-        bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.Tablets, TabletName)?.WheelsAreTouchStrips == true;
+        bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.TabletsWithRemembered, TabletName)?.WheelsAreTouchStrips == true;
         // TASKS #29: an Off ring is empty in the profile; show the settings kept for it, greyed.
         var offRings = WheelOffStore.Load(_profile.Tablet ?? "");
         var allCanEdit = canEdit;
@@ -2284,7 +2284,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (_pendingThresholds.Count == 0 || !WheelEnabled) return;
         var pending = new Dictionary<(int Wheel, bool Clockwise), double>(_pendingThresholds);
         _pendingThresholds.Clear();
-        bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.Tablets, TabletName)?.WheelsAreTouchStrips == true;
+        bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.TabletsWithRemembered, TabletName)?.WheelsAreTouchStrips == true;
         // Version 16: written to the table on screen (All, or the selected app's/pen's), like the ring modes.
         await ApplyBindingMutationAsync(b =>
         {

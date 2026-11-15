@@ -142,6 +142,9 @@ public interface ISettingsCoordinator
 public interface IDeviceData : INotifyPropertyChanged
 {
     JToken? Tablets { get; }
+    /// <summary>TASKS #76: <see cref="Tablets"/> plus a built-in catalog entry for every remembered tablet that
+    /// isn't connected (including one set up before it was ever plugged in), so its pages can show its specs.</summary>
+    JToken? TabletsWithRemembered => Tablets;
     /// <summary>Every currently-connected tablet (one Dashboard card each, #190). The scalar
     /// <see cref="HasTablet"/>/<see cref="TabletName"/>/… below mirror the first entry for back-compat.</summary>
     IReadOnlyList<DetectedTablet> DetectedTablets { get; }
@@ -626,6 +629,10 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
     [ObservableProperty] private string _pluginDirectory = "";
     [ObservableProperty] private string _configurationDirectory = "";   // the daemon's tablet-config folder
     [ObservableProperty] private List<ProfileItem> _profiles = [];
+
+    /// <summary>TASKS #76: a tablet is connected that wasn't set up, while a model the user set up before connecting
+    /// it never was: offer to copy the shared settings. Null when there is nothing to offer.</summary>
+    [ObservableProperty] private OfflineSetupOffer? _pendingOfflineOffer;
 
     IReadOnlyList<ProfileItem> IDeviceData.Profiles => Profiles;
     IReadOnlyList<DetectedTablet> IDeviceData.DetectedTablets => DetectedTablets;
@@ -1120,6 +1127,8 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
                     })
                     .ToList();
 
+                UpdateOfflineSetup(detectedNames);
+
                 if (Profiles.Count > 0)
                 {
                     var mode = Profiles[0].Profile.OutputMode?.Path;
@@ -1407,6 +1416,115 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         return changed && (await ApplySettingsAsync(settings)).IsLive;
     }
 
+    // ------------------------------------------------------------------ TASKS #76: set up before connecting
+
+    /// <summary>After each load: a model set up beforehand that is now plugged in becomes an ordinary tablet; a
+    /// different model plugged in instead gets the copy-settings offer.</summary>
+    private void UpdateOfflineSetup(IReadOnlyCollection<string> detectedNames)
+    {
+        try
+        {
+            foreach (var name in detectedNames)
+                if (OfflineTablet.IsSetUpBeforeConnecting(name))
+                {
+                    OfflineTablet.ClearMark(name);
+                    AppLog.Info($"Set up before connecting: \"{name}\" is now connected and uses the settings made beforehand.");
+                }
+            var setUp = Profiles.Where(p => !p.IsDetected && OfflineTablet.IsSetUpBeforeConnecting(p.Profile.Tablet))
+                .Select(p => p.Profile.Tablet).ToList();
+            var offer = OfflineTablet.PickOffer(detectedNames, setUp, OfflineTablet.IsOfferAnswered);
+            if (offer != PendingOfflineOffer && offer != null)
+                AppLog.Info($"Set up before connecting: \"{offer.Connected}\" is connected instead of \"{offer.Chosen}\"; offering to copy the shared settings.");
+            PendingOfflineOffer = offer;
+        }
+        catch (Exception ex) { AppLog.Warn("Set up before connecting: couldn't check the connected tablets.", ex); }
+    }
+
+    /// <summary>Creates and saves a profile for <paramref name="tabletName"/> from the built-in catalog, mapped to the
+    /// main display, so the tablet can be set up before it is plugged in. Returns the error to show, or null.</summary>
+    public async Task<string?> SetUpTabletBeforeConnectingAsync(string tabletName)
+    {
+        Dispatcher.UIThread.VerifyAccess();
+        if (CurrentSettings is not { } settings)
+        {
+            AppLog.Warn($"Set up before connecting: no driver settings loaded, so \"{tabletName}\" can't be added.");
+            return Localizer.Te("choose.no_driver", "The driver isn't running, so the tablet can't be added yet. Start the driver on Home and try again.");
+        }
+        if (settings.Profiles.FirstOrDefault(p => string.Equals(p.Tablet, tabletName, StringComparison.OrdinalIgnoreCase)) is { } existing)
+        {
+            AppLog.Info($"Set up before connecting: \"{existing.Tablet}\" already has settings; opening them.");
+            return null;
+        }
+        var profile = OfflineTablet.BuildProfile(tabletName);
+        if (profile == null)
+        {
+            AppLog.Warn($"Set up before connecting: \"{tabletName}\" isn't in the built-in tablet list.");
+            return Localizer.Te("choose.unknown", "This tablet isn't in the list of supported tablets.");
+        }
+        try
+        {
+            var displays = DisplayEnumerator.Enumerate();
+            if (displays is { Count: > 0 })
+            {
+                var primary = displays.FirstOrDefault(d => d.IsPrimary) ?? displays[0];
+                Domain.DisplayMappingApplier.MapToSingleDisplay(profile, GetTabletDigitizer(profile.Tablet), primary, displays);
+            }
+        }
+        catch (Exception ex) { AppLog.Warn("Set up before connecting: couldn't map the new tablet to the main display; it keeps a plain 1080p area.", ex); }
+
+        settings.Profiles.Add(profile);
+        var outcome = await ApplySettingsAsync(settings);
+        if (!outcome.IsLive)
+        {
+            AppLog.Warn($"Set up before connecting: the driver didn't take the new profile for \"{profile.Tablet}\" ({outcome.Status}).");
+            return Localizer.Te("choose.failed", "The driver didn't accept the new tablet. Try again, or restart the driver on Home.");
+        }
+        if (!await SaveSettingsAsync())
+        {
+            AppLog.Warn($"Set up before connecting: \"{profile.Tablet}\" was added but couldn't be saved.");
+            return Localizer.Te("choose.not_saved", "The tablet was added but couldn't be saved. Press Save on the tablet's page.");
+        }
+        OfflineTablet.MarkSetUpBeforeConnecting(profile.Tablet);
+        AppLog.Info($"Set up before connecting: added and saved \"{profile.Tablet}\".");
+        return null;
+    }
+
+    /// <summary>The user's answer to <see cref="PendingOfflineOffer"/>: copy the pen and screen-mapping settings
+    /// of the model they set up beforehand to the tablet that is connected, apply and save. True when saved.</summary>
+    public async Task<bool> AnswerOfflineOfferAsync(bool copy)
+    {
+        Dispatcher.UIThread.VerifyAccess();
+        if (PendingOfflineOffer is not { } offer) return false;
+        if (!copy)
+        {
+            OfflineTablet.MarkOfferAnswered(offer);
+            AppLog.Info($"Set up before connecting: not copying \"{offer.Chosen}\" to \"{offer.Connected}\" (Not now).");
+            PendingOfflineOffer = null;
+            return false;
+        }
+        if (CurrentSettings is not { } settings) return false;
+        var from = settings.Profiles.FirstOrDefault(p => p.Tablet == offer.Chosen);
+        var to = settings.Profiles.FirstOrDefault(p => p.Tablet == offer.Connected);
+        if (from == null || to == null)
+        {
+            AppLog.Warn($"Set up before connecting: can't copy, a profile is missing (\"{offer.Chosen}\" {(from != null)}, \"{offer.Connected}\" {(to != null)}).");
+            return false;
+        }
+        OfflineTablet.CopyShared(from, to, GetTabletDigitizer(offer.Chosen), GetTabletDigitizer(offer.Connected));
+        var outcome = await ApplySettingsAsync(settings);
+        if (!outcome.IsLive)
+        {
+            AppLog.Warn($"Set up before connecting: the copied settings weren't taken by the driver ({outcome.Status}).");
+            return false;
+        }
+        var saved = await SaveSettingsAsync();
+        OfflineTablet.MarkOfferAnswered(offer);
+        PendingOfflineOffer = null;
+        AppLog.Info(saved ? $"Set up before connecting: copied the pen and mapping settings of \"{offer.Chosen}\" to \"{offer.Connected}\" and saved."
+                          : $"Set up before connecting: copied the settings of \"{offer.Chosen}\" to \"{offer.Connected}\", but saving failed.");
+        return saved;
+    }
+
     /// <summary>The Home health-check "Fix" for an off-screen mapping (#629): re-map the tablet's active
     /// area cleanly to the primary display — a whole-monitor, undistorted 1:1 fit — and apply, pulling the
     /// pen back onto real screen space. No-op if the tablet/profile or the display set is unavailable.</summary>
@@ -1504,9 +1622,21 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         return saved;
     }
 
+    /// <summary>TASKS #76: where a tablet's specs come from — the driver's report while it is connected, else the
+    /// built-in catalog, so a tablet that isn't plugged in (or was set up beforehand) still has its size.</summary>
+    private JToken? SpecSource(string tabletName)
+    {
+        if (Tablets is JArray arr && arr.Any(t => (t["Properties"] ?? t)["Name"]?.ToString() == tabletName)) return arr;
+        return OfflineTablet.CatalogTabletJson(tabletName) is { } json ? new JArray(json.DeepClone()) : Tablets;
+    }
+
+    /// <inheritdoc />
+    public JToken? TabletsWithRemembered =>
+        OfflineTablet.WithRemembered(Tablets, Profiles.Where(p => !p.IsDetected).Select(p => p.Profile.Tablet));
+
     public (float Width, float Height)? GetTabletDigitizer(string tabletName)
     {
-        if (Tablets is not JArray tablets) return null;
+        if (SpecSource(tabletName) is not JArray tablets) return null;
         foreach (var t in tablets)
         {
             var props = t["Properties"] ?? t;
@@ -1528,7 +1658,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
     /// reported specs — needed by the calibration mapper (#127). Null if unavailable/degenerate.</summary>
     public Domain.TabletDigitizerSpec? GetDigitizerSpec(string tabletName)
     {
-        if (Tablets is not JArray tablets) return null;
+        if (SpecSource(tabletName) is not JArray tablets) return null;
         foreach (var t in tablets)
         {
             var props = t["Properties"] ?? t;
