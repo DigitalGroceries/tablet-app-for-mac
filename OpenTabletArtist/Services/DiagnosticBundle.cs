@@ -26,8 +26,6 @@ public static class DiagnosticBundle
         return Directory.Exists(desktop) ? desktop : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     }
 
-    /// <summary>Writes the zip into <paramref name="folder"/> and returns its full path. <paramref name="inputDevices"/> replaces
-    /// the live mouse/keyboard listing (tests).</summary>
     /// <summary>Serial numbers removed and the home folder written as "~", as for summary.txt.</summary>
     public static string CleanText(string s)
     {
@@ -36,6 +34,8 @@ public static class DiagnosticBundle
         return string.IsNullOrEmpty(home) ? t : SettingsBundle.ToPortablePath(t, home).Replace(home, "~", StringComparison.Ordinal);
     }
 
+    /// <summary>Writes the zip into <paramref name="folder"/> and returns its full path. <paramref name="inputDevices"/> replaces
+    /// the live mouse/keyboard listing (tests).</summary>
     public static string Create(string folder, IEnumerable<string> devices, IEnumerable<string> conflicts,
         string? daemonVersion, DateTime? now = null, Func<string>? inputDevices = null,
         Func<string>? permissions = null, Func<string>? eventTaps = null, Func<string>? tabletInterfaces = null)

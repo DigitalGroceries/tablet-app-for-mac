@@ -272,6 +272,7 @@ public class ProblemRecorderTests
         daemon.Emit();
         for (var i = 0; i < 50 && rec.IsRecording; i++) await Task.Delay(20);
         Assert.False(rec.IsRecording);
+        await rec.StopAsync();   // the stop the limit started may still be running: wait for it (it turns the stream off)
         Assert.True(rec.StoppedAtLimit);
         Assert.Equal(1, rec.EventCount);
         Assert.Equal(new[] { true, false }, daemon.Debug);

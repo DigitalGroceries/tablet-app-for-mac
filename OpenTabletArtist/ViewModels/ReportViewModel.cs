@@ -129,7 +129,7 @@ public partial class ReportViewModel : ObservableObject
     /// <summary>Stops a running recording (sheet closed or report sent), so the tablet report stream isn't left on.</summary>
     public async Task StopRecordingAsync()
     {
-        if (_recorder?.IsRecording != true) return;
+        if (_recorder == null) return;   // StopAsync is safe when not recording and waits for a stop still running
         try { await _recorder.StopAsync(); }
         catch (Exception ex) { AppLog.Warn("Report: couldn't stop the recording.", ex); }
         RecordingChanged();

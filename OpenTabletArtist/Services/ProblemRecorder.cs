@@ -96,8 +96,8 @@ public sealed class ProblemRecorder
         Changed?.Invoke();
     }
 
-    /// <summary>Ends the recording and returns recording.txt. Safe to call when not recording.</summary>
-    /// <summary>Stops and returns the recording. A call while a stop is still running waits for that one.</summary>
+    /// <summary>Ends the recording and returns recording.txt. Safe to call when not recording; a call while a stop
+    /// is still running (the 2-minute timer, or a second click) waits for that one.</summary>
     public Task<string> StopAsync()
     {
         lock (_lock)
