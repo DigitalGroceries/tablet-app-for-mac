@@ -165,6 +165,9 @@ public static class SettingsBundle
         return files;
     }
 
+    /// <summary>The same cleaning as an exported portable bundle (serials removed, home folder as ~).</summary>
+    internal static string MakePortable(string json) => Finish(JToken.Parse(json), portable: true);
+
     static string Finish(JToken json, bool portable)
     {
         if (portable)

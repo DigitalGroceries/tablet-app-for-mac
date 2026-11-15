@@ -48,7 +48,8 @@ public sealed class ReportWindow : Window
             if (PictureDelay > TimeSpan.Zero) await Task.Delay(PictureDelay);
             // The picture is taken before the sheet covers the page, so it shows what the user was looking at.
             var picture = mw.CaptureReportPicture();
-            Open(new ReportViewModel(vm.Diagnostics.ReportInputs, picture, from));
+            Open(new ReportViewModel(vm.Diagnostics.ReportInputs, picture, from,
+                () => UnsavedSettingsReport.Capture(vm.SettingsSession)));
         }
         finally { _opening = false; }
     }

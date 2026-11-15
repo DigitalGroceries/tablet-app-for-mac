@@ -32,10 +32,13 @@ public partial class ReportViewModel : ObservableObject
     /// <param name="inputs">Tablets, other drivers found and driver version (DiagnosticsViewModel.ReportInputs).</param>
     /// <param name="windowPicture">The picture of the app window, or null when it couldn't be taken.</param>
     /// <param name="from">Where the report was opened from, for the log ("Home", "pen menu", "app menu", …).</param>
+    private readonly Func<SettingsState?>? _settings;
+
     public ReportViewModel(Func<(List<string> Devices, IReadOnlyList<string> Conflicts, string? Version)> inputs,
-        string? windowPicture, string from)
+        string? windowPicture, string from, Func<SettingsState?>? settings = null)
     {
         _inputs = inputs;
+        _settings = settings;
         WindowPicturePath = windowPicture != null && File.Exists(windowPicture) ? windowPicture : null;
         IncludeWindowPicture = WindowPicturePath != null;
         From = from;
@@ -226,9 +229,11 @@ public partial class ReportViewModel : ObservableObject
         var recommendation = IsRecommendation;
         var text = Description ?? "";
         var email = includeEmail ? (Email ?? "").Trim() : "";
+        var settings = _settings?.Invoke();
         return Task.Run(() =>
         {
             var zip = DiagnosticBundle.Create(folder, devices, conflicts, version);
+            if (_settings != null) UnsavedSettingsReport.AddTo(zip, settings);
             DiagnosticBundle.AddScreenshots(zip, pictures);
             DiagnosticBundle.AddText(zip, "report.txt", ReportText(recommendation, text, email));
             return zip;
