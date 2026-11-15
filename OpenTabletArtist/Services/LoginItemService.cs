@@ -367,16 +367,42 @@ public sealed unsafe class AutoStartCoordinator
     /// automatic start is on and the user's login session (loginwindow) began under two minutes ago.
     /// Heuristic — UNVERIFIED on a real Mac.</summary>
     public bool IsLikelyLoginLaunch(Func<TimeSpan?> sessionAge) =>
-        _svc.IsSupported && _get(ChoiceKey) == "auto" && sessionAge() is { } age && age < TimeSpan.FromMinutes(2);
+        _svc.IsSupported && sessionAge() is { } age && age < TimeSpan.FromMinutes(2)
+        && WantsLoginStart(_svc.Status, _get(ChoiceKey), out _);
 
-    /// <summary>Version 7 test 5: any launch in the first two minutes after login counts as "at login", whether the
+    /// <summary>Version 28 #79: did the user ask for a start at login? The login item's real state decides
+    /// ("requires approval" counts as on, as in Settings); only when macOS can't tell (Unsupported, NotFound) the
+    /// saved choice decides. <paramref name="source"/> says which one was used, for the log.</summary>
+    public static bool WantsLoginStart(LoginItemStatus status, string? choice, out string source)
+    {
+        switch (status)
+        {
+            case LoginItemStatus.Enabled or LoginItemStatus.RequiresApproval:
+                source = $"login item {status}"; return true;
+            case LoginItemStatus.NotRegistered:
+                source = $"login item {status}"; return false;
+            default:
+                source = $"saved choice '{choice ?? "none"}' (macOS didn't give the login item's state: {status})";
+                return choice == "auto";
+        }
+    }
+
+    /// <summary>Version 7 test 5: a launch in the first two minutes after login counts as "at login", whether the
     /// login item or macOS "reopen windows when logging back in" started it, once the first-launch question has been
-    /// answered (a brand-new install still shows its window). Opening the app again shows the window.</summary>
-    public static bool IsLoginTimeLaunch(bool setupDone, TimeSpan? sessionAge) =>
-        setupDone && sessionAge is { } age && age < TimeSpan.FromMinutes(2);
+    /// answered (a brand-new install still shows its window). Opening the app again shows the window.
+    /// Version 28 #79 (Daniel, 15 Nov; agreed by Claude and Devin): only for users who asked for a start at login.
+    /// Someone who chose to start the app themselves gets its window, like any Mac app macOS reopens.</summary>
+    public static bool IsLoginTimeLaunch(bool setupDone, TimeSpan? sessionAge, bool wantsLoginStart) =>
+        setupDone && wantsLoginStart && sessionAge is { } age && age < TimeSpan.FromMinutes(2);
 
-    public bool IsLoginTimeLaunch(Func<TimeSpan?> sessionAge) =>
-        IsLoginTimeLaunch(_get(PromptedKey) == "true", sessionAge());
+    public bool IsLoginTimeLaunch(Func<TimeSpan?> sessionAge)
+    {
+        var age = sessionAge();
+        if (_get(PromptedKey) != "true" || age is not { } a || a >= TimeSpan.FromMinutes(2)) return false;
+        var wants = WantsLoginStart(_svc.Status, _get(ChoiceKey), out var source);
+        AppLog.Info($"Login check: started {a.TotalSeconds:0} s after login; start at login is {(wants ? "on" : "off")} ({source}), so the window {(wants ? "starts hidden" : "shows")}.");
+        return IsLoginTimeLaunch(true, age, wants);
+    }
 
     /// <summary>Version 7 test 5: tell macOS not to save this app's windows for "reopen windows when logging back in",
     /// so a relaunch by macOS doesn't bring the window back (NSQuitAlwaysKeepsWindows = NO for this app).</summary>

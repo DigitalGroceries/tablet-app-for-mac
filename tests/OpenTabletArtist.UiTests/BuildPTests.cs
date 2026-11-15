@@ -127,6 +127,52 @@ public class BuildPTests
     [InlineData("2-00:00:05", 172805)]
     public void Etime_Parses(string s, int seconds) => Assert.Equal(seconds, (int)AutoStartCoordinator.ParseEtime(s)!.Value.TotalSeconds);
 
+    // Version 28 #79 (Daniel's report, 15 Nov; tests agreed with Devin): the quiet start is only for users who
+    // asked for a start at login. The login item's real state decides; the saved choice only when macOS can't tell.
+    [Fact]
+    public void QuietStart_ManualChoice_SoonAfterLogin_ShowsWindow()
+    {
+        var (c, _, _) = Make();
+        c.Choose(false);                                                     // "manual", login item NotRegistered
+        Assert.False(c.IsLoginTimeLaunch(() => TimeSpan.FromSeconds(30)));
+        Assert.False(c.IsLikelyLoginLaunch(() => TimeSpan.FromSeconds(30)));
+    }
+
+    [Fact]
+    public void QuietStart_AutoChoice_ButLoginItemSwitchedOff_ShowsWindow()
+    {
+        var (c, f, _) = Make();
+        c.Choose(true);
+        f.Status = LoginItemStatus.NotRegistered;                            // removed in System Settings
+        Assert.False(c.IsLoginTimeLaunch(() => TimeSpan.FromSeconds(30)));
+        Assert.False(c.IsLikelyLoginLaunch(() => TimeSpan.FromSeconds(30)));
+    }
+
+    [Theory]
+    [InlineData(LoginItemStatus.Enabled)]
+    [InlineData(LoginItemStatus.RequiresApproval)]
+    public void QuietStart_LoginItemOn_SoonAfterLogin_StartsHidden(LoginItemStatus status)
+    {
+        var (c, f, _) = Make();
+        c.Choose(true);
+        f.Status = status;
+        Assert.True(c.IsLoginTimeLaunch(() => TimeSpan.FromSeconds(30)));
+        Assert.False(c.IsLoginTimeLaunch(() => TimeSpan.FromMinutes(5)));   // opened by hand later: window
+    }
+
+    [Theory]
+    [InlineData("auto", true)]
+    [InlineData("manual", false)]
+    [InlineData(null, false)]
+    public void QuietStart_StateUnreadable_FallsBackToSavedChoice(string? choice, bool hidden)
+    {
+        Assert.Equal(hidden, AutoStartCoordinator.WantsLoginStart(LoginItemStatus.NotFound, choice, out var src));
+        Assert.Contains("saved choice", src);
+        Assert.Equal(hidden, AutoStartCoordinator.WantsLoginStart(LoginItemStatus.Unsupported, choice, out _));
+        Assert.True(AutoStartCoordinator.WantsLoginStart(LoginItemStatus.Enabled, "manual", out src));   // real state wins
+        Assert.Contains("login item", src);
+    }
+
     [Fact]
     public void LoginLaunch_OnlyWhenAutoChosen_AndSessionIsYoung()
     {

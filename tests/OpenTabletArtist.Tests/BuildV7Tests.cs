@@ -90,10 +90,12 @@ public class BuildV7Tests
     [Xunit.Fact]
     public void LoginTimeLaunchStartsHiddenOnlyAfterSetupAndSoonAfterLogin()
     {
-        Xunit.Assert.True(OpenTabletArtist.Services.AutoStartCoordinator.IsLoginTimeLaunch(true, System.TimeSpan.FromSeconds(30)));
-        Xunit.Assert.False(OpenTabletArtist.Services.AutoStartCoordinator.IsLoginTimeLaunch(false, System.TimeSpan.FromSeconds(30)));
-        Xunit.Assert.False(OpenTabletArtist.Services.AutoStartCoordinator.IsLoginTimeLaunch(true, System.TimeSpan.FromMinutes(10)));
-        Xunit.Assert.False(OpenTabletArtist.Services.AutoStartCoordinator.IsLoginTimeLaunch(true, null));
+        Xunit.Assert.True(OpenTabletArtist.Services.AutoStartCoordinator.IsLoginTimeLaunch(true, System.TimeSpan.FromSeconds(30), true));
+        Xunit.Assert.False(OpenTabletArtist.Services.AutoStartCoordinator.IsLoginTimeLaunch(false, System.TimeSpan.FromSeconds(30), true));
+        Xunit.Assert.False(OpenTabletArtist.Services.AutoStartCoordinator.IsLoginTimeLaunch(true, System.TimeSpan.FromMinutes(10), true));
+        Xunit.Assert.False(OpenTabletArtist.Services.AutoStartCoordinator.IsLoginTimeLaunch(true, null, true));
+        // Version 28 #79: a user who didn't ask for a start at login always gets the window.
+        Xunit.Assert.False(OpenTabletArtist.Services.AutoStartCoordinator.IsLoginTimeLaunch(true, System.TimeSpan.FromSeconds(30), false));
     }
 
 
