@@ -4,6 +4,7 @@ using Microsoft.Win32.SafeHandles;
 using Newtonsoft.Json.Linq;
 using OpenTabletDriver.Desktop;
 using OpenTabletDriver.Desktop.Reflection.Metadata;
+using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Logging;
 using StreamJsonRpc;
 
@@ -30,7 +31,7 @@ namespace OtdInterop;
 /// <see cref="IOtdSettingsSession"/> documents.
 /// </para>
 /// </remarks>
-internal sealed class DaemonClient : IDaemonTransport, IDaemonSettingsChannel, IDaemonFeatureReports
+internal sealed class DaemonClient : IDaemonTransport, IDaemonSettingsChannel, IDaemonFeatureReports, IDaemonLogWriter
 {
     private const string DefaultPipeName = "OpenTabletDriver.Daemon";
 
@@ -408,6 +409,22 @@ internal sealed class DaemonClient : IDaemonTransport, IDaemonSettingsChannel, I
         {
             _log.Warn("Couldn't fetch the daemon's current log buffer.", ex);
             return [];
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> WriteLogAsync(string group, string message)
+    {
+        if (_rpc == null) return false;
+        try
+        {
+            await _rpc.InvokeAsync("WriteMessage", new LogMessage { Group = group, Message = message, Level = LogLevel.Info });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _log.Warn("Couldn't write a line into the daemon's log.", ex);
+            return false;
         }
     }
 
