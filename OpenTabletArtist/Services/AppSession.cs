@@ -1457,6 +1457,8 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             AppLog.Info($"Set up before connecting: \"{existing.Tablet}\" already has settings; opening them.");
             return null;
         }
+        // V28 #76 review (agreed with Devin, #80): saving here would also save OTHER unsaved edits the user made.
+        var otherUnsaved = HasUnsavedChanges;
         var profile = OfflineTablet.BuildProfile(tabletName);
         if (profile == null)
         {
@@ -1478,8 +1480,15 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         var outcome = await ApplySettingsAsync(settings);
         if (!outcome.IsLive)
         {
+            settings.Profiles.Remove(profile);   // not taken: don't leave it to be saved later by another Save
             AppLog.Warn($"Set up before connecting: the driver didn't take the new profile for \"{profile.Tablet}\" ({outcome.Status}).");
             return Localizer.Te("choose.failed", "The driver didn't accept the new tablet. Try again, or restart the driver on Home.");
+        }
+        if (otherUnsaved)
+        {
+            OfflineTablet.MarkSetUpBeforeConnecting(profile.Tablet);
+            AppLog.Info($"Set up before connecting: added \"{profile.Tablet}\" (works now). Not saved, because other changes were not saved yet; Save keeps them all.");
+            return null;
         }
         if (!await SaveSettingsAsync())
         {
@@ -1492,7 +1501,8 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
     }
 
     /// <summary>The user's answer to <see cref="PendingOfflineOffer"/>: copy the pen and screen-mapping settings
-    /// of the model they set up beforehand to the tablet that is connected, apply and save. True when saved.</summary>
+    /// of the model they set up beforehand to the tablet that is connected, apply and save. True when the copy is live
+    /// (saved, or left unsaved because other changes were not saved yet: Save keeps them all).</summary>
     public async Task<bool> AnswerOfflineOfferAsync(bool copy)
     {
         Dispatcher.UIThread.VerifyAccess();
@@ -1512,6 +1522,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             AppLog.Warn($"Set up before connecting: can't copy, a profile is missing (\"{offer.Chosen}\" {(from != null)}, \"{offer.Connected}\" {(to != null)}).");
             return false;
         }
+        var otherUnsaved = HasUnsavedChanges;   // V28 #76 review: don't save other unsaved edits with the copy
         OfflineTablet.CopyShared(from, to, GetTabletDigitizer(offer.Chosen), GetTabletDigitizer(offer.Connected));
         var outcome = await ApplySettingsAsync(settings);
         if (!outcome.IsLive)
@@ -1519,12 +1530,13 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             AppLog.Warn($"Set up before connecting: the copied settings weren't taken by the driver ({outcome.Status}).");
             return false;
         }
-        var saved = await SaveSettingsAsync();
+        var saved = !otherUnsaved && await SaveSettingsAsync();
         OfflineTablet.MarkOfferAnswered(offer);
         PendingOfflineOffer = null;
         AppLog.Info(saved ? $"Set up before connecting: copied the pen and mapping settings of \"{offer.Chosen}\" to \"{offer.Connected}\" and saved."
+                          : otherUnsaved ? $"Set up before connecting: copied the settings of \"{offer.Chosen}\" to \"{offer.Connected}\" (work now); not saved, because other changes were not saved yet."
                           : $"Set up before connecting: copied the settings of \"{offer.Chosen}\" to \"{offer.Connected}\", but saving failed.");
-        return saved;
+        return saved || otherUnsaved;
     }
 
     /// <summary>The Home health-check "Fix" for an off-screen mapping (#629): re-map the tablet's active
