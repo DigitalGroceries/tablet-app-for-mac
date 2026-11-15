@@ -76,7 +76,7 @@ public static class DiagnosticBundle
             sb.AppendLine((permissions ?? SystemInputReport.CollectPermissions)());
             sb.AppendLine();
             sb.AppendLine("Programs that see mouse and keyboard events (event taps):");
-            sb.AppendLine((eventTaps ?? (() => SystemInputReport.CollectEventTaps(DriverProcessFinder.FindAll().FirstOrDefault()?.Pid)))());
+            sb.AppendLine((eventTaps ?? (() => SystemInputReport.CollectEventTaps(DriverProcessFinder.FindAll().FirstOrDefault(p => p.State != DriverProcessState.Closing)?.Pid)))());
             sb.AppendLine();
             sb.AppendLine("Serial numbers, Bluetooth addresses and your user name have been removed from this file.");
             Add(zip, "summary.txt", Clean(sb.ToString()));
