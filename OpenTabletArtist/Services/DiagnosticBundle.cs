@@ -29,7 +29,8 @@ public static class DiagnosticBundle
     /// <summary>Writes the zip into <paramref name="folder"/> and returns its full path. <paramref name="inputDevices"/> replaces
     /// the live mouse/keyboard listing (tests).</summary>
     public static string Create(string folder, IEnumerable<string> devices, IEnumerable<string> conflicts,
-        string? daemonVersion, DateTime? now = null, Func<string>? inputDevices = null)
+        string? daemonVersion, DateTime? now = null, Func<string>? inputDevices = null,
+        Func<string>? permissions = null, Func<string>? eventTaps = null)
     {
         var stamp = now ?? DateTime.Now;
         Directory.CreateDirectory(folder);
@@ -61,6 +62,12 @@ public static class DiagnosticBundle
             sb.AppendLine();
             sb.AppendLine("Mice, trackpads and keyboards:");
             sb.AppendLine((inputDevices ?? InputDeviceReport.Collect)());
+            sb.AppendLine();
+            sb.AppendLine("Permissions:");
+            sb.AppendLine((permissions ?? SystemInputReport.CollectPermissions)());
+            sb.AppendLine();
+            sb.AppendLine("Programs that see mouse and keyboard events (event taps):");
+            sb.AppendLine((eventTaps ?? (() => SystemInputReport.CollectEventTaps()))());
             sb.AppendLine();
             sb.AppendLine("Serial numbers, Bluetooth addresses and your user name have been removed from this file.");
             Add(zip, "summary.txt", Clean(sb.ToString()));
