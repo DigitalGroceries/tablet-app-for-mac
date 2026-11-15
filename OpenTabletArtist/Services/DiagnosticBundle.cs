@@ -28,15 +28,22 @@ public static class DiagnosticBundle
 
     /// <summary>Writes the zip into <paramref name="folder"/> and returns its full path. <paramref name="inputDevices"/> replaces
     /// the live mouse/keyboard listing (tests).</summary>
+    /// <summary>Serial numbers removed and the home folder written as "~", as for summary.txt.</summary>
+    public static string CleanText(string s)
+    {
+        var home = SettingsBundle.HomeDir();
+        var t = SettingsBundle.RedactSerialText(s);
+        return string.IsNullOrEmpty(home) ? t : SettingsBundle.ToPortablePath(t, home).Replace(home, "~", StringComparison.Ordinal);
+    }
+
     public static string Create(string folder, IEnumerable<string> devices, IEnumerable<string> conflicts,
-        string? daemonVersion, DateTime? now = null, Func<string>? inputDevices = null)
+        string? daemonVersion, DateTime? now = null, Func<string>? inputDevices = null,
+        Func<string>? permissions = null, Func<string>? eventTaps = null, Func<string>? tabletInterfaces = null)
     {
         var stamp = now ?? DateTime.Now;
         Directory.CreateDirectory(folder);
         var path = Path.Combine(folder, SuggestedFileName(stamp));
-        var home = SettingsBundle.HomeDir();
-        string Clean(string s) => SettingsBundle.ToPortablePath(SettingsBundle.RedactSerialText(s), home)
-            .Replace(home, "~", StringComparison.Ordinal);
+        string Clean(string s) => CleanText(s);
 
         using (var fs = File.Create(path))
         using (var zip = new ZipArchive(fs, ZipArchiveMode.Create))
@@ -59,8 +66,17 @@ public static class DiagnosticBundle
             if (con.Count == 0) sb.AppendLine("  (none)");
             foreach (var c in con) sb.AppendLine("  " + c);
             sb.AppendLine();
+            sb.AppendLine("Tablet connections (HID interfaces) and which ones the driver opened:");
+            sb.AppendLine((tabletInterfaces ?? TabletInterfaceReport.Collect)());
+            sb.AppendLine();
             sb.AppendLine("Mice, trackpads and keyboards:");
             sb.AppendLine((inputDevices ?? InputDeviceReport.Collect)());
+            sb.AppendLine();
+            sb.AppendLine("Permissions:");
+            sb.AppendLine((permissions ?? SystemInputReport.CollectPermissions)());
+            sb.AppendLine();
+            sb.AppendLine("Programs that see mouse and keyboard events (event taps):");
+            sb.AppendLine((eventTaps ?? (() => SystemInputReport.CollectEventTaps(DriverProcessFinder.FindAll().FirstOrDefault(p => p.State != DriverProcessState.Closing)?.Pid)))());
             sb.AppendLine();
             sb.AppendLine("Serial numbers, Bluetooth addresses and your user name have been removed from this file.");
             Add(zip, "summary.txt", Clean(sb.ToString()));

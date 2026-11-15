@@ -48,7 +48,9 @@ public sealed class ReportWindow : Window
             if (PictureDelay > TimeSpan.Zero) await Task.Delay(PictureDelay);
             // The picture is taken before the sheet covers the page, so it shows what the user was looking at.
             var picture = mw.CaptureReportPicture();
-            Open(new ReportViewModel(vm.Diagnostics.ReportInputs, picture, from));
+            Open(new ReportViewModel(vm.Diagnostics.ReportInputs, picture, from,
+                () => UnsavedSettingsReport.Capture(vm.SettingsSession),
+                new ProblemRecorder(vm.SettingsSession.Daemon)));
         }
         finally { _opening = false; }
     }
@@ -58,7 +60,7 @@ public sealed class ReportWindow : Window
     {
         var w = new ReportWindow(vm);
         _open = w;
-        w.Closed += (_, _) => { if (ReferenceEquals(_open, w)) _open = null; };
+        w.Closed += (_, _) => { if (ReferenceEquals(_open, w)) _open = null; _ = vm.StopRecordingAsync(); };
         AppLog.Info($"Report: opened from {vm.From}.");
         InWindowSheet.Show(w);
         return w;
@@ -124,6 +126,12 @@ public sealed class ReportWindow : Window
         var count = new TextBlock { Name = "ReportPictures", Text = vm.PicturesText, VerticalAlignment = VerticalAlignment.Center }.Fg("TextSecondaryBrush");
         body.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Children = { add, count } });
 
+        var record = new Button { Name = "ReportRecord", Content = vm.RecordLabel, Command = vm.ToggleRecordCommand, IsVisible = vm.CanRecord };
+        var recordStatus = new TextBlock { Name = "ReportRecordStatus", Text = vm.RecordStatus, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush");
+        var recordHint = new TextBlock { Name = "ReportRecordHint", Text = vm.RecordHint, FontSize = 12, TextWrapping = TextWrapping.Wrap, IsVisible = vm.CanRecord }.Fg("TextSecondaryBrush");
+        body.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, IsVisible = vm.CanRecord, Children = { record, recordStatus } });
+        body.Children.Add(recordHint);
+
         body.Children.Add(new TextBlock { Text = vm.Note, FontSize = 12, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush"));
         var status = new TextBlock { Name = "ReportStatus", Text = vm.Status, TextWrapping = TextWrapping.Wrap, IsVisible = vm.Status.Length > 0 }.Fg();
         body.Children.Add(status);
@@ -172,6 +180,8 @@ public sealed class ReportWindow : Window
         vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(ReportViewModel.PicturesText)) count.Text = vm.PicturesText;
+            if (e.PropertyName == nameof(ReportViewModel.RecordLabel)) record.Content = vm.RecordLabel;
+            if (e.PropertyName == nameof(ReportViewModel.RecordStatus)) recordStatus.Text = vm.RecordStatus;
             if (e.PropertyName == nameof(ReportViewModel.Status)) { status.Text = vm.Status; status.IsVisible = vm.Status.Length > 0; }
             if (e.PropertyName == nameof(ReportViewModel.SavedPath)) ShowSaved();
         };

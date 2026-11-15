@@ -39,8 +39,12 @@ namespace OtdInterop;
 /// </remarks>
 /// <param name="inner">The connection to forward to.</param>
 /// <param name="gone">Whether the session that lent this out has been torn down.</param>
-internal sealed class DaemonCapabilities(IDaemonTransport inner, Func<bool> gone) : IDaemonCapabilities
+internal sealed class DaemonCapabilities(IDaemonTransport inner, Func<bool> gone) : IDaemonCapabilities, IDaemonLogWriter
 {
+    /// <inheritdoc />
+    public Task<bool> WriteLogAsync(string group, string message) =>
+        gone() || inner is not IDaemonLogWriter writer ? Task.FromResult(false) : writer.WriteLogAsync(group, message);
+
     /// <inheritdoc />
     public event Action<JObject>? DeviceReport
     {

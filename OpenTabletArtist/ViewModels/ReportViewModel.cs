@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using OpenTabletArtist.Services;
 
@@ -32,10 +33,17 @@ public partial class ReportViewModel : ObservableObject
     /// <param name="inputs">Tablets, other drivers found and driver version (DiagnosticsViewModel.ReportInputs).</param>
     /// <param name="windowPicture">The picture of the app window, or null when it couldn't be taken.</param>
     /// <param name="from">Where the report was opened from, for the log ("Home", "pen menu", "app menu", …).</param>
+    private readonly Func<SettingsState?>? _settings;
+    private readonly ProblemRecorder? _recorder;
+
     public ReportViewModel(Func<(List<string> Devices, IReadOnlyList<string> Conflicts, string? Version)> inputs,
-        string? windowPicture, string from)
+        string? windowPicture, string from, Func<SettingsState?>? settings = null, ProblemRecorder? recorder = null)
     {
         _inputs = inputs;
+        _settings = settings;
+        _recorder = recorder;
+        if (recorder != null)
+            recorder.Changed += () => Dispatcher.UIThread.Post(RecordingChanged);
         WindowPicturePath = windowPicture != null && File.Exists(windowPicture) ? windowPicture : null;
         IncludeWindowPicture = WindowPicturePath != null;
         From = from;
@@ -65,7 +73,7 @@ public partial class ReportViewModel : ObservableObject
     public ObservableCollection<string> Screenshots { get; } = new();
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SendCommand), nameof(SendFileCommand), nameof(AddScreenshotsCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SendCommand), nameof(SendFileCommand), nameof(AddScreenshotsCommand), nameof(ToggleRecordCommand))]
     private bool _isBusy;
 
     [ObservableProperty] private string _status = "";
@@ -79,6 +87,53 @@ public partial class ReportViewModel : ObservableObject
     private string _savedPath = "";
 
     public bool IsSaved => SavedPath.Length > 0;
+
+    /// <summary>"Record the problem" is offered only when the sheet was given a recorder (the real app always is).</summary>
+    public bool CanRecord => _recorder != null;
+    public bool IsRecording => _recorder?.IsRecording == true;
+    public string RecordLabel => IsRecording
+        ? Localizer.Te("report.record.stop", "Stop recording")
+        : Localizer.Te("report.record.start", "Record the problem");
+    public string RecordHint => Localizer.Te("report.record.hint",
+        "Click Record the problem, make the problem happen with your tablet, then click Stop recording. What the tablet sent goes into the report.");
+    public string RecordStatus => _recorder == null ? ""
+        : IsRecording
+            ? Localizer.Te("report.record.recording", "Recording… messages from the tablet so far: {n}").Replace("{n}", _recorder.EventCount.ToString())
+            : _recorder.Trace != null
+                ? (_recorder.StoppedAtLimit
+                    ? Localizer.Te("report.record.limit", "Recording stopped at the 2-minute limit: {n} messages from the tablet added to the report.")
+                    : Localizer.Te("report.record.done", "Recording added to the report: {n} messages from the tablet.")).Replace("{n}", _recorder.EventCount.ToString())
+                : "";
+
+    private void RecordingChanged()
+    {
+        OnPropertyChanged(nameof(IsRecording));
+        OnPropertyChanged(nameof(RecordLabel));
+        OnPropertyChanged(nameof(RecordStatus));
+    }
+
+    /// <summary>Start or stop "Record the problem".</summary>
+    [RelayCommand(CanExecute = nameof(CanEdit))]
+    private async Task ToggleRecordAsync()
+    {
+        if (_recorder == null) return;
+        try
+        {
+            if (_recorder.IsRecording) await _recorder.StopAsync();
+            else await _recorder.StartAsync();
+        }
+        catch (Exception ex) { AppLog.Warn("Report: Record the problem failed.", ex); }
+        RecordingChanged();
+    }
+
+    /// <summary>Stops a running recording (sheet closed or report sent), so the tablet report stream isn't left on.</summary>
+    public async Task StopRecordingAsync()
+    {
+        if (_recorder?.IsRecording != true) return;
+        try { await _recorder.StopAsync(); }
+        catch (Exception ex) { AppLog.Warn("Report: couldn't stop the recording.", ex); }
+        RecordingChanged();
+    }
 
     /// <summary>Opens an image picker (set by the sheet). Null in tests unless supplied.</summary>
     public Func<Task<IReadOnlyList<string>>>? PickImages { get; set; }
@@ -218,17 +273,22 @@ public partial class ReportViewModel : ObservableObject
     string Kind => IsRecommendation ? "recommendation" : "problem";
 
     /// <summary>Makes the diagnostic zip in <paramref name="folder"/> with the pictures and the user's text.</summary>
-    private Task<string> MakeZipAsync(string folder,
+    private async Task<string> MakeZipAsync(string folder,
         (List<string> Devices, IReadOnlyList<string> Conflicts, string? Version) inputs, bool includeEmail)
     {
+        await StopRecordingAsync();
+        var trace = _recorder?.Trace is { } t ? DiagnosticBundle.CleanText(t) : null;
         var (devices, conflicts, version) = inputs;
         var pictures = Pictures;
         var recommendation = IsRecommendation;
         var text = Description ?? "";
         var email = includeEmail ? (Email ?? "").Trim() : "";
-        return Task.Run(() =>
+        var settings = _settings?.Invoke();
+        return await Task.Run(() =>
         {
             var zip = DiagnosticBundle.Create(folder, devices, conflicts, version);
+            if (trace != null) DiagnosticBundle.AddText(zip, "recording.txt", trace);
+            if (_settings != null) UnsavedSettingsReport.AddTo(zip, settings);
             DiagnosticBundle.AddScreenshots(zip, pictures);
             DiagnosticBundle.AddText(zip, "report.txt", ReportText(recommendation, text, email));
             return zip;
@@ -253,6 +313,7 @@ public partial class ReportViewModel : ObservableObject
     [RelayCommand]
     private void Cancel()
     {
+        _ = StopRecordingAsync();
         DeleteWindowPicture();
         Finished?.Invoke(false);
     }
