@@ -248,4 +248,15 @@ public class ProblemRecorderTests
         await r.StopAsync();
         Assert.Equal(3, n);
     }
+
+    [Fact]
+    public void FormatReport_LeavesOutTheRawBytes_OfAReportThatHoldsASerial()
+    {
+        var raw = Convert.ToBase64String(new byte[] { 0xC2, 0x80, 0x12, 0x34, 0x56, 0x78 });
+        var tool = new JObject { ["Data"] = new JObject { ["Raw"] = raw, ["Serial"] = 305419896, ["RawToolID"] = 2050 } };
+        var line = ProblemRecorder.FormatReport(TimeSpan.Zero, "IntuosV2ToolReport", tool);
+        Assert.DoesNotContain("12345678", line);
+        Assert.DoesNotContain("305419896", line);
+        Assert.Contains("left out", line);
+    }
 }

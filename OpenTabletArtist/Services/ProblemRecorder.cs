@@ -172,7 +172,7 @@ public sealed class ProblemRecorder
             if (copy["Raw"]?.ToString() is { } raw)
             {
                 copy.Remove("Raw");
-                copy["RawHex"] = RawHex(raw);
+                copy["RawHex"] = HasSerial(copy) ? "(left out: these bytes hold the pen's serial number)" : RawHex(raw);
             }
             values = copy.ToString(Formatting.None);
         }
@@ -181,6 +181,9 @@ public sealed class ProblemRecorder
         if (values.Length > MaxDataChars) values = values[..MaxDataChars] + "…";
         return $"+{at.TotalSeconds,8:0.000} s  {kind}  [{tablet}]  {values}";
     }
+
+    private static bool HasSerial(JObject data) =>
+        data.Descendants().OfType<JProperty>().Any(p => p.Name.Contains("Serial", StringComparison.OrdinalIgnoreCase));
 
     private static string RawHex(string base64)
     {
