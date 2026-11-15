@@ -647,5 +647,8 @@
   "confirm.settings_copied": "Settings copied",
   "offer.text": "Your {connected} is connected, but it isn't set up yet. You set up the {chosen} before. Copy its pen and screen mapping settings to the {connected}?",
   "offer.copy": "Copy settings",
-  "offer.not_now": "Not now"
+  "offer.not_now": "Not now",
+  "binding.touch.tab": "Touch",
+  "binding.touch.text": "Each press of this button turns finger touch on or off, like Wacom's Touch On/Off. The Touch trackpad switch on the tablet's page sets how touch starts.",
+  "binding.touch.name": "Touch on/off"
 }

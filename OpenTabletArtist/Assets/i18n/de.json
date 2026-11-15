@@ -647,5 +647,8 @@
   "confirm.settings_copied": "Einstellungen kopiert",
   "offer.text": "Dein {connected} ist angeschlossen, aber noch nicht eingerichtet. Vorher wurde das {chosen} eingerichtet. Seine Stift- und Zuordnungseinstellungen auf das {connected} übertragen?",
   "offer.copy": "Einstellungen kopieren",
-  "offer.not_now": "Nicht jetzt"
+  "offer.not_now": "Nicht jetzt",
+  "binding.touch.tab": "Touch",
+  "binding.touch.text": "Jeder Druck auf diese Taste schaltet die Fingerbedienung ein oder aus, wie Touch On/Off bei Wacom. Der Schalter „Touch-Trackpad“ auf der Seite des Tabletts legt fest, wie Touch startet.",
+  "binding.touch.name": "Touch ein/aus"
 }

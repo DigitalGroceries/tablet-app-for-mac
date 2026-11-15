@@ -10,8 +10,12 @@ namespace OpenTabletArtist.Domain;
 /// <summary>
 /// Discussion #31 (best attempt): keeps the touch trackpad filter
 /// (<c>OpenTabletArtist.Dynamics.TouchTrackpadFilter</c>) in the profile of tablets where finger touch
-/// should drive the cursor. Only the PTH-651 for now, as that's the tablet we were asked about; others
-/// with touch can be added once someone tests them.
+/// should drive the cursor. The PTH-651 (Discussion #31) and, from Version 28 (TASKS #77, Daniel's CTH-461), the
+/// Bamboo Pen &amp; Touch models whose 20-byte touch report the driver now reads (CTH-460, CTH-461, CTH-661).
+/// Version 28: the filter stays in the pipeline and its "TouchOn" setting says whether touch moves the pointer, so
+/// a Touch on/off key (<see cref="TouchToggleBinding"/>) can turn touch on even when the switch is off.
+/// The new models start OFF (agreed with Devin): until now their touch did nothing, so updating must not suddenly
+/// move the pointer under a resting hand. The PTH-651 keeps starting on.
 /// </summary>
 public static class TouchTrackpad
 {
@@ -20,7 +24,29 @@ public static class TouchTrackpad
     public static readonly IReadOnlySet<string> Tablets = new HashSet<string>(StringComparer.Ordinal)
     {
         "Wacom PTH-651",
+        "Wacom CTH-460",
+        "Wacom CTH-461",
+        "Wacom CTH-661",
     };
+
+    /// <summary>The filter setting that says whether finger touch moves the pointer (the plugin's TouchOn).</summary>
+    public const string TouchOnProperty = "TouchOn";
+
+    /// <summary>Whether touch starts on for a tablet the app hasn't set up yet: only the PTH-651.</summary>
+    public static bool StartsOn(string? tabletName) => tabletName == "Wacom PTH-651";
+
+    /// <summary>Pure: the switch's state from the stored filter. Before Version 28 "off" meant the filter itself was
+    /// disabled and there was no TouchOn setting, which reads as on.</summary>
+    public static bool StoreIsOn(PluginSettingStore store) =>
+        store.Enable && (store.Settings?.FirstOrDefault(x => x.Property == TouchOnProperty)?.GetValue<bool>() ?? true);
+
+    private static void SetTouchOn(PluginSettingStore store, bool on)
+    {
+        store.Enable = true;   // the filter always runs, so a Touch on/off key works even when the switch is off
+        store.Settings ??= new System.Collections.ObjectModel.ObservableCollection<PluginSetting>();
+        foreach (var old in store.Settings.Where(x => x.Property == TouchOnProperty).ToList()) store.Settings.Remove(old);
+        store.Settings.Add(new PluginSetting(TouchOnProperty, on));
+    }
 
     public static bool Wanted(Profile profile) => Tablets.Contains(profile.Tablet);
 
@@ -33,7 +59,7 @@ public static class TouchTrackpad
         if (existing.Count == 0)
         {
             var filter = AuxKeyBinding.NewStore(FilterTypeName);
-            filter.Enable = true;
+            SetTouchOn(filter, StartsOn(profile.Tablet));
             profile.Filters.Add(filter);
             return true;
         }
@@ -43,14 +69,14 @@ public static class TouchTrackpad
     }
 
     /// <summary>True when finger touch drives the cursor for this profile: a wanted tablet whose filter is
-    /// on (or not written yet, as the next save adds it switched on).</summary>
+    /// on (or not written yet and the tablet starts on, as the next save adds it that way).</summary>
     /// With an outside daemon (<paramref name="appOwnedDaemon"/> false) the app never adds the filter, so a
     /// missing filter reads as off there.
     public static bool IsOn(Profile? profile, bool appOwnedDaemon = true)
     {
         if (profile == null || !Wanted(profile)) return false;
         var store = profile.Filters?.OfType<PluginSettingStore>().FirstOrDefault(f => f.Path == FilterTypeName);
-        return store == null ? appOwnedDaemon : store.Enable;
+        return store == null ? appOwnedDaemon && StartsOn(profile.Tablet) : StoreIsOn(store);
     }
 
     /// <summary>The tablet page's on/off switch. Mutates <paramref name="settings"/>; no-op for other tablets.</summary>
@@ -59,7 +85,7 @@ public static class TouchTrackpad
         var profile = settings?.Profiles?.FirstOrDefault(p => p.Tablet == tabletName);
         if (profile?.Filters == null || !Wanted(profile)) return;
         SyncFilter(profile);
-        foreach (var f in profile.Filters.OfType<PluginSettingStore>().Where(f => f.Path == FilterTypeName)) f.Enable = on;
+        foreach (var f in profile.Filters.OfType<PluginSettingStore>().Where(f => f.Path == FilterTypeName)) SetTouchOn(f, on);
     }
 
     /// <summary>Item 6 (PR #38): true when a connected wanted tablet's profile has no touch trackpad filter

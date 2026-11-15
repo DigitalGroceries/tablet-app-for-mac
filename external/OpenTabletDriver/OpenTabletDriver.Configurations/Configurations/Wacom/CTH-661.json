@@ -7,6 +7,12 @@
       "MaxX": 21648,
       "MaxY": 13700
     },
+    "Touch": {
+      "Width": 216.48,
+      "Height": 137,
+      "MaxX": 1023,
+      "MaxY": 1023
+    },
     "Pen": {
       "MaxPressure": 1023,
       "ButtonCount": 2

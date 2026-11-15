@@ -108,6 +108,8 @@ public class DialogService : IDialogService
             editBinding: async (binding, title) =>
             {
                 var owner = Dialogs.GetMainWindow();
+                // V28 #77: the Touch tab (Touch on/off) only for a tablet whose finger touch the app drives.
+                using var touch = ViewModels.BindingEditorContext.TouchTabletScope(Domain.TouchTrackpad.Tablets.Contains(tabletName));
                 return owner != null
                     ? await Views.BindingEditorDialog.ShowAsync(owner, binding, title)
                     : null;

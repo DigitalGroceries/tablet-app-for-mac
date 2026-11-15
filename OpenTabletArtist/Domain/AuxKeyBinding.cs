@@ -25,7 +25,7 @@ public sealed record AuxCombo(bool Ctrl, bool Shift, bool Alt, string Key, bool 
 
 /// <summary>The kind of action an express key performs. <see cref="None"/> is an explicit "do
 /// nothing" so an intentionally-unbound button reads clearly in the UI.</summary>
-public enum AuxKind { None, Keyboard, Mouse, Scroll, RadialMenu }
+public enum AuxKind { None, Keyboard, Mouse, Scroll, RadialMenu, TouchToggle }
 
 /// <summary>A full express-key binding the editor can model: nothing, a keyboard <see cref="AuxCombo"/>,
 /// a mouse button, or a scroll direction. Carries each value so the UI keeps every editor's state
@@ -42,8 +42,13 @@ public sealed record AuxBinding(AuxKind Kind, AuxCombo Combo, string MouseButton
         AuxKind.Mouse => IsSet(MouseButton),
         AuxKind.Scroll => IsSet(Scroll),
         AuxKind.RadialMenu => true,   // a radial menu with no slices set still opens (and closes on a tap)
+        AuxKind.TouchToggle => true,
         _ => false,
     };
+
+    /// <summary>V28 #77: "Touch on/off" (finger touch on or off with each press).</summary>
+    public static readonly AuxBinding TouchToggle =
+        new(AuxKind.TouchToggle, AuxCombo.Unbound, AuxKeyBinding.None, AuxKeyBinding.None);
 
     /// <summary>TASKS #42: a radial-menu binding holding <paramref name="menuJson"/> (null = the default menu).</summary>
     public static AuxBinding RadialMenu(string? menuJson) =>
@@ -233,6 +238,7 @@ public static class AuxKeyBinding
     {
         if (store?.Path == null) return AuxBinding.Unbound;
         if (RadialMenuBinding.Is(store)) return AuxBinding.RadialMenu(RadialMenuBinding.ReadMenuJson(store));
+        if (TouchToggleBinding.Is(store)) return AuxBinding.TouchToggle;
         if (store.Path == MouseBindingPath || store.Path == DoubleClickBindingPath)
         {
             var button = ReadMouseButton(store);
@@ -258,6 +264,7 @@ public static class AuxKeyBinding
         AuxKind.Mouse => MakeMouseBinding(binding.MouseButton),
         AuxKind.Scroll => MakeScrollBinding(binding.Scroll, binding.GestureSpeed),
         AuxKind.RadialMenu => RadialMenuBinding.Make(binding.Menu),
+        AuxKind.TouchToggle => TouchToggleBinding.Make(),
         _ => null,
     };
 
@@ -269,6 +276,7 @@ public static class AuxKeyBinding
         AuxKind.Mouse => IsBoundValue(binding.MouseButton) ? DescribeMouse(binding.MouseButton) : "Do nothing",
         AuxKind.Scroll => DescribeScroll(binding.Scroll),
         AuxKind.RadialMenu => RadialMenuBinding.Describe(RadialMenuJson.Parse(binding.Menu), Localizer.Te),
+        AuxKind.TouchToggle => TouchToggleBinding.Describe(),
         _ => "Do nothing",
     };
 

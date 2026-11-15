@@ -647,5 +647,8 @@
   "confirm.settings_copied": "设置已复制",
   "offer.text": "你的 {connected} 已连接，但尚未设置。之前设置过 {chosen}。要将它的笔和屏幕映射设置复制到 {connected} 吗？",
   "offer.copy": "复制设置",
-  "offer.not_now": "暂时不要"
+  "offer.not_now": "暂时不要",
+  "binding.touch.tab": "触控",
+  "binding.touch.text": "每按一次此按钮，就会开启或关闭手指触控，就像 Wacom 的 Touch On/Off。平板页面上的“触控板模式”开关决定触控开始时的状态。",
+  "binding.touch.name": "触控 开/关"
 }

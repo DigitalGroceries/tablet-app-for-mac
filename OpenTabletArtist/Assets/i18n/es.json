@@ -647,5 +647,8 @@
   "confirm.settings_copied": "Ajustes copiados",
   "offer.text": "Tu {connected} está conectada, pero aún no está configurada. Antes se configuró la {chosen}. ¿Copiar sus ajustes del lápiz y de asignación de pantalla a la {connected}?",
   "offer.copy": "Copiar ajustes",
-  "offer.not_now": "Ahora no"
+  "offer.not_now": "Ahora no",
+  "binding.touch.tab": "Táctil",
+  "binding.touch.text": "Cada pulsación de este botón activa o desactiva el uso táctil con los dedos, como Touch On/Off de Wacom. El interruptor «Trackpad táctil» de la página de la tableta indica cómo empieza el táctil.",
+  "binding.touch.name": "Táctil sí/no"
 }

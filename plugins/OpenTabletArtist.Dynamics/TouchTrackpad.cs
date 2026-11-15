@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Tablet;
@@ -22,6 +23,12 @@ namespace OpenTabletArtist.Dynamics;
 public class TouchTrackpadFilter : IPositionedPipelineElement<IDeviceReport>, IDisposable
 {
     [TabletReference] public TabletReference? Tablet { get; set; }
+
+    /// <summary>Version 28 (#77): the switch on the tablet's page. The filter always runs, so a Touch on/off key
+    /// (<see cref="TouchToggleBinding"/>) can turn touch on even when this is off. Profiles from before Version 28
+    /// have no such setting and were only written while on, so it defaults to on.</summary>
+    [Property("Touch on"), DefaultPropertyValue(true)]
+    public bool TouchOn { set; get; } = true;
 
     public PipelinePosition Position => PipelinePosition.PreTransform;
     public event Action<IDeviceReport>? Emit;
@@ -69,6 +76,14 @@ public class TouchTrackpadFilter : IPositionedPipelineElement<IDeviceReport>, ID
 
     private void Handle(ITouchReport report)
     {
+        var name = Tablet?.Properties?.Name ?? "";
+        TouchSwitch.Seen(name, TouchOn);
+        if (!TouchSwitch.IsOn(name, TouchOn))
+        {
+            Do(_taps.Cancel());   // switched off mid-drag: let go of the held click
+            _last = null; _lastCount = 0;
+            return;
+        }
         var points = (report.Touches ?? Array.Empty<TouchPoint?>()).Where(p => p != null).Select(p => p!.Position).ToArray();
         var now = DateTime.UtcNow;
         if (now - _penSeen < TouchTrackpadMath.PenGuard)
@@ -140,6 +155,67 @@ public class TouchTrackpadFilter : IPositionedPipelineElement<IDeviceReport>, ID
         if (t == null || t.MaxX <= 0 || t.MaxY <= 0) return new Vector2(0.05f, 0.05f);
         return new Vector2(t.Width / t.MaxX, t.Height / t.MaxY);
     }
+}
+
+/// <summary>
+/// Version 28 (#77): the Touch on/off key's state, per tablet, for the driver's lifetime. A key press flips touch
+/// from whatever it is now; a change of the switch on the tablet's page (a new TouchOn) clears the key's override,
+/// so the switch always wins when the user changes it. Thread-safe.
+/// </summary>
+public static class TouchSwitch
+{
+    private static readonly object Gate = new();
+    private static readonly Dictionary<string, bool> Override = new(StringComparer.Ordinal);
+    private static readonly Dictionary<string, bool> Setting = new(StringComparer.Ordinal);
+
+    /// <summary>The filter reports the switch's value; a changed value clears the key's override.</summary>
+    public static void Seen(string tablet, bool setting)
+    {
+        lock (Gate)
+        {
+            if (Setting.TryGetValue(tablet, out var old) && old != setting) Override.Remove(tablet);
+            Setting[tablet] = setting;
+        }
+    }
+
+    public static bool IsOn(string tablet, bool setting)
+    {
+        lock (Gate) return Override.TryGetValue(tablet, out var o) ? o : setting;
+    }
+
+    /// <summary>Flips touch for <paramref name="tablet"/> and returns the new state.</summary>
+    public static bool Toggle(string tablet)
+    {
+        lock (Gate)
+        {
+            var setting = !Setting.TryGetValue(tablet, out var s) || s;
+            var now = !(Override.TryGetValue(tablet, out var o) ? o : setting);
+            Override[tablet] = now;
+            return now;
+        }
+    }
+
+    /// <summary>Tests only.</summary>
+    public static void Reset() { lock (Gate) { Override.Clear(); Setting.Clear(); } }
+}
+
+/// <summary>
+/// Version 28 (#77, Daniel's CTH-461): a pen button or ExpressKey that turns finger touch on or off with each press,
+/// like Wacom's Touch On/Off. Acts on press only.
+/// </summary>
+[PluginName("Tablet App for Mac - Touch on/off")]
+public class TouchToggleBinding : IStateBinding
+{
+    public void Press(TabletReference tablet, IDeviceReport report)
+    {
+        var name = tablet?.Properties?.Name ?? "";
+        var on = TouchSwitch.Toggle(name);
+        Log.Write("Touch trackpad", $"Touch on/off key: finger touch is now {(on ? "ON" : "OFF")} for {name}.");
+    }
+
+    public void Release(TabletReference tablet, IDeviceReport report) { }
+
+    public override string ToString() => "Touch on/off";
 }
 
 public static class TouchTrackpadMath

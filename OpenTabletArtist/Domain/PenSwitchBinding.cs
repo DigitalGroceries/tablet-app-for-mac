@@ -50,6 +50,7 @@ public static class PenSwitchBinding
         [PenScrollBinding.BindingTypeName] = "Pen scroll",
         [PenZoomBinding.BindingTypeName] = "Pen zoom",
         [RadialMenuBinding.BindingTypeName] = "Radial menu",
+        [TouchToggleBinding.BindingTypeName] = "Touch on/off",
     };
 
     public static PenSwitchBindingMode DetectMode(PluginSettingStore? store, PenSwitchKind kind, int penButtonIndex = 1)

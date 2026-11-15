@@ -16,7 +16,7 @@ namespace OpenTabletArtist.ViewModels;
 /// </summary>
 public partial class BindingEditorViewModel : ObservableObject
 {
-    public const int KeyboardTab = 0, MouseTab = 1, ScrollTab = 2, MediaTab = 3, RadialTab = 4;
+    public const int KeyboardTab = 0, MouseTab = 1, ScrollTab = 2, MediaTab = 3, RadialTab = 4, TouchTab = 5;
 
     /// <summary>Media / consumer keys, surfaced on their own MEDIA tab. They're keyboard keys under the
     /// hood, so a media binding is still an <see cref="AuxKind.Keyboard"/> binding (no modifiers).</summary>
@@ -94,6 +94,14 @@ public partial class BindingEditorViewModel : ObservableObject
     }
     partial void OnRadialMenuTextChanged(string value) => OnPropertyChanged(nameof(RadialSummary));
 
+    // ── Touch on/off (V28 #77) ─────────────────────────────────────────────────
+    /// <summary>Offered only for a tablet whose finger touch the app drives (<see cref="BindingEditorContext.TouchTablet"/>),
+    /// and not where only keys can be kept.</summary>
+    public bool ShowTouchTab { get; } = BindingEditorContext.TouchTablet && !BindingEditorContext.KeysOnly;
+    public string TouchTabLabel => Localizer.Te("binding.touch.tab", "Touch");
+    public string TouchIntro => Localizer.Te("binding.touch.text",
+        "Each press of this button turns finger touch on or off, like Wacom's Touch On/Off. The Touch trackpad switch on the tablet's page sets how touch starts.");
+
     [RelayCommand]
     private async System.Threading.Tasks.Task EditRadial()
     {
@@ -130,6 +138,9 @@ public partial class BindingEditorViewModel : ObservableObject
                 SelectedTabIndex = RadialTab;
                 RadialMenuText = Domain.RadialMenuJson.Serialize(Domain.RadialMenuJson.Parse(initial.Menu));
                 break;
+            case AuxKind.TouchToggle when ShowTouchTab:
+                SelectedTabIndex = TouchTab;
+                break;
             case AuxKind.Scroll:
                 SelectedTabIndex = ScrollTab;
                 SelectedScroll = initial.Scroll == AuxKeyBinding.None ? null : initial.Scroll;
@@ -150,11 +161,11 @@ public partial class BindingEditorViewModel : ObservableObject
 
     private static string TabName(int tab) => tab switch
     {
-        KeyboardTab => "Keyboard", MouseTab => "Mouse", ScrollTab => "Scroll", MediaTab => "Media", RadialTab => "Radial menu", _ => $"tab {tab}",
+        KeyboardTab => "Keyboard", MouseTab => "Mouse", ScrollTab => "Scroll", MediaTab => "Media", RadialTab => "Radial menu", TouchTab => "Touch", _ => $"tab {tab}",
     };
 
     private static string Describe(AuxBinding b) =>
-        b.Kind == AuxKind.RadialMenu ? "Radial menu" : $"{b.Kind}: {AuxKeyBinding.Describe(b)}";
+        b.Kind == AuxKind.RadialMenu ? "Radial menu" : b.Kind == AuxKind.TouchToggle ? "Touch on/off" : $"{b.Kind}: {AuxKeyBinding.Describe(b)}";
 
     /// <summary>Save is enabled only when the active tab has a complete selection.</summary>
     public bool CanSave => SelectedTabIndex switch
@@ -164,6 +175,7 @@ public partial class BindingEditorViewModel : ObservableObject
         ScrollTab => !string.IsNullOrEmpty(SelectedScroll),
         MediaTab => !string.IsNullOrEmpty(SelectedMediaKey),
         RadialTab => ShowRadialTab,
+        TouchTab => ShowTouchTab,
         _ => false,
     };
 
@@ -174,6 +186,7 @@ public partial class BindingEditorViewModel : ObservableObject
     public bool IsScrollTab { get => SelectedTabIndex == ScrollTab; set { if (value) SelectedTabIndex = ScrollTab; } }
     public bool IsMediaTab { get => SelectedTabIndex == MediaTab; set { if (value) SelectedTabIndex = MediaTab; } }
     public bool IsRadialTab { get => SelectedTabIndex == RadialTab; set { if (value) SelectedTabIndex = RadialTab; } }
+    public bool IsTouchTab { get => SelectedTabIndex == TouchTab; set { if (value) SelectedTabIndex = TouchTab; } }
 
     partial void OnSelectedTabIndexChanged(int value)
     {
@@ -184,6 +197,7 @@ public partial class BindingEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(IsScrollTab));
         OnPropertyChanged(nameof(IsMediaTab));
         OnPropertyChanged(nameof(IsRadialTab));
+        OnPropertyChanged(nameof(IsTouchTab));
     }
 
     partial void OnSelectedKeyOptionChanged(KeyOption? value) { SaveCommand.NotifyCanExecuteChanged(); UpdateCombo(); }
@@ -213,6 +227,7 @@ public partial class BindingEditorViewModel : ObservableObject
             MediaTab => new AuxBinding(AuxKind.Keyboard, new AuxCombo(false, false, false, SelectedMediaKey!),
                                        AuxKeyBinding.None, AuxKeyBinding.None),
             RadialTab => AuxBinding.RadialMenu(RadialMenuText),
+            TouchTab => AuxBinding.TouchToggle,
             _ => AuxBinding.Unbound,
         };
         AppLog.Info($"Binding editor '{Title}': Save clicked on the {TabName(SelectedTabIndex)} tab, new binding: {Describe(Result)}.");
@@ -389,7 +404,23 @@ public enum KeyCapKind { Key, Modifier, Spacer }
 public static class BindingEditorContext
 {
     private static readonly System.Threading.AsyncLocal<bool> _keysOnly = new();
+    private static readonly System.Threading.AsyncLocal<bool> _touchTablet = new();
     public static bool KeysOnly => _keysOnly.Value;
+    /// <summary>V28 #77: the editor was opened for a tablet whose finger touch the app drives, so the Touch tab
+    /// (Touch on/off) is offered.</summary>
+    public static bool TouchTablet => _touchTablet.Value;
+
+    public static IDisposable TouchTabletScope(bool touchTablet)
+    {
+        var before = _touchTablet.Value;
+        _touchTablet.Value = touchTablet;
+        return new RestoreTouch(before);
+    }
+
+    private sealed class RestoreTouch(bool before) : IDisposable
+    {
+        public void Dispose() => _touchTablet.Value = before;
+    }
 
     public static IDisposable KeysOnlyScope()
     {

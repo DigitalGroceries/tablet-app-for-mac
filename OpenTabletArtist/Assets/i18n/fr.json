@@ -647,5 +647,8 @@
   "confirm.settings_copied": "Réglages copiés",
   "offer.text": "Ta {connected} est connectée, mais pas encore réglée. La {chosen} a été réglée auparavant. Copier ses réglages du stylet et de correspondance d'écran vers la {connected} ?",
   "offer.copy": "Copier les réglages",
-  "offer.not_now": "Pas maintenant"
+  "offer.not_now": "Pas maintenant",
+  "binding.touch.tab": "Tactile",
+  "binding.touch.text": "Chaque appui sur ce bouton active ou désactive le tactile aux doigts, comme Touch On/Off chez Wacom. L'interrupteur « Trackpad tactile » de la page de la tablette indique comment le tactile démarre.",
+  "binding.touch.name": "Tactile oui/non"
 }

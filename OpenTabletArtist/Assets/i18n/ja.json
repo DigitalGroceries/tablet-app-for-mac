@@ -647,5 +647,8 @@
   "confirm.settings_copied": "設定をコピーしました",
   "offer.text": "{connected} が接続されていますが、まだ設定されていません。以前に {chosen} が設定されています。そのペンと画面マッピングの設定を {connected} にコピーしますか？",
   "offer.copy": "設定をコピー",
-  "offer.not_now": "後で"
+  "offer.not_now": "後で",
+  "binding.touch.tab": "タッチ",
+  "binding.touch.text": "このボタンを押すたびに、Wacom の Touch On/Off のように指でのタッチ操作がオン・オフされます。タッチ操作の初期状態は、タブレットのページにある「タッチトラックパッド」スイッチで決まります。",
+  "binding.touch.name": "タッチ オン/オフ"
 }

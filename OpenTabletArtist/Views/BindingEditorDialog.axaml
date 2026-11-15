@@ -117,6 +117,9 @@
                 <RadioButton Classes="tab" Content="{Binding RadialTabLabel}" GroupName="type"
                              IsVisible="{Binding ShowRadialTab}"
                              IsChecked="{Binding IsRadialTab, Mode=TwoWay}" />
+                <RadioButton Classes="tab" Content="{Binding TouchTabLabel}" GroupName="type"
+                             IsVisible="{Binding ShowTouchTab}"
+                             IsChecked="{Binding IsTouchTab, Mode=TwoWay}" />
             </StackPanel>
         </Border>
 
@@ -241,6 +244,12 @@
                            Foreground="{DynamicResource TextMutedBrush}" />
                 <Button Content="{Binding RadialEditLabel}" Command="{Binding EditRadialCommand}"
                         Theme="{StaticResource AccentButton}" Padding="16,8" HorizontalAlignment="Left" />
+            </StackPanel>
+
+            <!-- Touch on/off (V28 #77): only for tablets whose finger touch the app drives. -->
+            <StackPanel Spacing="12" IsVisible="{Binding IsTouchTab}" MaxWidth="620" HorizontalAlignment="Left">
+                <TextBlock Text="{Binding TouchIntro}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
             </StackPanel>
         </Panel>
     </DockPanel>
