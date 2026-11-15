@@ -1721,7 +1721,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var rows = new List<PenSwitchRowViewModel>
         {
             new(PenSwitchKind.Tip, 1, bindings.TipButton, canEdit, ApplyPenSwitchBindingAsync),
-            new(PenSwitchKind.Eraser, 1, bindings.EraserButton, canEdit, ApplyPenSwitchBindingAsync),
+            new(PenSwitchKind.Eraser, 1, bindings.EraserButton, canEdit, ApplyPenSwitchBindingAsync,
+                _editBinding != null ? ChoosePenButtonActionAsync : null),   // V28 #78: the eraser end too
         };
         for (int i = 0; i < bindings.PenButtons.Count; i++)
             rows.Add(new(PenSwitchKind.PenButton, i + 1, bindings.PenButtons[i], canEdit, ApplyPenSwitchBindingAsync,
@@ -1746,17 +1747,18 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var initial = AuxKeyBinding.ReadBinding(row.Store) ?? AuxBinding.Unbound;
         var table = !string.IsNullOrEmpty(SelectedPenKey) ? $"extra pen '{SelectedPenKey}'"
             : !string.IsNullOrEmpty(SelectedAppBundleId) ? $"application '{SelectedAppBundleId}'" : "All";
-        AppLog.Info($"Pen button {row.PenButtonIndex} on '{TabletName}' ({table} table): Change… opened, stored binding is '{row.Store?.Path ?? "none"}'.");
-        var result = await _editBinding(initial, $"Pen button {row.PenButtonIndex}");
-        if (result == null) { AppLog.Info($"Pen button {row.PenButtonIndex}: editor cancelled, nothing changed."); return; }
+        var name = row.Kind == PenSwitchKind.Eraser ? "Eraser" : $"Pen button {row.PenButtonIndex}";   // V28 #78
+        AppLog.Info($"{name} on '{TabletName}' ({table} table): Change… opened, stored binding is '{row.Store?.Path ?? "none"}'.");
+        var result = await _editBinding(initial, name);
+        if (result == null) { AppLog.Info($"{name}: editor cancelled, nothing changed."); return; }
         if (initial.IsBound && result == initial)   // no change: keeps extra settings (e.g. pen scroll speed)
         {
-            AppLog.Info($"Pen button {row.PenButtonIndex}: the chosen binding is the same as the current one, nothing to apply.");
+            AppLog.Info($"{name}: the chosen binding is the same as the current one, nothing to apply.");
             return;
         }
         // Clear (Unbound) makes no store: an empty slot is how OTD stores "this button does nothing".
         PluginSettingStore? store = result.IsBound ? AuxKeyBinding.MakeBinding(result) : null;
-        AppLog.Info($"Pen button {row.PenButtonIndex}: applying {(store == null ? "nothing (cleared)" : store.Path)} to the {table} table.");
+        AppLog.Info($"{name}: applying {(store == null ? "nothing (cleared)" : store.Path)} to the {table} table.");
         await ApplyPenSwitchBindingAsync(row.Kind, row.PenButtonIndex, store);
     }
 

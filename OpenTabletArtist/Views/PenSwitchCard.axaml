@@ -77,7 +77,7 @@
 
         <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding ShowChooseAction}">
             <Button x:Name="BtnChange" Classes="penAction" Content="Change…" Command="{Binding ChooseActionCommand}"
-                    ToolTip.Tip="Choose what this pen button does" />
+                    ToolTip.Tip="Choose what this button or the eraser does" />
             <Button x:Name="BtnDefault" Classes="penAction" Content="Default" Command="{Binding SetAutoCommand}"
                     IsVisible="{Binding ShowUseAdaptive}"
                     ToolTip.Tip="Put this button back to its normal behaviour" />

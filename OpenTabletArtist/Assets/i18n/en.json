@@ -650,5 +650,6 @@
   "offer.not_now": "Not now",
   "binding.touch.tab": "Touch",
   "binding.touch.text": "Each press of this button turns finger touch on or off, like Wacom's Touch On/Off. The Touch trackpad switch on the tablet's page sets how touch starts.",
-  "binding.touch.name": "Touch on/off"
+  "binding.touch.name": "Touch on/off",
+  "tablet.eraser.default_action": "Default (erase)"
 }

@@ -650,5 +650,6 @@
   "offer.not_now": "後で",
   "binding.touch.tab": "タッチ",
   "binding.touch.text": "このボタンを押すたびに、Wacom の Touch On/Off のように指でのタッチ操作がオン・オフされます。タッチ操作の初期状態は、タブレットのページにある「タッチトラックパッド」スイッチで決まります。",
-  "binding.touch.name": "タッチ オン/オフ"
+  "binding.touch.name": "タッチ オン/オフ",
+  "tablet.eraser.default_action": "標準（消去）"
 }

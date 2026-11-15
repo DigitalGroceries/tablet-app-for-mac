@@ -68,8 +68,10 @@ public partial class PenSwitchRowViewModel : ObservableObject
     [ObservableProperty] private bool _canEdit;
 
     /// <summary>On macOS a pen side switch can do any action (Absolute mode posts it directly; the Windows Ink
-    /// limitation of #495 doesn't apply), so its card offers a Wacom-style "Change…" instead of a warning.</summary>
-    public bool CanChooseAction => _chooseAction != null && _kind == PenSwitchKind.PenButton && OperatingSystem.IsMacOS();
+    /// limitation of #495 doesn't apply), so its card offers a Wacom-style "Change…" instead of a warning.
+    /// Version 28 (#78, Daniel): the eraser end too, like Wacom's eraser (Erase or any other action).</summary>
+    public bool CanChooseAction => _chooseAction != null && _kind is PenSwitchKind.PenButton or PenSwitchKind.Eraser
+        && OperatingSystem.IsMacOS();
     public bool ShowChooseAction => CanChooseAction && CanEdit;
 
     public bool IsRecommended => Mode == PenSwitchBindingMode.Auto && !CanChooseAction;
@@ -105,6 +107,8 @@ public partial class PenSwitchRowViewModel : ObservableObject
             CurrentPlainLabel = AuxKeyBinding.Describe(action);
         else if (Mode == PenSwitchBindingMode.Auto && _kind == PenSwitchKind.PenButton)
             CurrentPlainLabel = _penButtonIndex == 1 ? "Default (right click)" : "Default (middle click)";
+        else if (Mode == PenSwitchBindingMode.Auto && _kind == PenSwitchKind.Eraser)
+            CurrentPlainLabel = Localizer.Te("tablet.eraser.default_action", "Default (erase)");
         OnPropertyChanged(nameof(ShowChooseAction));
     }
 
