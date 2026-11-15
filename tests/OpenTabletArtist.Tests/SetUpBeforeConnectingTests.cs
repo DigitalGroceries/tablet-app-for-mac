@@ -91,6 +91,20 @@ public class SetUpBeforeConnectingTests
         Assert.Null(OfflineTablet.PickOffer(new[] { "Wacom PTH-660" }, Array.Empty<string>(), _ => false));
         Assert.Null(OfflineTablet.PickOffer(new[] { "Wacom PTH-660" }, new[] { Sample }, _ => true));
         Assert.Null(OfflineTablet.PickOffer(Array.Empty<string>(), new[] { Sample }, _ => false));
+        // V28 #76 review: only a tablet first seen AFTER the model was set up beforehand gets the offer, so a tablet the
+        // user already had keeps its own settings.
+        Assert.Null(OfflineTablet.PickOffer(new[] { "Wacom PTH-660" }, new[] { Sample }, _ => false, _ => false));
+        Assert.NotNull(OfflineTablet.PickOffer(new[] { "Wacom PTH-660" }, new[] { Sample }, _ => false, _ => true));
+    }
+
+    [Fact]
+    public void OnlyATabletFirstSeenAfterTheSetUp_IsNew()
+    {
+        var setUp = new DateTime(2026, 11, 15, 22, 0, 0);
+        Assert.True(OfflineTablet.IsNewSince(setUp.AddMinutes(5), setUp));      // plugged in for the first time later
+        Assert.False(OfflineTablet.IsNewSince(setUp.AddDays(-3), setUp));      // the user's own tablet, seen before
+        Assert.False(OfflineTablet.IsNewSince(null, setUp));
+        Assert.False(OfflineTablet.IsNewSince(setUp, null));
     }
 
     [Fact]

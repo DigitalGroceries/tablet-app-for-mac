@@ -33,6 +33,7 @@ public static class OfflineTablet
 
     private const string MarkPrefix = "SetUpBeforeConnecting:";
     private const string OfferPrefix = "OfflineSetupOffered:";
+    private const string SeenPrefix = "TabletFirstSeen:";
 
     // ---------------------------------------------------------------- the catalog
 
@@ -152,6 +153,26 @@ public static class OfflineTablet
 
     public static bool IsSetUpBeforeConnecting(string name) => AppSettings.Get(Key(MarkPrefix, name)) != null;
 
+    /// <summary>When <paramref name="name"/> was set up beforehand, or null.</summary>
+    public static DateTime? SetUpAt(string name) => Time(AppSettings.Get(Key(MarkPrefix, name)));
+
+    /// <summary>Remembers the first time this app saw <paramref name="name"/> connected (kept once set).</summary>
+    public static void MarkSeen(string name)
+    {
+        if (AppSettings.Get(Key(SeenPrefix, name)) == null) AppSettings.Set(Key(SeenPrefix, name), DateTime.Now.ToString("o"));
+    }
+
+    public static DateTime? FirstSeen(string name) => Time(AppSettings.Get(Key(SeenPrefix, name)));
+
+    /// <summary>Pure: a connected tablet is "new, not set up yet" for a model set up beforehand only when the app first
+    /// saw it after that set-up. A tablet the user already had (seen before, or before this version) is never offered
+    /// the copy, so its own settings can't be overwritten by the model picked while it was unplugged.</summary>
+    public static bool IsNewSince(DateTime? firstSeen, DateTime? setUpAt) =>
+        firstSeen is { } seen && setUpAt is { } setUp && seen > setUp;
+
+    private static DateTime? Time(string? s) =>
+        DateTime.TryParse(s, null, System.Globalization.DateTimeStyles.RoundtripKind, out var t) ? t : null;
+
     /// <summary>The chosen model has been plugged in: from now on it is an ordinary tablet.</summary>
     public static void ClearMark(string name) => AppSettings.Remove(Key(MarkPrefix, name));
 
@@ -164,7 +185,7 @@ public static class OfflineTablet
     /// <summary>Pure: which offer to make, if any. A tablet is connected that the user didn't set up beforehand,
     /// while a model they did set up beforehand has never been connected. Offers already answered are skipped.</summary>
     public static OfflineSetupOffer? PickOffer(IEnumerable<string> connected, IEnumerable<string> setUpBeforehand,
-        Func<OfflineSetupOffer, bool> answered)
+        Func<OfflineSetupOffer, bool> answered, Func<OfflineSetupOffer, bool>? isNew = null)
     {
         var chosen = setUpBeforehand.Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
         if (chosen.Count == 0) return null;
@@ -174,7 +195,7 @@ public static class OfflineTablet
             foreach (var ch in chosen)
             {
                 var offer = new OfflineSetupOffer(c, ch);
-                if (!answered(offer)) return offer;
+                if (!answered(offer) && (isNew == null || isNew(offer))) return offer;
             }
         }
         return null;

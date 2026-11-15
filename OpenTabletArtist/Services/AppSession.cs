@@ -1424,6 +1424,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
     {
         try
         {
+            foreach (var name in detectedNames) OfflineTablet.MarkSeen(name);
             foreach (var name in detectedNames)
                 if (OfflineTablet.IsSetUpBeforeConnecting(name))
                 {
@@ -1432,7 +1433,8 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
                 }
             var setUp = Profiles.Where(p => !p.IsDetected && OfflineTablet.IsSetUpBeforeConnecting(p.Profile.Tablet))
                 .Select(p => p.Profile.Tablet).ToList();
-            var offer = OfflineTablet.PickOffer(detectedNames, setUp, OfflineTablet.IsOfferAnswered);
+            var offer = OfflineTablet.PickOffer(detectedNames, setUp, OfflineTablet.IsOfferAnswered,
+                o => OfflineTablet.IsNewSince(OfflineTablet.FirstSeen(o.Connected), OfflineTablet.SetUpAt(o.Chosen)));
             if (offer != PendingOfflineOffer && offer != null)
                 AppLog.Info($"Set up before connecting: \"{offer.Connected}\" is connected instead of \"{offer.Chosen}\"; offering to copy the shared settings.");
             PendingOfflineOffer = offer;
