@@ -64,6 +64,8 @@ public static class InputDeviceReport
         }
     }
 
+    internal static string? RunTool(string exe, string[] args, int timeoutMs) => Run(exe, args, timeoutMs);
+
     static string? Run(string exe, string[] args, int timeoutMs)
     {
         try

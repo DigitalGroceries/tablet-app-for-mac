@@ -30,7 +30,7 @@ public static class DiagnosticBundle
     /// the live mouse/keyboard listing (tests).</summary>
     public static string Create(string folder, IEnumerable<string> devices, IEnumerable<string> conflicts,
         string? daemonVersion, DateTime? now = null, Func<string>? inputDevices = null,
-        Func<string>? permissions = null, Func<string>? eventTaps = null)
+        Func<string>? permissions = null, Func<string>? eventTaps = null, Func<string>? tabletInterfaces = null)
     {
         var stamp = now ?? DateTime.Now;
         Directory.CreateDirectory(folder);
@@ -59,6 +59,9 @@ public static class DiagnosticBundle
             var con = conflicts.ToList();
             if (con.Count == 0) sb.AppendLine("  (none)");
             foreach (var c in con) sb.AppendLine("  " + c);
+            sb.AppendLine();
+            sb.AppendLine("Tablet connections (HID interfaces) and which ones the driver opened:");
+            sb.AppendLine((tabletInterfaces ?? TabletInterfaceReport.Collect)());
             sb.AppendLine();
             sb.AppendLine("Mice, trackpads and keyboards:");
             sb.AppendLine((inputDevices ?? InputDeviceReport.Collect)());
