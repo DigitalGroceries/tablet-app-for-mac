@@ -288,4 +288,25 @@ public class ProblemRecorderTests
         public Task SetTabletDebugAsync(bool enabled) { Debug.Add(enabled); return Task.CompletedTask; }
         public void Emit() => DeviceReport?.Invoke(new JObject { ["Path"] = "X.PenReport", ["Data"] = new JObject { ["Pressure"] = 1 } });
     }
+
+    [Fact]
+    public async Task ASecondStop_WhileTheFirstIsStillRunning_WaitsForTheRecording()
+    {
+        var daemon = new SlowStopDaemon();
+        var rec = new ProblemRecorder(daemon);
+        await rec.StartAsync();
+        var first = rec.StopAsync();
+        var second = rec.StopAsync();
+        Assert.False(second.IsCompleted);
+        daemon.Release.SetResult();
+        Assert.Equal(await first, await second);
+        Assert.NotNull(rec.Trace);
+    }
+
+    private sealed class SlowStopDaemon : OtdInterop.IDaemonDebugSession
+    {
+        public event Action<JObject>? DeviceReport { add { } remove { } }
+        public TaskCompletionSource Release { get; } = new();
+        public Task SetTabletDebugAsync(bool enabled) => enabled ? Task.CompletedTask : Release.Task;
+    }
 }

@@ -47,6 +47,7 @@ public sealed class ProblemRecorder
     /// <summary>True when the last recording stopped by itself at <see cref="MaxLength"/>.</summary>
     public bool StoppedAtLimit { get { lock (_lock) return _timeUp; } }
     private CancellationTokenSource? _limit;
+    private Task<string>? _stopping;
 
     /// <summary>The finished recording (recording.txt), or null before the first Stop.</summary>
     public string? Trace { get; private set; }
@@ -60,6 +61,7 @@ public sealed class ProblemRecorder
     public async Task StartAsync()
     {
         if (IsRecording) return;
+        if (_stopping is { } previous) await previous;
         lock (_lock)
         {
             _lines.Clear(); _kinds.Clear(); _problems.Clear();
@@ -67,6 +69,7 @@ public sealed class ProblemRecorder
             _started = _now();
         }
         Trace = null;
+        _stopping = null;
         IsRecording = true;
         _limit = new CancellationTokenSource();
         _ = StopAtLimitAsync(_limit.Token);
@@ -94,13 +97,20 @@ public sealed class ProblemRecorder
     }
 
     /// <summary>Ends the recording and returns recording.txt. Safe to call when not recording.</summary>
-    public async Task<string> StopAsync()
+    /// <summary>Stops and returns the recording. A call while a stop is still running waits for that one.</summary>
+    public Task<string> StopAsync()
     {
         lock (_lock)
         {
-            if (!IsRecording) return Trace ?? "";
+            if (!IsRecording) return _stopping ?? Task.FromResult(Trace ?? "");
             IsRecording = false;
+            return _stopping = StopCoreAsync();
         }
+    }
+
+    private async Task<string> StopCoreAsync()
+    {
+        await Task.Yield();
         _limit?.Cancel();
         _limit = null;
         if (_daemon != null)
