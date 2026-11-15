@@ -116,5 +116,10 @@ public class BuildV7Tests
         Xunit.Assert.False(OpenTabletArtist.MainWindow.KeepHidden(true, true, now, until));    // pen menu click
         Xunit.Assert.False(OpenTabletArtist.MainWindow.KeepHidden(false, false, now, until));  // opened by hand
         Xunit.Assert.False(OpenTabletArtist.MainWindow.KeepHidden(false, true, until.AddSeconds(1), until));
+        // TASKS #79 (Daniel, 15 Nov): only the first automatic request is ignored; a second one in the quiet minute
+        // is a person opening the app again because nothing appeared, so the window shows.
+        Xunit.Assert.True(OpenTabletArtist.MainWindow.KeepHidden(false, true, now, until, alreadyIgnored: 0));
+        Xunit.Assert.False(OpenTabletArtist.MainWindow.KeepHidden(false, true, now, until, alreadyIgnored: 1));
+        Xunit.Assert.False(OpenTabletArtist.MainWindow.KeepHidden(false, true, now, until, alreadyIgnored: 4));
     }
 }

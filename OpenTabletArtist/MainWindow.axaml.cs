@@ -176,12 +176,30 @@ public partial class MainWindow : Window
     public static DateTime HiddenStartUntil { get; set; } = DateTime.MinValue;
     private bool _showRequested;
 
-    public static bool KeepHidden(bool byUser, bool background, DateTime now, DateTime until) => !byUser && background && now < until;
+    public static bool KeepHidden(bool byUser, bool background, DateTime now, DateTime until) =>
+        KeepHidden(byUser, background, now, until, alreadyIgnored: 0);
+
+    /// <summary>TASKS #79 (Version 28): only the FIRST automatic show request of a login start is ignored. At login
+    /// macOS can send one by itself (the login item and "reopen windows" both start the app), but a person who opens
+    /// the app again because nothing appeared sends more: Daniel (15 Nov) opened it 4 times in 31 s and saw nothing
+    /// until the quiet minute ran out. From the second request on, the window shows.</summary>
+    public static bool KeepHidden(bool byUser, bool background, DateTime now, DateTime until, int alreadyIgnored) =>
+        !byUser && background && now < until && alreadyIgnored == 0;
+
+    /// <summary>How many automatic show requests this login start has ignored so far (at most one, TASKS #79).</summary>
+    private static int _ignoredLoginShows;
 
     public void BringToFront(string reason, bool byUser = true)
     {
-        if (KeepHidden(byUser, Program.LaunchInBackground, DateTime.UtcNow, HiddenStartUntil))
-        { AppLog.Info($"Window: kept hidden at login (ignored: {reason})."); return; }
+        var now = DateTime.UtcNow;
+        if (KeepHidden(byUser, Program.LaunchInBackground, now, HiddenStartUntil, _ignoredLoginShows))
+        {
+            _ignoredLoginShows++;
+            AppLog.Info($"Window: kept hidden at login (ignored: {reason}). A second request in the first minute shows the window.");
+            return;
+        }
+        if (!byUser && Program.LaunchInBackground && now < HiddenStartUntil)
+            AppLog.Info($"Window: a second show request during the quiet login minute ({reason}): taken as the user's, showing the window.");
         AppLog.Info($"Window: shown ({reason}).");
         _showRequested = true;
         // Version 7 test 9: Dock icon back before the window appears.
