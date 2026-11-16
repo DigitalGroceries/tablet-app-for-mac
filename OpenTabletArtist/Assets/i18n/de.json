@@ -652,5 +652,8 @@
   "binding.touch.text": "Jeder Druck auf diese Taste schaltet die Fingerbedienung ein oder aus, wie Touch On/Off bei Wacom. Der Schalter „Touch-Trackpad“ auf der Seite des Tabletts legt fest, wie Touch startet.",
   "binding.touch.name": "Touch ein/aus",
   "tablet.eraser.default_action": "Standard (radieren)",
-  "save.status.unsaved_hint": "Deine Änderungen wirken sofort. Klicke auf „Speichern“, damit sie einen Neustart überstehen."
+  "save.status.unsaved_hint": "Deine Änderungen wirken sofort. Klicke auf „Speichern“, damit sie einen Neustart überstehen.",
+  "save.auto.section": "Speichern",
+  "save.auto.toggle": "Änderungen automatisch speichern",
+  "save.auto.description": "Wie beim Wacom-Treiber: Jede Änderung wird sofort gespeichert und bleibt auch nach einem Neustart erhalten. Aus: Änderungen wirken weiter sofort, bleiben aber nur mit „Speichern“ erhalten."
 }

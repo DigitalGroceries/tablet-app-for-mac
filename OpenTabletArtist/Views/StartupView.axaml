@@ -18,6 +18,13 @@
             </StackPanel>
         </c:Section>
 
+        <!-- V28 #80 Option A (Zak 16 Nov): changes are saved by themselves, like the Wacom app. -->
+        <c:Section Title="{Binding AutoSaveSectionTitle}">
+            <c:ToggleSetting x:Name="AutoSaveToggle" Label="{Binding AutoSaveLabel}"
+                             Description="{Binding AutoSaveDescription}"
+                             IsChecked="{Binding AutoSaveOn}" />
+        </c:Section>
+
         <!-- Intuos4 status light: dim, bright while the pen touches (feature report 0x20). -->
         <c:Section Title="{Binding StatusLedSectionTitle}" IsVisible="{Binding ShowStatusLight}">
             <c:ToggleSetting x:Name="StatusLedToggle" Label="{Binding StatusLedLabel}"

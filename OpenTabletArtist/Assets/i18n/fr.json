@@ -652,5 +652,8 @@
   "binding.touch.text": "Chaque appui sur ce bouton active ou désactive le tactile aux doigts, comme Touch On/Off chez Wacom. L'interrupteur « Trackpad tactile » de la page de la tablette indique comment le tactile démarre.",
   "binding.touch.name": "Tactile oui/non",
   "tablet.eraser.default_action": "Par défaut (effacer)",
-  "save.status.unsaved_hint": "Vos modifications fonctionnent déjà. Cliquez sur « Enregistrer » pour les garder après un redémarrage."
+  "save.status.unsaved_hint": "Vos modifications fonctionnent déjà. Cliquez sur « Enregistrer » pour les garder après un redémarrage.",
+  "save.auto.section": "Enregistrement",
+  "save.auto.toggle": "Enregistrer les modifications automatiquement",
+  "save.auto.description": "Comme avec le pilote Wacom : chaque modification est enregistrée aussitôt et reste après un redémarrage. Désactivé : les modifications fonctionnent toujours aussitôt, mais seul « Enregistrer » les garde."
 }

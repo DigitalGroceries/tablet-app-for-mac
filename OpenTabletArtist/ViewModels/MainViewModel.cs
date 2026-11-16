@@ -78,7 +78,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>V28 #80 (Daniel; agreed by Claude and Devin): every edit already works on the driver, but only Save keeps
     /// it after a driver restart, which a Wacom user doesn't expect. While there are unsaved changes, one quiet line
     /// under the status says so. A help line, not a feedback prompt.</summary>
-    public bool ShowUnsavedHint => _session.SaveState == SettingsSaveState.Unsaved;
+    /// V28 #80 Option A (Zak 16 Nov): with auto-save on (the default) changes are saved by themselves, so the line only
+    /// shows for someone who switched auto-save off.
+    public bool ShowUnsavedHint => AutoSave.ShowSaveHint(AutoSave.Enabled, _session.SaveState);
     public string UnsavedHint => Localizer.Te("save.status.unsaved_hint", "Your changes work now. Click Save to keep them after a restart.");
 
     /// <summary>Monitor-cycle switch events (#89) — the shell subscribes to show a toast on cycle.</summary>
@@ -286,6 +288,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
         RefreshDefaultButtons();
         _session.SettingsReplaced += RefreshDefaultButtons;
         _session.PropertyChanged += OnSessionPropertyChangedForDefaults;
+        // V28 #80 Option A (Zak 16 Nov): save every change by itself, like the Wacom app.
+        _autoSaveTimer = new Avalonia.Threading.DispatcherTimer { Interval = AutoSave.Delay };
+        _autoSaveTimer.Tick += OnAutoSaveTick;
+        AutoSave.Changed += OnAutoSaveSwitched;
         _profileHotkeys = new ProfileHotkeyManager(_globalHotkeys, _profileSwitch);
         _monitorCycle = new MonitorCycleService(_session, _session);
         _monitorHotkeys = new MonitorCycleHotkeys(_globalHotkeys, _monitorCycle);
@@ -926,6 +932,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnSessionPropertyChangedForDefaults(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (e.PropertyName is nameof(AppSession.SaveState))
+        {
+            ScheduleAutoSave();
+            OnPropertyChanged(nameof(ShowUnsavedHint));
+        }
         if (e.PropertyName is nameof(AppSession.CanEditSettings) or nameof(AppSession.HasUnsavedChanges))
             RefreshDefaultButtons();
         if (e.PropertyName is nameof(AppSession.SaveStatusText) or nameof(AppSession.HasUnsavedChanges)
@@ -934,6 +945,53 @@ public partial class MainViewModel : ObservableObject, IDisposable
             OnPropertyChanged(nameof(FooterStatusText));
             OnPropertyChanged(nameof(ShowUnsavedHint));
         }
+    }
+
+    // ---- V28 #80 Option A: auto-save -------------------------------------------------------------------------------
+    private readonly Avalonia.Threading.DispatcherTimer _autoSaveTimer;
+    private bool _autoSaving;
+
+    /// <summary>Unsaved changes and auto-save on: save them a moment later (restarting the wait on every change, so a
+    /// run of edits is one save).</summary>
+    private void ScheduleAutoSave()
+    {
+        if (_disposed || !AutoSave.Enabled || _session.SaveState != SettingsSaveState.Unsaved) return;
+        _autoSaveTimer.Stop();
+        _autoSaveTimer.Start();
+    }
+
+    private void OnAutoSaveSwitched()
+    {
+        OnPropertyChanged(nameof(ShowUnsavedHint));
+        ScheduleAutoSave();
+    }
+
+    private void OnAutoSaveTick(object? sender, EventArgs e)
+    {
+        _autoSaveTimer.Stop();
+        if (_disposed || _autoSaving) return;
+        // Not while settings are busy, a typed value isn't entered yet, editing isn't possible, or an application's
+        // or extra pen's own settings are on the driver (Save would then have to swap All back in under that app).
+        var blocked = _session.SettingsBusy || HasPendingInput || !_session.CanEditSettings
+            || _perAppBindings?.OverlayLive == true;
+        switch (AutoSave.Next(AutoSave.Enabled, _session.SaveState, blocked))
+        {
+            case AutoSave.Step.Wait: _autoSaveTimer.Start(); break;
+            case AutoSave.Step.SaveNow: _ = AutoSaveNowAsync(); break;
+        }
+    }
+
+    private async Task AutoSaveNowAsync()
+    {
+        _autoSaving = true;
+        try
+        {
+            // The same path as the Save button, without the "Settings saved" popup (it would appear after every change).
+            if (await SaveNowAsync()) AppLog.Info("Auto-save: changes saved.");
+            else AppLog.Warn($"Auto-save: the changes could not be saved ({_session.SaveState}); the footer shows it and Save stays available.");
+        }
+        catch (Exception ex) { AppLog.Warn("Auto-save failed.", ex); }
+        finally { _autoSaving = false; }
     }
 
     /// <summary>Refresh HasUserDefault / CanRevertToDefault / Revert-to-saved from disk + live settings.</summary>
@@ -1151,8 +1209,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         _session.SettingsReplaced -= RefreshDefaultButtons;
         _session.PropertyChanged -= OnSessionPropertyChangedForDefaults;
+        AutoSave.Changed -= OnAutoSaveSwitched;
         if (_disposed) return;
         _disposed = true;
+        _autoSaveTimer.Stop();
         _session.DataLoaded -= RebuildTablets;
         _session.DataLoaded -= ReconcileOpenTabletDetails;
         _session.DataLoaded -= RefreshTabletNotices;

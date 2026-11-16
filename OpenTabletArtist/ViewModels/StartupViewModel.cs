@@ -203,6 +203,22 @@ public partial class StartupViewModel : ObservableObject
     public string OledLabelsDescription => Localizer.Te("oled.description",
         "Intuos4 Medium, Large and Extra Large. Each small screen beside an ExpressKey shows that key's action, as with the Wacom driver. Off: the screens stay dark.");
 
+    // ---- V28 #80 Option A (Zak 16 Nov): save every change by itself, like the Wacom app (on by default)
+    public bool AutoSaveOn
+    {
+        get => Services.AutoSave.Enabled;
+        set
+        {
+            if (value == Services.AutoSave.Enabled) return;
+            Services.AutoSave.Enabled = value;
+            OnPropertyChanged();
+        }
+    }
+    public string AutoSaveSectionTitle => Localizer.Te("save.auto.section", "Saving");
+    public string AutoSaveLabel => Localizer.Te("save.auto.toggle", "Save changes automatically");
+    public string AutoSaveDescription => Localizer.Te("save.auto.description",
+        "Like the Wacom driver: every change is kept at once, also after a restart. Off: changes still work at once, but only Save keeps them.");
+
     // ---- Radial menu (TASKS #42): one switch for every button set to Radial menu
     public bool RadialMenuOn
     {
@@ -269,6 +285,9 @@ public partial class StartupViewModel : ObservableObject
         OnPropertyChanged(nameof(OpenLoginItemsLabel));
         OnPropertyChanged(nameof(OpenLoginItemsTip));
         OnPropertyChanged(nameof(LoginUnavailableMessage));
+        OnPropertyChanged(nameof(AutoSaveSectionTitle));
+        OnPropertyChanged(nameof(AutoSaveLabel));
+        OnPropertyChanged(nameof(AutoSaveDescription));
         // Item 25 (#27): the status light labels follow a language change too.
         OnPropertyChanged(nameof(StatusLedSectionTitle));
         OnPropertyChanged(nameof(StatusLedLabel));

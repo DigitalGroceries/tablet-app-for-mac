@@ -24,7 +24,7 @@ Tested only on an Apple silicon Mac with macOS 27.0.1 and a Wacom Intuos4 Small 
 - Open the tablet, choose **Pen** in the Tool row, and set **Tip Feel**.
 - Set **Mapping** to the display you draw on.
 - Under **Functions**, set the ExpressKeys and the **Touch Ring** modes.
-- Click **Save** in the footer. Unsaved changes are kept and offered again after a shutdown.
+- Your changes are saved by themselves, as with the Wacom driver (Settings › System › **Save changes automatically**, on by default). With that switch off, click **Save** in the footer; unsaved changes are kept and offered again after a shutdown.
 - Test in **Scribble**.
 
 ## Introduction and requirements
@@ -232,6 +232,7 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 - **Presets**: see Presets and saving.
 - **System › Status light** (shown only while an Intuos4 is connected): **Light up the status light when the pen touches** is on by default. The tablet's status light stays dim and gets bright while the pen touches, as it did with the Wacom driver. Switch it off for one steady brightness. The setting is sent to the tablet once when it connects, not while you draw.
 - **System › ExpressKey screens** (shown only while an Intuos4 Medium, Large, Extra Large or Wireless is connected by cable): **Show what each ExpressKey does on its screen** is on by default. Each small screen beside an ExpressKey shows that key's action, for example "Shift Cmd / Z" or "Right click". A key that does nothing stays dark. The words follow your settings, including per-app settings. Switch it off and the screens stay dark. New in Version 26 and not yet tried on a real tablet with screens.
+- **System › Saving**: **Save changes automatically** is on by default. Every change is kept at once, also after a restart, as with the Wacom driver. Off: changes still work at once, but only **Save** keeps them.
 - **System › Radial menu**: **Show the radial menu** is on by default. It is for pen buttons and ExpressKeys set to Radial menu (see Tablet › Functions › ExpressKeys › Radial menu). Off: those buttons do nothing.
 - **System › Settings backup**: **Export settings…** saves all your settings in one file: tablets, pens and per-pen settings, presets, applications, Touch Ring modes, calibration and app settings. The suggested name is the tablet model and the date, for example `Intuos4PTK440_30Oct26.tabletsettings` (`TabletApp_30Oct26` when no tablet is connected); you can type another name. Serial numbers and your user name are left out, so you can email the file to someone else or keep it for a new Mac. **Import settings…** opens a file and lists what would change (**New**, **Changed**, **Same**) before anything happens; click **Apply these settings** or **Cancel**. Your current settings are backed up first. Then quit and reopen the app.
 - **Settings files in Finder**: a `.tabletsettings` file shows the app icon on a page. Double-click it to open Tablet App for Mac at **Settings › System** with its Import preview; nothing changes until you click **Apply these settings**.
@@ -278,9 +279,9 @@ The report opens inside the app window:
 
 ## Presets and saving
 
-The footer of the tablet page has **Save**, **Save as default**, **Revert to saved**, **Revert to default** and **Restore factory settings**. Changes apply at once.
+The footer of the tablet page has **Save**, **Save as default**, **Revert to saved**, **Revert to default** and **Restore factory settings**. Changes apply at once and, with **Save changes automatically** on (the default, Settings › System), they are also saved a moment later, so they are still there after a restart, as with the Wacom driver. While an application's own settings are in use (another app in front), the save waits until your All settings are back.
 
-- **Save** writes the settings so they survive a driver restart (Cmd+S). **Revert to saved** goes back to the last save, after asking **Revert to saved settings?**
+- **Save** writes the settings so they survive a driver restart (Cmd+S). With automatic saving off, a line under **Unsaved changes** says: **Your changes work now. Click Save to keep them after a restart.** **Revert to saved** goes back to the last save, after asking **Revert to saved settings?**
 - **Save as default** stores the current settings as your own default. They survive a restart, and **Revert to default** brings them back. This includes each ExpressKey's and each Touch Ring's own On/Off, and the app's own switches.
 - **Revert to default** replaces the current settings with your saved default (or the factory settings if you have not saved one) and saves them, after asking **Revert to default?** Unsaved edits will be lost. If you have not saved your own default, the tooltip says this restores the factory settings. If the settings already match, the button is disabled (**Already matching your saved default.**). Without a saved default it does the same as **Restore factory settings**, including the Radial menu on pen button 2.
 - **Restore factory settings** resets everything to the original factory defaults, including each ExpressKey's and each Touch Ring's own On/Off. It asks first: **Restore factory settings?** Your own saved default is kept, so you can still use **Revert to default** afterwards. After a factory restore the Radial menu is on **pen button 2** (and **Show the radial menu** is switched on); pen button 1 and the other buttons keep their factory settings.

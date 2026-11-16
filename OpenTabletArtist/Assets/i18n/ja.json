@@ -652,5 +652,8 @@
   "binding.touch.text": "このボタンを押すたびに、Wacom の Touch On/Off のように指でのタッチ操作がオン・オフされます。タッチ操作の初期状態は、タブレットのページにある「タッチトラックパッド」スイッチで決まります。",
   "binding.touch.name": "タッチ オン/オフ",
   "tablet.eraser.default_action": "標準（消去）",
-  "save.status.unsaved_hint": "変更はすでに有効です。再起動後も保持するには「保存」をクリックしてください。"
+  "save.status.unsaved_hint": "変更はすでに有効です。再起動後も保持するには「保存」をクリックしてください。",
+  "save.auto.section": "保存",
+  "save.auto.toggle": "変更を自動的に保存",
+  "save.auto.description": "Wacom ドライバと同じく、変更はすぐに保存され、再起動後も保持されます。オフ：変更はすぐに有効になりますが、保持されるのは「保存」をクリックしたときだけです。"
 }

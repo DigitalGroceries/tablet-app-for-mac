@@ -652,5 +652,8 @@
   "binding.touch.text": "Each press of this button turns finger touch on or off, like Wacom's Touch On/Off. The Touch trackpad switch on the tablet's page sets how touch starts.",
   "binding.touch.name": "Touch on/off",
   "tablet.eraser.default_action": "Default (erase)",
-  "save.status.unsaved_hint": "Your changes work now. Click Save to keep them after a restart."
+  "save.status.unsaved_hint": "Your changes work now. Click Save to keep them after a restart.",
+  "save.auto.section": "Saving",
+  "save.auto.toggle": "Save changes automatically",
+  "save.auto.description": "Like the Wacom driver: every change is kept at once, also after a restart. Off: changes still work at once, but only Save keeps them."
 }
