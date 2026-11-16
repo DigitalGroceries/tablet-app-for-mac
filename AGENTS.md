@@ -26,6 +26,7 @@ Navigation facts for this repository.
 - Versions are plain numbers ("Version 6"), set in `OpenTabletArtist/OpenTabletArtist.csproj` (`<Version>`), tagged `vN`.
 - Each release on GitHub Releases has `Tablet-App-for-Mac.dmg` (the app; drag to Applications) and the manual PDF. The website is the `gh-pages` branch.
 - Website: https://digitalgroceries.github.io/tablet-app-for-mac/ (machine-readable summary: `/llms.txt`).
+- All 6 test suites: `scripts/run-all-tests.sh`. `scripts/pack-macos-linux.sh` runs it first and packs no release if a test fails; GitHub (`build.yml`) runs the same suites on every branch and pull request. Release only from a commit with a green run.
 
 ## Licence
 GPL-3.0 (`LICENSE`, `NOTICE`); the OpenTabletDriver copy keeps LGPL-3.0 (`external/OpenTabletDriver/LICENSE`).
