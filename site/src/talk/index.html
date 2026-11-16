@@ -1,0 +1,21 @@
+<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark"><meta name="robots" content="noindex"><title>Talk about the latest version · Tablet App for Mac</title>
+<link rel="stylesheet" href="/tablet-app-for-mac/assets/site.css"></head>
+<body><main id="main"><p>Opening the discussion of the latest version of Tablet App for Mac…</p>
+<p><a class="btn talk" id="talk-latest" href="https://github.com/DigitalGroceries/tablet-app-for-mac/discussions/{{D}}"><strong>Talk about the latest version</strong></a></p>
+<p class="muted">All discussions: <a href="https://github.com/DigitalGroceries/tablet-app-for-mac/discussions">github.com/DigitalGroceries/tablet-app-for-mac/discussions</a></p></main>
+<script>
+// Fixed address for "the latest version's discussion" (Zak, 16 Nov 2026): it never changes between versions.
+// Asks GitHub's public API which release is Latest and opens its discussion; if that fails, opens the discussion
+// known when the site was built (the button's href above).
+(function () {
+  var el = document.getElementById('talk-latest'), done = false;
+  function go(u) { if (done) return; done = true; location.replace(u); }
+  var ok = /^https:\/\/github\.com\/DigitalGroceries\/tablet-app-for-mac\/discussions\/\d+$/;
+  var t = setTimeout(function () { go(el.href); }, 4000);
+  fetch('https://api.github.com/repos/DigitalGroceries/tablet-app-for-mac/releases/latest')
+    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    .then(function (rel) { clearTimeout(t); var u = rel && rel.discussion_url; go(ok.test(u || '') ? u : el.href); })
+    .catch(function () { clearTimeout(t); go(el.href); });
+})();
+</script></body></html>
