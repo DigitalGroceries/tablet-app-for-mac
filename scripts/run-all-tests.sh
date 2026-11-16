@@ -4,6 +4,8 @@
 # Usage: scripts/run-all-tests.sh
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
+# The .NET SDK from global.json is usually installed under $HOME/.dotnet (as in pack-macos-linux.sh).
+[ -d "$HOME/.dotnet" ] && export PATH="$HOME/.dotnet:$PATH"
 failed=()
 run() { echo "== $1"; (cd "$ROOT/$2" && dotnet test "$3" -c Release) || failed+=("$1"); }
 run "App tests"               .                        tests/OpenTabletArtist.Tests/OpenTabletArtist.Tests.csproj
