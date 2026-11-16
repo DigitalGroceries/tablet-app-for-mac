@@ -58,7 +58,14 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool RespondsTo(IntPtr obj, IntPtr sel, IntPtr query);
 
-        private static bool _ready, _failed, _warned;
+        /// <summary>V28 (#85): the longest a left mouse-down waits for the activation. On mtr8080's Mac
+        /// activateWithOptions: took about 1 s for every app it brought forward (108 of 108 clicks, 1004-1042 ms),
+        /// and the click waited for it. A quick activation still comes before the click, as in V25-V27.</summary>
+        public const int ClickWaitMs = 50;
+
+        private static bool _ready;
+        private static volatile bool _failed, _warned;
+        private static readonly SingleSlotWorker Worker = new("MacOSAppActivator", Warn);
         private static IntPtr _kPid, _kName, _kLayer, _kBounds, _kAlpha;
 
         public static void ActivateAt(Vector2 point, IReadOnlyList<MacOSScreenEdge.Rect>? displays)
@@ -70,19 +77,44 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 Init();
                 pool = objc_autoreleasePoolPush();
                 var window = MacOSWindowPick.Pick(Windows(), point, displays);
-                if (window is { } w) Activate(w.OwnerPid, w.OwnerName, w);
+                if (window is { } w) Hand(w);
                 else Note($"No window found under the pen at ({point.X:0}, {point.Y:0}); nothing to activate.");
             }
             catch (Exception ex)
             {
-                if (!_warned) { _warned = true; Log.Write("MacOSAppActivator", $"Couldn't activate the app under the pen; clicks are posted as before. {ex.Message}", LogLevel.Warning); }
-                if (ex is DllNotFoundException or EntryPointNotFoundException) _failed = true;
+                Warn(ex);
             }
             finally
             {
                 if (pool != IntPtr.Zero) objc_autoreleasePoolPop(pool);
             }
         }
+
+        private static void Warn(Exception ex)
+        {
+            if (!_warned) { _warned = true; Log.Write("MacOSAppActivator", $"Couldn't activate the app under the pen; clicks are posted as before. {ex.Message}", LogLevel.Warning); }
+            if (ex is DllNotFoundException or EntryPointNotFoundException) _failed = true;
+        }
+
+        /// <summary>V28 (#85): activates on the worker thread and lets the click go after at most <see cref="ClickWaitMs"/>.</summary>
+        private static void Hand(MacOSWindowPick.Window w)
+        {
+            var outcome = Worker.Run(() => ActivateOnWorker(w), ClickWaitMs);
+            if (outcome == SingleSlotWorker.Outcome.StillRunning)
+                Note($"Posted the click after {ClickWaitMs} ms; activation of {Who(w.OwnerPid, w.OwnerName)} still running.");
+            else if (outcome == SingleSlotWorker.Outcome.Dropped)
+                Note($"Didn't activate {Who(w.OwnerPid, w.OwnerName)}: the previous activation is still running.");
+        }
+
+        private static void ActivateOnWorker(MacOSWindowPick.Window w)
+        {
+            Init();
+            var pool = objc_autoreleasePoolPush();
+            try { Activate(w.OwnerPid, w.OwnerName, w); }
+            finally { objc_autoreleasePoolPop(pool); }
+        }
+
+        private static string Who(int pid, string? name) => $"{name ?? "unknown app"} (pid {pid})";
 
         private static void Init()
         {
@@ -159,7 +191,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         /// Every outcome is logged so diagnostics can show why an app did or didn't come forward.</summary>
         private static void Activate(int pid, string? name, MacOSWindowPick.Window w)
         {
-            var who = $"{name ?? "unknown app"} (pid {pid})";
+            var who = Who(pid, name);
             var cls = objc_getClass("NSRunningApplication");
             if (!Responds(cls, "runningApplicationWithProcessIdentifier:"))
             {
@@ -189,8 +221,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 return;
             }
             if (!Responds(app, "activateWithOptions:")) { Note($"{who} doesn't respond to activateWithOptions:; not activated."); return; }
+            var started = System.Diagnostics.Stopwatch.GetTimestamp();
             var ok = SendULongBool(app, sel_registerName("activateWithOptions:"), 0);
-            Note(ok ? $"Activated {who}." : $"activateWithOptions:0 returned NO for {who}; the app was not activated.");
+            var ms = (long)System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+            Note(ok ? $"Activated {who} in {ms} ms." : $"activateWithOptions:0 returned NO for {who} after {ms} ms; the app was not activated.");
         }
     }
 }
