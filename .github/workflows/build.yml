@@ -128,8 +128,16 @@ jobs:
       # OpenTabletDriver's global.json (VSTest), so it runs from that folder. Missing here, it let three
       # Bamboo configs fail their lint check unnoticed in Version 28 (16 Nov 2026).
       - name: Driver tests
+        if: runner.os == 'Linux'
         working-directory: external/OpenTabletDriver
         run: dotnet test OpenTabletDriver.Tests/OpenTabletDriver.Tests.csproj -c Debug
+
+      # The 12 HidSharpEndpointTest *_OnLinux tests read Linux /sys device paths, so they only hold on Linux
+      # (they fail on the macOS runner by design). Every other driver test runs on macOS too.
+      - name: Driver tests (macOS, without the Linux-only tests)
+        if: runner.os != 'Linux'
+        working-directory: external/OpenTabletDriver
+        run: dotnet test OpenTabletDriver.Tests/OpenTabletDriver.Tests.csproj -c Debug --filter "FullyQualifiedName!~_OnLinux"
 
       # The release bundle unpacks to one visible file, so somebody who downloads the zip can tell what to
       # run (#586). release.yml asserts that — but release.yml runs only on a `v*` tag, so the assertion
