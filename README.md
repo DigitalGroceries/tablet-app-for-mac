@@ -20,7 +20,7 @@ We read everything, and your reports decide what we fix next.
 
 - **Talk about the latest version:** [Version 27 discussion](https://github.com/DigitalGroceries/tablet-app-for-mac/discussions/112)
 - **Report a problem or ask for a feature:** [open an issue](https://github.com/DigitalGroceries/tablet-app-for-mac/issues/new/choose)
-- **No GitHub account?** Use **Feedback** on the app's Home page, or [send feedback and screenshots here](https://www.dropbox.com/request/9k5b0u782t79plarauv9)
+- **No GitHub account?** Use **Feedback** on the app's Home page, or [send feedback and screenshots here](https://www.dropbox.com/request/r2fqvmi7n4vozy26zrbf) (no account needed; Dropbox asks for a name and an email, any name is fine)
 
 Tested only with macOS 27.0.1 and a Wacom Intuos4 Small (PTK-440); also runs on macOS 27.2.1 (checked without a tablet). Quit the Wacom driver first.
 
