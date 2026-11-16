@@ -25,6 +25,12 @@ case "$BETA" in 0|no|"") ;; yes) INFO="$VER-beta" ;; *) INFO="$VER-beta$BETA" ;;
 # number (the team counts builds in its own notes, not in the app). Never publish a test build.
 TEST=${TEST:-}
 [ -z "$TEST" ] || { [ "$BETA" = 0 ] || [ "$BETA" = no ] || [ -z "$BETA" ] || { echo "TEST and BETA can't be used together." >&2; exit 1; }; INFO="$VER-test"; }
+# Zak, 16 Nov 2026: no release without every test suite passing. Only an unpublished TEST build may skip them.
+if [ -z "$TEST" ]; then
+  "$(dirname "$0")/run-all-tests.sh" || { echo "Tests failed: no release is packed. Fix them first." >&2; exit 1; }
+else
+  echo "TEST build: test suites not run (never publish this build)." >&2
+fi
 for a in $ARCHES; do [ "$a" = arm64 ] || { echo "Apple silicon only: '$a' is not built (no Intel builds)." >&2; exit 1; }; done
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 RC=${RCODESIGN:-$HOME/.cargo/bin/rcodesign}
