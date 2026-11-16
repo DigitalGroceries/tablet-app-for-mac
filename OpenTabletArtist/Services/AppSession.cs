@@ -843,7 +843,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             // No flat delay: the pipe connect below already waits for the daemon's pipe to come up,
             // so a fixed sleep only adds latency (and risks eating the connect timeout). (#246)
             ConnectPhase = "Starting the driver…";
-            if (_daemonLifecycle.LaunchOrReplaceStuck(_daemonPath) is { } launchProblem)
+            if ((await LaunchOffTheUiThreadAsync()) is { } launchProblem)
             {
                 DaemonOperationError = launchProblem;
                 ConnectionStatus = "Disconnected";
@@ -1712,7 +1712,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             else
             {
                 DaemonOperationStatus = "Starting driver…";
-                if (_daemonLifecycle.LaunchOrReplaceStuck(_daemonPath) is { } launchProblem)
+                if ((await LaunchOffTheUiThreadAsync()) is { } launchProblem)
                 {
                     // It died on the spot. Waiting out the 30s connect timeout would replace a precise
                     // explanation with a generic one.
@@ -1740,7 +1740,9 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
                     ActionConfirmation.Show("confirm.driver_started", "Driver started");
                 else
                 {
-                    DaemonOperationError = "The driver didn't come online within 30 seconds.";
+                    // Keep the replacement's own, more precise reason (e.g. "stuck while closing… Restart your Mac").
+                    if (string.IsNullOrEmpty(DaemonOperationError))
+                        DaemonOperationError = "The driver didn't come online within 30 seconds.";
                     ConnectionStatus = "Disconnected"; // clear the Connecting… indicator on failure
                 }
             }
@@ -1799,10 +1801,12 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
 
     /// <summary>R11 system quit: write unsaved state to the snapshot, never to the real settings.
     /// Writes nothing when nothing is unsaved. True when there was nothing to do or it was written.</summary>
-    public bool WriteUnsavedSnapshot()
+    /// <param name="asAll">Turns the live document into the All settings (an application's or extra pen's overlay on
+    /// the driver must not be kept as All). Gets a copy.</param>
+    public bool WriteUnsavedSnapshot(Func<Settings, Settings>? asAll = null)
     {
         if (!HasUnsavedChanges || CurrentSettings is not { } current) return true;
-        try { UnsavedSnapshot.Write(SnapshotDirectory, current); return true; }
+        try { UnsavedSnapshot.Write(SnapshotDirectory, asAll?.Invoke(current) ?? current); return true; }
         catch (Exception ex) { AppLog.Warn("Couldn't write the unsaved-changes snapshot.", ex); return false; }
     }
 
@@ -1919,6 +1923,10 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         }
     }
 
+    /// <summary>Starting the driver waits up to 2 s to catch an early exit, and replacing a stuck one up to ~10 s more
+    /// (review before release: on the UI thread that froze the window with a beachball, inviting a force-quit).</summary>
+    private Task<string?> LaunchOffTheUiThreadAsync() => Task.Run(() => _daemonLifecycle.LaunchOrReplaceStuck(_daemonPath));
+
     /// <summary>TASKS #74: the running driver didn't answer within the timeout. Stop it (only if it is Tablet App
     /// for Mac's own, from any copy, or already closing), start ours and wait for it. True when connected.</summary>
     private async Task<bool> ReplaceUnansweringDriverAsync()
@@ -1926,14 +1934,14 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         AppLog.Warn("The running driver didn't answer within the timeout; replacing it with this app's driver.");
         DaemonOperationStatus = "Restarting the driver…";
         _session.AutoReconnect = false;
-        var stopped = _daemonLifecycle.StopUnansweringDrivers();
+        var stopped = await Task.Run(_daemonLifecycle.StopUnansweringDrivers);   // waits up to ~8 s: never on the UI thread
         _session.AutoReconnect = true;
         if (!stopped)
         {
             AppLog.Warn("Replacing the unanswering driver: it wasn't stopped, so a new one can't start.");
             return false;
         }
-        if (_daemonLifecycle.LaunchOrReplaceStuck(_daemonPath) is { } problem)
+        if ((await LaunchOffTheUiThreadAsync()) is { } problem)
         {
             AppLog.Warn($"Replacing the unanswering driver: the new driver didn't start: {problem}");
             DaemonOperationError = problem;
@@ -1980,7 +1988,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
             // Start phase: relaunch and connect to the fresh instance.
             DaemonOperationStatus = "Starting driver…";
             _session.AutoReconnect = true;
-            if (_daemonLifecycle.LaunchOrReplaceStuck(_daemonPath) is { } launchProblem)
+            if ((await LaunchOffTheUiThreadAsync()) is { } launchProblem)
             {
                 // Worth being loud here: the old daemon is already stopped, so a silent failure leaves
                 // the user with no driver at all and no idea why.

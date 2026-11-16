@@ -44,11 +44,62 @@ public class AutoSaveTests
     }
 
     [Fact]
-    public void TheClickSaveHint_ShowsOnlyWhenAutoSaveIsOff()
+    public void TheClickSaveHint_ShowsOnlyWhenUnsavedChangesWontBeSavedByThemselves()
     {
         Assert.False(AutoSave.ShowSaveHint(enabled: true, SettingsSaveState.Unsaved));
         Assert.True(AutoSave.ShowSaveHint(enabled: false, SettingsSaveState.Unsaved));
         Assert.False(AutoSave.ShowSaveHint(enabled: false, SettingsSaveState.Saved));
+        Assert.True(AutoSave.ShowSaveHint(enabled: true, SettingsSaveState.Unsaved, held: true));
+    }
+
+    [Fact]
+    public void HeldUnsavedState_IsNeverSavedByItself()
+    {
+        Assert.Equal(AutoSave.Step.Nothing, AutoSave.Next(enabled: true, SettingsSaveState.Unsaved, blocked: false, held: true));
+    }
+
+    /// <summary>Review before release: unsaved state that was there when the app connected (a driver that outlived the
+    /// app with Photoshop's own bindings on it) must not be saved as the All settings.</summary>
+    [Fact]
+    public void Gate_UnsavedRightAfterConnecting_IsHeld_UntilTheSettingsWereSeenSaved()
+    {
+        var gate = new AutoSaveGate();
+        gate.Observe(SettingsSaveState.None);        // connected
+        gate.Observe(SettingsSaveState.Unsaved);     // the driver already differs from the file
+        Assert.True(gate.Holds(snapshotPending: false));
+
+        gate.Observe(SettingsSaveState.Saving);      // the user pressed Save
+        gate.Observe(SettingsSaveState.Saved);
+        Assert.False(gate.Holds(snapshotPending: false));
+
+        gate.Observe(SettingsSaveState.Applying);    // the user's own edit in this session
+        gate.Observe(SettingsSaveState.Unsaved);
+        Assert.False(gate.Holds(snapshotPending: false));   // saved by itself
+    }
+
+    [Fact]
+    public void Gate_ClosesOnDisconnectAndReload()
+    {
+        var gate = new AutoSaveGate();
+        gate.Observe(SettingsSaveState.Saved);
+        Assert.False(gate.Holds(false));
+        gate.Observe(SettingsSaveState.Disconnected);
+        Assert.True(gate.Holds(false));
+        gate.Observe(SettingsSaveState.Saved);
+        gate.Observe(SettingsSaveState.None);        // reload, restore or a new connection
+        Assert.True(gate.Holds(false));
+    }
+
+    /// <summary>Changes kept from the last quit come back as unsaved after the first (saved) load: they stay the user's
+    /// to keep or discard (they may hold an application's bindings if the Mac quit with that app in front).</summary>
+    [Fact]
+    public void Gate_HoldsWhileChangesKeptFromTheLastQuitAreWaiting()
+    {
+        var gate = new AutoSaveGate();
+        gate.Observe(SettingsSaveState.Saved);
+        gate.Observe(SettingsSaveState.Unsaved);
+        Assert.True(gate.Holds(snapshotPending: true));
+        Assert.False(gate.Holds(snapshotPending: false));
     }
 
     [Fact]

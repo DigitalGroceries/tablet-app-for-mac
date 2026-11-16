@@ -195,6 +195,12 @@ public static class TouchSwitch
         lock (Gate) return Override.TryGetValue(tablet, out var o) ? o : setting;
     }
 
+    /// <summary>True once the touch filter for <paramref name="tablet"/> has reported (it runs).</summary>
+    public static bool HasSeen(string tablet)
+    {
+        lock (Gate) return Setting.ContainsKey(tablet);
+    }
+
     /// <summary>Flips touch for <paramref name="tablet"/> and returns the new state.</summary>
     public static bool Toggle(string tablet)
     {
@@ -221,8 +227,15 @@ public class TouchToggleBinding : IStateBinding
     public void Press(TabletReference tablet, IDeviceReport report)
     {
         var name = tablet?.Properties?.Name ?? "";
+        var running = TouchSwitch.HasSeen(name);
         var on = TouchSwitch.Toggle(name);
-        Log.Write("Touch trackpad", $"Touch on/off key: finger touch is now {(on ? "ON" : "OFF")} for {name}.");
+        // Review before release (no silent failures): the key only works while the touch filter runs, i.e. the Touch
+        // trackpad switch is on. Until the filter has shown up (its settings or a first touch), say so instead of
+        // claiming touch changed.
+        Log.Write("Touch trackpad", running
+            ? $"Touch on/off key: finger touch is now {(on ? "ON" : "OFF")} for {name}."
+            : $"Touch on/off key pressed for {name} (now {(on ? "ON" : "OFF")}), but the touch filter hasn't reported yet: if touch doesn't change, switch on Touch trackpad on Tablet › More › about.",
+            running ? LogLevel.Info : LogLevel.Warning);
     }
 
     public void Release(TabletReference tablet, IDeviceReport report) { }

@@ -265,6 +265,18 @@ public sealed class PerAppBindingRuntime : IDisposable
     internal static bool EditorProfileIsAll(PerAppBindingRuntime? runtime) => runtime?.OverlayLive != true;
 
     /// <summary>The stashed All binding table, or null when none is stored or it can't be read.</summary>
+    /// <summary>V28 (review before release): the document with each tablet's All bindings put back, for when an
+    /// application's or extra pen's overlay is on the driver. Used for the unsaved snapshot at a system quit, so a quit
+    /// with Photoshop in front keeps the All settings, not Photoshop's bindings as All. Changes <paramref name="settings"/>
+    /// (pass a copy) and returns it.</summary>
+    internal static Settings WithAllBindings(Settings settings)
+    {
+        foreach (var profile in settings.Profiles)
+            if (!string.IsNullOrEmpty(profile.Tablet) && StashedAllBindings(profile.Tablet) is { } all)
+                profile.BindingSettings = all;
+        return settings;
+    }
+
     internal static BindingSettings? StashedAllBindings(string tablet)
     {
         var allJson = AppSettings.Get(AllBindingsKey(tablet));

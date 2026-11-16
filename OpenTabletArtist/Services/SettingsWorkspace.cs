@@ -15,6 +15,35 @@ public sealed class SettingsWorkspace
     private int _edit;
     private bool _failed;
     private bool _saving;
+
+    // V28 #80 Option A: saving is automatic now, so an edit, a manual Save or a restore can arrive while a save is
+    // running. They used to be refused ("changed elsewhere" / "paused") because a manual Save locked the page; now they
+    // wait for the running save or restore to finish and then go ahead, so a save still never overlaps another write.
+    private TaskCompletionSource? _busyDone;
+
+    private void EnterBusy()
+    {
+        _saving = true;
+        _busyDone = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    private void LeaveBusy()
+    {
+        _saving = false;
+        _busyDone?.TrySetResult();
+    }
+
+    private async Task WaitWhileBusyAsync()
+    {
+        while (_saving && _busyDone is { } done) await done.Task;
+    }
+
+    private async Task<SettingsApplyOutcome> ApplyWhenNotBusyAsync(Settings requested)
+    {
+        await WaitWhileBusyAsync();
+        return await ApplyAsync(requested);
+    }
+
     public SettingsWorkspace(IOtdSettingsSession session, bool owned)
     {
         _session = session;
@@ -59,7 +88,8 @@ public sealed class SettingsWorkspace
 
     public Task<SettingsApplyOutcome> ApplyAsync(Settings requested)
     {
-        if (IsPaused || _saving) return Task.FromResult(SettingsApplyOutcome.ChangedElsewhere);
+        if (IsPaused) return Task.FromResult(SettingsApplyOutcome.ChangedElsewhere);
+        if (_saving) return ApplyWhenNotBusyAsync(SettingsCodec.Clone(requested));
         var copy = SettingsCodec.Clone(requested);
         OtaSettingsPolicy.Prepare(copy, _owned);
         _draft = copy;
@@ -91,8 +121,8 @@ public sealed class SettingsWorkspace
 
     public async Task<SettingsSaveOutcome> SaveAsync()
     {
-        if (_saving) return new(SettingsSaveStatus.Paused);
-        _saving = true;
+        await WaitWhileBusyAsync();
+        EnterBusy();
         try
         {
             await _pending;
@@ -101,7 +131,7 @@ public sealed class SettingsWorkspace
             if (outcome.IsSaved) _draft = _session.GetCurrent()?.Settings;
             return outcome;
         }
-        finally { _saving = false; }
+        finally { LeaveBusy(); }
     }
 
     /// <summary>
@@ -199,8 +229,9 @@ public sealed class SettingsWorkspace
 
     public async Task<SettingsRestoreOutcome> RestoreAsync()
     {
-        if (_saving || IsPaused) return SettingsRestoreOutcome.Failed(null);
-        _saving = true;
+        await WaitWhileBusyAsync();
+        if (IsPaused) return SettingsRestoreOutcome.Failed(null);
+        EnterBusy();
         try
         {
             await _pending;
@@ -217,12 +248,13 @@ public sealed class SettingsWorkspace
             Generation++;
             return SettingsRestoreOutcome.Restored;
         }
-        finally { _saving = false; }
+        finally { LeaveBusy(); }
     }
     public async Task<SettingsRestoreOutcome> RestoreFactoryAsync()
     {
-        if (_saving || IsPaused) return SettingsRestoreOutcome.Failed(null);
-        _saving = true;
+        await WaitWhileBusyAsync();
+        if (IsPaused) return SettingsRestoreOutcome.Failed(null);
+        EnterBusy();
         try
         {
             await _pending;
@@ -239,7 +271,7 @@ public sealed class SettingsWorkspace
             Generation++;
             return SettingsRestoreOutcome.Restored;
         }
-        finally { _saving = false; }
+        finally { LeaveBusy(); }
     }
 }
 

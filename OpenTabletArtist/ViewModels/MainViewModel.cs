@@ -80,7 +80,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// under the status says so. A help line, not a feedback prompt.</summary>
     /// V28 #80 Option A (Zak 16 Nov): with auto-save on (the default) changes are saved by themselves, so the line only
     /// shows for someone who switched auto-save off.
-    public bool ShowUnsavedHint => AutoSave.ShowSaveHint(AutoSave.Enabled, _session.SaveState);
+    public bool ShowUnsavedHint => AutoSave.ShowSaveHint(AutoSave.Enabled, _session.SaveState, AutoSaveHeld);
     public string UnsavedHint => Localizer.Te("save.status.unsaved_hint", "Your changes work now. Click Save to keep them after a restart.");
 
     /// <summary>Monitor-cycle switch events (#89) — the shell subscribes to show a toast on cycle.</summary>
@@ -121,7 +121,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 await editor.FlushPendingEditsAsync();
         }
         catch (Exception ex) { AppLog.Warn("Couldn't finish pending edits before the quit snapshot.", ex); }
-        return _session.WriteUnsavedSnapshot();
+        // An application's or extra pen's settings on the driver are not All: keep All in the snapshot (review before release).
+        return _perAppBindings?.OverlayLive == true
+            ? _session.WriteUnsavedSnapshot(PerAppBindingRuntime.WithAllBindings)
+            : _session.WriteUnsavedSnapshot();
     }
 
     // Surfaced for the tray's tablet actions (#186/#187): the dynamics-reveal line and the
@@ -291,6 +294,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // V28 #80 Option A (Zak 16 Nov): save every change by itself, like the Wacom app.
         _autoSaveTimer = new Avalonia.Threading.DispatcherTimer { Interval = AutoSave.Delay };
         _autoSaveTimer.Tick += OnAutoSaveTick;
+        _autoSaveGate.Observe(_session.SaveState);
         AutoSave.Changed += OnAutoSaveSwitched;
         _profileHotkeys = new ProfileHotkeyManager(_globalHotkeys, _profileSwitch);
         _monitorCycle = new MonitorCycleService(_session, _session);
@@ -934,6 +938,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     {
         if (e.PropertyName is nameof(AppSession.SaveState))
         {
+            _autoSaveGate.Observe(_session.SaveState);
             ScheduleAutoSave();
             OnPropertyChanged(nameof(ShowUnsavedHint));
         }
@@ -949,7 +954,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     // ---- V28 #80 Option A: auto-save -------------------------------------------------------------------------------
     private readonly Avalonia.Threading.DispatcherTimer _autoSaveTimer;
+    private readonly AutoSaveGate _autoSaveGate = new();
     private bool _autoSaving;
+
+    /// <summary>Unsaved state that isn't this session's own edits stays for the user's Save (see <see cref="AutoSaveGate"/>).</summary>
+    private bool AutoSaveHeld => _autoSaveGate.Holds(UnsavedSnapshot.Exists(_session.SnapshotDirectory));
 
     /// <summary>Unsaved changes and auto-save on: save them a moment later (restarting the wait on every change, so a
     /// run of edits is one save).</summary>
@@ -974,7 +983,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // or extra pen's own settings are on the driver (Save would then have to swap All back in under that app).
         var blocked = _session.SettingsBusy || HasPendingInput || !_session.CanEditSettings
             || _perAppBindings?.OverlayLive == true;
-        switch (AutoSave.Next(AutoSave.Enabled, _session.SaveState, blocked))
+        switch (AutoSave.Next(AutoSave.Enabled, _session.SaveState, blocked, AutoSaveHeld))
         {
             case AutoSave.Step.Wait: _autoSaveTimer.Start(); break;
             case AutoSave.Step.SaveNow: _ = AutoSaveNowAsync(); break;
@@ -986,8 +995,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _autoSaving = true;
         try
         {
-            // The same path as the Save button, without the "Settings saved" popup (it would appear after every change).
-            if (await SaveNowAsync()) AppLog.Info("Auto-save: changes saved.");
+            // Not through SaveNowAsync (the Save button): that marks settings busy, which disables the page and takes the
+            // keyboard focus from a box being typed in, so its value would be entered half-typed (review before release).
+            // Nothing needs entering or swapping back here: the tick only gets here with no pending input and no
+            // application's or pen's settings on the driver. An edit made while this saves waits for it (SettingsWorkspace).
+            var saved = await _session.SaveSettingsAsync();
+            RefreshDefaultButtons();
+            OnPropertyChanged(nameof(FooterStatusText));
+            if (saved) AppLog.Info("Auto-save: changes saved.");
             else AppLog.Warn($"Auto-save: the changes could not be saved ({_session.SaveState}); the footer shows it and Save stays available.");
         }
         catch (Exception ex) { AppLog.Warn("Auto-save failed.", ex); }

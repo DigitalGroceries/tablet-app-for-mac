@@ -380,8 +380,10 @@ public class SettingsWorkspaceTests
         Assert.False(workspace.Current!.Profiles[0].BindingSettings.DisablePressure);
     }
 
+    /// <summary>V28 #80 Option A: a save still never overlaps another write, but an edit that arrives during it (saving is
+    /// automatic now, so that happens) waits for the save and is then applied, instead of being refused and lost.</summary>
     [Fact]
-    public async Task SaveBlocksAdditionalWritesUntilItFinishes()
+    public async Task SaveHoldsAdditionalWritesUntilItFinishes_ThenAppliesThem()
     {
         var daemon = new FakeDaemonTransport { Settings = Document() };
         using var session = FakeSession.Over(daemon);
@@ -393,10 +395,36 @@ public class SettingsWorkspaceTests
         var saving = workspace.SaveAsync();
         var edit = workspace.Current!;
         edit.Profiles[0].BindingSettings.DisablePressure = true;
-        Assert.False((await workspace.ApplyAsync(edit)).IsLive);
+        var applying = workspace.ApplyAsync(edit);
+        Assert.False(applying.IsCompleted);   // held while the save runs
+        Assert.Empty(daemon.Applied);
         read.SetResult(daemon.Settings);
         Assert.True((await saving).IsSaved);
-        Assert.Empty(daemon.Applied);
+        daemon.GetSettingsHandler = null;
+        Assert.True((await applying).IsLive);  // then applied, not refused
+        Assert.True(daemon.Settings!.Profiles[0].BindingSettings.DisablePressure);
+        Assert.True(workspace.HasUnsavedChanges);   // and waiting for the next save
+    }
+
+    /// <summary>V28 #80 Option A: a Save (the button) pressed while an automatic save runs waits for it and then saves,
+    /// instead of reporting "paused" (which showed "Reload settings to continue").</summary>
+    [Fact]
+    public async Task ASecondSave_WaitsForTheFirst_AndSucceeds()
+    {
+        var daemon = new FakeDaemonTransport { Settings = Document() };
+        using var session = FakeSession.Over(daemon);
+        daemon.Reconnect();
+        await session.InitializeAsync();
+        var workspace = new SettingsWorkspace(session.Settings!, false);
+        var read = new TaskCompletionSource<Settings?>();
+        daemon.GetSettingsHandler = () => read.Task;
+        var first = workspace.SaveAsync();
+        var second = workspace.SaveAsync();
+        Assert.False(second.IsCompleted);
+        read.SetResult(daemon.Settings);
+        Assert.True((await first).IsSaved);
+        daemon.GetSettingsHandler = null;
+        Assert.True((await second).IsSaved);
     }
 
     /// <summary>Nothing is half-edited in the host — the ordinary state while a poll runs.</summary>

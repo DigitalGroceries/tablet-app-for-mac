@@ -147,6 +147,19 @@ public class TouchBambooTests
         TouchSwitch.Reset();
     }
 
+    /// <summary>Review before release: the key can tell whether the touch filter runs, so its log never claims touch
+    /// changed for a tablet whose Touch trackpad switch is off (an old PTH-651 setting with the filter disabled).</summary>
+    [Fact]
+    public void TouchSwitch_KnowsWhetherTheFilterHasReported()
+    {
+        TouchSwitch.Reset();
+        Assert.False(TouchSwitch.HasSeen("Wacom PTH-651"));
+        TouchSwitch.Seen("Wacom PTH-651", true);
+        Assert.True(TouchSwitch.HasSeen("Wacom PTH-651"));
+        Assert.False(TouchSwitch.HasSeen("Wacom CTH-461"));
+        TouchSwitch.Reset();
+    }
+
     [Fact]
     public void FirstKeyPress_BeforeAnyTouch_TurnsAStartingOffModelOn()
     {

@@ -128,6 +128,9 @@ public class DaemonLifecycleService : IDaemonLifecycleService
 
     public string? Launch(string? executablePath = null)
     {
+        // Review before release: cleared before anything can return, so a failed start never acts on the drivers an
+        // earlier refused start found (that turned a failed start into "connecting to it instead").
+        LastLaunchBlockers = Array.Empty<DriverProcessInfo>();
         var daemonPath = executablePath ?? FindExe();
         if (daemonPath == null) return null;   // "nothing to launch" is the caller's own message
 
@@ -148,7 +151,6 @@ public class DaemonLifecycleService : IDaemonLifecycleService
         }
 
         if (proc == null) return $"The driver at {daemonPath} couldn't be started.";
-        LastLaunchBlockers = Array.Empty<DriverProcessInfo>();
 
         // Deliberately no stdout/stderr redirection: the pipes would outlive this call for a healthy
         // daemon, and tearing them down when OTA quits can break a daemon that was working fine. The exit

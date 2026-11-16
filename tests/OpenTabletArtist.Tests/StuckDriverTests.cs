@@ -244,6 +244,26 @@ public class StuckDriverTests
         Assert.Contains("Restart your Mac", problem);
     }
 
+    /// <summary>Review before release: after a start that was refused because a working driver ran, a later start that
+    /// fails outright (the file can't be run) is reported, not turned into "connecting to it instead".</summary>
+    [Fact]
+    public void LaunchOrReplaceStuck_AFailedStart_IsNotJudgedByAnEarlierStartsBlockers()
+    {
+        if (OperatingSystem.IsWindows()) return;
+        var dir = TempDir();
+        var lockFile = Path.Combine(dir, "lock"); File.WriteAllText(lockFile, "");
+        var sys = new FakeSystem();
+        sys.Table.Add(new DriverProcessInfo(12001, T7CopyPath, null, DriverProcessState.Running));
+        var service = sys.Service();
+        Assert.Null(service.LaunchOrReplaceStuck(FakeDriver(dir, DriverProcessFinder.AlreadyRunningExitCode, lockFile)));
+
+        var problem = service.LaunchOrReplaceStuck(Path.Combine(dir, "missing", "OpenTabletDriver.Daemon"));
+
+        Assert.NotNull(problem);
+        Assert.Contains("couldn't be started", problem);
+        Assert.Empty(sys.Signals);
+    }
+
     [Fact]
     public void LaunchOrReplaceStuck_ARunningDriverIsConnectedTo_NotStopped()
     {

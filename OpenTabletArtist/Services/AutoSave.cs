@@ -32,21 +32,48 @@ public static class AutoSave
 
     public enum Step
     {
-        /// <summary>Nothing to save (switch off, or no unsaved changes).</summary>
+        /// <summary>Nothing to save by itself: the switch is off, nothing is unsaved, or the unsaved state isn't this
+        /// session's own edits (see <see cref="AutoSaveGate"/>), so it stays for the user's Save or Revert.</summary>
         Nothing,
         /// <summary>Unsaved changes, but not now: settings busy, a typed value not yet entered, the driver not
-        /// editable, or an application's or extra pen's settings on the driver. Try again after <see cref="Delay"/>.</summary>
+        /// editable, or an application's or extra pen's own settings on the driver. Try again after <see cref="Delay"/>.</summary>
         Wait,
         SaveNow,
     }
 
     /// <param name="blocked">Settings busy, a typed value not yet entered, editing not possible right now, or an
     /// application's / extra pen's own settings on the driver (saving then would store those instead of All).</param>
-    public static Step Next(bool enabled, SettingsSaveState state, bool blocked) =>
-        !enabled || state != SettingsSaveState.Unsaved ? Step.Nothing
+    /// <param name="held">The unsaved state isn't this session's own edits (<see cref="AutoSaveGate.Holds"/>).</param>
+    public static Step Next(bool enabled, SettingsSaveState state, bool blocked, bool held = false) =>
+        !enabled || held || state != SettingsSaveState.Unsaved ? Step.Nothing
         : blocked ? Step.Wait
         : Step.SaveNow;
 
-    /// <summary>The footer's "Click Save to keep them" line only makes sense when changes are not saved by themselves.</summary>
-    public static bool ShowSaveHint(bool enabled, SettingsSaveState state) => !enabled && state == SettingsSaveState.Unsaved;
+    /// <summary>The footer's "Click Save to keep them" line: shown whenever unsaved changes will not be saved by
+    /// themselves (switch off, or held).</summary>
+    public static bool ShowSaveHint(bool enabled, SettingsSaveState state, bool held = false) =>
+        state == SettingsSaveState.Unsaved && (!enabled || held);
 }
+
+/// <summary>
+/// V28 #80 (review before release): auto-save only saves what the user changed in this session. Unsaved state that was
+/// already there when the app connected — changes kept from the last quit (the unsaved snapshot), a driver that outlived
+/// the app with an application's or extra pen's settings still on it — is left for the user's Save or Revert, as before
+/// Version 28, because saving it could store an application's bindings as the All settings. The gate opens once the
+/// settings have been seen saved (equal to the file) since the last connect, and closes on a disconnect or reload.
+/// </summary>
+public sealed class AutoSaveGate
+{
+    public bool Armed { get; private set; }
+
+    public void Observe(SettingsSaveState state)
+    {
+        if (state == SettingsSaveState.Saved) Armed = true;
+        else if (state is SettingsSaveState.None or SettingsSaveState.Disconnected) Armed = false;
+    }
+
+    /// <param name="snapshotPending">Changes kept from the last quit are waiting (the unsaved snapshot file exists): they
+    /// are the user's to keep or discard, never saved by themselves.</param>
+    public bool Holds(bool snapshotPending) => !Armed || snapshotPending;
+}
+
