@@ -7,18 +7,18 @@
       "MaxX": 14720,
       "MaxY": 9200
     },
-    "Touch": {
-      "Width": 147.2,
-      "Height": 92,
-      "MaxX": 1023,
-      "MaxY": 1023
-    },
     "Pen": {
       "MaxPressure": 1023,
       "ButtonCount": 2
     },
     "AuxiliaryButtons": {
       "ButtonCount": 4
+    },
+    "Touch": {
+      "Width": 147.2,
+      "Height": 92,
+      "MaxX": 1023,
+      "MaxY": 1023
     }
   },
   "DigitizerIdentifiers": [
