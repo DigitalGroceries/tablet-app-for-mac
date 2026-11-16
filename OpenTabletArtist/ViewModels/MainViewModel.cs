@@ -1095,8 +1095,10 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (PerAppBindingRuntime.Shared?.OverlayLive == true) await PerAppBindingRuntime.Shared.EnsureAllOnDaemonAsync();
             if (_session.CurrentSettings is not { } fresh || !Domain.TouchTrackpad.AutoAdd(fresh, connected)) return;
             await _session.ApplySettingsAsync(fresh);
-            if (!hadUnsaved) await _session.SaveSettingsAsync();
-            AppLog.Info("Touch trackpad switched on for a connected PTH-651 (Discussion #31, BETA).");
+            // V28 (third review): not while changes kept from the last quit wait to be restored — a save would delete
+            // that snapshot. The added filter is then saved with the user's next save (or by auto-save).
+            if (!hadUnsaved && !UnsavedSnapshot.Exists(_session.SnapshotDirectory)) await _session.SaveSettingsAsync();
+            AppLog.Info("Touch trackpad set up for a connected touch tablet (PTH-651, or Bamboo Pen & Touch where it starts off).");
         }
         finally { _touchAutoApplying = false; }
     }

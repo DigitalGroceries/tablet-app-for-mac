@@ -407,9 +407,36 @@ public class SettingsWorkspaceTests
         Assert.True(workspace.HasUnsavedChanges);
         release.SetResult();
         Assert.True((await saving).IsSaved);
+        Assert.True(workspace.Current!.Profiles[0].BindingSettings.DisablePressure);   // the save didn't put the old document back
         Assert.True((await applying).IsLive);  // then applied, not refused
         Assert.True(daemon.Settings!.Profiles[0].BindingSettings.DisablePressure);
         Assert.True(workspace.HasUnsavedChanges);   // and waiting for the next save
+    }
+
+    /// <summary>V28 third review: an edit that waited for a restore (Revert to saved) is dropped, so it can't undo the
+    /// restore on the driver while the page shows the restored settings.</summary>
+    [Fact]
+    public async Task AnEditHeldDuringARestore_IsDropped_SoTheRestoreStands()
+    {
+        var daemon = new FakeDaemonTransport { Settings = Document() };
+        var store = new MemorySettingsFileStore { Saved = Document() };
+        using var session = FakeSession.Over(daemon, store);
+        daemon.Reconnect();
+        await session.InitializeAsync();
+        var workspace = new SettingsWorkspace(session.Settings!, false);
+        var release = new TaskCompletionSource();
+        daemon.GetSettingsHandler = async () => { await release.Task; return daemon.Settings; };
+        var restoring = workspace.RestoreAsync();
+        Assert.False(restoring.IsCompleted);
+        var edit = workspace.Current!;
+        edit.Profiles[0].BindingSettings.DisablePressure = true;
+        var applying = workspace.ApplyAsync(edit);
+        Assert.False(applying.IsCompleted);   // held while the restore runs
+        release.SetResult();
+        Assert.True((await restoring).IsRestored);
+        await applying;
+        Assert.False(daemon.Settings!.Profiles[0].BindingSettings.DisablePressure);
+        Assert.False(workspace.Current!.Profiles[0].BindingSettings.DisablePressure);
     }
 
     /// <summary>V28 #80 Option A: a Save (the button) pressed while an automatic save runs waits for it and then saves,

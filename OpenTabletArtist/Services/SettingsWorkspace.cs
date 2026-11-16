@@ -45,13 +45,19 @@ public sealed class SettingsWorkspace
     /// <summary>A held edit is already the document (<see cref="Current"/>, the edit counter, <see cref="Generation"/>)
     /// from the moment it arrives, so whatever reads the settings meanwhile builds on it rather than reverting it; it
     /// reaches the driver once the save or restore is done (second review before release).</summary>
-    private async Task<SettingsApplyOutcome> ApplyHeldAsync(Settings copy, int edit)
+    private async Task<SettingsApplyOutcome> ApplyHeldAsync(Settings copy, int edit, int replaced)
     {
         try { await WaitWhileBusyAsync(); }
         finally { _held--; }
         if (IsPaused) return SettingsApplyOutcome.ChangedElsewhere;
+        // Third review: a restore or reload ran while this edit waited. The document is the restored one now; sending
+        // this older edit afterwards would undo the restore on the driver while the page shows the restored settings.
+        if (replaced != _replaced) return SettingsApplyOutcome.NoChange with { Prepared = _session.GetCurrent() };
         return await (_pending = ApplyCoreAsync(copy, edit));
     }
+
+    /// <summary>Counts restores and reloads (the document replaced from outside the edits).</summary>
+    private int _replaced;
 
     public SettingsWorkspace(IOtdSettingsSession session, bool owned)
     {
@@ -106,7 +112,7 @@ public sealed class SettingsWorkspace
         if (_saving)
         {
             _held++;
-            return ApplyHeldAsync(copy, edit);
+            return ApplyHeldAsync(copy, edit, _replaced);
         }
         return _pending = ApplyCoreAsync(copy, edit);
     }
@@ -141,7 +147,8 @@ public sealed class SettingsWorkspace
             await _pending;
             if (IsPaused) return new(SettingsSaveStatus.Paused);
             var outcome = await _session.SaveAsync();
-            if (outcome.IsSaved) _draft = _session.GetCurrent()?.Settings;
+            // An edit held during this save is newer than what was saved: keep it as the document.
+            if (outcome.IsSaved && _held == 0) _draft = _session.GetCurrent()?.Settings;
             return outcome;
         }
         finally { LeaveBusy(); }
@@ -219,6 +226,7 @@ public sealed class SettingsWorkspace
     public Task<SettingsReloadOutcome> ReloadAsync()
     {
         ++_edit;
+        ++_replaced;
         return AdoptAsync();
     }
 
@@ -256,6 +264,7 @@ public sealed class SettingsWorkspace
                 return outcome;
             }
             ++_edit;
+            ++_replaced;
             _draft = outcome.Prepared?.Settings ?? _session.GetCurrent()?.Settings;
             _failed = false;
             Generation++;
@@ -279,6 +288,7 @@ public sealed class SettingsWorkspace
                 return outcome;
             }
             ++_edit;
+            ++_replaced;
             _draft = outcome.Prepared?.Settings ?? _session.GetCurrent()?.Settings;
             _failed = false;
             Generation++;
