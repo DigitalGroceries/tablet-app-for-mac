@@ -1,0 +1,43 @@
+diff --git a/OpenTabletDriver.Desktop/Interop/Input/MacOSWindowPick.cs b/OpenTabletDriver.Desktop/Interop/Input/MacOSWindowPick.cs
+index a67ec2a..ce70857 100644
+--- a/OpenTabletDriver.Desktop/Interop/Input/MacOSWindowPick.cs
++++ b/OpenTabletDriver.Desktop/Interop/Input/MacOSWindowPick.cs
+@@ -14,6 +14,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+         public const string DockBundleId = "com.apple.dock";
+         public const string WindowServerName = "Window Server";
+         public const string NotificationCenterName = "Notification Center";
++        public const int CursorLayer = 2147483630;
++        public const float MaxCursorSide = 256;
+ 
+         public readonly record struct Window(int OwnerPid, string? OwnerName, int Layer, float X, float Y, float Width, float Height, float Alpha = 1f)
+         {
+@@ -26,7 +28,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+         /// Center window that covers the display under the point (Kert Gartner, V25 — banners, the open panel
+         /// and widgets are kept). Fully transparent windows and windows with no size are skipped. The Dock bar
+         /// itself is kept. Does NOT skip other layers (panels, popovers) or desktop elements: the desktop
+-        /// window is Finder's. With no <paramref name="displays"/>, every Dock-owned and Notification Center
++        /// window is Finder's. A cursor-sized Window Server window at the cursor layer is skipped (V28 #85). With no <paramref name="displays"/>, every Dock-owned and Notification Center
+         /// window is treated as an overlay and skipped; Window Server is only skipped when displays are known.
+         /// </summary>
+         public static Window? Pick(IReadOnlyList<Window> frontToBack, Vector2 point,
+@@ -41,6 +43,9 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+                 // picked Window Server and no app was activated. Skip it like the Dock overlay. Smaller
+                 // Window Server windows (menu bar, cursor) still stop the search, so nothing behind them is activated.
+                 if (string.Equals(w.OwnerName, WindowServerName, StringComparison.Ordinal) && CoversDisplay(w, point, displays)) continue;
++                // V28 #85 (Zak's test): on some Macs the pointer is a real cursor-level Window Server window,
++                // always under the pen, so every tap picked it and nothing was activated. Look behind it.
++                if (IsCursor(w)) continue;
+                 // Kert (V25, PTH-851): a Notification Center overlay won Pick; the activator refused it
+                 // (Accessory) and never tried the app underneath. Skip only full-display NC overlays —
+                 // banners, the open panel and widgets stay so a tap on them does not raise the app behind.
+@@ -50,6 +55,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input
+             return null;
+         }
+ 
++        private static bool IsCursor(Window w) =>
++            string.Equals(w.OwnerName, WindowServerName, StringComparison.Ordinal)
++            && w.Layer >= CursorLayer && w.Width <= MaxCursorSide && w.Height <= MaxCursorSide;
++
+         private static bool CoversDisplay(Window w, Vector2 point, IReadOnlyList<MacOSScreenEdge.Rect>? displays) =>
+             displays is { Count: > 0 } && IsOverlay(w, point, displays);
+ 

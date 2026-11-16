@@ -143,6 +143,27 @@ public class MacOSEdgeAndActivationTests
     }
 
     [Fact]
+    public void A_cursor_window_under_the_pen_is_skipped_v28_85()
+    {
+        // Zak's Mac (V28 test): the pointer was a 55x78 Window Server window at the cursor layer under every tap.
+        var cursor = new W(436, MacOSWindowPick.WindowServerName, MacOSWindowPick.CursorLayer, 1390, 890, 55, 78);
+        var list = new List<W> { cursor, Safari, Mail, Desktop };
+        Assert.Equal(Desktop, MacOSWindowPick.Pick(list, new Vector2(1400, 900), new[] { Main }));
+        Assert.Equal(Desktop, MacOSWindowPick.Pick(list, new Vector2(1400, 900)));
+    }
+
+    [Fact]
+    public void A_large_or_lower_Window_Server_window_is_not_taken_for_the_cursor_v28_85()
+    {
+        var big = new W(436, MacOSWindowPick.WindowServerName, MacOSWindowPick.CursorLayer, 1300, 800, 257, 257);
+        Assert.Equal(big, MacOSWindowPick.Pick(new List<W> { big, Desktop }, new Vector2(1400, 900), new[] { Main }));
+        var lower = new W(436, MacOSWindowPick.WindowServerName, MacOSWindowPick.CursorLayer - 1, 1390, 890, 55, 78);
+        Assert.Equal(lower, MacOSWindowPick.Pick(new List<W> { lower, Desktop }, new Vector2(1400, 900), new[] { Main }));
+        var other = new W(90, "Some App", MacOSWindowPick.CursorLayer, 1390, 890, 55, 78);
+        Assert.Equal(other, MacOSWindowPick.Pick(new List<W> { other, Desktop }, new Vector2(1400, 900), new[] { Main }));
+    }
+
+    [Fact]
     public void A_full_screen_Notification_Center_overlay_lets_Pick_continue_to_the_app_below()
     {
         // Kert Gartner (V25, PTH-851): a display-covering NC window won Pick; the activator skipped it
