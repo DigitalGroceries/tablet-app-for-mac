@@ -38,10 +38,19 @@ public sealed class SettingsWorkspace
         while (_saving && _busyDone is { } done) await done.Task;
     }
 
-    private async Task<SettingsApplyOutcome> ApplyWhenNotBusyAsync(Settings requested)
+    /// <summary>Edits waiting for a running save or restore (counted as pending and unsaved, so nothing treats the
+    /// document as settled while they wait).</summary>
+    private int _held;
+
+    /// <summary>A held edit is already the document (<see cref="Current"/>, the edit counter, <see cref="Generation"/>)
+    /// from the moment it arrives, so whatever reads the settings meanwhile builds on it rather than reverting it; it
+    /// reaches the driver once the save or restore is done (second review before release).</summary>
+    private async Task<SettingsApplyOutcome> ApplyHeldAsync(Settings copy, int edit)
     {
-        await WaitWhileBusyAsync();
-        return await ApplyAsync(requested);
+        try { await WaitWhileBusyAsync(); }
+        finally { _held--; }
+        if (IsPaused) return SettingsApplyOutcome.ChangedElsewhere;
+        return await (_pending = ApplyCoreAsync(copy, edit));
     }
 
     public SettingsWorkspace(IOtdSettingsSession session, bool owned)
@@ -63,8 +72,8 @@ public sealed class SettingsWorkspace
     /// what every other pause means too.
     /// </remarks>
     private bool _awaitingDecision;
-    public bool HasUnsavedChanges => _session.HasUnsavedChanges || !_pending.IsCompleted || _failed;
-    public bool HasPendingApply => !_pending.IsCompleted;
+    public bool HasUnsavedChanges => _session.HasUnsavedChanges || !_pending.IsCompleted || _held > 0 || _failed;
+    public bool HasPendingApply => !_pending.IsCompleted || _held > 0;
 
     /// <summary>
     /// Counts wholesale writes to the document: submitted applies, adoptions, restores (#922, #923).
@@ -89,12 +98,16 @@ public sealed class SettingsWorkspace
     public Task<SettingsApplyOutcome> ApplyAsync(Settings requested)
     {
         if (IsPaused) return Task.FromResult(SettingsApplyOutcome.ChangedElsewhere);
-        if (_saving) return ApplyWhenNotBusyAsync(SettingsCodec.Clone(requested));
         var copy = SettingsCodec.Clone(requested);
         OtaSettingsPolicy.Prepare(copy, _owned);
         _draft = copy;
         var edit = ++_edit;
         Generation++;
+        if (_saving)
+        {
+            _held++;
+            return ApplyHeldAsync(copy, edit);
+        }
         return _pending = ApplyCoreAsync(copy, edit);
     }
 

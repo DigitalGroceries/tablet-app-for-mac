@@ -1820,6 +1820,14 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         var outcome = await ApplySettingsAsync(snapshot!);
         if (outcome.IsLive && HasUnsavedChanges)
             SettingsRefreshedNotice = UnsavedSnapshot.RestoredNotice;
+        // V28 (second review): the kept changes turned out equal to the saved settings (e.g. a quit with an application's
+        // own settings on the driver and no real edit): nothing to bring back, so the snapshot is spent. Left in place it
+        // would hold automatic saving for the whole session.
+        else if (outcome.IsLive && !HasUnsavedChanges)
+        {
+            UnsavedSnapshot.Delete(SnapshotDirectory);
+            AppLog.Info("Unsaved changes kept at the last quit were the same as the saved settings: nothing to restore.");
+        }
     }
 
     /// <summary>R11: the system-quit variant (Cmd+Q, Dock Quit, logout, shutdown). Never asks; stops only
@@ -1925,7 +1933,15 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
 
     /// <summary>Starting the driver waits up to 2 s to catch an early exit, and replacing a stuck one up to ~10 s more
     /// (review before release: on the UI thread that froze the window with a beachball, inviting a force-quit).</summary>
-    private Task<string?> LaunchOffTheUiThreadAsync() => Task.Run(() => _daemonLifecycle.LaunchOrReplaceStuck(_daemonPath));
+    private async Task<string?> LaunchOffTheUiThreadAsync()
+    {
+        // One launch at a time (second review): with the window responsive during the start-up launch, a Start click
+        // could run a second one at once, and the two would read each other's list of drivers in the way.
+        await _launchGate.WaitAsync();
+        try { return await Task.Run(() => _daemonLifecycle.LaunchOrReplaceStuck(_daemonPath)); }
+        finally { _launchGate.Release(); }
+    }
+    private readonly System.Threading.SemaphoreSlim _launchGate = new(1, 1);
 
     /// <summary>TASKS #74: the running driver didn't answer within the timeout. Stop it (only if it is Tablet App
     /// for Mac's own, from any copy, or already closing), start ours and wait for it. True when connected.</summary>

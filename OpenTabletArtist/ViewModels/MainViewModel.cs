@@ -122,8 +122,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex) { AppLog.Warn("Couldn't finish pending edits before the quit snapshot.", ex); }
         // An application's or extra pen's settings on the driver are not All: keep All in the snapshot (review before release).
-        return _perAppBindings?.OverlayLive == true
-            ? _session.WriteUnsavedSnapshot(PerAppBindingRuntime.WithAllBindings)
+        return _perAppBindings is { OverlayLive: true } runtime
+            ? _session.WriteUnsavedSnapshot(runtime.AsAll)
             : _session.WriteUnsavedSnapshot();
     }
 

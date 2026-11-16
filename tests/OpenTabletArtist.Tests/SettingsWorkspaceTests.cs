@@ -390,17 +390,23 @@ public class SettingsWorkspaceTests
         daemon.Reconnect();
         await session.InitializeAsync();
         var workspace = new SettingsWorkspace(session.Settings!, false);
-        var read = new TaskCompletionSource<Settings?>();
-        daemon.GetSettingsHandler = () => read.Task;
+        // Reads wait for the release, then return what the driver holds at that moment (not a stale copy).
+        var release = new TaskCompletionSource();
+        daemon.GetSettingsHandler = async () => { await release.Task; return daemon.Settings; };
         var saving = workspace.SaveAsync();
         var edit = workspace.Current!;
         edit.Profiles[0].BindingSettings.DisablePressure = true;
+        var generation = workspace.Generation;
         var applying = workspace.ApplyAsync(edit);
         Assert.False(applying.IsCompleted);   // held while the save runs
         Assert.Empty(daemon.Applied);
-        read.SetResult(daemon.Settings);
+        // Second review: a held edit is already the document, so nothing reading the settings meanwhile reverts it.
+        Assert.True(workspace.Current!.Profiles[0].BindingSettings.DisablePressure);
+        Assert.Equal(generation + 1, workspace.Generation);
+        Assert.True(workspace.HasPendingApply);
+        Assert.True(workspace.HasUnsavedChanges);
+        release.SetResult();
         Assert.True((await saving).IsSaved);
-        daemon.GetSettingsHandler = null;
         Assert.True((await applying).IsLive);  // then applied, not refused
         Assert.True(daemon.Settings!.Profiles[0].BindingSettings.DisablePressure);
         Assert.True(workspace.HasUnsavedChanges);   // and waiting for the next save
@@ -416,14 +422,13 @@ public class SettingsWorkspaceTests
         daemon.Reconnect();
         await session.InitializeAsync();
         var workspace = new SettingsWorkspace(session.Settings!, false);
-        var read = new TaskCompletionSource<Settings?>();
-        daemon.GetSettingsHandler = () => read.Task;
+        var release = new TaskCompletionSource();
+        daemon.GetSettingsHandler = async () => { await release.Task; return daemon.Settings; };
         var first = workspace.SaveAsync();
         var second = workspace.SaveAsync();
         Assert.False(second.IsCompleted);
-        read.SetResult(daemon.Settings);
+        release.SetResult();
         Assert.True((await first).IsSaved);
-        daemon.GetSettingsHandler = null;
         Assert.True((await second).IsSaved);
     }
 

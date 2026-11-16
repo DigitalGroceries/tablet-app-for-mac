@@ -207,6 +207,35 @@ public class AllDisplaysAutoRefitTests
         finally { System.IO.Directory.Delete(dir, true); }
     }
 
+    /// <summary>V28 second review: changes kept at the last quit that turn out equal to the saved settings (a quit with an
+    /// application's own settings on the driver and no real edit) are spent, not left to hold automatic saving all session.</summary>
+    [AvaloniaFact]
+    public async Task KeptChanges_EqualToTheSavedSettings_AreDropped_NotLeftWaiting()
+    {
+        var tablet = NewTablet();
+        var (app, _, store) = await Open(tablet, OneMonitor);
+        using var lifetime = app;
+        var dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "v28-snap-" + Guid.NewGuid().ToString("N"));
+        System.IO.Directory.CreateDirectory(dir);
+        try
+        {
+            app.SnapshotDirectory = dir;
+            // As in real use: the saved file is what the app itself saved (its own settings policy applied).
+            Assert.True((await app.ApplySettingsAsync(app.CurrentSettings!)).IsLive);
+            Assert.True(await app.SaveSettingsAsync());
+            Assert.False(app.HasUnsavedChanges);
+            UnsavedSnapshot.Write(dir, app.CurrentSettings!);   // kept at the quit, but the same as the saved settings
+            var saves = store.Attempts;
+
+            await app.RestoreUnsavedSnapshotOnceAsync();
+
+            Assert.False(app.HasUnsavedChanges);
+            Assert.False(UnsavedSnapshot.Exists(dir));
+            Assert.Equal(saves, store.Attempts);   // nothing saved, nothing to save
+        }
+        finally { System.IO.Directory.Delete(dir, true); }
+    }
+
     [AvaloniaFact]
     public async Task HomeFix_MapsToOneMonitor_AndSaveDoesNotBringAllDisplaysBack()
     {
