@@ -58,12 +58,19 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool RespondsTo(IntPtr obj, IntPtr sel, IntPtr query);
 
-        private static bool _ready, _failed, _warned;
+        private static bool _ready, _failed, _warned, _offNoted;
         private static IntPtr _kPid, _kName, _kLayer, _kBounds, _kAlpha;
 
         public static void ActivateAt(Vector2 point, IReadOnlyList<MacOSScreenEdge.Rect>? displays)
         {
             if (_failed || !OperatingSystem.IsMacOS()) return;
+            // Version 29: only when the app's "App window switching fix" is On (Off by default).
+            if (!AppWindowSwitchingFix.IsOn)
+            {
+                if (!_offNoted) { _offNoted = true; Note("App window switching fix is Off: pen clicks go straight through and macOS brings the window forward itself."); }
+                return;
+            }
+            _offNoted = false;
             var pool = IntPtr.Zero;
             try
             {
