@@ -49,7 +49,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             { "as now", "full pressure", "click number", "plain mouse click", "hardware sender", "all four" };
         private int _expClicks;
         private int _expVariant;
-        private long _expNumber = 50000;
+        private long _expNumber = 1000; // the field is 16-bit: 50000 came out as -15535 in the first run
         private IntPtr _expHidSource;
         private Vector2? _tilt;
         private bool? _isEraser;
@@ -515,7 +515,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         {
             if (down)
             {
-                _expVariant = _expClicks++ % ExperimentNames.Length;
+                // Run 2 (17 Nov 16:10): run 1 had one tap per way, each on a different window, and only the plain
+                // mouse click brought its window forward on the down. Now whole rounds of 5 taps: taps 1-5 as now,
+                // 6-10 plain mouse click, 11-15 as now, 16-20 plain, so each way meets the same 5 windows twice.
+                _expVariant = (_expClicks++ / 5) % 2 == 0 ? 0 : 3;
                 _expNumber++;
             }
             var v = _expVariant;
