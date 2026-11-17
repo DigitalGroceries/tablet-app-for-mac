@@ -95,6 +95,13 @@ public sealed class ReportWindow : Window
         Avalonia.Automation.AutomationProperties.SetName(email, vm.EmailLabel);
 
         var body = new StackPanel { Margin = new Thickness(24, 8, 24, 20), Spacing = 12 };
+        // "How to report" (Zak, 17 Nov 2026): a short guide, shown and hidden by its button, at the top of the report.
+        var howToButton = new Button { Name = "ReportHowTo", Content = vm.HowToLabel, Command = vm.ToggleHowToCommand, HorizontalAlignment = HorizontalAlignment.Left };
+        var howToSteps = new StackPanel { Name = "ReportHowToSteps", Spacing = 4, IsVisible = vm.IsHowToOpen };
+        foreach (var step in vm.HowToSteps)
+            howToSteps.Children.Add(new TextBlock { Text = step, TextWrapping = TextWrapping.Wrap }.Fg());
+        body.Children.Add(howToButton);
+        body.Children.Add(howToSteps);
         body.Children.Add(new StackPanel
         {
             Spacing = 4,
@@ -181,6 +188,7 @@ public sealed class ReportWindow : Window
         vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(ReportViewModel.PicturesText)) count.Text = vm.PicturesText;
+            if (e.PropertyName == nameof(ReportViewModel.IsHowToOpen)) howToSteps.IsVisible = vm.IsHowToOpen;
             if (e.PropertyName == nameof(ReportViewModel.RecordLabel)) record.Content = vm.RecordLabel;
             if (e.PropertyName == nameof(ReportViewModel.RecordStatus)) recordStatus.Text = vm.RecordStatus;
             if (e.PropertyName == nameof(ReportViewModel.Status)) { status.Text = vm.Status; status.IsVisible = vm.Status.Length > 0; }

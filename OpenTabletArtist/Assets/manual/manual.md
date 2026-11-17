@@ -266,6 +266,7 @@ You can open the same report from three places:
 
 The report opens inside the app window:
 
+- **How to report** (at the top) shows a short guide: click **Record the problem**; make the problem happen 3 to 5 times, a few seconds apart; if it is about clicks, click the same windows with your mouse first, then with the pen; click **Stop recording** within 2 minutes; in one line, write what you expected and what happened instead; click **Send with file**, then **Open upload page**, and add the file there.
 - Choose **A problem** or **A recommendation**.
 - Write what happened, or your idea (you can leave it empty).
 - A picture of the app window, as it was just before the report opened, is added. Untick **Add this picture of the app window** to leave it out. **Add screenshots…** adds more pictures (up to 10 in all).
