@@ -94,6 +94,30 @@ public partial class ReportViewModel : ObservableObject
     public string RecordLabel => IsRecording
         ? Localizer.Te("report.record.stop", "Stop recording")
         : Localizer.Te("report.record.start", "Record the problem");
+    /// <summary>"How to report" (Zak, 17 Nov 2026): a short guide at the top of the report so users record a
+    /// problem in a way the team can read (repeat it 3 to 5 times; for clicks, mouse first, then pen).</summary>
+    [ObservableProperty] private bool _isHowToOpen;
+
+    public string HowToLabel => Localizer.Te("report.howto.button", "How to report");
+
+    private static readonly string[] HowToDefaults =
+    {
+        "Click Record the problem.",
+        "Make the problem happen 3 to 5 times, a few seconds apart.",
+        "If it is about clicks, click the same windows with your mouse first, then with the pen.",
+        "Click Stop recording within 2 minutes.",
+        "In one line, write what you expected and what happened instead.",
+        "Click Send with file, then Open upload page, and add the file there.",
+    };
+
+    /// <summary>The guide's numbered steps ("1. Click Record the problem.").</summary>
+    public IReadOnlyList<string> HowToSteps => HowToDefaults
+        .Select((d, i) => $"{i + 1}. " + Localizer.Te($"report.howto.{i + 1}", d))
+        .ToList();
+
+    [RelayCommand]
+    private void ToggleHowTo() => IsHowToOpen = !IsHowToOpen;
+
     public string RecordHint => Localizer.Te("report.record.hint",
         "Click Record the problem, make the problem happen with your tablet, then click Stop recording. What the tablet sent goes into the report.");
     public string RecordStatus => _recorder == null ? ""

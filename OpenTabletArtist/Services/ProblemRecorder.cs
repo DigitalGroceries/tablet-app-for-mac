@@ -25,6 +25,7 @@ public sealed class ProblemRecorder
     internal const string LogGroup = "Tablet App for Mac";
 
     private readonly IDaemonDebugSession? _daemon;
+    private readonly IClickWatcher? _clicks;
     private readonly Func<DateTime> _now;
     private readonly object _lock = new();
     private readonly List<string> _lines = new();
@@ -36,9 +37,11 @@ public sealed class ProblemRecorder
     private bool _timeUp;
 
     /// <param name="daemon">The driver connection, or null when the app has none (the recording says so).</param>
-    public ProblemRecorder(IDaemonDebugSession? daemon, Func<DateTime>? now = null)
+    /// <param name="clicks">Watches the mouse and click events macOS sees (TASKS #85), or null.</param>
+    public ProblemRecorder(IDaemonDebugSession? daemon, Func<DateTime>? now = null, IClickWatcher? clicks = null)
     {
         _daemon = daemon;
+        _clicks = clicks;
         _now = now ?? (() => DateTime.Now);
     }
 
@@ -74,6 +77,15 @@ public sealed class ProblemRecorder
         _limit = new CancellationTokenSource();
         _ = StopAtLimitAsync(_limit.Token);
         AppLog.Info("=== Report: recording started (Record the problem) ===");
+        if (_clicks != null)
+        {
+            try { _clicks.Start(() => _now() - _started); }
+            catch (Exception ex)
+            {
+                AppLog.Warn("Report: couldn't start watching mouse and click events.", ex);
+                Problem("Couldn't watch the mouse and click events: " + ex.Message);
+            }
+        }
         if (_daemon == null)
         {
             Problem("The driver is not connected, so no tablet reports could be recorded.");
@@ -124,11 +136,21 @@ public sealed class ProblemRecorder
             }
             await MarkDriverLogAsync("stopped");
         }
+        string? clicks = null;
+        if (_clicks != null)
+        {
+            try { clicks = await Task.Run(_clicks.Stop); }
+            catch (Exception ex)
+            {
+                AppLog.Warn("Report: couldn't finish the mouse and click recording.", ex);
+                Problem("Couldn't finish the mouse and click recording: " + ex.Message);
+            }
+        }
         var ended = _now();
         lock (_lock)
         {
             AppLog.Info($"=== Report: recording stopped ({_lines.Count} tablet reports, {(ended - _started).TotalSeconds:0.0} s) ===");
-            Trace = Format(_started, ended, _lines, _kinds, _dropped, _timeUp, _problems);
+            Trace = Format(_started, ended, _lines, _kinds, _dropped, _timeUp, _problems, clicks);
         }
         Changed?.Invoke();
         return Trace;
@@ -226,7 +248,8 @@ public sealed class ProblemRecorder
     }
 
     internal static string Format(DateTime started, DateTime ended, IReadOnlyList<string> lines,
-        IReadOnlyDictionary<string, int> kinds, int dropped, bool timeUp, IReadOnlyList<string> problems)
+        IReadOnlyDictionary<string, int> kinds, int dropped, bool timeUp, IReadOnlyList<string> problems,
+        string? clicks = null)
     {
         var sb = new StringBuilder();
         sb.AppendLine("Record the problem");
@@ -248,6 +271,11 @@ public sealed class ProblemRecorder
                 : "No tablet reports were recorded.");
         sb.AppendLine();
         foreach (var l in lines) sb.AppendLine(l);
+        if (!string.IsNullOrEmpty(clicks))
+        {
+            sb.AppendLine();
+            sb.Append(clicks);
+        }
         return sb.ToString();
     }
 }
