@@ -63,6 +63,10 @@ namespace OpenTabletDriver.Native.OSX
         [DllImport(Quartz)]
         public extern static void CGEventSetFlags(CGEventRef eventRef, ulong flags);
 
+        // TASKS #85 click experiment (test copy only): change the source of a posted event.
+        [DllImport(Quartz)]
+        public extern static void CGEventSetSource(CGEventRef eventRef, CGEventSourceRef source);
+
         [DllImport(Quartz)]
         public extern static CGEventSourceRef CGEventSourceCreate(int stateID);
 

@@ -39,6 +39,18 @@ namespace OpenTabletDriver.Desktop.Interop.Input
         private int? _scrollDeltaX;
         private int? _scrollDeltaY;
         private float? _pressure;
+
+        // TASKS #85 CLICK EXPERIMENT (Zak's test copy only, 17 Nov 2026; never merge into a release): every pen-tip
+        // click uses the next of six ways of posting it, in turn, so one recording shows which difference from a
+        // real mouse click makes macOS bring the window forward on the down instead of the up.
+        // 0 as now · 1 full pressure (1.0) on the down · 2 click numbers that count up · 3 a plain mouse click
+        // (no tablet fields) · 4 sent as from the hardware (HID system state) · 5 all four together.
+        private static readonly string[] ExperimentNames =
+            { "as now", "full pressure", "click number", "plain mouse click", "hardware sender", "all four" };
+        private int _expClicks;
+        private int _expVariant;
+        private long _expNumber = 50000;
+        private IntPtr _expHidSource;
         private Vector2? _tilt;
         private bool? _isEraser;
         private CGMouseButton _lastButton;
@@ -371,7 +383,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                     CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventButtonNumber, i);
                     CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventClickState, clickState); // clickState should be set to 1 (or more) during up, down, and drag events
                     ApplyTabletValues();
-                    PostEvent();
+                    if (button == CGMouseButton.kCGMouseButtonLeft)
+                        PostLeftWithExperiment(currState, cgEventType, clickState);
+                    else
+                        PostEvent();
                     _lastButton = button;
                 }
             }
@@ -494,6 +509,47 @@ namespace OpenTabletDriver.Desktop.Interop.Input
                 CGEventSetFlags(_mouseEvent, _keyboard.getCurrentFlags());
             else
                 CGEventSetFlags(_mouseEvent, ~0U);
+        }
+
+        private void PostLeftWithExperiment(bool down, CGEventType type, int clickState)
+        {
+            if (down)
+            {
+                _expVariant = _expClicks++ % ExperimentNames.Length;
+                _expNumber++;
+            }
+            var v = _expVariant;
+            bool pressure = v is 1 or 5, number = v is 2 or 5, plain = v is 3 or 5, hid = v is 4 or 5;
+            if (hid && _expHidSource == IntPtr.Zero)
+                _expHidSource = CGEventSourceCreate(CGEventSourceStateHIDSystemState);
+            Log.Write("ClickExperiment", $"pen click {_expClicks} {(down ? "down" : "up")}: way {v} ({ExperimentNames[v]})");
+
+            if (!plain)
+            {
+                if (pressure)
+                    CGEventSetDoubleValueField(_mouseEvent, CGEventField.mouseEventPressure, down ? 1.0 : 0.0);
+                if (number)
+                    CGEventSetIntegerValueField(_mouseEvent, CGEventField.mouseEventNumber, _expNumber);
+                if (hid && _expHidSource != IntPtr.Zero)
+                    CGEventSetSource(_mouseEvent, _expHidSource);
+                PostEvent();
+                return;
+            }
+
+            var location = CGEventGetLocation(_mouseEvent);
+            var source = hid && _expHidSource != IntPtr.Zero ? _expHidSource : _eventSource;
+            var evt = CGEventCreateMouseEvent(source, type, location, CGMouseButton.kCGMouseButtonLeft);
+            CGEventSetIntegerValueField(evt, CGEventField.mouseEventClickState, clickState);
+            CGEventSetDoubleValueField(evt, CGEventField.mouseEventPressure, down ? (pressure ? 1.0 : _pressure ?? 1.0) : 0.0);
+            if (number)
+                CGEventSetIntegerValueField(evt, CGEventField.mouseEventNumber, _expNumber);
+            if (_keyboard.getCurrentFlags() != 0)
+                CGEventSetFlags(evt, _keyboard.getCurrentFlags());
+            CGEventPost(CGEventTapLocation.kCGHIDEventTap, evt);
+            CFRelease(evt);
+            // Same life cycle as PostEvent: the prepared event is not reused.
+            CFRelease(_mouseEvent);
+            _mouseEvent = CGEventCreate(_eventSource);
         }
 
         private void LogClickJitterIfCompleted()
