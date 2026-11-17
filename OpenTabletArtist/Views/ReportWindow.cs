@@ -50,7 +50,8 @@ public sealed class ReportWindow : Window
             var picture = mw.CaptureReportPicture();
             Open(new ReportViewModel(vm.Diagnostics.ReportInputs, picture, from,
                 () => UnsavedSettingsReport.Capture(vm.SettingsSession),
-                new ProblemRecorder(vm.SettingsSession.Daemon)));
+                new ProblemRecorder(vm.SettingsSession.Daemon,
+                    clicks: OperatingSystem.IsMacOS() ? new MacClickWatcher() : null)));
         }
         finally { _opening = false; }
     }
