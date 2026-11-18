@@ -68,6 +68,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 
 ![Home](img/02-home-overview.png)
 
+- **Setting search** (the box under the tabs, with **Find any setting or function** under it): type what you are looking for, in the app's language. A list shows the matching settings and where they are, for example **Settings › System**. Click one, or press Enter for the first: its page opens and the setting is framed for a moment. Down and Up move through the list; Escape empties the box. Settings of the Tablet page open on the tablet shown there; with no tablet set up, the Tablet page opens without them.
 - **Your tablets**: one card per connected or remembered tablet. Click a card to open its settings.
 - **No tablet yet?** Click **Choose your tablet**, search for your model (the model number is on the label on the back of the tablet, for example PTK-440) and click **Set up this tablet**, or click **Use a sample tablet**. Every page of that tablet opens, so you can set everything up before you plug it in. Your settings are used as soon as that model is connected. If a different model that this Mac hasn't seen before is plugged in instead, Home offers to copy the pen and screen mapping settings to it (**Copy settings** or **Not now**).
 - Card **⋯** menu: **Open tablet settings**, **Forget this tablet**.
@@ -112,6 +113,8 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 ![Eraser](img/17-eraser-tab.png)
 
 The Eraser tab has the same controls as Pen. The eraser card has **Change…** and **Default**, like the pen buttons: **Default (erase)** erases, and **Change…** makes the eraser end send a key, a mouse button, scroll, the radial menu or (on tablets with finger touch) **Touch on/off** instead. Separate for the eraser: **Disable eraser** and **Manual Eraser Pressure** (own frame under Eraser Feel; used while pressure sensitivity is off). Shared with Pen (marked "Shared with Pen"): tilt, the Feel curve (one curve for tip and eraser), pressure sensitivity, Position smoothing (and Movement, when its choice is shown). The button cards are the pen's barrel buttons.
+
+When you turn the pen over, the app tells macOS that the pen tip has left before the eraser arrives, as a Wacom pen does, so apps that give the eraser its own tool (GIMP, for example) can switch to it.
 
 ## Tablet › Mapping
 
@@ -217,6 +220,11 @@ On these tablets finger touch works like a Mac trackpad. Switch it on or off wit
 
 Touch is ignored while the pen is near the tablet, so a resting hand doesn't move the pointer.
 
+Under the **Touch trackpad** switch:
+
+- **Touch speed** (1 to 100): how far the pointer goes when one finger moves. 50 is the speed of Version 28; higher is faster.
+- **Scroll momentum** (off at first): two-finger scrolling keeps going for a moment after you lift your fingers, then slows to a stop, like a Mac trackpad. Touch the tablet, or use the pen, to stop it.
+
 ## Scribble
 
 A test canvas with a precise crosshair cursor. If the canvas says "Drawing is off because the pen isn't set to follow the screen", click **Use pen on screen**: Movement becomes **Normal (Absolute)** and, if needed, the pen is mapped to all displays. The same settings are in **Tablet › Pen › Movement** and **Tablet › Mapping**. Draws with the processed pressure, so the curve, Disable pen tip and the Manual Pressure are visible.
@@ -251,6 +259,7 @@ A test canvas with a precise crosshair cursor. If the canvas says "Drawing is of
 - **Configs** (tablet configs): **Check for more configs**, **Install**, **View**.
 - **Console**: severity filter, text filter, **Auto-scroll** (on), copy as text, Markdown or HTML, **Clear**.
 - **Diagnostics** (shown when **Settings › Dev** turns it on): **Start** and **Stop** live reports, and **Create diagnostic file**.
+- **App window switching fix** (on **Driver**, Mac only, off at first): leave it off unless tapping another app's window with the pen doesn't switch to that app (the menu at the top of the screen still shows the app you were in). Turning it on can make that first tap up to 1 second slower.
 
 ## About and Options
 
@@ -273,7 +282,7 @@ The report opens inside the app window:
 - **Record the problem**: click it, make the problem happen with your tablet (pen, eraser, buttons, touch, ExpressKeys or touch ring), then click **Stop recording**. The report then also holds what the tablet sent in those seconds (up to 2 minutes), and the app and driver logs are marked where the recording started and stopped. On a Mac it also records every click and mouse event macOS sees, from the mouse and from the pen, and how long each click took to bring its window and app to the front, so a mouse click and a pen click on the same windows can be compared.
 - Press **Send with file** or **Send with GitHub account**. Both make one file with your text, your pictures and the app and driver logs. Serial numbers and your user name are removed from the logs. Pictures are sent as they are, so check them first.
 - **Send with file** needs no account. It asks where to save the file (the Desktop is suggested). Then the report shows where the file is. Click **Open upload page** and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file. There is no Show in Finder button.
-- **Your email** (optional, near the top of the report): "Leave your email so we can help you better in fixing your issue". It is put in the file only with **Send with file**, so we can reply; **Send with GitHub account** never includes it. You can leave it empty.
+- **Your email** (optional, near the top of the report): "Leave your email so we can help you better in fixing your issue". It is put in the file only with **Send with file**, so we can reply; **Send with GitHub account** never includes it. You can leave it empty. If it is empty when you press **Send with file**, the report asks first: **Add my email** takes you to the box, **Send without** saves the file without it.
 - **Send with GitHub account** needs a free GitHub account. It saves the file on your Desktop, shows it in Finder and opens a new GitHub issue with your text filled in. Drag the file into it and press **Create**.
 
 **Cancel** closes the report and sends nothing.
