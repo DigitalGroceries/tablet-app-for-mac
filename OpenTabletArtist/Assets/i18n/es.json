@@ -604,6 +604,8 @@
   "radial.no_keys": "Todavía no hay atajo",
   "radial.toggle": "Mostrar el menú radial",
   "radial.toggle_description": "Para botones del lápiz y ExpressKeys configurados como Menú radial (Cambiar… › Menú radial). Desactivado: esos botones no hacen nada.",
+  "appswitch.toggle": "Corrección del cambio entre ventanas de apps",
+  "appswitch.description": "Déjalo desactivado, salvo que al tocar con el lápiz la ventana de otra app no cambie a esa app. Lo notarás si el menú de la parte superior de la pantalla sigue mostrando la app en la que estabas. Si lo activas, ese primer toque puede tardar hasta 1 segundo más.",
   "tablet.pen.position_smoothing_note": "Calma las líneas temblorosas, con un poco de retardo. 0 es desactivado, 10 es lo máximo.",
   "radial.default.undo": "Deshacer",
   "radial.default.redo": "Rehacer",

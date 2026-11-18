@@ -604,6 +604,8 @@
   "radial.no_keys": "キーストローク未設定",
   "radial.toggle": "ラジアルメニューを表示",
   "radial.toggle_description": "「ラジアルメニュー」に設定したペンボタンとExpressKey用（変更… › ラジアルメニュー）。オフ：それらのボタンは何もしません。",
+  "appswitch.toggle": "アプリのウィンドウ切り替えの修正",
+  "appswitch.description": "ペンで別のアプリのウィンドウをタップしてもそのアプリに切り替わらない場合を除き、オフのままにしてください。画面上部のメニューに前のアプリが表示されたままなら、この問題が起きています。オンにすると、最初のタップが最大1秒遅くなることがあります。",
   "tablet.pen.position_smoothing_note": "線の手ぶれを抑えます（少し遅れが出ます）。0 はオフ、10 が最も強い設定です。",
   "radial.default.undo": "取り消す",
   "radial.default.redo": "やり直す",

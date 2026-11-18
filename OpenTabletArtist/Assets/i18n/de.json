@@ -604,6 +604,8 @@
   "radial.no_keys": "Noch keine Tastenkombination",
   "radial.toggle": "Radialmenü anzeigen",
   "radial.toggle_description": "Für Stifttasten und ExpressKeys, die auf Radialmenü gestellt sind (Ändern… › Radialmenü). Aus: Diese Tasten tun nichts.",
+  "appswitch.toggle": "Korrektur für den Wechsel zwischen App-Fenstern",
+  "appswitch.description": "Lass dies aus, es sei denn, ein Tippen mit dem Stift auf das Fenster einer anderen App wechselt nicht zu dieser App. Das erkennst du daran, dass das Menü oben am Bildschirm noch die App zeigt, in der du warst. Wenn du es einschaltest, kann dieses erste Tippen bis zu 1 Sekunde länger dauern.",
   "tablet.pen.position_smoothing_note": "Beruhigt zittrige Linien, mit etwas Verzögerung. 0 ist aus, 10 ist am stärksten.",
   "radial.default.undo": "Rückgängig",
   "radial.default.redo": "Wiederholen",

@@ -604,6 +604,8 @@
   "radial.no_keys": "Pas encore de raccourci",
   "radial.toggle": "Afficher le menu radial",
   "radial.toggle_description": "Pour les boutons du stylet et les ExpressKeys réglés sur Menu radial (Modifier… › Menu radial). Désactivé : ces boutons ne font rien.",
+  "appswitch.toggle": "Correctif du changement de fenêtre d'appli",
+  "appswitch.description": "Laissez ceci désactivé, sauf si toucher la fenêtre d'une autre appli avec le stylet ne bascule pas vers cette appli. Vous le verrez si le menu en haut de l'écran affiche encore l'appli où vous étiez. L'activer peut rendre ce premier toucher jusqu'à 1 seconde plus lent.",
   "tablet.pen.position_smoothing_note": "Calme les traits tremblants, avec un léger retard. 0 : désactivé, 10 : le plus fort.",
   "radial.default.undo": "Annuler",
   "radial.default.redo": "Rétablir",

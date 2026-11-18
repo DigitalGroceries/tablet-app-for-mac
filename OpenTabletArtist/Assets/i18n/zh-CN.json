@@ -604,6 +604,8 @@
   "radial.no_keys": "尚未设置快捷键",
   "radial.toggle": "显示径向菜单",
   "radial.toggle_description": "适用于设为“径向菜单”的笔按钮和 ExpressKey（更改… › 径向菜单）。关闭：这些按钮不执行任何操作。",
+  "appswitch.toggle": "应用窗口切换修复",
+  "appswitch.description": "除非用笔点按其他应用的窗口时无法切换到该应用，否则请保持关闭。如果屏幕顶部的菜单仍显示你之前所在的应用，就说明出现了这个问题。打开后，第一次点按最多会延迟 1 秒。",
   "tablet.pen.position_smoothing_note": "让抖动的线条更平稳，会有一点延迟。0 为关闭，10 为最强。",
   "radial.default.undo": "撤销",
   "radial.default.redo": "重做",

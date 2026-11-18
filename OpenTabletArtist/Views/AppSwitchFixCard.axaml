@@ -1,0 +1,11 @@
+<UserControl x:Class="OpenTabletArtist.Views.AppSwitchFixCard"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:OpenTabletArtist.Controls">
+    <!-- Version 29 (TASKS #85): Off by default. Its own small view model, so it shows the same wherever it is placed. -->
+    <c:Section MaxWidth="440" HorizontalAlignment="Left" VerticalAlignment="Top" IsVisible="{Binding IsShown}">
+        <c:ToggleSetting x:Name="AppWindowSwitchingFixToggle" Label="{Binding Label}"
+                         Description="{Binding Description}"
+                         IsChecked="{Binding On}" />
+    </c:Section>
+</UserControl>

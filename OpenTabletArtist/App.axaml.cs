@@ -121,6 +121,7 @@ public partial class App : Application
             _radialMenu = new RadialMenuOverlay();   // TASKS #42: draws the radial menu the driver opens
             RadialMenuOverlay.RequestHandler = RadialLiveEdit.HandleAsync;   // TASKS #54: the pencil and the circular arrow
             _radialMenu.Start();
+            Services.AppSwitchFix.Sync();   // V29 #85: the driver's flag file matches the App window switching fix switch
             desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); _radialMenu?.Dispose(); };
 
             // Build J: safety net for the experimental smooth-rotate gesture (releases stuck R / mouse button

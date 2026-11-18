@@ -2,7 +2,8 @@
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:c="using:OpenTabletArtist.Controls"
-             xmlns:conv="using:OpenTabletArtist.Converters">
+             xmlns:conv="using:OpenTabletArtist.Converters"
+             xmlns:v="using:OpenTabletArtist.Views">
 
     <!-- DataContext is the DaemonViewModel, supplied by the typed-nav DataTemplate (#15).
 
@@ -593,6 +594,9 @@
                             </Grid>
                         </StackPanel>
                     </c:Section>
+
+                    <!-- Version 29 (TASKS #85): the pen click's app activator only runs while this is On. -->
+                    <v:AppSwitchFixCard x:Name="AppSwitchFixCard" />
 
             </StackPanel>
         </Grid>
