@@ -1,0 +1,1237 @@
+[
+  {
+    "text": "你的数位板",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "没有已连接或已记住的数位板",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "连接数位板后会显示在这里，也可以选择你的型号并现在设置。",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "选择你的数位板",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "获取帮助",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "支持的数位板",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "源代码",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "版本发布",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "反馈",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "用户手册",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "致谢与许可",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "立即检查更新",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "早期版本",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "自动更新",
+    "path": "主页",
+    "route": "home"
+  },
+  {
+    "text": "笔刷",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "清除",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "拷贝",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "标记位置",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "录制",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "画布：",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "原始：",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "倾斜：",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "压力：",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "旋转：",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "AZ/AL：",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "悬停：",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "速率：",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Saved presets",
+    "path": "设置 › 预设",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Save as preset",
+    "path": "设置 › 预设",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "What a preset is",
+    "path": "设置 › 预设",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Shortcuts",
+    "path": "设置 › 快捷键",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Tablet actions",
+    "path": "设置 › 快捷键",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Move to next display",
+    "path": "设置 › 快捷键",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Not set",
+    "path": "设置 › 快捷键",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "About shortcuts",
+    "path": "设置 › 快捷键",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Themes",
+    "path": "设置 › 主题 › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Theme",
+    "path": "设置 › 主题 › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Lightness",
+    "path": "设置 › 主题 › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Dark",
+    "path": "设置 › 主题 › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Light",
+    "path": "设置 › 主题 › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "语言",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "非英文文案仍可能继续润色。",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "保存",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "自动保存更改",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "与 Wacom 驱动一样：每项更改都会立即保存，重启后也会保留。关闭：更改仍会立即生效，但只有点击“保存”后才会保留。",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "径向菜单",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "显示径向菜单",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "适用于设为“径向菜单”的笔按钮和 ExpressKey（更改… › 径向菜单）。关闭：这些按钮不执行任何操作。",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "设置备份",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "导出设置",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "导入设置",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "自动备份",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "新版本首次启动时以及每次导入前都会创建备份。保留最近 5 份。",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "在 Finder 中显示",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "诊断文件",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "创建诊断文件",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "登录时启动",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "登录时自动启动",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "打开登录项",
+    "path": "设置 › 系统",
+    "route": "settings/System"
+  },
+  {
+    "text": "故障排除",
+    "path": "设置 › 故障排除",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "当数位板无响应、设置无法保存，或需要发送报告时，可在这里快速处理。",
+    "path": "设置 › 故障排除",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "重启驱动程序",
+    "path": "设置 › 故障排除",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "停止数位板驱动程序并重新启动。笔无法移动或未检测到数位板时使用。",
+    "path": "设置 › 故障排除",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "诊断报告",
+    "path": "设置 › 故障排除",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "在桌面保存包含日志、设置和数位板信息的 zip，求助时可附上。",
+    "path": "设置 › 故障排除",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "创建诊断文件",
+    "path": "设置 › 故障排除",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "重置权限",
+    "path": "设置 › 故障排除",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "清除本应用的输入监控与辅助功能记录，让 macOS 再次询问。",
+    "path": "设置 › 故障排除",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Trigger health warnings",
+    "path": "设置 › 开发 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Conflicting tablet driver detected",
+    "path": "设置 › 开发 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Running as administrator",
+    "path": "设置 › 开发 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tray icon can't be shown",
+    "path": "设置 › 开发 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Using an external driver",
+    "path": "设置 › 开发 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: mapped area partly off-screen",
+    "path": "设置 › 开发 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: custom display mapping",
+    "path": "设置 › 开发 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: using a custom config override",
+    "path": "设置 › 开发 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: pen isn't set up for drawing",
+    "path": "设置 › 开发 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Introduce config errors",
+    "path": "设置 › 开发 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Map active area partly off-screen",
+    "path": "设置 › 开发 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Push active area off-screen",
+    "path": "设置 › 开发 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Rotate active area to a non-standard angle",
+    "path": "设置 › 开发 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create a slightly-wrong calibration",
+    "path": "设置 › 开发 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create off calibration",
+    "path": "设置 › 开发 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Break the pen for drawing (artist health check)",
+    "path": "设置 › 开发 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Turn off pen tip, pressure and tilt",
+    "path": "设置 › 开发 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing (asserted)",
+    "path": "设置 › 开发 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing",
+    "path": "设置 › 开发 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Force a tablet in the list",
+    "path": "设置 › 开发 › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Add to tablet list",
+    "path": "设置 › 开发 › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Clear",
+    "path": "设置 › 开发 › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Tablet page extras",
+    "path": "设置 › 开发 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Filters tab",
+    "path": "设置 › 开发 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the JSON tab",
+    "path": "设置 › 开发 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the ‘Cut below input minimum’ pressure option",
+    "path": "设置 › 开发 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show card-role tags",
+    "path": "设置 › 开发 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Advanced page extras",
+    "path": "设置 › 开发 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Diagnostics tab",
+    "path": "设置 › 开发 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Window size",
+    "path": "设置 › 开发 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Current size",
+    "path": "设置 › 开发 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Screenshots",
+    "path": "设置 › 开发 › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Screenshot all pages",
+    "path": "设置 › 开发 › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Format",
+    "path": "设置 › 开发 › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "On-page screenshot control",
+    "path": "设置 › 开发 › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "This app",
+    "path": "高级 › 驱动程序",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Tablet App for Mac",
+    "path": "高级 › 驱动程序",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not connected",
+    "path": "高级 › 驱动程序",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Driver process",
+    "path": "高级 › 驱动程序",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not running",
+    "path": "高级 › 驱动程序",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "应用窗口切换修复",
+    "path": "高级 › 驱动程序",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Level",
+    "path": "高级 › 控制台",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Auto-scroll",
+    "path": "高级 › 控制台",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Driver not connected.",
+    "path": "高级 › 控制台",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Copy",
+    "path": "高级 › 控制台",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Clear",
+    "path": "高级 › 控制台",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "No log messages yet.",
+    "path": "高级 › 控制台",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Configurations folder",
+    "path": "高级 › 配置",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Add tablet support",
+    "path": "高级 › 配置",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Check for more configs",
+    "path": "高级 › 配置",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "已安装的插件",
+    "path": "高级 › 插件",
+    "route": "advanced/Plugins"
+  },
+  {
+    "text": "插件目录不可用（驱动程序是否已连接？）。",
+    "path": "高级 › 插件",
+    "route": "advanced/Plugins"
+  },
+  {
+    "text": "所有按键",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "默认",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "按钮 1",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "按钮 2",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "按钮 3",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Space",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "按钮 4",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Control",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "按钮 5",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Shift",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "按钮 6",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Alt",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "按钮 7",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "按钮 8",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "关于 ExpressKeys",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ExpressKeys 是数位板上的按键（不是笔上的按键）。",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "点击按键旁的 •••，选择它的功能：键盘快捷键、鼠标点击或滚动。",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "按下数位板上的按键，即可看到它对应哪一行。",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "用“所有按键”开关可让所有按键停止工作，例如手总是误按某个键时。设置会保留，重新打开后按键即可恢复工作。",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "只想关闭某一个按键时，点击它旁边的 •••，选择“关闭”。只有“所有按键”和该按键都处于开启状态时，按键才会工作。",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "按键设置按这块数位板保存。每个应用程序也可以有自己的设置：在上方的“应用程序”一行中选择它。",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "触控环",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Clockwise",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Do nothing",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Anticlockwise",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Touch Ring modes",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "关于触控环",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "顺时针和逆时针转动可以执行不同的操作，中心按钮也可以。",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "触摸触控环时，屏幕上的环形图会跟着移动，方便你确认它能正常工作。",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "关闭“触控环”可暂停触控环。设置会保留。",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "倾斜",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "关闭倾斜",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "笔尖手感",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "柔和",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "自定",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "当前压力",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "点击",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "满压",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "双击修正",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "默认",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "点击时笔尖可以晃动多远仍不算拖动。需要每个细微动作的绘图应用请选择“关”。",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "手动笔尖压力",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "关闭压感时，每笔都使用此压力。",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "按笔上的按钮即可测试。",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "按钮 2",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Modified to Adaptive Binding (Button 1)",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Fix",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "按钮 1",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "默认设置",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "笔尖",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "径向菜单设置",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "还没有笔按键可以打开径向菜单",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "使用笔按键 2",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "菜单透明度",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "菜单大小",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "移动",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "位置平滑",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "更平滑的快速曲线",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "笔输入",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "禁用笔尖",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "关闭压感",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Feel Details (shared by tip and eraser)",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "倾斜",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "关闭倾斜",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "与笔共用。",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "橡皮擦手感",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "柔和",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "自定",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "当前压力",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "点击",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "满压",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "与笔共用（笔尖和橡皮擦同一条曲线）。",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "手动橡皮擦压力",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "在关闭压感时，用于每一笔橡皮擦笔划。",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "按钮 1",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "默认设置",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "按钮 2",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Modified to Adaptive Binding (Button 1)",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Fix",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "橡皮擦",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "移动",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "位置平滑",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "更平滑的快速曲线",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "橡皮擦输入",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "禁用橡皮擦",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "关闭压感",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "压感与笔共用。",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Feel details (shared with Pen)",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "大小",
+    "path": "数位板 › 笔 › 映射",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "旋转",
+    "path": "数位板 › 笔 › 映射",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "数位板",
+    "path": "数位板 › 笔 › 映射",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "有效区域",
+    "path": "数位板 › 笔 › 映射",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "区域",
+    "path": "数位板 › 笔 › 映射",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "尺寸",
+    "path": "数位板 › 笔 › 映射",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "对角线",
+    "path": "数位板 › 笔 › 映射",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "宽高比",
+    "path": "数位板 › 笔 › 映射",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "显示设置",
+    "path": "数位板 › 笔 › 映射",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "型号",
+    "path": "数位板 › 更多 › 关于",
+    "route": "tablet/ToolMoreButton/AboutTab"
+  },
+  {
+    "text": "This tablet",
+    "path": "数位板 › 更多 › 校准",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Not calibrated",
+    "path": "数位板 › 更多 › 校准",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "The calibration screen opens on your tablet's mapped display",
+    "path": "数位板 › 更多 › 校准",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Calibrate · 4 points",
+    "path": "数位板 › 更多 › 校准",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "About calibration",
+    "path": "数位板 › 更多 › 校准",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Hover limit",
+    "path": "数位板 › 更多 › 悬停",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Off",
+    "path": "数位板 › 更多 › 悬停",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "On",
+    "path": "数位板 › 更多 › 悬停",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Max hover",
+    "path": "数位板 › 更多 › 悬停",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Near proximity only",
+    "path": "数位板 › 更多 › 悬停",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "No filters configured",
+    "path": "数位板 › 更多 › 滤镜",
+    "route": "tablet/ToolMoreButton/FiltersTab"
+  }
+]

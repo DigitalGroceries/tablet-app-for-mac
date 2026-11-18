@@ -667,5 +667,8 @@
   "save.status.unsaved_hint": "Your changes work now. Click Save to keep them after a restart.",
   "save.auto.section": "Saving",
   "save.auto.toggle": "Save changes automatically",
-  "save.auto.description": "Like the Wacom driver: every change is kept at once, also after a restart. Off: changes still work at once, but only Save keeps them."
+  "save.auto.description": "Like the Wacom driver: every change is kept at once, also after a restart. Off: changes still work at once, but only Save keeps them.",
+  "search.label": "Setting search",
+  "search.hint": "Find any setting or function",
+  "search.none": "Nothing found. Try another word."
 }

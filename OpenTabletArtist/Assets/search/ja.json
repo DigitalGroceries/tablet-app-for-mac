@@ -1,0 +1,1247 @@
+[
+  {
+    "text": "お使いのタブレット",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "接続中または記憶済みのタブレットはありません",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "タブレットを接続するとここに表示されます。モデルを選んで今すぐ設定することもできます。",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "タブレットを選ぶ",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "ヘルプ",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "対応タブレット",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "ソースコード",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "リリース",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "フィードバック",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "ユーザーマニュアル",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "クレジットとライセンス",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "今すぐ更新を確認",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "以前のバージョン",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "自動で更新",
+    "path": "ホーム",
+    "route": "home"
+  },
+  {
+    "text": "ブラシ",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "クリア",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "コピー",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "位置をマーク",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "記録",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "キャンバス",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "生データ",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "傾き",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "筆圧",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "ねじり",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "AZ/AL",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "ホバー",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "レート",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Saved presets",
+    "path": "設定 › プリセット",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Save as preset",
+    "path": "設定 › プリセット",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "What a preset is",
+    "path": "設定 › プリセット",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Shortcuts",
+    "path": "設定 › ホットキー",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Tablet actions",
+    "path": "設定 › ホットキー",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Move to next display",
+    "path": "設定 › ホットキー",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Not set",
+    "path": "設定 › ホットキー",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "About shortcuts",
+    "path": "設定 › ホットキー",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Themes",
+    "path": "設定 › テーマ › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Theme",
+    "path": "設定 › テーマ › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Lightness",
+    "path": "設定 › テーマ › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Dark",
+    "path": "設定 › テーマ › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Light",
+    "path": "設定 › テーマ › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "言語",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "英語以外の文言は今後さらに整える場合があります。",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "保存",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "変更を自動的に保存",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "ラジアルメニュー",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "ラジアルメニューを表示",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "設定のバックアップ",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "設定を書き出す",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "設定を読み込む",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "自動バックアップ",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "新しいバージョンを初めて起動したときと、読み込みの前に毎回バックアップを作成します。最新の 5 件を保持します。",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "Finder で表示",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "診断ファイル",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "診断ファイルを作成",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "ログイン時に起動",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "ログイン時に自動で起動する",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "ログイン項目を開く",
+    "path": "設定 › システム",
+    "route": "settings/System"
+  },
+  {
+    "text": "トラブルシューティング",
+    "path": "設定 › トラブルシューティング",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "タブレットが反応しないとき、設定が保存されないとき、報告を送るときに使う短い手順です。",
+    "path": "設定 › トラブルシューティング",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "ドライバーを再起動",
+    "path": "設定 › トラブルシューティング",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "タブレットのドライバーを一度止めてから起動し直します。ペンが動かないときやタブレットが検出されないときに使います。",
+    "path": "設定 › トラブルシューティング",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "診断レポート",
+    "path": "設定 › トラブルシューティング",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "ログ・設定・タブレット情報をまとめた zip をデスクトップに保存します。問い合わせのときに添付できます。",
+    "path": "設定 › トラブルシューティング",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "診断ファイルを作成",
+    "path": "設定 › トラブルシューティング",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "権限をリセット",
+    "path": "設定 › トラブルシューティング",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "このアプリの入力監視とアクセシビリティの記録を消し、macOS に再度確認させます。",
+    "path": "設定 › トラブルシューティング",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Trigger health warnings",
+    "path": "設定 › 開発 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Conflicting tablet driver detected",
+    "path": "設定 › 開発 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Running as administrator",
+    "path": "設定 › 開発 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tray icon can't be shown",
+    "path": "設定 › 開発 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Using an external driver",
+    "path": "設定 › 開発 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: mapped area partly off-screen",
+    "path": "設定 › 開発 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: custom display mapping",
+    "path": "設定 › 開発 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: using a custom config override",
+    "path": "設定 › 開発 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: pen isn't set up for drawing",
+    "path": "設定 › 開発 › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Introduce config errors",
+    "path": "設定 › 開発 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Map active area partly off-screen",
+    "path": "設定 › 開発 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Push active area off-screen",
+    "path": "設定 › 開発 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Rotate active area to a non-standard angle",
+    "path": "設定 › 開発 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create a slightly-wrong calibration",
+    "path": "設定 › 開発 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create off calibration",
+    "path": "設定 › 開発 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Break the pen for drawing (artist health check)",
+    "path": "設定 › 開発 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Turn off pen tip, pressure and tilt",
+    "path": "設定 › 開発 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing (asserted)",
+    "path": "設定 › 開発 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing",
+    "path": "設定 › 開発 › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Force a tablet in the list",
+    "path": "設定 › 開発 › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Add to tablet list",
+    "path": "設定 › 開発 › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Clear",
+    "path": "設定 › 開発 › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Tablet page extras",
+    "path": "設定 › 開発 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Filters tab",
+    "path": "設定 › 開発 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the JSON tab",
+    "path": "設定 › 開発 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the ‘Cut below input minimum’ pressure option",
+    "path": "設定 › 開発 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show card-role tags",
+    "path": "設定 › 開発 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Advanced page extras",
+    "path": "設定 › 開発 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Diagnostics tab",
+    "path": "設定 › 開発 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Window size",
+    "path": "設定 › 開発 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Current size",
+    "path": "設定 › 開発 › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Screenshots",
+    "path": "設定 › 開発 › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Screenshot all pages",
+    "path": "設定 › 開発 › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Format",
+    "path": "設定 › 開発 › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "On-page screenshot control",
+    "path": "設定 › 開発 › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "This app",
+    "path": "詳細 › サービス",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Tablet App for Mac",
+    "path": "詳細 › サービス",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not connected",
+    "path": "詳細 › サービス",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Driver process",
+    "path": "詳細 › サービス",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not running",
+    "path": "詳細 › サービス",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "アプリのウィンドウ切り替えの修正",
+    "path": "詳細 › サービス",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Level",
+    "path": "詳細 › コンソール",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Auto-scroll",
+    "path": "詳細 › コンソール",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Driver not connected.",
+    "path": "詳細 › コンソール",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Copy",
+    "path": "詳細 › コンソール",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Clear",
+    "path": "詳細 › コンソール",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "No log messages yet.",
+    "path": "詳細 › コンソール",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Configurations folder",
+    "path": "詳細 › 設定ファイル",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Add tablet support",
+    "path": "詳細 › 設定ファイル",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Check for more configs",
+    "path": "詳細 › 設定ファイル",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "インストール済みプラグイン",
+    "path": "詳細 › プラグイン",
+    "route": "advanced/Plugins"
+  },
+  {
+    "text": "プラグインフォルダーを使えません（サービスは接続されていますか？）。",
+    "path": "詳細 › プラグイン",
+    "route": "advanced/Plugins"
+  },
+  {
+    "text": "すべてのボタン",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "オフ",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "オン",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "デフォルト",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ボタン 1",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ボタン 2",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ボタン 3",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Space",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ボタン 4",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Control",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ボタン 5",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Shift",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ボタン 6",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Alt",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ボタン 7",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ボタン 8",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ExpressKeys について",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ExpressKeys は、タブレット本体のボタンです（ペンのボタンではありません）。",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "キーの横の ••• をクリックして、そのキーの動作を選びます：キーボードショートカット、マウスクリック、スクロール。",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "タブレットのキーを押すと、どの行のキーかがわかります。",
+    "path": "タブレット › ファンクション › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "タッチリング",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "オフ",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "オン",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Clockwise",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Do nothing",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Anticlockwise",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Touch Ring modes",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "タッチリングについて",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "時計回りと反時計回りで、別々の動作にできます。中央ボタンにも動作を割り当てられます。",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "リングに触れると画面上のリングの絵が動くので、リングが動くか確かめられます。",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "「タッチリング」をオフにすると、リングを一時停止します。設定は残ります。",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "傾き",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "傾きをオフ",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ペンの感触",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "柔らかく",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "硬く",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "カスタマイズ",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "現在の筆圧",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "クリック",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "最大",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ダブルクリック補正",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "オフ",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "標準",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "クリック中にペン先がどれだけぶれてもドラッグと見なさないかを決めます。すべての動きが必要な描画アプリではオフにします。",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "手動のペン先圧力",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "筆圧オフのあいだ、すべてのストロークに使います。",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ペンボタンを押して試せます。",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ボタン 2",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Modified to Adaptive Binding (Button 1)",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Fix",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ボタン 1",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "デフォルト設定",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ペン先",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ラジアルメニューの設定",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ラジアルメニューを開くペンボタンはまだありません",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ペンボタン 2 を使う",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "メニューの透明度",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "メニューのサイズ",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "移動",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "位置のスムージング",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "速いカーブをなめらかに",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ペン入力",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ペン先を無効",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "筆圧を無効",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Feel Details (shared by tip and eraser)",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "傾き",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "傾きをオフ",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "ペンと共通です。",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "消しゴムの感触",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "柔らかく",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "硬く",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "カスタマイズ",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "現在の筆圧",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "クリック",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "最大",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "ペンと共通（ペン先と消しゴムで同じカーブ）。",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "手動の消しゴム圧力",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "筆圧感知がオフの間、消しゴムのすべての線に使われます。",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "ボタン 1",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "デフォルト設定",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "ボタン 2",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Modified to Adaptive Binding (Button 1)",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Fix",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "消しゴム",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "移動",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "位置のスムージング",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "速いカーブをなめらかに",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "消しゴム入力",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "消しゴムを無効にする",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "筆圧を無効",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "筆圧感知はペンと共通です。",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Feel details (shared with Pen)",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "サイズ",
+    "path": "タブレット › ペン › マッピング",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "回転",
+    "path": "タブレット › ペン › マッピング",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "タブレット",
+    "path": "タブレット › ペン › マッピング",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "有効領域",
+    "path": "タブレット › ペン › マッピング",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "領域",
+    "path": "タブレット › ペン › マッピング",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "寸法",
+    "path": "タブレット › ペン › マッピング",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "対角線",
+    "path": "タブレット › ペン › マッピング",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "アスペクト比",
+    "path": "タブレット › ペン › マッピング",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "ディスプレイ設定",
+    "path": "タブレット › ペン › マッピング",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "モデル",
+    "path": "タブレット › その他 › 情報",
+    "route": "tablet/ToolMoreButton/AboutTab"
+  },
+  {
+    "text": "This tablet",
+    "path": "タブレット › その他 › キャリブレーション",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Not calibrated",
+    "path": "タブレット › その他 › キャリブレーション",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "The calibration screen opens on your tablet's mapped display",
+    "path": "タブレット › その他 › キャリブレーション",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Calibrate · 4 points",
+    "path": "タブレット › その他 › キャリブレーション",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "About calibration",
+    "path": "タブレット › その他 › キャリブレーション",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Hover limit",
+    "path": "タブレット › その他 › ホバー",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Off",
+    "path": "タブレット › その他 › ホバー",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "On",
+    "path": "タブレット › その他 › ホバー",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Max hover",
+    "path": "タブレット › その他 › ホバー",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Near proximity only",
+    "path": "タブレット › その他 › ホバー",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "No filters configured",
+    "path": "タブレット › その他 › フィルター",
+    "route": "tablet/ToolMoreButton/FiltersTab"
+  }
+]

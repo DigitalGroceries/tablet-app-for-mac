@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenTabletArtist.ViewModels"
+             xmlns:svc="using:OpenTabletArtist.Services"
+             x:Class="OpenTabletArtist.Views.SettingSearchBox"
+             x:DataType="vm:SettingSearchViewModel">
+    <UserControl.Resources>
+        <!-- One line of the list: the words, and where they are under them, left-aligned and as written. -->
+        <ControlTheme x:Key="SearchResultButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Left" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource BgSurfaceBrush}" /></Style>
+            <Style Selector="^:focus-visible"><Setter Property="Background" Value="{DynamicResource BgSurfaceBrush}" /></Style>
+        </ControlTheme>
+    </UserControl.Resources>
+    <!-- Version 29: "Setting search" under Home's tab row. The list of matches opens in the window's own
+         overlay layer, under the box (inside the app window, no separate window). -->
+    <StackPanel Spacing="4">
+        <!-- fullWidth: the box runs the width of the tab row (the app's fit-to-text rule would shrink it). -->
+        <TextBox x:Name="SearchBox" Classes="fullWidth" Text="{Binding Query, Mode=TwoWay}" PlaceholderText="{Binding Label}"
+                 AutomationProperties.Name="{Binding Label}" MinWidth="0" HorizontalAlignment="Stretch" />
+        <TextBlock x:Name="SearchHint" Text="{Binding Hint}" FontSize="12"
+                   Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+        <Popup x:Name="ResultsPopup" PlacementTarget="{Binding #SearchBox}" Placement="BottomEdgeAlignedLeft"
+               VerticalOffset="4" ShouldUseOverlayLayer="True" IsLightDismissEnabled="True"
+               OverlayDismissEventPassThrough="True" IsOpen="{Binding IsOpen, Mode=TwoWay}">
+            <Border x:Name="ResultsPanel" Width="{Binding #SearchBox.Bounds.Width}" MinWidth="360" MaxHeight="420"
+                    Background="{DynamicResource BgElevatedBrush}" BorderBrush="{DynamicResource DividerBrush}"
+                    BorderThickness="1" CornerRadius="6" Padding="4">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <ItemsControl x:Name="ResultsList" ItemsSource="{Binding Results}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="svc:SettingSearchEntry">
+                                    <Button Theme="{StaticResource SearchResultButton}" HorizontalAlignment="Stretch"
+                                            Command="{Binding $parent[ItemsControl].DataContext.OpenCommand}"
+                                            CommandParameter="{Binding}"
+                                            AutomationProperties.Name="{Binding Text}">
+                                        <StackPanel Spacing="1" HorizontalAlignment="Left">
+                                            <TextBlock Text="{Binding Text}" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Path}" FontSize="12"
+                                                       Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock x:Name="NothingFoundText" Text="{Binding NothingFoundText}" IsVisible="{Binding NothingFound}"
+                                   Margin="10,6" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Popup>
+    </StackPanel>
+</UserControl>

@@ -71,7 +71,7 @@ public partial class PenSwitchRowViewModel : ObservableObject
     /// limitation of #495 doesn't apply), so its card offers a Wacom-style "Change…" instead of a warning.
     /// Version 28 (#78, Daniel): the eraser end too, like Wacom's eraser (Erase or any other action).</summary>
     public bool CanChooseAction => _chooseAction != null && _kind is PenSwitchKind.PenButton or PenSwitchKind.Eraser
-        && OperatingSystem.IsMacOS();
+        && UiPlatform.IsMac;
     public bool ShowChooseAction => CanChooseAction && CanEdit;
 
     public bool IsRecommended => Mode == PenSwitchBindingMode.Auto && !CanChooseAction;

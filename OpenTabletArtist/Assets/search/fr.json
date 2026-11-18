@@ -1,0 +1,1152 @@
+[
+  {
+    "text": "Vos tablettes",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Aucune tablette connectée ou mémorisée",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Choisis ta tablette",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Obtenir de l'aide",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Tablettes prises en charge",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Code source",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Versions",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Commentaires",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Manuel utilisateur",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Crédits et licences",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Rechercher des mises à jour maintenant",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Versions précédentes",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Mettre à jour automatiquement",
+    "path": "Accueil",
+    "route": "home"
+  },
+  {
+    "text": "Pinceau",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Effacer",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Copier",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Marquer les positions",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Enregistrer",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Toile",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Brut",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Inclinaison",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Pression",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Rotation",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "AZ/AL",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Survol",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Fréquence",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Saved presets",
+    "path": "Réglages › Préréglages",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Save as preset",
+    "path": "Réglages › Préréglages",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "What a preset is",
+    "path": "Réglages › Préréglages",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Shortcuts",
+    "path": "Réglages › Raccourcis",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Tablet actions",
+    "path": "Réglages › Raccourcis",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Move to next display",
+    "path": "Réglages › Raccourcis",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Not set",
+    "path": "Réglages › Raccourcis",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "About shortcuts",
+    "path": "Réglages › Raccourcis",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Themes",
+    "path": "Réglages › Thème › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Theme",
+    "path": "Réglages › Thème › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Lightness",
+    "path": "Réglages › Thème › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Dark",
+    "path": "Réglages › Thème › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Light",
+    "path": "Réglages › Thème › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Langue",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Enregistrement",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Enregistrer les modifications automatiquement",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Menu radial",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Afficher le menu radial",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Sauvegarde des réglages",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Exporter les réglages",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Importer des réglages",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Sauvegardes automatiques",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Afficher dans le Finder",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Fichier de diagnostic",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Créer le fichier de diagnostic",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Démarrer à la connexion",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Démarrer automatiquement à la connexion",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Ouvrir les éléments d'ouverture",
+    "path": "Réglages › Système",
+    "route": "settings/System"
+  },
+  {
+    "text": "Dépannage",
+    "path": "Réglages › Dépannage",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Redémarrer le pilote",
+    "path": "Réglages › Dépannage",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Rapport de diagnostic",
+    "path": "Réglages › Dépannage",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Créer le fichier de diagnostic",
+    "path": "Réglages › Dépannage",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Réinitialiser les autorisations",
+    "path": "Réglages › Dépannage",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Trigger health warnings",
+    "path": "Réglages › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Conflicting tablet driver detected",
+    "path": "Réglages › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Running as administrator",
+    "path": "Réglages › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tray icon can't be shown",
+    "path": "Réglages › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Using an external driver",
+    "path": "Réglages › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: mapped area partly off-screen",
+    "path": "Réglages › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: custom display mapping",
+    "path": "Réglages › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: using a custom config override",
+    "path": "Réglages › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: pen isn't set up for drawing",
+    "path": "Réglages › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Introduce config errors",
+    "path": "Réglages › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Map active area partly off-screen",
+    "path": "Réglages › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Push active area off-screen",
+    "path": "Réglages › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Rotate active area to a non-standard angle",
+    "path": "Réglages › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create a slightly-wrong calibration",
+    "path": "Réglages › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create off calibration",
+    "path": "Réglages › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Break the pen for drawing (artist health check)",
+    "path": "Réglages › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Turn off pen tip, pressure and tilt",
+    "path": "Réglages › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing (asserted)",
+    "path": "Réglages › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing",
+    "path": "Réglages › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Force a tablet in the list",
+    "path": "Réglages › Dev › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Add to tablet list",
+    "path": "Réglages › Dev › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Clear",
+    "path": "Réglages › Dev › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Tablet page extras",
+    "path": "Réglages › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Filters tab",
+    "path": "Réglages › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the JSON tab",
+    "path": "Réglages › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the ‘Cut below input minimum’ pressure option",
+    "path": "Réglages › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show card-role tags",
+    "path": "Réglages › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Advanced page extras",
+    "path": "Réglages › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Diagnostics tab",
+    "path": "Réglages › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Window size",
+    "path": "Réglages › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Current size",
+    "path": "Réglages › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Screenshots",
+    "path": "Réglages › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Screenshot all pages",
+    "path": "Réglages › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Format",
+    "path": "Réglages › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "On-page screenshot control",
+    "path": "Réglages › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "This app",
+    "path": "Avancé › Pilote",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Tablet App for Mac",
+    "path": "Avancé › Pilote",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not connected",
+    "path": "Avancé › Pilote",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Driver process",
+    "path": "Avancé › Pilote",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not running",
+    "path": "Avancé › Pilote",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Correctif du changement de fenêtre d'appli",
+    "path": "Avancé › Pilote",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Level",
+    "path": "Avancé › Console",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Auto-scroll",
+    "path": "Avancé › Console",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Driver not connected.",
+    "path": "Avancé › Console",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Copy",
+    "path": "Avancé › Console",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Clear",
+    "path": "Avancé › Console",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "No log messages yet.",
+    "path": "Avancé › Console",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Configurations folder",
+    "path": "Avancé › Configs",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Add tablet support",
+    "path": "Avancé › Configs",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Check for more configs",
+    "path": "Avancé › Configs",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Plugins installés",
+    "path": "Avancé › Plugins",
+    "route": "advanced/Plugins"
+  },
+  {
+    "text": "Tous les boutons",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Désactivé",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Activé",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Par défaut",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Bouton 1",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Bouton 2",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Bouton 3",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Space",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Bouton 4",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Control",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Bouton 5",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Shift",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Bouton 6",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Alt",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Bouton 7",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Bouton 8",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "À propos des ExpressKeys",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Anneau tactile",
+    "path": "Tablette › Fonctions › Anneau tactile",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Désactivé",
+    "path": "Tablette › Fonctions › Anneau tactile",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Activé",
+    "path": "Tablette › Fonctions › Anneau tactile",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Clockwise",
+    "path": "Tablette › Fonctions › Anneau tactile",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Do nothing",
+    "path": "Tablette › Fonctions › Anneau tactile",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Anticlockwise",
+    "path": "Tablette › Fonctions › Anneau tactile",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Touch Ring modes",
+    "path": "Tablette › Fonctions › Anneau tactile",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "À propos de l'anneau tactile",
+    "path": "Tablette › Fonctions › Anneau tactile",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Inclinaison",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Désactiver l'inclinaison",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Sensation de pointe",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Doux",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ferme",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Personnaliser",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Pression actuelle",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Clic",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Plein",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Correction du double-clic",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Désactivé",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Par défaut",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Grand",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Pression manuelle de la pointe",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Bouton 2",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Modified to Adaptive Binding (Button 1)",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Fix",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Bouton 1",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Réglage par défaut",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Pointe du stylet",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Réglages du menu radial",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Aucun bouton du stylet n'ouvre encore le menu radial",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Utiliser le bouton 2 du stylet",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Transparence du menu",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Taille du menu",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Mouvement",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Lissage de position",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Courbes rapides plus lisses",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Entrée du stylet",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Désactiver la pointe",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Désactiver la sensibilité à la pression",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Feel Details (shared by tip and eraser)",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Inclinaison",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Désactiver l'inclinaison",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Partagé avec le stylet.",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Sensation de la gomme",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Doux",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Ferme",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Personnaliser",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Pression actuelle",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Clic",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Plein",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Pression manuelle de la gomme",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Bouton 1",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Réglage par défaut",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Bouton 2",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Modified to Adaptive Binding (Button 1)",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Fix",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Gomme",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Mouvement",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Lissage de position",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Courbes rapides plus lisses",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Entrée de la gomme",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Désactiver la gomme",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Désactiver la sensibilité à la pression",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Feel details (shared with Pen)",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Taille",
+    "path": "Tablette › Stylet › Correspondance",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Rotation",
+    "path": "Tablette › Stylet › Correspondance",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Tablette",
+    "path": "Tablette › Stylet › Correspondance",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Zone active",
+    "path": "Tablette › Stylet › Correspondance",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Zone",
+    "path": "Tablette › Stylet › Correspondance",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Dimensions",
+    "path": "Tablette › Stylet › Correspondance",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Diagonale",
+    "path": "Tablette › Stylet › Correspondance",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Format d'image",
+    "path": "Tablette › Stylet › Correspondance",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Réglages d'affichage",
+    "path": "Tablette › Stylet › Correspondance",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Modèle",
+    "path": "Tablette › Plus › À propos",
+    "route": "tablet/ToolMoreButton/AboutTab"
+  },
+  {
+    "text": "This tablet",
+    "path": "Tablette › Plus › Étalonnage",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Not calibrated",
+    "path": "Tablette › Plus › Étalonnage",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "The calibration screen opens on your tablet's mapped display",
+    "path": "Tablette › Plus › Étalonnage",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Calibrate · 4 points",
+    "path": "Tablette › Plus › Étalonnage",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "About calibration",
+    "path": "Tablette › Plus › Étalonnage",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Hover limit",
+    "path": "Tablette › Plus › Survol",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Off",
+    "path": "Tablette › Plus › Survol",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "On",
+    "path": "Tablette › Plus › Survol",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Max hover",
+    "path": "Tablette › Plus › Survol",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Near proximity only",
+    "path": "Tablette › Plus › Survol",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "No filters configured",
+    "path": "Tablette › Plus › Filtres",
+    "route": "tablet/ToolMoreButton/FiltersTab"
+  }
+]

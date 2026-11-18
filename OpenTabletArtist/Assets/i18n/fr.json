@@ -667,5 +667,8 @@
   "save.status.unsaved_hint": "Vos modifications fonctionnent déjà. Cliquez sur « Enregistrer » pour les garder après un redémarrage.",
   "save.auto.section": "Enregistrement",
   "save.auto.toggle": "Enregistrer les modifications automatiquement",
-  "save.auto.description": "Comme avec le pilote Wacom : chaque modification est enregistrée aussitôt et reste après un redémarrage. Désactivé : les modifications fonctionnent toujours aussitôt, mais seul « Enregistrer » les garde."
+  "save.auto.description": "Comme avec le pilote Wacom : chaque modification est enregistrée aussitôt et reste après un redémarrage. Désactivé : les modifications fonctionnent toujours aussitôt, mais seul « Enregistrer » les garde.",
+  "search.label": "Rechercher dans les réglages",
+  "search.hint": "Trouver un réglage ou une fonction",
+  "search.none": "Aucun résultat. Essayez un autre mot."
 }

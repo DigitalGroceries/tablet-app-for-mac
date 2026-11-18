@@ -667,5 +667,8 @@
   "save.status.unsaved_hint": "Deine Änderungen wirken sofort. Klicke auf „Speichern“, damit sie einen Neustart überstehen.",
   "save.auto.section": "Speichern",
   "save.auto.toggle": "Änderungen automatisch speichern",
-  "save.auto.description": "Wie beim Wacom-Treiber: Jede Änderung wird sofort gespeichert und bleibt auch nach einem Neustart erhalten. Aus: Änderungen wirken weiter sofort, bleiben aber nur mit „Speichern“ erhalten."
+  "save.auto.description": "Wie beim Wacom-Treiber: Jede Änderung wird sofort gespeichert und bleibt auch nach einem Neustart erhalten. Aus: Änderungen wirken weiter sofort, bleiben aber nur mit „Speichern“ erhalten.",
+  "search.label": "Einstellungen suchen",
+  "search.hint": "Jede Einstellung oder Funktion finden",
+  "search.none": "Nichts gefunden. Versuch es mit einem anderen Wort."
 }

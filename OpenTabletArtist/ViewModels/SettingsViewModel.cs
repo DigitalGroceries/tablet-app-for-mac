@@ -59,9 +59,9 @@ public partial class SettingsViewModel : ObservableObject
         // capability — it removes somebody else's driver — and it is the longest page of the three, so it
         // took the whole right side while Startup and Shortcut are a toggle and a checkbox. Its own pivot
         // now, which also leaves System as a single column of two small cards.
-        object system = OperatingSystem.IsWindows()
+        object system = Services.UiPlatform.IsWindows
             ? new CompositeSectionViewModel(startup, shortcut)
-            : OperatingSystem.IsMacOS() ? startup   // Version 7: the "Start at login" switch
+            : Services.UiPlatform.IsMac ? startup   // Version 7: the "Start at login" switch
             : desktopEntry;
 
         // Both drivers the app manages, side by side: what is wrong with the machine's existing drivers on
@@ -77,7 +77,7 @@ public partial class SettingsViewModel : ObservableObject
             new(Localizer.T("settings.tab.drivers"), SettingsTab.Drivers, drivers),
             new(Localizer.T("settings.tab.troubleshoot"), SettingsTab.Troubleshooting, troubleshooting),
             new(Localizer.T("settings.tab.dev"), SettingsTab.Developer, developer),
-        }.Where(t => TabAppliesToOs(t.Tab, OperatingSystem.IsWindows(), OperatingSystem.IsLinux())).ToArray();
+        }.Where(t => TabAppliesToOs(t.Tab, Services.UiPlatform.IsWindows, Services.UiPlatform.IsLinux)).ToArray();
         Tabs = tabs;
         _allTabs = tabs;
 

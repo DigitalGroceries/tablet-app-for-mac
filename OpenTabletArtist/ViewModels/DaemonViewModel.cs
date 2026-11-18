@@ -328,7 +328,7 @@ public sealed partial class DaemonViewModel : ObservableObject, IDisposable
         : $"{AppVersion} · built against OTD {CurrentOtdVersion}";
 
     /// <summary>The RPM-package check only applies on Linux; the card is hidden on every other OS.</summary>
-    public bool IsLinux { get; } = OperatingSystem.IsLinux();
+    public bool IsLinux { get; } = UiPlatform.IsLinux;
 
     // OTD system-package state (Linux/RPM). Re-checked on-demand when the Daemon tab is shown and via the
     // card's Refresh button, so it reflects a package install/removal without an app restart.

@@ -33,10 +33,10 @@ public partial class StartupViewModel : ObservableObject
 
     // ---- Build P: macOS start at login (SMAppService.mainApp) ----
 
-    public bool LoginItemSupported => _auto.IsSupported;
+    public bool LoginItemSupported => _auto.IsSupported || UiPlatform.IsPretend;
 
     /// <summary>Build Q: on a Mac where SMAppService doesn't answer, say so instead of hiding the choice silently.</summary>
-    public bool LoginItemUnavailableOnMac => OperatingSystem.IsMacOS() && !_auto.IsSupported;
+    public bool LoginItemUnavailableOnMac => OperatingSystem.IsMacOS() && !_auto.IsSupported && !UiPlatform.IsPretend;
     public const string LoginUnavailableText =
         "Start at login isn't available on this Mac. Open the app yourself before using your tablet, or add it in System Settings › General › Login Items.";
 

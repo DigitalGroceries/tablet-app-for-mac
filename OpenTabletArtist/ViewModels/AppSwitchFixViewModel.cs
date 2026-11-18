@@ -10,7 +10,7 @@ public partial class AppSwitchFixViewModel : ObservableObject
     /// <summary>The driver part it controls exists on macOS only. Tests set this.</summary>
     public static bool ShowOnThisSystem { get; set; } = OperatingSystem.IsMacOS();
 
-    public bool IsShown => ShowOnThisSystem;
+    public bool IsShown => ShowOnThisSystem || UiPlatform.IsMac;
 
     public bool On
     {

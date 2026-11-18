@@ -49,7 +49,7 @@ public partial class TroubleshootingViewModel : ObservableObject
         "Clears this app’s Input Monitoring and Accessibility entries so macOS will ask again. macOS only.");
     public string PermButton => Localizer.Te("settings.troubleshoot.perm_button", "Reset permissions");
 
-    public bool ShowPermissionReset => OperatingSystem.IsMacOS();
+    public bool ShowPermissionReset => UiPlatform.IsMac;
 
     public IAsyncRelayCommand RestartDaemonCommand => _session.RestartDaemonCommand;
 

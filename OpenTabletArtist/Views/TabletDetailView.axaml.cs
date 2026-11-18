@@ -567,6 +567,23 @@ public partial class TabletDetailView : UserControl, ITabbedContent
             Vm?.RefreshDisplaysCommand.Execute(null);
     }
 
+    /// <summary>Version 29 (Setting search): open a Tool tile and one of its tabs by their names
+    /// ("ToolPenButton", "PenTab"), and, when given, a details panel that starts closed ("FeelDetails").
+    /// False when a name isn't on this page (an index older than the page).</summary>
+    public bool OpenSearchPlace(string tool, string tab, string? panel = null)
+    {
+        var tile = this.FindControl<RadioButton>(tool);
+        var pivot = this.FindControl<RadioButton>(tab);
+        if (tile is null || pivot is null || !ReferenceEquals(tile, ToolFunctionsButton) && !ReferenceEquals(tile, ToolPenButton)
+            && !ReferenceEquals(tile, ToolMoreButton)) return false;
+        SelectTool(tile);
+        pivot.IsChecked = true;
+        if (panel is null) return true;
+        if (this.FindControl<Control>(panel) is not { } details) return false;
+        details.IsVisible = true;
+        return true;
+    }
+
     // A deep-link arriving while the page is already shown — clear the pending flag (we're handling it
     // live) and switch tabs.
     private void OnTabRequested(TabletDetailTab tab)

@@ -39,6 +39,8 @@ public partial class MainWindow : Window
         // any later DataContext change. (#320)
         OnDataContextChanged(this, EventArgs.Empty);
         DataContextChanged += OnDataContextChanged;
+        // Version 29: the Setting search box follows the tabs' width (window size, language).
+        NavTabs.SizeChanged += (_, _) => FitSearchToTabs();
         // Regaining focus re-pulls settings so an external edit (e.g. the mapping changed in the OTD UX
         // while we were in the background) is picked up promptly rather than on the next fallback poll.
         Activated += (_, _) => (DataContext as MainViewModel)?.OnWindowActivated();
@@ -58,6 +60,7 @@ public partial class MainWindow : Window
         {
             if (_switchSub != null) { _switchSub.Switched -= OnProfileSwitched; _switchSub.SwitchFailed -= OnProfileSwitchFailed; _switchSub.RestoreFailed -= OnProfileRestoreFailed; }
             if (_cycleSub != null) _cycleSub.Cycled -= OnMonitorCycled;
+            WireSearch(null);
             Screens.Changed -= OnScreensChanged;
             ProfileToast.Dismiss();
             (DataContext as MainViewModel)?.Dispose();
@@ -78,6 +81,7 @@ public partial class MainWindow : Window
         _cycleSub = vm?.MonitorCycle;
         if (_switchSub != null) { _switchSub.Switched += OnProfileSwitched; _switchSub.SwitchFailed += OnProfileSwitchFailed; _switchSub.RestoreFailed += OnProfileRestoreFailed; }
         if (_cycleSub != null) _cycleSub.Cycled += OnMonitorCycled;
+        WireSearch(vm);
     }
 
     private void OnProfileSwitched(string? snapshot)

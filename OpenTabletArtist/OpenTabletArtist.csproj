@@ -120,6 +120,8 @@
     <InternalsVisibleTo Include="OpenTabletArtist.UiTests" />
     <!-- And AppLog.RedirectTo, so neither suite writes into the user's diagnostics file (#834). -->
     <InternalsVisibleTo Include="OpenTabletArtist.Tests" />
+    <!-- Version 29: the screenshots lay pages out as on a Mac (UiPlatform.PretendMac) on any machine. -->
+    <InternalsVisibleTo Include="OpenTabletArtist.SweepTests" />
   </ItemGroup>
 
 </Project>

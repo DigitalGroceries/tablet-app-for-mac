@@ -75,7 +75,10 @@
                 <!-- The wordmarks, left-aligned. (No brand mark here — the OS window caption + taskbar
                      already carry the app name; a second one read as a duplicate.) Wraps to a second row
                      on a narrow window instead of clipping. -->
-                <ItemsControl x:Name="NavTabs" Grid.Column="0" ItemsSource="{Binding NavSections}" VerticalAlignment="Top">
+                <!-- Version 29: on Home, the Setting search box sits under the tabs, from Home's left edge to
+                     Advanced's right edge (its width is set in code from where the tabs are). -->
+                <StackPanel x:Name="NavColumn" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left">
+                <ItemsControl x:Name="NavTabs" ItemsSource="{Binding NavSections}" VerticalAlignment="Top">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal" />
@@ -93,6 +96,10 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                <Panel x:Name="SettingSearchRow" IsVisible="{Binding ShowHomeLinks}" HorizontalAlignment="Left" Margin="0,6,0,4">
+                    <views:SettingSearchBox x:Name="SettingSearchHost" DataContext="{Binding Search}" HorizontalAlignment="Stretch" />
+                </Panel>
+                </StackPanel>
 
                 <!-- Right cluster: the tablet switcher (TABLET + PEN only), the dev screenshot aid (only
                      when enabled) + the version stamp, pinned to the top so the version sits just under the

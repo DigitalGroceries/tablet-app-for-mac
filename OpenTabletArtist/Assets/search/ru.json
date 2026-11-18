@@ -1,0 +1,1152 @@
+[
+  {
+    "text": "Ваши планшеты",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Нет подключённых или запомненных планшетов",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Выбрать планшет",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Справка",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Поддерживаемые планшеты",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Исходный код",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Релизы",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Отзывы",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Руководство",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Авторы и лицензии",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Проверить обновления сейчас",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Предыдущие версии",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Обновлять автоматически",
+    "path": "Главная",
+    "route": "home"
+  },
+  {
+    "text": "Кисть",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Очистить",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Копировать",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Отмечать позиции",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Запись",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Холст",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Сырые",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Наклон",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Давление",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Поворот",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "AZ/AL",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Наведение",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Частота",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Saved presets",
+    "path": "Настройки › Предустановки",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Save as preset",
+    "path": "Настройки › Предустановки",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "What a preset is",
+    "path": "Настройки › Предустановки",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Shortcuts",
+    "path": "Настройки › Горячие клавиши",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Tablet actions",
+    "path": "Настройки › Горячие клавиши",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Move to next display",
+    "path": "Настройки › Горячие клавиши",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Not set",
+    "path": "Настройки › Горячие клавиши",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "About shortcuts",
+    "path": "Настройки › Горячие клавиши",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Themes",
+    "path": "Настройки › Тема › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Theme",
+    "path": "Настройки › Тема › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Lightness",
+    "path": "Настройки › Тема › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Dark",
+    "path": "Настройки › Тема › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Light",
+    "path": "Настройки › Тема › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Язык",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Сохранение",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Сохранять изменения автоматически",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Радиальное меню",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Показывать радиальное меню",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Резервная копия настроек",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Экспортировать настройки",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Импортировать настройки",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Автоматические резервные копии",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Показать в Finder",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Файл диагностики",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Создать файл диагностики",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Запуск при входе",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Запускать автоматически при входе",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Открыть объекты входа",
+    "path": "Настройки › Система",
+    "route": "settings/System"
+  },
+  {
+    "text": "Устранение неисправностей",
+    "path": "Настройки › Устранение неисправностей",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Перезапустить драйвер",
+    "path": "Настройки › Устранение неисправностей",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Диагностический отчёт",
+    "path": "Настройки › Устранение неисправностей",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Создать диагностический файл",
+    "path": "Настройки › Устранение неисправностей",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Сбросить разрешения",
+    "path": "Настройки › Устранение неисправностей",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Trigger health warnings",
+    "path": "Настройки › Разработка › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Conflicting tablet driver detected",
+    "path": "Настройки › Разработка › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Running as administrator",
+    "path": "Настройки › Разработка › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tray icon can't be shown",
+    "path": "Настройки › Разработка › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Using an external driver",
+    "path": "Настройки › Разработка › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: mapped area partly off-screen",
+    "path": "Настройки › Разработка › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: custom display mapping",
+    "path": "Настройки › Разработка › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: using a custom config override",
+    "path": "Настройки › Разработка › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: pen isn't set up for drawing",
+    "path": "Настройки › Разработка › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Introduce config errors",
+    "path": "Настройки › Разработка › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Map active area partly off-screen",
+    "path": "Настройки › Разработка › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Push active area off-screen",
+    "path": "Настройки › Разработка › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Rotate active area to a non-standard angle",
+    "path": "Настройки › Разработка › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create a slightly-wrong calibration",
+    "path": "Настройки › Разработка › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create off calibration",
+    "path": "Настройки › Разработка › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Break the pen for drawing (artist health check)",
+    "path": "Настройки › Разработка › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Turn off pen tip, pressure and tilt",
+    "path": "Настройки › Разработка › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing (asserted)",
+    "path": "Настройки › Разработка › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing",
+    "path": "Настройки › Разработка › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Force a tablet in the list",
+    "path": "Настройки › Разработка › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Add to tablet list",
+    "path": "Настройки › Разработка › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Clear",
+    "path": "Настройки › Разработка › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Tablet page extras",
+    "path": "Настройки › Разработка › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Filters tab",
+    "path": "Настройки › Разработка › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the JSON tab",
+    "path": "Настройки › Разработка › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the ‘Cut below input minimum’ pressure option",
+    "path": "Настройки › Разработка › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show card-role tags",
+    "path": "Настройки › Разработка › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Advanced page extras",
+    "path": "Настройки › Разработка › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Diagnostics tab",
+    "path": "Настройки › Разработка › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Window size",
+    "path": "Настройки › Разработка › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Current size",
+    "path": "Настройки › Разработка › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Screenshots",
+    "path": "Настройки › Разработка › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Screenshot all pages",
+    "path": "Настройки › Разработка › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Format",
+    "path": "Настройки › Разработка › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "On-page screenshot control",
+    "path": "Настройки › Разработка › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "This app",
+    "path": "Дополнительно › Служба",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Tablet App for Mac",
+    "path": "Дополнительно › Служба",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not connected",
+    "path": "Дополнительно › Служба",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Driver process",
+    "path": "Дополнительно › Служба",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not running",
+    "path": "Дополнительно › Служба",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Исправление переключения окон программ",
+    "path": "Дополнительно › Служба",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Level",
+    "path": "Дополнительно › Консоль",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Auto-scroll",
+    "path": "Дополнительно › Консоль",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Driver not connected.",
+    "path": "Дополнительно › Консоль",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Copy",
+    "path": "Дополнительно › Консоль",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Clear",
+    "path": "Дополнительно › Консоль",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "No log messages yet.",
+    "path": "Дополнительно › Консоль",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Configurations folder",
+    "path": "Дополнительно › Конфиг",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Add tablet support",
+    "path": "Дополнительно › Конфиг",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Check for more configs",
+    "path": "Дополнительно › Конфиг",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Установленные плагины",
+    "path": "Дополнительно › Плагины",
+    "route": "advanced/Plugins"
+  },
+  {
+    "text": "Все кнопки",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Выкл.",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Вкл.",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "По умолчанию",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Кнопка 1",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Кнопка 2",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Кнопка 3",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Space",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Кнопка 4",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Control",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Кнопка 5",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Shift",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Кнопка 6",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Alt",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Кнопка 7",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Кнопка 8",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Об ExpressKeys",
+    "path": "Планшет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Тач-ринг",
+    "path": "Планшет › Функции › Тач-ринг",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Выкл.",
+    "path": "Планшет › Функции › Тач-ринг",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Вкл.",
+    "path": "Планшет › Функции › Тач-ринг",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Clockwise",
+    "path": "Планшет › Функции › Тач-ринг",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Do nothing",
+    "path": "Планшет › Функции › Тач-ринг",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Anticlockwise",
+    "path": "Планшет › Функции › Тач-ринг",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Touch Ring modes",
+    "path": "Планшет › Функции › Тач-ринг",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "О тач-ринге",
+    "path": "Планшет › Функции › Тач-ринг",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Наклон",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Отключить наклон",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ощущение пера",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Мягко",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Жёстко",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Настроить",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Текущее давление",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Клик",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Полное",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Исправление двойного щелчка",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Выкл.",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "По умолчанию",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Большое",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ручное давление пера",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Кнопка 2",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Modified to Adaptive Binding (Button 1)",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Fix",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Кнопка 1",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Настройка по умолчанию",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Наконечник пера",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Настройки радиального меню",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Пока ни одна кнопка пера не открывает радиальное меню",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Использовать кнопку пера 2",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Прозрачность меню",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Размер меню",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Движение",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Сглаживание позиции",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Более плавные быстрые кривые",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ввод пером",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Отключить наконечник",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Отключить чувствительность к давлению",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Feel Details (shared by tip and eraser)",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Наклон",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Отключить наклон",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Общее с пером.",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Ощущение ластика",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Мягко",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Жёстко",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Настроить",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Текущее давление",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Клик",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Полное",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Ручное давление ластика",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Кнопка 1",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Настройка по умолчанию",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Кнопка 2",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Modified to Adaptive Binding (Button 1)",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Fix",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Ластик",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Движение",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Сглаживание позиции",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Более плавные быстрые кривые",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Ввод ластика",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Отключить ластик",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Отключить чувствительность к давлению",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Feel details (shared with Pen)",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Размер",
+    "path": "Планшет › Перо › Привязка",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Поворот",
+    "path": "Планшет › Перо › Привязка",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Планшет",
+    "path": "Планшет › Перо › Привязка",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Активная область",
+    "path": "Планшет › Перо › Привязка",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Область",
+    "path": "Планшет › Перо › Привязка",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Размеры",
+    "path": "Планшет › Перо › Привязка",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Диагональ",
+    "path": "Планшет › Перо › Привязка",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Соотношение сторон",
+    "path": "Планшет › Перо › Привязка",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Параметры дисплея",
+    "path": "Планшет › Перо › Привязка",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Модель",
+    "path": "Планшет › Ещё › Сведения",
+    "route": "tablet/ToolMoreButton/AboutTab"
+  },
+  {
+    "text": "This tablet",
+    "path": "Планшет › Ещё › Калибровка",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Not calibrated",
+    "path": "Планшет › Ещё › Калибровка",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "The calibration screen opens on your tablet's mapped display",
+    "path": "Планшет › Ещё › Калибровка",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Calibrate · 4 points",
+    "path": "Планшет › Ещё › Калибровка",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "About calibration",
+    "path": "Планшет › Ещё › Калибровка",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Hover limit",
+    "path": "Планшет › Ещё › Наведение",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Off",
+    "path": "Планшет › Ещё › Наведение",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "On",
+    "path": "Планшет › Ещё › Наведение",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Max hover",
+    "path": "Планшет › Ещё › Наведение",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Near proximity only",
+    "path": "Планшет › Ещё › Наведение",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "No filters configured",
+    "path": "Планшет › Ещё › Фильтры",
+    "route": "tablet/ToolMoreButton/FiltersTab"
+  }
+]

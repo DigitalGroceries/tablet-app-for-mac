@@ -667,5 +667,8 @@
   "save.status.unsaved_hint": "更改已生效。点击“保存”，重启后也会保留。",
   "save.auto.section": "保存",
   "save.auto.toggle": "自动保存更改",
-  "save.auto.description": "与 Wacom 驱动一样：每项更改都会立即保存，重启后也会保留。关闭：更改仍会立即生效，但只有点击“保存”后才会保留。"
+  "save.auto.description": "与 Wacom 驱动一样：每项更改都会立即保存，重启后也会保留。关闭：更改仍会立即生效，但只有点击“保存”后才会保留。",
+  "search.label": "搜索设置",
+  "search.hint": "查找任意设置或功能",
+  "search.none": "未找到结果。请换个词试试。"
 }

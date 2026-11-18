@@ -667,5 +667,8 @@
   "save.status.unsaved_hint": "Tus cambios ya funcionan. Haz clic en «Guardar» para conservarlos después de reiniciar.",
   "save.auto.section": "Guardado",
   "save.auto.toggle": "Guardar los cambios automáticamente",
-  "save.auto.description": "Como con el controlador de Wacom: cada cambio se guarda al instante y se conserva también después de reiniciar. Desactivado: los cambios siguen funcionando al instante, pero solo «Guardar» los conserva."
+  "save.auto.description": "Como con el controlador de Wacom: cada cambio se guarda al instante y se conserva también después de reiniciar. Desactivado: los cambios siguen funcionando al instante, pero solo «Guardar» los conserva.",
+  "search.label": "Buscar ajustes",
+  "search.hint": "Encontrar cualquier ajuste o función",
+  "search.none": "No se encontró nada. Prueba con otra palabra."
 }

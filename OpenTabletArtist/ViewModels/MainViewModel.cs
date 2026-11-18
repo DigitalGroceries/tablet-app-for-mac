@@ -1215,8 +1215,29 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// follows ActiveTabletName like the others.
     /// </para></summary>
     public bool ShowTabletSwitcher => CurrentPage is TabletPageViewModel or TestViewModel;
-    /// <summary>Build R6: Home's six links sit in the nav row's right cluster, top-aligned with the tabs.</summary>
+    /// <summary>Build R6: Home's six links sit in the nav row's right cluster, top-aligned with the tabs.
+    /// Version 29: the Setting search box under the tabs shows on Home too.</summary>
     public bool ShowHomeLinks => CurrentPage is DashboardViewModel;
+
+    /// <summary>Version 29: Home's "Setting search" box.</summary>
+    public SettingSearchViewModel Search { get; } = new();
+
+    /// <summary>Version 29: open the page and tab a setting-search route names (the window then opens the
+    /// sub-tab and marks the words). False for a route this app doesn't know.</summary>
+    public bool OpenSearchPage(Services.SettingSearchRoute route)
+    {
+        switch (route.Page)
+        {
+            case "home": Navigate(Dashboard); return true;
+            case "scribble": Navigate(Test); return true;
+            case "tablet": Navigate(TabletPage); return true;
+            case "settings" when Enum.TryParse<SettingsTab>(route.Tab, out var s):
+                OpenSettingsTab(s); return true;
+            case "advanced" when Enum.TryParse<AdvancedTab>(route.Tab, out var a):
+                OpenAdvancedTab(a); return true;
+            default: return false;
+        }
+    }
 
     private bool _disposed;
 
