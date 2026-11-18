@@ -670,5 +670,9 @@
   "save.auto.description": "Like the Wacom driver: every change is kept at once, also after a restart. Off: changes still work at once, but only Save keeps them.",
   "search.label": "Setting search",
   "search.hint": "Find any setting or function",
-  "search.none": "Nothing found. Try another word."
+  "search.none": "Nothing found. Try another word.",
+  "tablet.about.touch_speed": "Touch speed",
+  "tablet.about.touch_speed_hint": "How far the pointer goes when one finger moves. Higher is faster. 50 is the speed of Version 28.",
+  "tablet.about.scroll_momentum": "Scroll momentum",
+  "tablet.about.scroll_momentum_hint": "Two-finger scrolling keeps going for a moment after you lift your fingers, then slows to a stop, like a Mac trackpad. Touch the tablet to stop it."
 }

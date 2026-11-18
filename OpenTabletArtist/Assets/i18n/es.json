@@ -670,5 +670,9 @@
   "save.auto.description": "Como con el controlador de Wacom: cada cambio se guarda al instante y se conserva también después de reiniciar. Desactivado: los cambios siguen funcionando al instante, pero solo «Guardar» los conserva.",
   "search.label": "Buscar ajustes",
   "search.hint": "Encontrar cualquier ajuste o función",
-  "search.none": "No se encontró nada. Prueba con otra palabra."
+  "search.none": "No se encontró nada. Prueba con otra palabra.",
+  "tablet.about.touch_speed": "Velocidad táctil",
+  "tablet.about.touch_speed_hint": "Cuánto se mueve el puntero cuando mueves un dedo. Cuanto mayor sea el valor, más rápido se mueve. 50 es la velocidad de la versión 28.",
+  "tablet.about.scroll_momentum": "Inercia del desplazamiento",
+  "tablet.about.scroll_momentum_hint": "El desplazamiento con dos dedos sigue un momento después de levantar los dedos y luego se frena hasta parar, como en un trackpad de Mac. Toca la tableta para detenerlo."
 }

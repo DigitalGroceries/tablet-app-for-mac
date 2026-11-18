@@ -600,6 +600,23 @@
                             <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="On" OffContent="Off"
                                           IsChecked="{Binding TouchTrackpadEnabled}" />
                         </Grid>
+                        <!-- Version 29 (#90, Daniel): how fast one finger moves the pointer, and the scroll glide. -->
+                        <StackPanel x:Name="TouchFeel" Spacing="4" Margin="0,10,0,0" IsVisible="{Binding TouchTrackpadAvailable}">
+                            <ctrl:LabeledSlider x:Name="TouchSpeedSlider" Label="{Binding TouchSpeedLabel}" LabelWidth="130"
+                                                Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
+                                                Value="{Binding TouchSpeed}" ValueTextOverride="{Binding TouchSpeedText}"
+                                                Monospace="True" ValueWidth="40" />
+                            <TextBlock x:Name="TouchSpeedHint" Text="{Binding TouchSpeedHint}" TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{DynamicResource TextMutedBrush}" />
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,6,0,0">
+                                <TextBlock x:Name="LblScrollMomentum" Text="{Binding ScrollMomentumLabel}"
+                                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                                <ToggleSwitch x:Name="ScrollMomentumSwitch" Grid.Column="1" VerticalAlignment="Center"
+                                              OnContent="On" OffContent="Off" IsChecked="{Binding ScrollMomentum}" />
+                            </Grid>
+                            <TextBlock x:Name="ScrollMomentumHint" Text="{Binding ScrollMomentumHint}" TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{DynamicResource TextMutedBrush}" />
+                        </StackPanel>
                     </StackPanel>
                 </ctrl:Section>
                 </StackPanel>

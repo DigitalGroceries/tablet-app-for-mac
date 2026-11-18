@@ -670,5 +670,9 @@
   "save.auto.description": "Wie beim Wacom-Treiber: Jede Änderung wird sofort gespeichert und bleibt auch nach einem Neustart erhalten. Aus: Änderungen wirken weiter sofort, bleiben aber nur mit „Speichern“ erhalten.",
   "search.label": "Einstellungen suchen",
   "search.hint": "Jede Einstellung oder Funktion finden",
-  "search.none": "Nichts gefunden. Versuch es mit einem anderen Wort."
+  "search.none": "Nichts gefunden. Versuch es mit einem anderen Wort.",
+  "tablet.about.touch_speed": "Touch-Geschwindigkeit",
+  "tablet.about.touch_speed_hint": "Wie weit sich der Zeiger bewegt, wenn man einen Finger bewegt. Höher ist schneller. 50 entspricht der Geschwindigkeit von Version 28.",
+  "tablet.about.scroll_momentum": "Scroll-Trägheit",
+  "tablet.about.scroll_momentum_hint": "Das Scrollen mit zwei Fingern läuft nach dem Anheben der Finger kurz weiter und wird dann langsamer, wie bei einem Mac-Trackpad. Tippe auf das Tablet, um es anzuhalten."
 }

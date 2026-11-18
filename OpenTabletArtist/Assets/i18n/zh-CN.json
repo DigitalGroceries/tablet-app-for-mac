@@ -670,5 +670,9 @@
   "save.auto.description": "与 Wacom 驱动一样：每项更改都会立即保存，重启后也会保留。关闭：更改仍会立即生效，但只有点击“保存”后才会保留。",
   "search.label": "搜索设置",
   "search.hint": "查找任意设置或功能",
-  "search.none": "未找到结果。请换个词试试。"
+  "search.none": "未找到结果。请换个词试试。",
+  "tablet.about.touch_speed": "触控速度",
+  "tablet.about.touch_speed_hint": "单指移动时指针的移动距离。数值越大，速度越快。50 为第 28 版的速度。",
+  "tablet.about.scroll_momentum": "滚动惯性",
+  "tablet.about.scroll_momentum_hint": "双指滚动在抬起手指后会继续片刻，然后逐渐减速停止，就像 Mac 触控板一样。触碰数位板即可停止。"
 }

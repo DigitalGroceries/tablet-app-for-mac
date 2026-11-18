@@ -32,6 +32,49 @@ public static class TouchTrackpad
     /// <summary>The filter setting that says whether finger touch moves the pointer (the plugin's TouchOn).</summary>
     public const string TouchOnProperty = "TouchOn";
 
+    /// <summary>Version 29 (#90, Daniel): the plugin's Touch speed (1-100, 50 = Version 28's speed) and Scroll momentum.</summary>
+    public const string TouchSpeedProperty = "TouchSpeed";
+    public const string ScrollMomentumProperty = "ScrollMomentum";
+    public const int DefaultTouchSpeed = 50;
+
+    private static PluginSettingStore? Store(Profile? profile) =>
+        profile?.Filters?.OfType<PluginSettingStore>().FirstOrDefault(f => f.Path == FilterTypeName);
+
+    private static T Read<T>(Profile? profile, string property, T fallback)
+    {
+        var setting = Store(profile)?.Settings?.FirstOrDefault(x => x.Property == property);
+        if (setting?.Value == null) return fallback;
+        try { return setting.GetValue<T>(); }
+        catch (Exception) { return fallback; }
+    }
+
+    /// <summary>The Touch speed stored for this tablet, 1-100 (50 when none is stored yet).</summary>
+    public static int ReadSpeed(Profile? profile) => Math.Clamp(Read(profile, TouchSpeedProperty, DefaultTouchSpeed), 1, 100);
+
+    /// <summary>Whether two-finger scrolling glides on after the fingers lift (off when nothing is stored).</summary>
+    public static bool ReadMomentum(Profile? profile) => Read(profile, ScrollMomentumProperty, false);
+
+    private static void Set(PluginSettingStore store, string property, object value)
+    {
+        store.Settings ??= new System.Collections.ObjectModel.ObservableCollection<PluginSetting>();
+        foreach (var old in store.Settings.Where(x => x.Property == property).ToList()) store.Settings.Remove(old);
+        store.Settings.Add(new PluginSetting(property, value));
+    }
+
+    /// <summary>The tablet page's Touch speed and Scroll momentum. Mutates <paramref name="settings"/>; adds the filter
+    /// (with touch's starting state) if the tablet has none yet; no-op for other tablets.</summary>
+    public static void WriteFeel(Settings? settings, string tabletName, int speed, bool momentum)
+    {
+        var profile = settings?.Profiles?.FirstOrDefault(p => p.Tablet == tabletName);
+        if (profile?.Filters == null || !Wanted(profile)) return;
+        SyncFilter(profile);
+        foreach (var f in profile.Filters.OfType<PluginSettingStore>().Where(f => f.Path == FilterTypeName))
+        {
+            Set(f, TouchSpeedProperty, Math.Clamp(speed, 1, 100));
+            Set(f, ScrollMomentumProperty, momentum);
+        }
+    }
+
     /// <summary>Whether touch starts on for a tablet the app hasn't set up yet: only the PTH-651.</summary>
     public static bool StartsOn(string? tabletName) => tabletName == "Wacom PTH-651";
 

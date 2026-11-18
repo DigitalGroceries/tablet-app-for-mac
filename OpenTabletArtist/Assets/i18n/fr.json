@@ -670,5 +670,9 @@
   "save.auto.description": "Comme avec le pilote Wacom : chaque modification est enregistrée aussitôt et reste après un redémarrage. Désactivé : les modifications fonctionnent toujours aussitôt, mais seul « Enregistrer » les garde.",
   "search.label": "Rechercher dans les réglages",
   "search.hint": "Trouver un réglage ou une fonction",
-  "search.none": "Aucun résultat. Essayez un autre mot."
+  "search.none": "Aucun résultat. Essayez un autre mot.",
+  "tablet.about.touch_speed": "Vitesse tactile",
+  "tablet.about.touch_speed_hint": "Distance parcourue par le pointeur quand un doigt bouge. Plus la valeur est élevée, plus le pointeur se déplace vite. 50 correspond à la vitesse de la version 28.",
+  "tablet.about.scroll_momentum": "Inertie du défilement",
+  "tablet.about.scroll_momentum_hint": "Le défilement à deux doigts continue un instant après que vous levez les doigts, puis ralentit jusqu’à s’arrêter, comme sur un trackpad de Mac. Touchez la tablette pour l’arrêter."
 }

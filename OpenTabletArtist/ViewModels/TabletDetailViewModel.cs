@@ -102,6 +102,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         Hover = 2,
         WheelThreshold = 4,
         Size = 8,
+        Touch = 16,
     }
 
     /// <summary>The user has edited <paramref name="group"/>; its persist has not run yet.</summary>
@@ -1042,6 +1043,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(WheelEnableLabel));
         OnPropertyChanged(nameof(WheelAboutEnableText));
         RefreshRadialSpot();   // TASKS #63: the radial picture's texts follow the language
+        foreach (var n in new[] { nameof(TouchSpeedLabel), nameof(TouchSpeedHint), nameof(ScrollMomentumLabel), nameof(ScrollMomentumHint) })
+            OnPropertyChanged(n);
     }
 
     // ── ABOUT tab's active-area diagram ─────────────────────────────────────────────────────────────
@@ -1184,6 +1187,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _unsubmitted = DraftGroup.None;
         _persistDebounce.CancelPending();
         _hoverPersistDebounce.CancelPending();
+        _touchPersistDebounce.CancelPending();
         _sizeDebounce.CancelPending();
         _wheelThresholdDebounce.CancelPending();
         _pendingThresholds.Clear();
@@ -1198,6 +1202,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         await _persistDebounce.FlushAsync();
         await _hoverPersistDebounce.FlushAsync();
+        await _touchPersistDebounce.FlushAsync();
         await _sizeDebounce.FlushAsync();
         await _wheelThresholdDebounce.FlushAsync();
     }
@@ -1612,6 +1617,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         TouchTrackpadAvailable = Domain.TouchTrackpad.Wanted(_profile);
         TouchTrackpadEnabled = Domain.TouchTrackpad.IsOn(_profile,
             _deviceData is not Services.IConnectionState c || c.IsAppOwnedDaemon);
+        TouchSpeed = Domain.TouchTrackpad.ReadSpeed(_profile);
+        ScrollMomentum = Domain.TouchTrackpad.ReadMomentum(_profile);
         _skipTouchPersist = false;
 
         RefreshCalibrationStatus();
@@ -3208,6 +3215,43 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         TakeOutcome(await SubmitAsync(_settings), draft);
     }
 
+    // Version 29 (#90, Daniel): how fast one finger moves the pointer, and the scroll glide.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TouchSpeedText))]
+    private double _touchSpeed = Domain.TouchTrackpad.DefaultTouchSpeed;
+    [ObservableProperty] private bool _scrollMomentum;
+
+    public string TouchSpeedText => ((int)Math.Round(TouchSpeed)).ToString();
+    public string TouchSpeedLabel => Localizer.Te("tablet.about.touch_speed", "Touch speed");
+    public string TouchSpeedHint => Localizer.Te("tablet.about.touch_speed_hint",
+        "How far the pointer goes when one finger moves. Higher is faster. 50 is the speed of Version 28.");
+    public string ScrollMomentumLabel => Localizer.Te("tablet.about.scroll_momentum", "Scroll momentum");
+    public string ScrollMomentumHint => Localizer.Te("tablet.about.scroll_momentum_hint",
+        "Two-finger scrolling keeps going for a moment after you lift your fingers, then slows to a stop, like a Mac trackpad. Touch the tablet to stop it.");
+
+    private readonly TrailingDebounce _touchPersistDebounce = new(300, "touch");
+
+    partial void OnTouchSpeedChanged(double value) => SchedulePersistTouchFeel();
+    partial void OnScrollMomentumChanged(bool value) => SchedulePersistTouchFeel();
+
+    private void SchedulePersistTouchFeel()
+    {
+        if (_skipTouchPersist || _applyAction == null || _settings == null) return;
+        NoteDraftEdit(DraftGroup.Touch);
+        _touchPersistDebounce.Schedule(PersistTouchFeelAsync);
+    }
+
+    private async Task PersistTouchFeelAsync()
+    {
+        DraftSubmitted(DraftGroup.Touch);
+        if (_applyAction == null || _settings == null) return;
+        var draft = _draftGeneration;
+        Domain.TouchTrackpad.WriteFeel(_settings, _profile.Tablet ?? "", (int)Math.Round(TouchSpeed), ScrollMomentum);
+        UpdateFiltersDisplay();
+        AppLog.Info($"Touch: speed {(int)Math.Round(TouchSpeed)}, scroll momentum {(ScrollMomentum ? "on" : "off")} for {_profile.Tablet}.");
+        TakeOutcome(await SubmitAsync(_settings), draft);
+    }
+
     // ── Hover limit tab (#188) ──────────────────────────────────
 
     public const int DefaultMaxHoverDistance = 127; // sensible mid-point when first enabled (range 0-255)
@@ -3280,6 +3324,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _persistDebounce.Dispose();
         _sizeDebounce.Dispose();
         _hoverPersistDebounce.Dispose();
+        _touchPersistDebounce.Dispose();
         _mappingApplyGate.Dispose();
     }
 }

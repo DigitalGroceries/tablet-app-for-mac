@@ -670,5 +670,9 @@
   "save.auto.description": "Wacom ドライバと同じく、変更はすぐに保存され、再起動後も保持されます。オフ：変更はすぐに有効になりますが、保持されるのは「保存」をクリックしたときだけです。",
   "search.label": "設定を検索",
   "search.hint": "設定や機能を検索できます",
-  "search.none": "見つかりませんでした。別の言葉で試してください。"
+  "search.none": "見つかりませんでした。別の言葉で試してください。",
+  "tablet.about.touch_speed": "タッチの速度",
+  "tablet.about.touch_speed_hint": "指を1本動かしたときにポインタが動く距離です。大きいほど速くなります。50はバージョン28の速度です。",
+  "tablet.about.scroll_momentum": "スクロールの慣性",
+  "tablet.about.scroll_momentum_hint": "2本指のスクロールが指を離した後も少し続き、Macのトラックパッドのように徐々に止まります。タブレットに触れると止まります。"
 }
