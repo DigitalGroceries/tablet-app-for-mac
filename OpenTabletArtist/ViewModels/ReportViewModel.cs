@@ -257,6 +257,16 @@ public partial class ReportViewModel : ObservableObject
     private async Task SendFile()
     {
         if (PickSaveFile == null) return;
+        // Version 29 (Zak, 17 Nov 2026): with the email box empty, ask first - never block. Andrea's upload came with
+        // no email and Dropbox shows us none, so we couldn't answer.
+        if (AskForEmail && !_sendWithoutEmail && string.IsNullOrWhiteSpace(Email))
+        {
+            AskingEmail = true;
+            AppLog.Info("Report: Send with file with no email - asked whether to add one.");
+            return;
+        }
+        _sendWithoutEmail = false;
+        AskingEmail = false;
         string? target;
         try { target = await PickSaveFile(DiagnosticBundle.SuggestedFileName(DateTime.Now)); }
         catch (Exception ex) { AppLog.Warn("Report: the save panel failed.", ex); Failed(ex); return; }
@@ -284,6 +294,39 @@ public partial class ReportViewModel : ObservableObject
             try { if (Directory.Exists(temp)) Directory.Delete(temp, recursive: true); }
             catch (Exception ex) { AppLog.Debug("Report: couldn't remove the temporary folder.", ex); }
         }
+    }
+
+    /// <summary>Version 29: ask "Send without your email?" when Send with file is pressed with the email box empty.
+    /// The report window turns it on; it never blocks sending.</summary>
+    public bool AskForEmail { get; set; }
+    /// <summary>True while the question is shown in the sheet.</summary>
+    [ObservableProperty] private bool _askingEmail;
+    private bool _sendWithoutEmail;
+    /// <summary>Raised by "Add my email": the window puts the cursor in the email box.</summary>
+    public event Action? FocusEmailRequested;
+
+    public string EmailQuestion => Localizer.Te("report.email_ask",
+        "Send without your email? We can only reply to you, and help fix your problem, if you leave your email.");
+    public string AddEmailLabel => Localizer.Te("report.email_ask.add", "Add my email");
+    public string SendWithoutEmailLabel => Localizer.Te("report.email_ask.send_without", "Send without");
+
+    /// <summary>"Add my email": the question goes away and the cursor goes to the email box.</summary>
+    [RelayCommand]
+    private void AddEmail()
+    {
+        AskingEmail = false;
+        AppLog.Info("Report: chose to add an email.");
+        FocusEmailRequested?.Invoke();
+    }
+
+    /// <summary>"Send without": carries on with Send with file as before.</summary>
+    [RelayCommand]
+    private async Task SendWithoutEmail()
+    {
+        AskingEmail = false;
+        _sendWithoutEmail = true;
+        AppLog.Info("Report: chose to send without an email.");
+        await SendFile();
     }
 
     /// <summary>"Open upload page" on the saved message (Digital Groceries' Dropbox file request).</summary>

@@ -44,6 +44,10 @@ public class V23ReportShots
             vm.Reveal = _ => { };
             await vm.SendFileCommand.ExecuteAsync(null);
             Dispatcher.UIThread.RunJobs(); mw.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+            // Version 29: with no email the sheet asks first ("Send without your email?").
+            mw.CaptureRenderedFrame()!.Save($"{Dir}/report-{lang}-2a-ask-email.png");
+            await vm.SendWithoutEmailCommand.ExecuteAsync(null);
+            Dispatcher.UIThread.RunJobs(); mw.UpdateLayout(); Dispatcher.UIThread.RunJobs();
             mw.CaptureRenderedFrame()!.Save($"{Dir}/report-{lang}-2-saved.png");
             vm.DoneCommand.Execute(null);
             Dispatcher.UIThread.RunJobs();

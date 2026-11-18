@@ -90,6 +90,13 @@ public class ReportSheetTests
             await vm.SendFileCommand.ExecuteAsync(null);
             Dispatcher.UIThread.RunJobs();
 
+            // Version 29 (Zak, 17 Nov 2026): the email box is empty, so the sheet asks first and saves nothing yet.
+            var sheet0 = mw.GetVisualDescendants().OfType<Border>().First(b => b.Name == "Sheet");
+            Assert.True(sheet0.GetVisualDescendants().OfType<StackPanel>().First(p => p.Name == "ReportEmailAsk").IsVisible);
+            Assert.False(File.Exists(target));
+            await vm.SendWithoutEmailCommand.ExecuteAsync(null);
+            Dispatcher.UIThread.RunJobs();
+
             Assert.True(File.Exists(target));
             Assert.True(ReportWindow.IsOpen);
             var sheet = mw.GetVisualDescendants().OfType<Border>().First(b => b.Name == "Sheet");

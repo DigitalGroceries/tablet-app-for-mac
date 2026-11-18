@@ -144,6 +144,22 @@ public sealed class ReportWindow : Window
         var status = new TextBlock { Name = "ReportStatus", Text = vm.Status, TextWrapping = TextWrapping.Wrap, IsVisible = vm.Status.Length > 0 }.Fg();
         body.Children.Add(status);
 
+        // Version 29 (Zak, 17 Nov 2026): Send with file with the email box empty asks first, inside the sheet.
+        vm.AskForEmail = true;
+        var askAdd = new Button { Name = "ReportEmailAskAdd", Content = vm.AddEmailLabel, Padding = new Thickness(16, 8), Command = vm.AddEmailCommand };
+        var askSend = new Button { Name = "ReportEmailAskSendWithout", Content = vm.SendWithoutEmailLabel, Padding = new Thickness(16, 8), Command = vm.SendWithoutEmailCommand };
+        var ask = new StackPanel
+        {
+            Name = "ReportEmailAsk", Spacing = 8, IsVisible = vm.AskingEmail,
+            Children =
+            {
+                new TextBlock { Name = "ReportEmailAskText", Text = vm.EmailQuestion, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }.Fg(),
+                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right, Children = { askAdd, askSend } },
+            },
+        };
+        body.Children.Add(ask);
+        vm.FocusEmailRequested += () => email.Focus();
+
         var cancel = new Button { Name = "ReportCancel", Content = vm.CancelLabel, Padding = new Thickness(16, 8), Command = vm.CancelCommand };
         // Owner's request: feedback with or without a GitHub account. The file needs no account, so it comes first.
         var file = new Button { Name = "ReportSendFile", Content = vm.SendFileLabel, Padding = new Thickness(16, 8), Command = vm.SendFileCommand };
@@ -193,6 +209,7 @@ public sealed class ReportWindow : Window
             if (e.PropertyName == nameof(ReportViewModel.RecordStatus)) recordStatus.Text = vm.RecordStatus;
             if (e.PropertyName == nameof(ReportViewModel.Status)) { status.Text = vm.Status; status.IsVisible = vm.Status.Length > 0; }
             if (e.PropertyName == nameof(ReportViewModel.SavedPath)) ShowSaved();
+            if (e.PropertyName == nameof(ReportViewModel.AskingEmail)) { ask.IsVisible = vm.AskingEmail; if (vm.AskingEmail) askAdd.Focus(); }
         };
         vm.Finished += _ => Close();
         Opened += (_, _) => text.Focus();
