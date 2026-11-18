@@ -57,4 +57,36 @@ public class V29SearchShots
             SettingSearch.ResetForTests();
         }
     }
+
+    /// <summary>Item 4: the new languages' longest tab names (Swedish FÖRINSTÄLLNINGAR, KONFIGURATIONER) on screen.</summary>
+    [AvaloniaTheory]
+    [InlineData("it")]
+    [InlineData("sv")]
+    [InlineData("pt-BR")]
+    public void New_language_pages(string lang)
+    {
+        Localizer.SetPreference(lang);
+        SettingSearch.ResetForTests();
+        using var mac = UiPlatform.PretendMac();
+        var w = new MainWindow { Width = 1100, Height = 760 };
+        w.Show();
+        try
+        {
+            var vm = (MainViewModel)w.DataContext!;
+            Directory.CreateDirectory(Dir);
+            foreach (var (name, page) in new (string, object)[] { ("home", vm.Dashboard), ("settings", vm.Settings), ("advanced", vm.Advanced) })
+            {
+                vm.NavigateCommand.Execute(page);
+                Settle(w);
+                w.CaptureRenderedFrame()!.Save($"{Dir}/lang-{lang}-{name}.png");
+            }
+        }
+        finally
+        {
+            w.AllowCloseForQuit();
+            w.Close();
+            Localizer.SetPreference("en");
+            SettingSearch.ResetForTests();
+        }
+    }
 }

@@ -180,7 +180,11 @@ public class RingAndKeysSwitchTests
         };
         var dir = I18nDir();
         var files = Directory.GetFiles(dir, "*.json");
-        Assert.Equal(8, files.Length);
+        // Version 29: Italian, Swedish and Brazilian Portuguese joined the 8 languages.
+        Assert.Equal(OpenTabletArtist.Services.Localizer.Languages.Length - 1, files.Length);
+        // Those three keep Wacom's own name "Touch Ring", as Wacom's manuals in those languages do.
+        static bool KeepsWacomName(string file, string english) =>
+            english.Contains("Touch Ring") && (file.EndsWith("it.json") || file.EndsWith("sv.json") || file.EndsWith("pt-BR.json"));
         var en = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.Combine(dir, "en.json")))!;
         foreach (var f in files)
         {
@@ -188,7 +192,7 @@ public class RingAndKeysSwitchTests
             foreach (var k in keys)
             {
                 Assert.True(t.TryGetValue(k, out var v) && !string.IsNullOrWhiteSpace(v), $"{Path.GetFileName(f)} lacks {k}");
-                if (!f.EndsWith("en.json")) Assert.NotEqual(en[k], v);
+                if (!f.EndsWith("en.json") && !KeepsWacomName(f, en[k])) Assert.NotEqual(en[k], v);
                 Assert.DoesNotContain("Enable buttons", v);
                 Assert.DoesNotContain("Enable wheels", v);
             }

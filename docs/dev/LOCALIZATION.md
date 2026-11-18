@@ -12,10 +12,13 @@ British English (`en.json`) is the source of truth. Other languages are JSON str
 | `es` | Español | |
 | `de` | Deutsch | |
 | `fr` | Français | |
-| `bg` | Български | **Zak proofreads** — see `bulgarian-proof-2026-10-24.md` |
+| `bg` | Български | Zak proofread up to Version 28; from Version 29 (18 Nov) he said: publish without his check |
 | `ru` | Русский | |
 | `ja` | 日本語 | |
 | `zh-CN` | 中文 | |
+| `it` | Italiano | Version 29 |
+| `sv` | Svenska | Version 29 |
+| `pt-BR` | Português (Brasil) | Version 29 (Zak: the Portuguese spoken by more people). Every `pt-*` Mac (Portugal too) gets it |
 
 ## How it works
 
@@ -25,11 +28,13 @@ British English (`en.json`) is the source of truth. Other languages are JSON str
 - Do **not** put “Zak” in public strings. Do **not** translate the PDF manual in this pass.
 - Leave technical identifiers, paths, URLs, tablet model names, and log lines in English where clearer.
 - Keep macOS pane names recognisable: Input Monitoring, Accessibility, Device Control (unless a locale’s System Settings uses a clear local name you prefer).
+  Every language keeps these three in English today, because the code fills `{pane}` with the English name (`MacAccessibility.PointerPaneName`), so a translated name next to it would mix the two. Translating them means changing that code too.
 
 ## Adding a language
 
 1. Copy `Assets/i18n/en.json` to `Assets/i18n/<code>.json` and translate values (keep keys and `{placeholders}`).
-2. Add the code to `Localizer.Languages` and `Supported`.
+2. Add the code to `Localizer.Languages` and `Supported` (and to `Localizer.Normalize` when a region should map to it).
+2a. Write the setting-search index for it: run `SettingSearchIndexTests` on Linux with `OTA_WRITE_SEARCH_INDEX=1` (Version 29).
 3. Mirror the file under `/workspace/otaE/V7/i18n/` for release notes / proof packs.
 4. For Bulgarian, update the proof markdown and wait for Zak’s corrections before polishing further.
 

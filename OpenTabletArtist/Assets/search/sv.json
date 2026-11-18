@@ -1,0 +1,1152 @@
+[
+  {
+    "text": "Dina ritplattor",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Inga ritplattor anslutna eller sparade",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Välj din ritplatta",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Få hjälp",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Ritplattor som stöds",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Källkod",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Utgåvor",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Synpunkter",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Användarhandbok",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Medverkande och licenser",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Sök efter uppdateringar nu",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Tidigare versioner",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Uppdatera automatiskt",
+    "path": "Hem",
+    "route": "home"
+  },
+  {
+    "text": "Pensel",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Rensa",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Kopiera",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Markera positioner",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Spela in",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Arbetsyta",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Rådata",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Lutning",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Tryck",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Vridning",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "AZ/AL",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Hovring",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Frekvens",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Saved presets",
+    "path": "Inställningar › Förinställningar",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Save as preset",
+    "path": "Inställningar › Förinställningar",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "What a preset is",
+    "path": "Inställningar › Förinställningar",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Shortcuts",
+    "path": "Inställningar › Kortkommandon",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Tablet actions",
+    "path": "Inställningar › Kortkommandon",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Move to next display",
+    "path": "Inställningar › Kortkommandon",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Not set",
+    "path": "Inställningar › Kortkommandon",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "About shortcuts",
+    "path": "Inställningar › Kortkommandon",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Themes",
+    "path": "Inställningar › Tema › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Theme",
+    "path": "Inställningar › Tema › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Lightness",
+    "path": "Inställningar › Tema › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Dark",
+    "path": "Inställningar › Tema › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Light",
+    "path": "Inställningar › Tema › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Språk",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Sparande",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Spara ändringar automatiskt",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Radialmeny",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Visa radialmenyn",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Säkerhetskopiering",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Exportera inställningar",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Importera inställningar",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Automatiska säkerhetskopior",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Visa i Finder",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Diagnosfil",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Skapa diagnosfil",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Starta vid inloggning",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Starta automatiskt när jag loggar in",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Öppna Startobjekt",
+    "path": "Inställningar › System",
+    "route": "settings/System"
+  },
+  {
+    "text": "Felsökning",
+    "path": "Inställningar › Felsökning",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Starta om drivrutinen",
+    "path": "Inställningar › Felsökning",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Diagnosrapport",
+    "path": "Inställningar › Felsökning",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Skapa diagnosfil",
+    "path": "Inställningar › Felsökning",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Återställ behörigheter",
+    "path": "Inställningar › Felsökning",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Trigger health warnings",
+    "path": "Inställningar › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Conflicting tablet driver detected",
+    "path": "Inställningar › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Running as administrator",
+    "path": "Inställningar › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tray icon can't be shown",
+    "path": "Inställningar › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Using an external driver",
+    "path": "Inställningar › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: mapped area partly off-screen",
+    "path": "Inställningar › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: custom display mapping",
+    "path": "Inställningar › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: using a custom config override",
+    "path": "Inställningar › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: pen isn't set up for drawing",
+    "path": "Inställningar › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Introduce config errors",
+    "path": "Inställningar › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Map active area partly off-screen",
+    "path": "Inställningar › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Push active area off-screen",
+    "path": "Inställningar › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Rotate active area to a non-standard angle",
+    "path": "Inställningar › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create a slightly-wrong calibration",
+    "path": "Inställningar › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create off calibration",
+    "path": "Inställningar › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Break the pen for drawing (artist health check)",
+    "path": "Inställningar › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Turn off pen tip, pressure and tilt",
+    "path": "Inställningar › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing (asserted)",
+    "path": "Inställningar › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing",
+    "path": "Inställningar › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Force a tablet in the list",
+    "path": "Inställningar › Dev › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Add to tablet list",
+    "path": "Inställningar › Dev › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Clear",
+    "path": "Inställningar › Dev › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Tablet page extras",
+    "path": "Inställningar › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Filters tab",
+    "path": "Inställningar › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the JSON tab",
+    "path": "Inställningar › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the ‘Cut below input minimum’ pressure option",
+    "path": "Inställningar › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show card-role tags",
+    "path": "Inställningar › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Advanced page extras",
+    "path": "Inställningar › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Diagnostics tab",
+    "path": "Inställningar › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Window size",
+    "path": "Inställningar › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Current size",
+    "path": "Inställningar › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Screenshots",
+    "path": "Inställningar › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Screenshot all pages",
+    "path": "Inställningar › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Format",
+    "path": "Inställningar › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "On-page screenshot control",
+    "path": "Inställningar › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "This app",
+    "path": "Avancerat › Drivrutin",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Tablet App for Mac",
+    "path": "Avancerat › Drivrutin",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not connected",
+    "path": "Avancerat › Drivrutin",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Driver process",
+    "path": "Avancerat › Drivrutin",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not running",
+    "path": "Avancerat › Drivrutin",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Korrigering av fönsterbyte mellan appar",
+    "path": "Avancerat › Drivrutin",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Level",
+    "path": "Avancerat › Konsol",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Auto-scroll",
+    "path": "Avancerat › Konsol",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Driver not connected.",
+    "path": "Avancerat › Konsol",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Copy",
+    "path": "Avancerat › Konsol",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Clear",
+    "path": "Avancerat › Konsol",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "No log messages yet.",
+    "path": "Avancerat › Konsol",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Configurations folder",
+    "path": "Avancerat › Konfigurationer",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Add tablet support",
+    "path": "Avancerat › Konfigurationer",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Check for more configs",
+    "path": "Avancerat › Konfigurationer",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Installerade tillägg",
+    "path": "Avancerat › Tillägg",
+    "route": "advanced/Plugins"
+  },
+  {
+    "text": "Alla knappar",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Av",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "På",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Standard",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Knapp 1",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Knapp 2",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Knapp 3",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Space",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Knapp 4",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Control",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Knapp 5",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Shift",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Knapp 6",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Alt",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Knapp 7",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Knapp 8",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Om ExpressKeys",
+    "path": "Ritplatta › Funktioner › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Touch Ring",
+    "path": "Ritplatta › Funktioner › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Av",
+    "path": "Ritplatta › Funktioner › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "På",
+    "path": "Ritplatta › Funktioner › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Clockwise",
+    "path": "Ritplatta › Funktioner › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Do nothing",
+    "path": "Ritplatta › Funktioner › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Anticlockwise",
+    "path": "Ritplatta › Funktioner › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Touch Ring modes",
+    "path": "Ritplatta › Funktioner › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Om Touch Ring",
+    "path": "Ritplatta › Funktioner › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Lutning",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Stäng av lutning",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Spetskänsla",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Mjuk",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Hård",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Anpassa",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Aktuellt tryck",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Klick",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Fullt",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Dubbelklickshjälp",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Av",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Standard",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Stor",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Manuellt spetstryck",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Knapp 2",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Modified to Adaptive Binding (Button 1)",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Fix",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Knapp 1",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Standardinställning",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Pennspets",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Inställningar för radialmeny",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ingen pennknapp öppnar radialmenyn än",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Använd pennknapp 2",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Menyns genomskinlighet",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Menystorlek",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Rörelse",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Positionsutjämning",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Mjukare snabba kurvor",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Penninmatning",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Stäng av pennspetsen",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Stäng av tryckkänslighet",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Feel Details (shared by tip and eraser)",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Lutning",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Stäng av lutning",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Delas med Penna.",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Suddgummikänsla",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Mjuk",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Hård",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Anpassa",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Aktuellt tryck",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Klick",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Fullt",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Manuellt suddgummitryck",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Knapp 1",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Standardinställning",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Knapp 2",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Modified to Adaptive Binding (Button 1)",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Fix",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Suddgummi",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Rörelse",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Positionsutjämning",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Mjukare snabba kurvor",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Suddgummiinmatning",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Stäng av suddgummit",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Stäng av tryckkänslighet",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Feel details (shared with Pen)",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Storlek",
+    "path": "Ritplatta › Penna › Mappning",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Rotation",
+    "path": "Ritplatta › Penna › Mappning",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Ritplatta",
+    "path": "Ritplatta › Penna › Mappning",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Aktiv yta",
+    "path": "Ritplatta › Penna › Mappning",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Yta",
+    "path": "Ritplatta › Penna › Mappning",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Mått",
+    "path": "Ritplatta › Penna › Mappning",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Diagonal",
+    "path": "Ritplatta › Penna › Mappning",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Bildförhållande",
+    "path": "Ritplatta › Penna › Mappning",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Skärminställningar",
+    "path": "Ritplatta › Penna › Mappning",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Modell",
+    "path": "Ritplatta › Mer › Om",
+    "route": "tablet/ToolMoreButton/AboutTab"
+  },
+  {
+    "text": "This tablet",
+    "path": "Ritplatta › Mer › Kalibrering",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Not calibrated",
+    "path": "Ritplatta › Mer › Kalibrering",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "The calibration screen opens on your tablet's mapped display",
+    "path": "Ritplatta › Mer › Kalibrering",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Calibrate · 4 points",
+    "path": "Ritplatta › Mer › Kalibrering",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "About calibration",
+    "path": "Ritplatta › Mer › Kalibrering",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Hover limit",
+    "path": "Ritplatta › Mer › Hovring",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Off",
+    "path": "Ritplatta › Mer › Hovring",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "On",
+    "path": "Ritplatta › Mer › Hovring",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Max hover",
+    "path": "Ritplatta › Mer › Hovring",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Near proximity only",
+    "path": "Ritplatta › Mer › Hovring",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "No filters configured",
+    "path": "Ritplatta › Mer › Filter",
+    "route": "tablet/ToolMoreButton/FiltersTab"
+  }
+]

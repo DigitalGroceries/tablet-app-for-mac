@@ -11,7 +11,7 @@ namespace OpenTabletArtist.Services;
 
 /// <summary>Version 8: GUI string tables (JSON per language). British English is the source of truth;
 /// missing keys fall back to English. Preference key <see cref="PreferenceKey"/> stores "system" or a
-/// language code (en, es, de, fr, bg, ru, ja, zh-CN).</summary>
+/// language code (en, es, de, fr, bg, ru, ja, zh-CN; from Version 29 also it, sv, pt-BR).</summary>
 public static class Localizer
 {
     public const string PreferenceKey = "ui.language";
@@ -29,11 +29,15 @@ public static class Localizer
         ("ru", "Русский"),
         ("ja", "日本語"),
         ("zh-CN", "中文"),
+        // Version 29 (item 4): Italian, Swedish and Brazilian Portuguese (Zak: the Portuguese spoken by more people).
+        ("it", "Italiano"),
+        ("sv", "Svenska"),
+        ("pt-BR", "Português (Brasil)"),
     };
 
     static readonly HashSet<string> Supported = new(StringComparer.OrdinalIgnoreCase)
     {
-        "en", "es", "de", "fr", "bg", "ru", "ja", "zh-CN",
+        "en", "es", "de", "fr", "bg", "ru", "ja", "zh-CN", "it", "sv", "pt-BR",
     };
 
     static Dictionary<string, string> _en = new(StringComparer.Ordinal);
@@ -100,11 +104,15 @@ public static class Localizer
         if (raise) LanguageChanged?.Invoke();
     }
 
-    static string Normalize(string code)
+    internal static string Normalize(string code)
     {
         if (code.Equals("zh", StringComparison.OrdinalIgnoreCase) ||
             code.StartsWith("zh-", StringComparison.OrdinalIgnoreCase))
             return "zh-CN";
+        // Version 29: one Portuguese (Brazilian) serves every Portuguese Mac, pt-PT included.
+        if (code.Equals("pt", StringComparison.OrdinalIgnoreCase) ||
+            code.StartsWith("pt-", StringComparison.OrdinalIgnoreCase))
+            return "pt-BR";
         foreach (var s in Supported)
             if (s.Equals(code, StringComparison.OrdinalIgnoreCase)) return s;
         return "en";
