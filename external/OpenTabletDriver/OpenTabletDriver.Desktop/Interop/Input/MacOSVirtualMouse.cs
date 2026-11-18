@@ -206,11 +206,17 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             if (_isEraser.HasValue && _isEraser.Value == isEraser)
                 return;
 
+            var previous = _isEraser;
             _isEraser = isEraser;
 
-            // Immediately post a proximity event to notify applications of the tool change,
+            // Immediately post proximity events to notify applications of the tool change,
             // mirroring how Linux EvdevVirtualTablet sends the tool switch event right away.
-            PostProximityEvent();
+            // Tablet App for Mac (#89, Daniel): the old tool leaves proximity first, as a real pen does when it
+            // is turned over. GTK apps (GIMP) keep the tool that entered first active until it leaves, so
+            // without the leave every point after the turn still came from the pen and GIMP never switched
+            // to the eraser's tool (gtk-3-24 gdk/quartz/gdkdevicemanager-core-quartz.c).
+            foreach (var (eraser, enter) in MacOSProximity.ToolChange(previous, isEraser))
+                PostProximityEvent(eraser, enter);
 
             // Reset the stopwatch so ApplyTabletValues doesn't redundantly re-send
             // a proximity event on the next frame.
@@ -276,15 +282,17 @@ namespace OpenTabletDriver.Desktop.Interop.Input
             _pressure = percentage;
         }
 
-        private void PostProximityEvent()
+        private void PostProximityEvent() => PostProximityEvent(_isEraser ?? false, enter: true);
+
+        private void PostProximityEvent(bool eraser, bool enter)
         {
-            var pointerType = _isEraser ?? false
+            var pointerType = eraser
                 ? NSPointingDeviceType.Eraser
                 : NSPointingDeviceType.Pen;
 
             var proximityEvent = CGEventCreate(_eventSource);
             CGEventSetType(proximityEvent, CGEventType.kCGEventTabletProximity);
-            CGEventSetIntegerValueField(proximityEvent, CGEventField.tabletProximityEventEnterProximity, 1);
+            CGEventSetIntegerValueField(proximityEvent, CGEventField.tabletProximityEventEnterProximity, enter ? 1 : 0);
             CGEventSetIntegerValueField(proximityEvent, CGEventField.tabletProximityEventPointerType, (long)pointerType);
             CGEventSetIntegerValueField(proximityEvent, CGEventField.tabletProximityEventCapabilityMask, (long)TabletCapabilityMask);
             CGEventSetIntegerValueField(proximityEvent, CGEventField.tabletProximityEventDeviceID, DeviceId);
