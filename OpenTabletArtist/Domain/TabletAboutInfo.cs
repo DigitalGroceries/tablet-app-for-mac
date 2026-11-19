@@ -90,7 +90,7 @@ public sealed record TabletAboutInfo
     // value on Newtonsoft.Json.Linq.JValue" - logged every 30 s, and the tablet's page crashed the app. Only ever
     // index a part when it really is an object, and read numbers as nullable so a JSON null gives "unknown".
     private static JObject? Obj(JToken? t) => t as JObject;
-    private static JObject? Props(JToken? t) => Obj(t?["Properties"]) ?? Obj(t);
+    private static JObject? Props(JToken? t) => t is JObject o ? Obj(o["Properties"]) ?? o : null;
 
     internal static TabletAboutInfo Parse(JToken t)
     {
@@ -104,7 +104,7 @@ public sealed record TabletAboutInfo
         float maxX = digi?["MaxX"]?.Value<float?>() ?? 0;
 
         // The active DeviceIdentifier carries the live VID/PID; fall back to the config's digitizer id.
-        var id = Obj((t["Identifiers"] as JArray)?.FirstOrDefault())
+        var id = Obj((Obj(t)?["Identifiers"] as JArray)?.FirstOrDefault())
                  ?? Obj((props["DigitizerIdentifiers"] as JArray)?.FirstOrDefault());
 
         uint? pressure = pen?["MaxPressure"]?.Value<uint?>();
