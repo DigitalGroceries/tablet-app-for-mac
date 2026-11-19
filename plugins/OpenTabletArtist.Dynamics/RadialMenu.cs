@@ -291,6 +291,7 @@ public static class RadialMenuState
                 if (slice == RadialMenuGeometry.Centre) CloseLocked("centre");
                 else if (slice is RadialMenuGeometry.Edit or RadialMenuGeometry.Restore) CentreQuarterLocked(slice);
                 else if (slice >= 0) PaletteTapLocked(slice);
+                // ColourPalette.Dot (the middle dot showing the last colour picked; Zak 19 Nov 20:21): a tap there does nothing.
                 return true;
             }
             if (slice < 0) { CentreQuarterLocked(slice); return true; }

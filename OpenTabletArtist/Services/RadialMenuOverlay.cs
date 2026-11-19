@@ -315,6 +315,7 @@ public sealed class RadialMenuOverlay : IDisposable
                 _paletteWheel!.MenuSize = st.Size;
                 _paletteWheel.Editing = st.Editing;
                 _paletteWheel.Menu = string.IsNullOrEmpty(st.Menu) ? null : RadialMenuJson.Parse(st.Menu);
+                _paletteWheel.LastColour = AppSettings.Get(ColourPalette.LastColourKey);   // Zak 20:21: the middle dot
                 _paletteWheel.Highlight = HighlightNow();
             }
             else if (!ReferenceEquals(_window.Content, _pie)) _window.Content = _pie;
@@ -385,6 +386,13 @@ public sealed class RadialMenuOverlay : IDisposable
             {
                 // V29 #142: a swatch: set it in the app in front where that app allows it (Photoshop), and always copy its code.
                 var picked = ColourPick.Apply(u.Keys, u.Label, _window);
+                // Zak 19 Nov 20:21: the middle dot shows the colour just picked, also the next time the palette opens.
+                if (ColourPalette.IsHex(u.Keys))
+                {
+                    var hex = u.Keys!.ToUpperInvariant();
+                    AppSettings.Set(ColourPalette.LastColourKey, hex);
+                    if (_paletteWheel != null) _paletteWheel.LastColour = hex;
+                }
                 _toast.Show(picked, _cx, _cy, RadialMenuGeometry.OuterRadius(_size), hold: false);
                 return;
             }

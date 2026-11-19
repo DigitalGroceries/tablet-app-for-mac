@@ -49,6 +49,14 @@ public class ColourPaletteUiTests
             Pump();
             Assert.Single(scripts);                                       // no script for other apps
             Assert.Equal("#174E7A copied", overlay.Toast.Text);
+
+            // Zak 19 Nov 20:21: the middle dot shows the last colour picked, and still does after the palette is opened again.
+            var wheel = Assert.IsType<ColourPaletteWheel>(overlay.MenuWindow!.Content);
+            Assert.Equal("#174E7A", wheel.LastColour);
+            Assert.Equal("#174E7A", AppSettings.Get(ColourPalette.LastColourKey));
+            overlay.ShowNowForTest(Palette(4));
+            Pump();
+            Assert.Equal("#174E7A", wheel.LastColour);
         }
         finally
         {

@@ -471,13 +471,29 @@ public static class ColourPalette
         return clean.Count == 0 ? null : clean;
     }
 
+    /// <summary>Zak 19 Nov ~20:13 / 20:21 ("a central smaller circle that changes into the current colour chosen"; "That's okay" to its
+    /// one limit): a small circle in the very middle of the palette shows the last colour picked from it. It does not know about a
+    /// colour changed inside Photoshop some other way. A tap on it does nothing.</summary>
+    public const int Dot = -7;
+
+    /// <summary>The middle dot's radius as a share of the centre circle's radius: small enough to leave the four quarter icons clear.</summary>
+    public const double DotRatio = 0.22;
+
+    /// <summary>The middle dot's radius in points for a palette of this size.</summary>
+    public static double DotRadius(int size) => RadialMenuGeometry.InnerRadius(size) * DotRatio;
+
+    /// <summary>App setting: the last colour picked from the palette ("#RRGGBB"), shown in the middle dot; kept between restarts.</summary>
+    public const string LastColourKey = "PaletteLastColour";
+
     /// <summary>What is at offset (<paramref name="dx"/>, <paramref name="dy"/>) from the centre of a palette of this size: a swatch
-    /// number (hue * 4 + shade, 0 to 47), one of the centre quarters (<see cref="RadialMenuGeometry.Centre"/> = the X,
-    /// <see cref="RadialMenuGeometry.Hand"/> = drag, the other two do nothing), or <see cref="RadialMenuGeometry.Outside"/>.
-    /// The palette is the same size and shape as the radial menu.</summary>
+    /// number (hue * 4 + shade, 0 to 59), the middle <see cref="Dot"/> (does nothing), one of the centre quarters
+    /// (<see cref="RadialMenuGeometry.Centre"/> = the X, <see cref="RadialMenuGeometry.Edit"/> = the pencil,
+    /// <see cref="RadialMenuGeometry.Restore"/> = the circular arrow, <see cref="RadialMenuGeometry.Hand"/> = drag), or
+    /// <see cref="RadialMenuGeometry.Outside"/>. The palette is the same size and shape as the radial menu.</summary>
     public static int SwatchAt(double dx, double dy, int size)
     {
         double r = Math.Sqrt(dx * dx + dy * dy), outer = RadialMenuGeometry.OuterRadius(size), inner = RadialMenuGeometry.InnerRadius(size);
+        if (r <= inner * DotRatio) return Dot;
         if (r <= inner || r > outer) return RadialMenuGeometry.SliceAt(dx, dy, size);
         var deg = Math.Atan2(dx, -dy) * 180.0 / Math.PI;
         if (deg < 0) deg += 360;

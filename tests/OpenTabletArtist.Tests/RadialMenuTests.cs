@@ -464,8 +464,8 @@ public class RadialMenuStateTests : IDisposable
         Assert.Empty(_ran);                                         // nothing pressed in the app: the app sets the colour itself
         _cursor = (500, 400 - 900);
         Assert.False(RadialMenuState.TipDown());                    // outside: goes to the work (so an eyedropper can drag in)
-        _cursor = (499, 399);
-        RadialMenuState.TipDown();                                  // the X
+        _cursor = (480, 380);
+        RadialMenuState.TipDown();                                  // the X (clear of the middle dot)
         Assert.False(RadialMenuState.IsOpen);
     }
 
@@ -481,14 +481,40 @@ public class RadialMenuStateTests : IDisposable
         Assert.Equal(ColourPalette.Swatch(0, 3), ColourPalette.SwatchAt(0, -(inner + 1), size));
         Assert.Equal(ColourPalette.Swatch(3, 0), ColourPalette.SwatchAt(greyEdge - 1, 0, size));      // 90° = red-orange
         Assert.Equal(RadialMenuGeometry.Outside, ColourPalette.SwatchAt(0, -(outer + 5), size));
-        Assert.Equal(RadialMenuGeometry.Centre, ColourPalette.SwatchAt(-1, -1, size));
-        Assert.Equal(RadialMenuGeometry.Edit, ColourPalette.SwatchAt(1, -1, size));
-        Assert.Equal(RadialMenuGeometry.Restore, ColourPalette.SwatchAt(-1, 1, size));
+        double q = inner * 0.4;                                     // inside the centre circle, outside the middle dot
+        Assert.Equal(RadialMenuGeometry.Centre, ColourPalette.SwatchAt(-q, -q, size));
+        Assert.Equal(RadialMenuGeometry.Edit, ColourPalette.SwatchAt(q, -q, size));
+        Assert.Equal(RadialMenuGeometry.Restore, ColourPalette.SwatchAt(-q, q, size));
+        Assert.Equal(RadialMenuGeometry.Hand, ColourPalette.SwatchAt(q, q, size));
+        Assert.Equal(ColourPalette.Dot, ColourPalette.SwatchAt(0, 0, size));
+        Assert.Equal(ColourPalette.Dot, ColourPalette.SwatchAt(-1, -1, size));
+        double d = ColourPalette.DotRadius(size);
+        Assert.Equal(ColourPalette.Dot, ColourPalette.SwatchAt(0, -(d - 0.5), size));
+        Assert.Equal(RadialMenuGeometry.Centre, ColourPalette.SwatchAt(0, -(d + 0.5), size));
         var all = Enumerable.Range(0, ColourPalette.Count).Select(i => ColourPalette.HexFor(null, i)).ToList();
         Assert.Equal(ColourPalette.Count, all.Distinct().Count());
         Assert.Equal("#F4E500", ColourPalette.Hex(0, 0));
         Assert.Equal("#FFFFFF", ColourPalette.HexFor(null, ColourPalette.FirstGrey));
         Assert.Equal("#000000", ColourPalette.HexFor(null, ColourPalette.Count - 1));
+    }
+
+    [Fact]
+    public void PaletteMiddleDot_ATapDoesNothing_AndThePaletteStaysOpen()
+    {
+        // Zak 19 Nov 20:21: the small middle circle only shows the last colour picked; tapping it does nothing.
+        RadialMenuState.DoublePressMs = 400;
+        var b = Binding();
+        b.Press(null!, null!); b.Release(null!, null!);
+        b.Press(null!, null!); b.Release(null!, null!);
+        Assert.True(RadialMenuState.PaletteOpen);
+        _cursor = (501, 399);
+        Assert.True(RadialMenuState.TipDown());                     // taken by the palette, not passed to the app
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.True(RadialMenuState.PaletteOpen);
+        Assert.False(RadialMenuState.Editing);
+        Assert.False(RadialMenuState.Confirming);
+        Assert.False(State().TryGetProperty("used", out var used) && used.ValueKind == System.Text.Json.JsonValueKind.Object);
+        Assert.Empty(_ran);
     }
 
     [Fact]
@@ -508,7 +534,7 @@ public class RadialMenuStateTests : IDisposable
         _cursor = (500, 400 - (greyEdge - 3));
         RadialMenuState.TipDown();
         Assert.Equal("#123456", State().GetProperty("used").GetProperty("keys").GetString());   // the user's own colour
-        _cursor = (501, 399);                                       // the pencil
+        _cursor = (520, 380);                                       // the pencil
         RadialMenuState.TipDown();
         Assert.True(RadialMenuState.Editing);
         _cursor = (500, 400 - (greyEdge - 3));
@@ -526,7 +552,7 @@ public class RadialMenuStateTests : IDisposable
         var b = Binding();
         b.Press(null!, null!); b.Release(null!, null!);
         b.Press(null!, null!); b.Release(null!, null!);
-        _cursor = (499, 401);                                       // the circular arrow
+        _cursor = (480, 420);                                       // the circular arrow
         RadialMenuState.TipDown();
         Assert.True(RadialMenuState.Confirming);
         Assert.True(State().GetProperty("confirm").GetBoolean());

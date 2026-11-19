@@ -32,4 +32,15 @@ public class PaletteShots
         w.CaptureRenderedFrame()!.Save(System.IO.Path.Combine(Dir, "palette-wheel.png"));
         w.Close();
     }
+
+    [AvaloniaFact]
+    public void ThePalette_WithTheLastColourInTheMiddle()
+    {
+        var wheel = new ColourPaletteWheel { Width = 324, Height = 324, LastColour = "#E32322" };
+        var w = new Window { Content = wheel, Width = 340, Height = 340 };
+        w.Show();
+        RadialSpotShots.Settle(w);
+        w.CaptureRenderedFrame()!.Save(System.IO.Path.Combine(Dir, "palette-wheel-picked.png"));
+        w.Close();
+    }
 }

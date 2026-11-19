@@ -9,8 +9,9 @@ namespace OpenTabletArtist.Controls;
 /// <summary>
 /// V29 #142 (Zak 19 Nov 2026: a colour menu "just like a painter uses that thing where different shades of the paint are already
 /// mixed"; his pictures: an artist's colour wheel): 12 hues round the edge, 4 ready-mixed shades of each towards the centre
-/// (<see cref="ColourPalette"/>), and the radial menu's centre with only the X (close) and the hand (drag) in use. Drawn solid, never
-/// see-through, so an app's eyedropper picks exactly the colour shown. The same size as the radial menu.
+/// (<see cref="ColourPalette"/>), a ring of greys round the outside, the radial menu's own four centre buttons, and a small middle dot
+/// in the last colour picked. Drawn solid, never see-through, so an app's eyedropper picks exactly the colour shown. The same size as
+/// the radial menu.
 /// </summary>
 public sealed class ColourPaletteWheel : Control
 {
@@ -18,6 +19,7 @@ public sealed class ColourPaletteWheel : Control
     public static readonly StyledProperty<int> HighlightProperty = AvaloniaProperty.Register<ColourPaletteWheel, int>(nameof(Highlight), -3);
     public static readonly StyledProperty<bool> EditingProperty = AvaloniaProperty.Register<ColourPaletteWheel, bool>(nameof(Editing));
     public static readonly StyledProperty<RadialMenuDef?> MenuProperty = AvaloniaProperty.Register<ColourPaletteWheel, RadialMenuDef?>(nameof(Menu));
+    public static readonly StyledProperty<string?> LastColourProperty = AvaloniaProperty.Register<ColourPaletteWheel, string?>(nameof(LastColour));
 
     /// <summary>The menu size (1 to 50), as the radial menu's.</summary>
     public int MenuSize { get => GetValue(MenuSizeProperty); set => SetValue(MenuSizeProperty, value); }
@@ -27,8 +29,11 @@ public sealed class ColourPaletteWheel : Control
     public bool Editing { get => GetValue(EditingProperty); set => SetValue(EditingProperty, value); }
     /// <summary>The menu whose palette colours (the user's own, changed with the pencil) are drawn; null = the built-in ones.</summary>
     public RadialMenuDef? Menu { get => GetValue(MenuProperty); set => SetValue(MenuProperty, value); }
+    /// <summary>The last colour picked from the palette ("#RRGGBB"), drawn in the middle dot; null or not a colour = an empty dot
+    /// (Zak 19 Nov 20:21).</summary>
+    public string? LastColour { get => GetValue(LastColourProperty); set => SetValue(LastColourProperty, value); }
 
-    static ColourPaletteWheel() => AffectsRender<ColourPaletteWheel>(MenuSizeProperty, HighlightProperty, EditingProperty, MenuProperty);
+    static ColourPaletteWheel() => AffectsRender<ColourPaletteWheel>(MenuSizeProperty, HighlightProperty, EditingProperty, MenuProperty, LastColourProperty);
 
     private static readonly IBrush Rim = new SolidColorBrush(Color.FromRgb(0x2A, 0x2A, 0x2A));
     private static readonly IBrush CentreFill = new SolidColorBrush(Color.FromRgb(0x1C, 0x1F, 0x25));
@@ -63,6 +68,22 @@ public sealed class ColourPaletteWheel : Control
         var divider = new Pen(new SolidColorBrush(Color.FromArgb(220, 228, 228, 228)), Math.Max(2, inner / 28));
         RadialMenuPie.DrawCentreQuarters(ctx, c, inner, Highlight, Editing, CentreFill, RadialMenuPie.HighlightFill,
             RadialMenuPie.SelectedFill, RadialMenuPie.Edge, divider);
+        DrawDot(ctx, c, inner * ColourPalette.DotRatio, LastColour);
+    }
+
+    private static readonly IPen DotRing = new Pen(new SolidColorBrush(Color.FromRgb(0xE4, 0xE4, 0xE4)), 2);
+    private static readonly IPen DotRingDark = new Pen(new SolidColorBrush(Color.FromRgb(0x14, 0x14, 0x14)), 1);
+
+    /// <summary>Zak 19 Nov 20:21: the small middle circle in the last colour picked (an empty ring until a colour is picked). It covers
+    /// the crossing of the dividing lines; a light ring outside and a thin dark one inside keep it visible on any colour.</summary>
+    private static void DrawDot(DrawingContext ctx, Point c, double r, string? hex)
+    {
+        IBrush fill = CentreFill;
+        if (ColourPalette.IsHex(hex))
+            fill = new SolidColorBrush(Color.FromRgb(Convert.ToByte(hex!.Substring(1, 2), 16), Convert.ToByte(hex.Substring(3, 2), 16),
+                Convert.ToByte(hex.Substring(5, 2), 16)));
+        ctx.DrawEllipse(fill, DotRing, c, r, r);
+        if (r > 4) ctx.DrawEllipse(null, DotRingDark, c, r - 1.5, r - 1.5);
     }
 
     /// <summary>Inner and outer radius and the angle sector of a swatch: the greys on the outside edge, then the 4 shades inwards.</summary>
