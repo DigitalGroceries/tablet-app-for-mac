@@ -955,6 +955,16 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "Настройки на цветовата палитра",
+    "path": "Таблет › Писалка › Гума",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Размер на палитрата",
+    "path": "Таблет › Писалка › Гума",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "Движение",
     "path": "Таблет › Писалка › Гума",
     "route": "tablet/ToolPenButton/EraserTab"

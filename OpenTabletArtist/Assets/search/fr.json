@@ -970,6 +970,16 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "Réglages de la palette de couleurs",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Taille de la palette",
+    "path": "Tablette › Stylet › Gomme",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "Mouvement",
     "path": "Tablette › Stylet › Gomme",
     "route": "tablet/ToolPenButton/EraserTab"

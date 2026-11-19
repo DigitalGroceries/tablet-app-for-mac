@@ -970,6 +970,16 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "Ajustes da paleta de cores",
+    "path": "Tablet › Caneta › Borracha",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Tamanho da paleta",
+    "path": "Tablet › Caneta › Borracha",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "Movimento",
     "path": "Tablet › Caneta › Borracha",
     "route": "tablet/ToolPenButton/EraserTab"

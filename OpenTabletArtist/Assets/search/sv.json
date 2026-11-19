@@ -970,6 +970,16 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "Inställningar för färgpalett",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Palettstorlek",
+    "path": "Ritplatta › Penna › Suddgummi",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "Rörelse",
     "path": "Ritplatta › Penna › Suddgummi",
     "route": "tablet/ToolPenButton/EraserTab"

@@ -970,6 +970,16 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "Impostazioni tavolozza colori",
+    "path": "Tavoletta › Penna › Gomma",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Dimensioni tavolozza",
+    "path": "Tavoletta › Penna › Gomma",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "Movimento",
     "path": "Tavoletta › Penna › Gomma",
     "route": "tablet/ToolPenButton/EraserTab"

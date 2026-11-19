@@ -1060,6 +1060,21 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "カラーパレットの設定",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "パレットのサイズ",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "パレットは常に不透明なので、正確な色を選べます。",
+    "path": "タブレット › ペン › 消しゴム",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "移動",
     "path": "タブレット › ペン › 消しゴム",
     "route": "tablet/ToolPenButton/EraserTab"

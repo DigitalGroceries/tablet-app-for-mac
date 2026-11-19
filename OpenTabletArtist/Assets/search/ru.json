@@ -970,6 +970,16 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "Настройки цветовой палитры",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Размер палитры",
+    "path": "Планшет › Перо › Ластик",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "Движение",
     "path": "Планшет › Перо › Ластик",
     "route": "tablet/ToolPenButton/EraserTab"

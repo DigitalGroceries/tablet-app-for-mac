@@ -1050,6 +1050,21 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "调色板设置",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "调色板大小",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "调色板始终不透明，因此你选取的颜色是准确的。",
+    "path": "数位板 › 笔 › 橡皮擦",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "移动",
     "path": "数位板 › 笔 › 橡皮擦",
     "route": "tablet/ToolPenButton/EraserTab"
