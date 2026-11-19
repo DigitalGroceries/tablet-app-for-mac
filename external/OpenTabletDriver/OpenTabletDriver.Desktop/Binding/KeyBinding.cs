@@ -47,7 +47,8 @@ namespace OpenTabletDriver.Desktop.Binding
             {
                 PluginPlatform.Windows => WindowsVirtualKeyboard.EtoKeysymToVK.Keys,
                 PluginPlatform.Linux => EvdevVirtualKeyboard.EtoKeysymToEventCode.Keys,
-                PluginPlatform.MacOS => MacOSVirtualKeyboard.EtoKeysymToVK.Keys,
+                // Tablet App for Mac V29 (#87): plus the brightness keys, which macOS sends as system-defined events.
+                PluginPlatform.MacOS => System.Linq.Enumerable.Concat(MacOSVirtualKeyboard.EtoKeysymToVK.Keys, MacOSSystemKeys.Keys.Keys),
                 _ => null
             };
         }

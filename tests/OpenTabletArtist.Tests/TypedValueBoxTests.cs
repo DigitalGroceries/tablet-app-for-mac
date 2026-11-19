@@ -78,3 +78,26 @@ public class TypedValueBoxTests
         return d?.FullName ?? throw new InvalidOperationException("repository root not found");
     }
 }
+
+/// <summary>V29 #87 (Reddit, 17 Nov: "Can this assign volume and screen brightness shortcuts to intous dials?"): Brightness up and
+/// down are on the Media tab and are posted as the Mac's own brightness-key events.</summary>
+public class BrightnessKeyTests
+{
+    [Fact]
+    public void BrightnessKeys_UseTheMacsSystemKeyNumbers_DownAndUp()
+    {
+        Assert.Equal(2, OpenTabletDriver.Desktop.Interop.Input.Keyboard.MacOSSystemKeys.Keys["BrightnessUp"]);
+        Assert.Equal(3, OpenTabletDriver.Desktop.Interop.Input.Keyboard.MacOSSystemKeys.Keys["BrightnessDown"]);
+        Assert.Equal(0x20A00, OpenTabletDriver.Desktop.Interop.Input.Keyboard.MacOSSystemKeys.Data1(2, down: true));
+        Assert.Equal(0x30B00, OpenTabletDriver.Desktop.Interop.Input.Keyboard.MacOSSystemKeys.Data1(3, down: false));
+    }
+
+    [Fact]
+    public void ARingStepSetToBrightness_OpensOnTheMediaTab()
+    {
+        var vm = new OpenTabletArtist.ViewModels.BindingEditorViewModel(
+            new AuxBinding(AuxKind.Keyboard, new AuxCombo(false, false, false, "BrightnessUp"), AuxKeyBinding.None, AuxKeyBinding.None), "Clockwise");
+        Assert.Equal(OpenTabletArtist.ViewModels.BindingEditorViewModel.MediaTab, vm.SelectedTabIndex);
+        Assert.Equal("BrightnessUp", vm.SelectedMediaKey);
+    }
+}

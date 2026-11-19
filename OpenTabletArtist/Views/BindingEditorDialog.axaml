@@ -236,6 +236,13 @@
                                  IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=NextSong}" />
                     <RadioButton Content="Stop" GroupName="md"
                                  IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=StopSong}" />
+                    <!-- V29 #87: the Mac's brightness keys (the built-in display and Apple displays; most other monitors ignore them). -->
+                    <RadioButton x:Name="MediaBrightnessDown" Content="Brightness down" GroupName="md" IsVisible="{Binding ShowBrightnessKeys}"
+                                 ToolTip.Tip="Like the Mac's brightness key: the built-in display and Apple displays. Most other monitors ignore it."
+                                 IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=BrightnessDown}" />
+                    <RadioButton x:Name="MediaBrightnessUp" Content="Brightness up" GroupName="md" IsVisible="{Binding ShowBrightnessKeys}"
+                                 ToolTip.Tip="Like the Mac's brightness key: the built-in display and Apple displays. Most other monitors ignore it."
+                                 IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=BrightnessUp}" />
                 </StackPanel>
             </StackPanel>
 

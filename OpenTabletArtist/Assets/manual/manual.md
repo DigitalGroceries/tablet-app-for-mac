@@ -85,6 +85,8 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 - **Refresh** reloads the tablet's settings from the driver.
 - Footer: **Options…** (Settings), **?** (this manual), **Report a problem or send a recommendation…** (see Report a problem or send a recommendation).
 
+**Typing a value** (Version 29): every slider in the app has a box next to it where you can type the exact value instead of dragging (press Enter or click elsewhere; a value outside the slider's range is set to its nearest end). For example Tip Feel goes from 1 (Soft) to 100 (Firm), 50 being the straight curve, and Settings › Theme › Lightness numbers its 9 levels 1 to 9.
+
 ## Tablet › Pen
 
 ![Pen](img/05-pen-tool-row.png)
@@ -137,7 +139,7 @@ When you turn the pen over, the app tells macOS that the pen tip has left before
 - **All buttons** (Off / On switch) turns every ExpressKey off or on; actions and each key's own On/Off are kept. A key works only when **All buttons** and the key are both On. While **All buttons** is Off, the per-key item is greyed ("Turn on All buttons first").
 - **Default**: clears every ExpressKey action, after asking.
 
-Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left click, Right click, Middle click, Back button, Forward button, or **Double Click**), **Scroll** (up, down, left, right, or a pen gesture), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop). **Radial menu** is on its own tab (see Radial menu). **Save**, **Cancel**, **Clear**.
+Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left click, Right click, Middle click, Back button, Forward button, or **Double Click**), **Scroll** (up, down, left, right, or a pen gesture), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop, and since Version 29 **Brightness down** and **Brightness up**, which work like the Mac's own brightness keys: the built-in display and Apple displays change, most other monitors ignore them; set them on the Touch Ring's Clockwise and Anticlockwise to turn the brightness with the ring). **Radial menu** is on its own tab (see Radial menu). **Save**, **Cancel**, **Clear**.
 
 Pen gestures under **Scroll**, each with a **Speed** slider (Slow to Fast, 1–100, default 50):
 

@@ -23,6 +23,7 @@ public partial class BindingEditorViewModel : ObservableObject
     private static readonly HashSet<string> MediaKeyValues = new(StringComparer.Ordinal)
     {
         "Mute", "VolumeDown", "VolumeUp", "PlayPause", "PreviousSong", "NextSong", "StopSong",
+        "BrightnessDown", "BrightnessUp",   // V29 #87 (macOS only: the Mac's own brightness keys)
     };
 
     public string Title { get; }
@@ -185,6 +186,8 @@ public partial class BindingEditorViewModel : ObservableObject
     public bool IsMouseTab { get => SelectedTabIndex == MouseTab; set { if (value) SelectedTabIndex = MouseTab; } }
     public bool IsScrollTab { get => SelectedTabIndex == ScrollTab; set { if (value) SelectedTabIndex = ScrollTab; } }
     public bool IsMediaTab { get => SelectedTabIndex == MediaTab; set { if (value) SelectedTabIndex = MediaTab; } }
+    /// <summary>V29 #87: the brightness keys are macOS events (the driver posts them only on a Mac).</summary>
+    public bool ShowBrightnessKeys => Services.UiPlatform.IsMac;
     public bool IsRadialTab { get => SelectedTabIndex == RadialTab; set { if (value) SelectedTabIndex = RadialTab; } }
     public bool IsTouchTab { get => SelectedTabIndex == TouchTab; set { if (value) SelectedTabIndex = TouchTab; } }
 

@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using OpenTabletDriver.Native.OSX;
@@ -14,6 +15,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         private ulong _currentFlags;
         private void KeyEvent(string key, bool isPress)
         {
+            // Tablet App for Mac V29 (#87): the brightness keys are system-defined events, not key codes.
+            if (MacOSSystemKeys.Keys.ContainsKey(key)) { MacOSSystemKeys.Post(key, isPress); return; }
             if (EtoKeysymToVK.TryGetValue(key, out var code))
             {
                 var keyEvent = CGEventCreateKeyboardEvent(IntPtr.Zero, code, isPress);
@@ -59,7 +62,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
 
         public ulong getCurrentFlags() => _currentFlags;
 
-        public IEnumerable<string> SupportedKeys => EtoKeysymToVK.Keys;
+        public IEnumerable<string> SupportedKeys => EtoKeysymToVK.Keys.Concat(MacOSSystemKeys.Keys.Keys);
 
         internal static readonly Dictionary<string, CGKeyCode> EtoKeysymToVK = new Dictionary<string, CGKeyCode>
         {
