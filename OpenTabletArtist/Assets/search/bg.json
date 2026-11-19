@@ -670,7 +670,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Чуствителност на писалката",
+    "text": "Чувствителност на писалката",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
