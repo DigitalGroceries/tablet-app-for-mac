@@ -230,8 +230,8 @@ public partial class RingModeRow : ObservableObject
         ScrollSensitivity = Math.Abs(_scroll) > 0 ? Math.Abs(_scroll) : RingMode.DefaultSpeed;   // Version 16 BETA 2: the Speed itself
         RefreshSpeed();
         _suppress = false;
-        Clockwise = MakeDirection("Clockwise", mode.Clockwise, editBinding);
-        CounterClockwise = MakeDirection("Anticlockwise", mode.CounterClockwise, editBinding);
+        Clockwise = MakeDirection(true, mode.Clockwise, editBinding);
+        CounterClockwise = MakeDirection(false, mode.CounterClockwise, editBinding);
     }
 
     public int Number { get; }
@@ -609,10 +609,12 @@ public partial class RingModeRow : ObservableObject
         if (!_suppress) _ = _changed();
     }
 
-    private ButtonBinding MakeDirection(string label, AuxCombo combo,
+    private ButtonBinding MakeDirection(bool clockwise, AuxCombo combo,
         Func<AuxBinding, string, Task<AuxBinding?>>? editBinding)
     {
-        bool clockwise = label == "Clockwise";
+        // V29 #120: the direction names in the app's language (the side is passed in, not read back from the English label).
+        var label = clockwise ? Services.Localizer.Te("tablet.ring.clockwise", "Clockwise")
+                              : Services.Localizer.Te("tablet.ring.anticlockwise", "Anticlockwise");
         if (clockwise) _cw = combo; else _ccw = combo;
         var binding = combo.IsBound ? new AuxBinding(AuxKind.Keyboard, combo, AuxKeyBinding.None, AuxKeyBinding.None)
                                     : AuxBinding.Unbound;

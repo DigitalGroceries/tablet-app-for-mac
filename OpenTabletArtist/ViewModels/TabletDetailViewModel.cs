@@ -2001,18 +2001,19 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             var cw = strips
                 ? MakeWheelRow(wi, Localizer.Te("tablet.strip.up", "Up"), ws.CounterClockwiseRotation, canEdit,
                     (_, b) => ApplyWheelRotationAsync(wi, false, b))
-                : MakeWheelRow(wi, "Clockwise", ws.ClockwiseRotation, canEdit,
+                : MakeWheelRow(wi, Localizer.Te("tablet.ring.clockwise", "Clockwise"), ws.ClockwiseRotation, canEdit,   // V29 #120
                     (_, b) => ApplyWheelRotationAsync(wi, true, b));
             var ccw = strips
                 ? MakeWheelRow(wi, Localizer.Te("tablet.strip.down", "Down"), ws.ClockwiseRotation, canEdit,
                     (_, b) => ApplyWheelRotationAsync(wi, true, b))
-                : MakeWheelRow(wi, "Anticlockwise", ws.CounterClockwiseRotation, canEdit,
+                : MakeWheelRow(wi, Localizer.Te("tablet.ring.anticlockwise", "Anticlockwise"), ws.CounterClockwiseRotation, canEdit,
                     (_, b) => ApplyWheelRotationAsync(wi, false, b));
             var buttons = new List<ButtonBinding>();
             for (int b = 0; b < ws.WheelButtons.Count; b++)
             {
                 int bi = b;
-                var label = ws.WheelButtons.Count > 1 ? Localizer.Tf("tablet.pen.button_n", ("number", b + 1)) : "Wheel button";
+                var label = ws.WheelButtons.Count > 1 ? Localizer.Tf("tablet.pen.button_n", ("number", b + 1))
+                    : Localizer.Te("tablet.ring.centre", "Centre button");   // V29 #120: Wacom's name, in the app's language (was "Wheel button")
                 buttons.Add(MakeWheelRow(wi, label, ws.WheelButtons[b], canEdit,
                     (_, bind) => ApplyWheelButtonAsync(wi, bi, bind)));
             }

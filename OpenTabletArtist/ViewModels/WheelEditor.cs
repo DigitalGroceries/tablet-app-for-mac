@@ -110,13 +110,15 @@ public partial class WheelEditor : ObservableObject
                 return TurningClockwise ? Services.Localizer.Te("tablet.strip.up", "Up")
                      : TurningCounterClockwise ? Services.Localizer.Te("tablet.strip.down", "Down")
                      : Services.Localizer.Te("tablet.strip.touch", "Touch the strip");
-            string? dir = TurningClockwise ? "Clockwise" : TurningCounterClockwise ? "Anticlockwise" : null;
+            // V29 #120: in the app's language (was English in every language).
+            string? dir = TurningClockwise ? Services.Localizer.Te("tablet.ring.clockwise", "Clockwise")
+                        : TurningCounterClockwise ? Services.Localizer.Te("tablet.ring.anticlockwise", "Anticlockwise") : null;
             if (LivePosition is double n)
             {
                 var deg = Math.Round(OpenTabletArtist.Controls.WheelGauge.AngleDeg(n)) % 360.0;   // Version 4: same zero as the marker (12 o'clock = 0°)
                 return dir == null ? $"{deg:0}°" : $"{deg:0}° · {dir}";
             }
-            return dir ?? "Touch the ring";
+            return dir ?? Services.Localizer.Te("tablet.ring.touch", "Touch the ring");
         }
     }
 
