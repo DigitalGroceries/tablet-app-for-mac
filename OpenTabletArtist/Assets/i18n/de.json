@@ -690,5 +690,14 @@
   "palette.size": "Palettengröße",
   "palette.solid": "Die Palette ist immer deckend, damit die Farben, die du auswählst, genau stimmen.",
   "palette.set_photoshop": "{colour} in Photoshop eingestellt",
-  "palette.copied": "{colour} kopiert"
+  "palette.copied": "{colour} kopiert",
+  "radial.keyboard_line": "Schwebende Tastatur: Lege sie auf ein Feld dieses Menüs und tippe dann dieses Feld an, um mit dem Stift zu schreiben.",
+  "radial.keyboard_put": "Tastatur dorthin legen",
+  "radial.slot_empty": "(leer)",
+  "radial.keyboard_on": "Die Tastatur liegt auf Feld {n}.",
+  "palette.edit_hint": "Tippe die Farbe an, die du ändern willst",
+  "palette.restore_prompt": "Die ursprünglichen Farben der Palette wiederherstellen?",
+  "palette.change_title": "Diese Farbe ändern",
+  "palette.saved": "Farbe gespeichert",
+  "palette.restored": "Palettenfarben wiederhergestellt"
 }

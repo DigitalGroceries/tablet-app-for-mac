@@ -690,5 +690,14 @@
   "palette.size": "Taille de la palette",
   "palette.solid": "La palette est toujours opaque : les couleurs que vous choisissez sont donc exactes.",
   "palette.set_photoshop": "Couleur {colour} définie dans Photoshop",
-  "palette.copied": "Couleur {colour} copiée"
+  "palette.copied": "Couleur {colour} copiée",
+  "radial.keyboard_line": "Clavier flottant : placez-le sur une part de ce menu, puis touchez cette part pour écrire avec le stylet.",
+  "radial.keyboard_put": "Placer le clavier sur cette part",
+  "radial.slot_empty": "(vide)",
+  "radial.keyboard_on": "Le clavier est sur la part {n}.",
+  "palette.edit_hint": "Touchez la couleur à modifier",
+  "palette.restore_prompt": "Rétablir les couleurs d'origine de la palette ?",
+  "palette.change_title": "Modifier cette couleur",
+  "palette.saved": "Couleur enregistrée",
+  "palette.restored": "Couleurs de la palette rétablies"
 }

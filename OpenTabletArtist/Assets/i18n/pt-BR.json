@@ -690,5 +690,14 @@
   "palette.size": "Tamanho da paleta",
   "palette.solid": "A paleta é sempre opaca, então as cores que você escolhe são exatas.",
   "palette.set_photoshop": "Cor {colour} definida no Photoshop",
-  "palette.copied": "Cor {colour} copiada"
+  "palette.copied": "Cor {colour} copiada",
+  "radial.keyboard_line": "Teclado flutuante: coloque-o numa fatia deste menu e depois toque nessa fatia para digitar com a caneta.",
+  "radial.keyboard_put": "Colocar o teclado nessa fatia",
+  "radial.slot_empty": "(vazia)",
+  "radial.keyboard_on": "O teclado está na fatia {n}.",
+  "palette.edit_hint": "Toque na cor que você quer mudar",
+  "palette.restore_prompt": "Restaurar as cores originais da paleta?",
+  "palette.change_title": "Mudar esta cor",
+  "palette.saved": "Cor salva",
+  "palette.restored": "Cores da paleta restauradas"
 }

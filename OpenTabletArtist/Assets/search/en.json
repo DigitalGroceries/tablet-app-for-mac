@@ -970,6 +970,16 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "Colour Palette Settings",
+    "path": "Tablet › Pen › Eraser",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Palette size",
+    "path": "Tablet › Pen › Eraser",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "Movement",
     "path": "Tablet › Pen › Eraser",
     "route": "tablet/ToolPenButton/EraserTab"

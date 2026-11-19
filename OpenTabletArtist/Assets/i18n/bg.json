@@ -690,5 +690,14 @@
   "palette.size": "Размер на палитрата",
   "palette.solid": "Палитрата винаги е плътна, затова избраните цветове са точни.",
   "palette.set_photoshop": "{colour} е зададен във Photoshop",
-  "palette.copied": "{colour} е копиран"
+  "palette.copied": "{colour} е копиран",
+  "radial.keyboard_line": "Плаваща клавиатура: сложи я в сектор от това меню, после докосни този сектор, за да пишеш с писалката.",
+  "radial.keyboard_put": "Сложи клавиатурата там",
+  "radial.slot_empty": "(празен)",
+  "radial.keyboard_on": "Клавиатурата е в сектор {n}.",
+  "palette.edit_hint": "Докосни цвета, който искаш да промениш",
+  "palette.restore_prompt": "Да се възстановят ли първоначалните цветове на палитрата?",
+  "palette.change_title": "Промени този цвят",
+  "palette.saved": "Цветът е запазен",
+  "palette.restored": "Цветовете на палитрата са възстановени"
 }

@@ -965,6 +965,16 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "Ajustes de la paleta de colores",
+    "path": "Tableta › Lápiz › Borrador",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Tamaño de la paleta",
+    "path": "Tableta › Lápiz › Borrador",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "Movimiento",
     "path": "Tableta › Lápiz › Borrador",
     "route": "tablet/ToolPenButton/EraserTab"

@@ -690,5 +690,14 @@
   "palette.size": "Размер палитры",
   "palette.solid": "Палитра всегда непрозрачна, поэтому выбранные цвета будут точными.",
   "palette.set_photoshop": "{colour} задан в Photoshop",
-  "palette.copied": "{colour} скопирован"
+  "palette.copied": "{colour} скопирован",
+  "radial.keyboard_line": "Плавающая клавиатура: поместите её в сектор этого меню, затем коснитесь этого сектора, чтобы печатать пером.",
+  "radial.keyboard_put": "Поместить клавиатуру в этот сектор",
+  "radial.slot_empty": "(пусто)",
+  "radial.keyboard_on": "Клавиатура находится в секторе {n}.",
+  "palette.edit_hint": "Коснитесь цвета, который хотите изменить",
+  "palette.restore_prompt": "Восстановить исходные цвета палитры?",
+  "palette.change_title": "Изменить этот цвет",
+  "palette.saved": "Цвет сохранён",
+  "palette.restored": "Цвета палитры восстановлены"
 }

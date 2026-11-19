@@ -690,5 +690,14 @@
   "palette.size": "パレットのサイズ",
   "palette.solid": "パレットは常に不透明なので、正確な色を選べます。",
   "palette.set_photoshop": "{colour} を Photoshop に設定しました",
-  "palette.copied": "{colour} をコピーしました"
+  "palette.copied": "{colour} をコピーしました",
+  "radial.keyboard_line": "フローティングキーボード：このメニューの項目に割り当ててから、その項目をタップすると、ペンで文字を入力できます。",
+  "radial.keyboard_put": "選んだ項目にキーボードを配置",
+  "radial.slot_empty": "（空き）",
+  "radial.keyboard_on": "キーボードは項目 {n} にあります。",
+  "palette.edit_hint": "次にタップする色を変更します",
+  "palette.restore_prompt": "パレットを元の色に戻しますか？",
+  "palette.change_title": "この色を変更",
+  "palette.saved": "色を保存しました",
+  "palette.restored": "パレットの色を元に戻しました"
 }

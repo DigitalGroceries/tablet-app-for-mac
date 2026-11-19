@@ -690,5 +690,14 @@
   "palette.size": "Dimensioni tavolozza",
   "palette.solid": "La tavolozza è sempre opaca, così i colori che scegli sono esatti.",
   "palette.set_photoshop": "{colour} impostato in Photoshop",
-  "palette.copied": "{colour} copiato"
+  "palette.copied": "{colour} copiato",
+  "radial.keyboard_line": "Tastiera fluttuante: mettila su uno spicchio di questo menu, poi tocca quello spicchio per scrivere con la penna.",
+  "radial.keyboard_put": "Metti la tastiera lì",
+  "radial.slot_empty": "(vuoto)",
+  "radial.keyboard_on": "La tastiera è sullo spicchio {n}.",
+  "palette.edit_hint": "Tocca il colore da cambiare",
+  "palette.restore_prompt": "Ripristinare i colori originali della tavolozza?",
+  "palette.change_title": "Cambia questo colore",
+  "palette.saved": "Colore salvato",
+  "palette.restored": "Colori della tavolozza ripristinati"
 }

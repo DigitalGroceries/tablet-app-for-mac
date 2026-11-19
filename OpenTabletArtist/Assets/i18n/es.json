@@ -690,5 +690,14 @@
   "palette.size": "Tamaño de la paleta",
   "palette.solid": "La paleta siempre es sólida, así que los colores que eliges son exactos.",
   "palette.set_photoshop": "{colour} establecido en Photoshop",
-  "palette.copied": "{colour} copiado"
+  "palette.copied": "{colour} copiado",
+  "radial.keyboard_line": "Teclado flotante: ponlo en un sector de este menú y luego toca ese sector para escribir con el lápiz.",
+  "radial.keyboard_put": "Poner el teclado ahí",
+  "radial.slot_empty": "(vacío)",
+  "radial.keyboard_on": "El teclado está en el sector {n}.",
+  "palette.edit_hint": "Toca el color que quieras cambiar",
+  "palette.restore_prompt": "¿Restaurar los colores originales de la paleta?",
+  "palette.change_title": "Cambiar este color",
+  "palette.saved": "Color guardado",
+  "palette.restored": "Colores de la paleta restaurados"
 }

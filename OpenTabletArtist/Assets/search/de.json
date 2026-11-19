@@ -970,6 +970,16 @@
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
+    "text": "Farbpaletten-Einstellungen",
+    "path": "Tablet › Stift › Radierer",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Palettengröße",
+    "path": "Tablet › Stift › Radierer",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
     "text": "Bewegung",
     "path": "Tablet › Stift › Radierer",
     "route": "tablet/ToolPenButton/EraserTab"

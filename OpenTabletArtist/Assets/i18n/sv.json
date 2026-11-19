@@ -690,5 +690,14 @@
   "palette.size": "Palettstorlek",
   "palette.solid": "Paletten är alltid ogenomskinlig, så färgerna du väljer blir exakta.",
   "palette.set_photoshop": "{colour} inställd i Photoshop",
-  "palette.copied": "{colour} kopierad"
+  "palette.copied": "{colour} kopierad",
+  "radial.keyboard_line": "Flytande tangentbord: lägg det på en sektor i den här menyn och tryck sedan på den sektorn för att skriva med pennan.",
+  "radial.keyboard_put": "Lägg tangentbordet där",
+  "radial.slot_empty": "(tom)",
+  "radial.keyboard_on": "Tangentbordet ligger på sektor {n}.",
+  "palette.edit_hint": "Tryck på färgen du vill ändra",
+  "palette.restore_prompt": "Återställ palettens ursprungliga färger?",
+  "palette.change_title": "Ändra den här färgen",
+  "palette.saved": "Färg sparad",
+  "palette.restored": "Palettens färger återställda"
 }

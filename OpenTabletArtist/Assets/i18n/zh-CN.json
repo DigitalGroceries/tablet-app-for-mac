@@ -690,5 +690,14 @@
   "palette.size": "调色板大小",
   "palette.solid": "调色板始终不透明，因此你选取的颜色是准确的。",
   "palette.set_photoshop": "已在 Photoshop 中设置 {colour}",
-  "palette.copied": "已复制 {colour}"
+  "palette.copied": "已复制 {colour}",
+  "radial.keyboard_line": "浮动键盘：把它放到此菜单的一个扇区上，然后点按该扇区，即可用笔输入文字。",
+  "radial.keyboard_put": "将键盘放到所选扇区",
+  "radial.slot_empty": "（空）",
+  "radial.keyboard_on": "键盘位于扇区 {n}。",
+  "palette.edit_hint": "点按要更改的颜色",
+  "palette.restore_prompt": "恢复调色板自带的颜色吗？",
+  "palette.change_title": "更改此颜色",
+  "palette.saved": "颜色已保存",
+  "palette.restored": "调色板颜色已恢复"
 }
