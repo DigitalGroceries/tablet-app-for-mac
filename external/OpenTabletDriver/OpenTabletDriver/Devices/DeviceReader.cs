@@ -126,9 +126,17 @@ namespace OpenTabletDriver.Devices
 
                     if (parsed is not { } report) continue;
 
-                    if (RawClone)
-                        OnRawReport(report);
-                    OnReport(report);
+                    // Tablet App for Mac (#120): a report with several samples (Wacom Bluetooth: up to 4 pen
+                    // frames) goes on as one report per sample, oldest first, so no sample is dropped.
+                    if (report is IMultiFrameReport multi)
+                    {
+                        foreach (var frame in multi.Frames)
+                            if (frame is T one)
+                                Emit(one);
+                        continue;
+                    }
+
+                    Emit(report);
                 }
             }
             catch (ObjectDisposedException dex)
@@ -154,6 +162,13 @@ namespace OpenTabletDriver.Devices
             {
                 Connected = false;
             }
+        }
+
+        private void Emit(T report)
+        {
+            if (RawClone)
+                OnRawReport(report);
+            OnReport(report);
         }
 
         protected virtual void OnReport(T report) => Report?.Invoke(this, report);

@@ -285,17 +285,47 @@ namespace OpenTabletDriver.Tests
         }
 
         [Fact]
-        public void IntuosBt_Reads_The_Newest_Valid_Pen_Frame()
+        public void IntuosBt_Passes_Every_Valid_Pen_Frame_Oldest_First()
         {
+            // #120: before, only the newest valid frame was kept, so up to 3 of every 4 pen samples were lost.
             var raw = IntuosBt(0x05, (0xE0, 100, 200, 10, 5), (0xE2, 15000, 9000, 2047, 0), (0x00, 1, 1, 1, 1));
+            var multi = Assert.IsType<MultiFrameReport>(new IntuosBluetoothReportParser().Parse(raw));
+            Assert.Same(raw, multi.Raw);
+            Assert.Equal(2, multi.Frames.Length);
+
+            var first = Assert.IsType<IntuosBluetoothReport>(multi.Frames[0]);
+            Assert.Equal(100f, first.Position.X);
+            Assert.Equal(200f, first.Position.Y);
+            Assert.Equal(10u, first.Pressure);
+            Assert.Equal(5u, first.HoverDistance);
+            Assert.Equal(new[] { false, false }, first.PenButtons);
+
+            var second = Assert.IsType<IntuosBluetoothReport>(multi.Frames[1]);
+            Assert.Equal(15000f, second.Position.X);
+            Assert.Equal(9000f, second.Position.Y);
+            Assert.Equal(2047u, second.Pressure);
+            Assert.Equal(new[] { true, false }, second.PenButtons);
+            Assert.False(second.Eraser);
+            Assert.True(second.NearProximity);
+            Assert.Equal(new[] { true, false, true, false }, second.AuxButtons);
+            Assert.Equal(new[] { true, false, true, false }, first.AuxButtons);
+        }
+
+        [Fact]
+        public void IntuosBt_Four_Frames_Give_Four_Reports_In_Order()
+        {
+            var raw = IntuosBt(0, (0xE1, 10, 1, 100, 0), (0xE1, 20, 2, 200, 0), (0xE1, 30, 3, 300, 0), (0xE1, 40, 4, 400, 0));
+            var multi = Assert.IsType<MultiFrameReport>(new IntuosBluetoothReportParser().Parse(raw));
+            Assert.Equal(new[] { 10f, 20f, 30f, 40f }, multi.Frames.Select(f => ((IntuosBluetoothReport)f).Position.X));
+            Assert.Equal(new[] { 100u, 200u, 300u, 400u }, multi.Frames.Select(f => ((IntuosBluetoothReport)f).Pressure));
+        }
+
+        [Fact]
+        public void IntuosBt_One_Valid_Frame_Is_A_Plain_Report()
+        {
+            var raw = IntuosBt(0, (0x00, 1, 1, 1, 1), (0xE0, 7000, 4000, 0, 9));
             var report = Assert.IsType<IntuosBluetoothReport>(new IntuosBluetoothReportParser().Parse(raw));
-            Assert.Equal(15000f, report.Position.X);
-            Assert.Equal(9000f, report.Position.Y);
-            Assert.Equal(2047u, report.Pressure);
-            Assert.Equal(new[] { true, false }, report.PenButtons);
-            Assert.False(report.Eraser);
-            Assert.True(report.NearProximity);
-            Assert.Equal(new[] { true, false, true, false }, report.AuxButtons);
+            Assert.Equal(7000f, report.Position.X);
         }
 
         [Fact]
@@ -312,8 +342,16 @@ namespace OpenTabletDriver.Tests
             var parser = new IntuosBluetoothReportParser();
             var down = Assert.IsType<IntuosBluetoothReport>(parser.Parse(IntuosBt(0, (0xE2, 500, 500, 100, 0))));
             Assert.True(down.PenButtons[0]);
-            Assert.IsType<OutOfRangeReport>(parser.Parse(IntuosBt(0, (0xE2, 500, 500, 100, 0), (0x80, 0, 0, 0, 0))));
-            Assert.IsType<IntuosBluetoothReport>(parser.Parse(IntuosBt(0, (0x80, 0, 0, 0, 0), (0xE0, 600, 600, 0, 3))));
+            // #120: the frames keep their order: the last pen sample, then the pen leaving ...
+            var leaving = Assert.IsType<MultiFrameReport>(parser.Parse(IntuosBt(0, (0xE2, 500, 500, 100, 0), (0x80, 0, 0, 0, 0))));
+            Assert.IsType<IntuosBluetoothReport>(leaving.Frames[0]);
+            Assert.IsType<OutOfRangeReport>(leaving.Frames[1]);
+            // ... or the pen leaving, then coming back.
+            var back = Assert.IsType<MultiFrameReport>(parser.Parse(IntuosBt(0, (0x80, 0, 0, 0, 0), (0xE0, 600, 600, 0, 3))));
+            Assert.IsType<OutOfRangeReport>(back.Frames[0]);
+            Assert.Equal(600f, Assert.IsType<IntuosBluetoothReport>(back.Frames[1]).Position.X);
+            // Several "leaving" frames in a row count once.
+            Assert.IsType<OutOfRangeReport>(parser.Parse(IntuosBt(0, (0x80, 0, 0, 0, 0), (0x80, 0, 0, 0, 0), (0x80, 0, 0, 0, 0))));
         }
 
         [Fact]
