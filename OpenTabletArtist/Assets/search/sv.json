@@ -650,7 +650,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Clockwise",
+    "text": "Medurs",
     "path": "Ritplatta › Funktioner › Touch Ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -660,7 +660,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Anticlockwise",
+    "text": "Moturs",
     "path": "Ritplatta › Funktioner › Touch Ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -796,6 +796,11 @@
   },
   {
     "text": "Menystorlek",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Tangentbordets genomskinlighet",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

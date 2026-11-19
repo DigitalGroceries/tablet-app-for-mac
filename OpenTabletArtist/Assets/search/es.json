@@ -650,7 +650,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Clockwise",
+    "text": "Sentido horario",
     "path": "Tableta › Funciones › Anillo táctil",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -660,7 +660,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Anticlockwise",
+    "text": "Sentido antihorario",
     "path": "Tableta › Funciones › Anillo táctil",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -791,6 +791,11 @@
   },
   {
     "text": "Tamaño del menú",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Transparencia del teclado",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },

@@ -650,7 +650,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Clockwise",
+    "text": "Senso orario",
     "path": "Tavoletta › Funzioni › Touch Ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -660,7 +660,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Anticlockwise",
+    "text": "Senso antiorario",
     "path": "Tavoletta › Funzioni › Touch Ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -796,6 +796,11 @@
   },
   {
     "text": "Dimensioni menu",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Trasparenza tastiera",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

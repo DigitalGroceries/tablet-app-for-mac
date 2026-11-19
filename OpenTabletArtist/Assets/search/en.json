@@ -805,6 +805,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Keyboard transparency",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Movement",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"

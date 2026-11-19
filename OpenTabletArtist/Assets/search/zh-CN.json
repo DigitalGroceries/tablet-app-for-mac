@@ -710,7 +710,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Clockwise",
+    "text": "顺时针",
     "path": "数位板 › 功能 › 触控环",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -720,7 +720,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Anticlockwise",
+    "text": "逆时针",
     "path": "数位板 › 功能 › 触控环",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -871,6 +871,11 @@
   },
   {
     "text": "菜单大小",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "键盘透明度",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },

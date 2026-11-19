@@ -635,7 +635,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Clockwise",
+    "text": "По часовниковата стрелка",
     "path": "Таблет › Функции › Сензорен пръстен",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -645,7 +645,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Anticlockwise",
+    "text": "Обратно на часовниковата стрелка",
     "path": "Таблет › Функции › Сензорен пръстен",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -781,6 +781,11 @@
   },
   {
     "text": "Размер на менюто",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Прозрачност на клавиатурата",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },

@@ -650,7 +650,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Clockwise",
+    "text": "Im Uhrzeigersinn",
     "path": "Tablet › Funktionen › Touch-ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -660,7 +660,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Anticlockwise",
+    "text": "Gegen den Uhrzeigersinn",
     "path": "Tablet › Funktionen › Touch-ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -796,6 +796,11 @@
   },
   {
     "text": "Menügröße",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Transparenz der Tastatur",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },

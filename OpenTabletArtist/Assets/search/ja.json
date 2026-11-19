@@ -705,7 +705,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Clockwise",
+    "text": "時計回り",
     "path": "タブレット › ファンクション › タッチリング",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -715,7 +715,7 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Anticlockwise",
+    "text": "反時計回り",
     "path": "タブレット › ファンクション › タッチリング",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
@@ -876,6 +876,11 @@
   },
   {
     "text": "メニューのサイズ",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "キーボードの透明度",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
