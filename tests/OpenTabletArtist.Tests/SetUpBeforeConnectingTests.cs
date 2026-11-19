@@ -42,6 +42,22 @@ public class SetUpBeforeConnectingTests
         Assert.NotNull(about);
     }
 
+    // GitHub #119 (jbrannigan, V28): the CTL-4100WL has no mouse, so its catalog entry has "MouseButtons": null;
+    // opening its page before it was connected crashed the app and the data poll failed every 30 s.
+    [Fact]
+    public void CatalogJson_ForATabletWithoutAMouse_GivesItsAboutFacts()
+    {
+        var json = OfflineTablet.CatalogTabletJson("Wacom CTL-4100WL");
+        Assert.NotNull(json);
+        Assert.Equal(JTokenType.Null, json!["Properties"]!["Specifications"]!["MouseButtons"]!.Type);   // the shape that crashed
+        var about = TabletAboutInfo.From(new JArray(json), "Wacom CTL-4100WL");
+        Assert.NotNull(about);
+        Assert.Null(about!.MouseButtons);
+        Assert.Equal(5u, about.ExpressKeys);
+        Assert.Equal(2u, about.PenButtons);
+        Assert.Equal(152f, about.WidthMm, 3);
+    }
+
     [Fact]
     public void UnknownModel_HasNoCatalogEntryAndNoProfile()
     {

@@ -77,29 +77,37 @@ public sealed record TabletAboutInfo
         if (tablets is not JArray arr) return null;
         foreach (var t in arr)
         {
-            var props = t["Properties"] ?? t;
+            if (Props(t) is not { } props) continue;
             if (string.Equals(props["Name"]?.ToString(), tabletName, StringComparison.OrdinalIgnoreCase))
                 return Parse(t);
         }
         return null;
     }
 
+    // GitHub #119 (V28 crash): a tablet set up before it was connected is described from the built-in catalog
+    // (OfflineTablet.CatalogTabletJson, JObject.FromObject), which writes a missing part such as "MouseButtons" as
+    // JSON null. That is a JValue, not a C# null, so `?.` did not stop and indexing it threw "Cannot access child
+    // value on Newtonsoft.Json.Linq.JValue" - logged every 30 s, and the tablet's page crashed the app. Only ever
+    // index a part when it really is an object, and read numbers as nullable so a JSON null gives "unknown".
+    private static JObject? Obj(JToken? t) => t as JObject;
+    private static JObject? Props(JToken? t) => Obj(t?["Properties"]) ?? Obj(t);
+
     internal static TabletAboutInfo Parse(JToken t)
     {
-        var props = t["Properties"] ?? t;
-        var specs = props["Specifications"];
-        var digi = specs?["Digitizer"];
-        var pen = specs?["Pen"];
+        var props = Props(t) ?? new JObject();
+        var specs = Obj(props["Specifications"]);
+        var digi = Obj(specs?["Digitizer"]);
+        var pen = Obj(specs?["Pen"]);
 
-        float w = digi?["Width"]?.Value<float>() ?? 0;
-        float h = digi?["Height"]?.Value<float>() ?? 0;
-        float maxX = digi?["MaxX"]?.Value<float>() ?? 0;
+        float w = digi?["Width"]?.Value<float?>() ?? 0;
+        float h = digi?["Height"]?.Value<float?>() ?? 0;
+        float maxX = digi?["MaxX"]?.Value<float?>() ?? 0;
 
         // The active DeviceIdentifier carries the live VID/PID; fall back to the config's digitizer id.
-        var id = (t["Identifiers"] as JArray)?.FirstOrDefault()
-                 ?? (props["DigitizerIdentifiers"] as JArray)?.FirstOrDefault();
+        var id = Obj((t["Identifiers"] as JArray)?.FirstOrDefault())
+                 ?? Obj((props["DigitizerIdentifiers"] as JArray)?.FirstOrDefault());
 
-        uint? pressure = pen?["MaxPressure"]?.Value<uint>();
+        uint? pressure = pen?["MaxPressure"]?.Value<uint?>();
 
         return new TabletAboutInfo
         {
@@ -109,17 +117,17 @@ public sealed record TabletAboutInfo
             LpMm = w > 0 && maxX > 0 ? (int)Math.Round(maxX / w) : null,
             Lpi = w > 0 && maxX > 0 ? (int)Math.Round(maxX * 25.4 / w) : null,
             MaxPressure = pressure is > 0 ? pressure : null,
-            PenButtons = pen?["ButtonCount"]?.Value<uint>(),
-            ExpressKeys = specs?["AuxiliaryButtons"]?["ButtonCount"]?.Value<uint>(),
-            MouseButtons = specs?["MouseButtons"]?["ButtonCount"]?.Value<uint>(),
+            PenButtons = pen?["ButtonCount"]?.Value<uint?>(),
+            ExpressKeys = Obj(specs?["AuxiliaryButtons"])?["ButtonCount"]?.Value<uint?>(),
+            MouseButtons = Obj(specs?["MouseButtons"])?["ButtonCount"]?.Value<uint?>(),
             WheelCount = (specs?["Wheels"] as JArray)?.Count ?? 0,
             StripCount = (specs?["Strips"] as JArray)?.Count ?? 0,
             // Attributes is null (JSON null) for most tablets: only index it when it is an object.
             WheelsAreTouchStrips = props["Attributes"] is JObject attrs
                 && string.Equals(attrs["WheelsAreTouchStrips"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase),
             HasTouch = specs?["Touch"] is { Type: not JTokenType.Null },
-            VendorId = id?["VendorID"]?.Value<int>(),
-            ProductId = id?["ProductID"]?.Value<int>(),
+            VendorId = id?["VendorID"]?.Value<int?>(),
+            ProductId = id?["ProductID"]?.Value<int?>(),
         };
     }
 }

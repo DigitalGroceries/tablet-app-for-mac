@@ -1028,7 +1028,11 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// <summary>Rebuild the ABOUT tab's fact lists from the tablet's live specs (empty when not detected).</summary>
     private void RefreshAbout()
     {
-        var info = _deviceData != null ? TabletAboutInfo.From(_deviceData.TabletsWithRemembered, TabletName) : null;
+        TabletAboutInfo? info = null;
+        // GitHub #119: a fault in reading the specs crashed the app here (nothing caught it). Now the page shows no
+        // facts and the reason goes in the app log, so a report shows it.
+        try { info = _deviceData != null ? TabletAboutInfo.From(_deviceData.TabletsWithRemembered, TabletName) : null; }
+        catch (Exception ex) { AppLog.Warn($"Couldn't read the tablet facts for \"{TabletName}\"; the About page stays empty.", ex); }
         TabletFacts = info != null ? TabletAboutFacts.BuildFacts(info) : System.Array.Empty<TabletFact>();
         ActiveAreaFacts = info != null ? TabletAboutFacts.BuildActiveAreaFacts(info) : System.Array.Empty<TabletFact>();
         TabletFeatures = info != null ? TabletAboutFacts.BuildFeatures(info, TouchTrackpadEnabled) : System.Array.Empty<TabletFact>();

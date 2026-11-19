@@ -103,4 +103,51 @@ public class TabletAboutInfoTests
         Assert.False(a.HasTouch);
         Assert.Null(a.VendorId);
     }
+
+    // GitHub #119 (V28): a tablet set up before it was connected is described from the catalog with JSON nulls for the
+    // parts it lacks (no mouse, no ExpressKeys, no pen block ...). Reading them threw and crashed the tablet page.
+    [Fact]
+    public void Parse_SurvivesJsonNullParts()
+    {
+        var t = new JArray
+        {
+            new JObject
+            {
+                ["Properties"] = new JObject
+                {
+                    ["Name"] = "Wacom CTL-4100WL",
+                    ["Specifications"] = new JObject
+                    {
+                        ["Digitizer"] = new JObject { ["Width"] = 152.0, ["Height"] = 95.0, ["MaxX"] = 15200, ["MaxY"] = JValue.CreateNull() },
+                        ["Pen"] = JValue.CreateNull(),
+                        ["AuxiliaryButtons"] = JValue.CreateNull(),
+                        ["MouseButtons"] = JValue.CreateNull(),
+                        ["Touch"] = JValue.CreateNull(),
+                        ["Wheels"] = JValue.CreateNull(),
+                    },
+                    ["Attributes"] = JValue.CreateNull(),
+                    ["DigitizerIdentifiers"] = new JArray { JValue.CreateNull() },
+                },
+            },
+        };
+
+        var a = TabletAboutInfo.From(t, "Wacom CTL-4100WL");
+
+        Assert.NotNull(a);
+        Assert.Equal(152f, a!.WidthMm, 3);
+        Assert.Null(a.ExpressKeys);
+        Assert.Null(a.MouseButtons);
+        Assert.Null(a.PenButtons);
+        Assert.Null(a.MaxPressure);
+        Assert.False(a.HasTouch);
+        Assert.Equal(0, a.WheelCount);
+        Assert.Null(a.VendorId);
+    }
+
+    [Fact]
+    public void From_SkipsAnEntryThatIsNotAnObject()
+    {
+        var t = new JArray { JValue.CreateNull(), new JObject { ["Properties"] = JValue.CreateNull() } };
+        Assert.Null(TabletAboutInfo.From(t, "Wacom CTL-4100WL"));
+    }
 }
