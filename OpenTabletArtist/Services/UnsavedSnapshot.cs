@@ -14,7 +14,9 @@ namespace OpenTabletArtist.Services;
 internal static class UnsavedSnapshot
 {
     public const string FileName = "pending-unsaved.json";
-    public const string RestoredNotice = "Restored unsaved changes from before shutdown";
+    /// <summary>#117 (V29): also says the changes are not saved yet, and comes in the app's language.</summary>
+    public static string RestoredNotice => Localizer.Te("footer.restored_unsaved",
+        "Restored unsaved changes from before shutdown. They are not saved yet: Save keeps them, Revert to saved drops them.");
 
     public static string DefaultDirectory => AppPaths.LocalAppData;
     public static string PathIn(string dir) => Path.Combine(dir, FileName);

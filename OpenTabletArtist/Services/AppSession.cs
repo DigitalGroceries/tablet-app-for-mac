@@ -253,12 +253,13 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
     [ObservableProperty] private bool _daemonCannotOpenTablet;
 
     /// <summary>The discarded-change notice while the daemon is gone and unsaved changes were open.</summary>
-    internal const string DisconnectedWithUnsavedChangesMessage =
-        "The driver disconnected. Reconnecting reloads its current settings; unsaved changes may be lost.";
+    /// <remarks>#117 (V29): in the app's language (it was English only).</remarks>
+    internal static string DisconnectedWithUnsavedChangesMessage => Localizer.Te("footer.driver_disconnected_unsaved",
+        "The driver disconnected. Reconnecting reloads its current settings; unsaved changes may be lost.");
 
     /// <summary>What replaces <see cref="DisconnectedWithUnsavedChangesMessage"/> once the daemon is back.</summary>
-    internal const string ReconnectedReplacedUnsavedChangesMessage =
-        "Reconnected to the driver. Its current settings replaced the previous unsaved workspace.";
+    internal static string ReconnectedReplacedUnsavedChangesMessage => Localizer.Te("footer.driver_reconnected_replaced",
+        "Reconnected to the driver. Its current settings replaced the previous unsaved workspace.");
 
     /// <summary>Message shown when <see cref="IsDaemonExeMissing"/> — the most common cause of a
     /// dead connection (building only the app, or only running the test suite, never produces the
@@ -1092,9 +1093,9 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
                         // current settings are what is showing. Two sentences for one event read as
                         // two events, and the first is the one that carries the loss.
                         if (DiscardedChangeNotice != ReconnectedReplacedUnsavedChangesMessage)
-                            SettingsRefreshedNotice =
+                            SettingsRefreshedNotice = Localizer.Te("footer.driver_refreshed",   // #117: in the app's language
                                 "Driver settings refreshed. It changed them and you had nothing unsaved "
-                                + "in progress, so this page now shows what it holds.";
+                                + "in progress, so this page now shows what it holds.");
                         SettingsReplaced?.Invoke();
                         PublishSettings();
                         SaveState = SettingsSaveState.None;
