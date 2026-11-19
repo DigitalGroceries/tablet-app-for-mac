@@ -17,8 +17,10 @@ public static class RadialActions
     public const string Click = "Click";      // Left / Right / Middle / DoubleClick at the pointer
     public const string Submenu = "Submenu";  // opens another ring of 8 slices
     public const string Open = "Open";        // opens an app (bundle id or .app path)
+    /// <summary>V29 #141 (Zak 19 Nov): shows or hides the floating keyboard, so the pen can type.</summary>
+    public const string Keyboard = "Keyboard";
 
-    public static readonly string[] All = { None, Keys, Click, Submenu, Open };
+    public static readonly string[] All = { None, Keys, Click, Submenu, Open, Keyboard };
 }
 
 /// <summary>One menu ring: always <see cref="SliceCount"/> slices, slice 0 at the top, then clockwise.</summary>
@@ -93,6 +95,7 @@ public sealed class RadialSlice
         RadialActions.Click => !string.IsNullOrWhiteSpace(Click),
         RadialActions.Open => !string.IsNullOrWhiteSpace(App),
         RadialActions.Submenu => Submenu != null,
+        RadialActions.Keyboard => true,
         _ => false,
     };
 
@@ -305,6 +308,9 @@ public sealed class RadialMenuCommand
     public const string Restore = "restore";
     /// <summary>The app finished an edit or a restore: <see cref="Menu"/> is the menu to use from now on (the same one when nothing changed).</summary>
     public const string MenuChanged = "menu";
+    /// <summary>V29 #141: a key on the floating keyboard was tapped: press <see cref="Keys"/> (OTD multi-key string) in the app in front.
+    /// Written to <see cref="FloatingKeyboardFiles.CommandFile"/>, not to the menu's command file.</summary>
+    public const string Key = "key";
 
     [JsonPropertyName("seq")] public long Seq { get; set; }
     [JsonPropertyName("op")] public string Op { get; set; } = "";
@@ -312,6 +318,7 @@ public sealed class RadialMenuCommand
     [JsonPropertyName("x")] public double X { get; set; }
     [JsonPropertyName("y")] public double Y { get; set; }
     [JsonPropertyName("menu")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? Menu { get; set; }
+    [JsonPropertyName("keys")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? Keys { get; set; }
 
     public string ToJson() => JsonSerializer.Serialize(this);
 
@@ -321,5 +328,30 @@ public sealed class RadialMenuCommand
         if (string.IsNullOrWhiteSpace(json)) return null;
         try { return JsonSerializer.Deserialize<RadialMenuCommand>(json); }
         catch (Exception) { return null; }
+    }
+}
+
+/// <summary>V29 #141 (Zak 19 Nov): the floating keyboard the radial menu's Keyboard slice shows. The app draws it; the driver presses
+/// the keys (the app can't press keys in other apps). They talk through two small files next to the menu's files: the app keeps
+/// <see cref="OpenFlag"/> while the keyboard is on screen, and writes each tapped key to <see cref="CommandFile"/>.</summary>
+public static class FloatingKeyboardFiles
+{
+    public static string Folder => System.IO.Path.Combine(System.IO.Path.GetTempPath(), "OpenTabletArtist");
+    /// <summary>There while the keyboard is on screen; the driver reads <see cref="CommandFile"/> only then.</summary>
+    public static string OpenFlag => System.IO.Path.Combine(Folder, "keyboard-open");
+    /// <summary>The last few tapped keys, one <see cref="RadialMenuCommand"/> (op "key") per line, oldest first. Keeping a few
+    /// means two quick taps are never lost between two looks by the driver.</summary>
+    public static string CommandFile => System.IO.Path.Combine(Folder, "keyboard-cmd");
+    /// <summary>How many recent keys the file keeps.</summary>
+    public const int KeepLast = 20;
+
+    /// <summary>The key commands in the file's text, oldest first; unreadable lines are skipped. Never throws.</summary>
+    public static List<RadialMenuCommand> ParseLines(string? text)
+    {
+        var list = new List<RadialMenuCommand>();
+        if (string.IsNullOrEmpty(text)) return list;
+        foreach (var line in text.Split('\n'))
+            if (RadialMenuCommand.Parse(line.Trim()) is { Op: RadialMenuCommand.Key } c) list.Add(c);
+        return list;
     }
 }

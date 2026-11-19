@@ -56,6 +56,9 @@ public partial class TabletDetailViewModel
     /// <summary>The sliders only work when a pen button opens the menu and the page can write settings.</summary>
     public bool CanEditRadialSliders => CanEditRadial;
 
+    /// <summary>V29 #141: the floating keyboard's transparency (one app-wide setting, shown with the menu's sliders).</summary>
+    public FloatingKeyboardLookViewModel KeyboardLook { get; } = new();
+
     private string _spotAppliedJson = "";
     private bool _spotDirty;
     private CancellationTokenSource? _spotDelay;

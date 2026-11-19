@@ -236,7 +236,6 @@ public class RadialMenuStateTests : IDisposable
         RadialMenuState.OffFlagPath = Path.Combine(_dir, "radial-menu-off");
         RadialMenuState.CursorProvider = () => _cursor;
         RadialMenuState.ActionRunner = (_, s) => _ran.Add(s.Label);
-        RadialMenuState.IdleCloseMs = 60_000;
         RadialMenuState.CommandFilePath = Path.Combine(_dir, "radial-menu-cmd");
         RadialMenuState.CommandPollMs = 40;
     }
@@ -274,15 +273,17 @@ public class RadialMenuStateTests : IDisposable
     }
 
     [Fact]
-    public void Tap_RunsTheSlice_AndClosesWhenTheButtonIsUp()
+    public void Tap_RunsTheSlice_AndTheMenuStaysOpen_WithTheButtonUp()
     {
+        // V29 #131 (Zak 19 Nov): "The radial menu should never close if not closed by the user by clicking the X".
         var b = Binding();
         b.Press(null!, null!);
         b.Release(null!, null!);
         TapAt(0, -100);   // top = Undo
-        Assert.Equal(new[] { "Undo" }, _ran);
-        Assert.False(RadialMenuState.IsOpen);
-        Assert.Equal("closed", State().GetProperty("state").GetString());
+        TapAt(0, -100);
+        Assert.Equal(new[] { "Undo", "Undo" }, _ran);
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.Equal("open", State().GetProperty("state").GetString());
     }
 
     [Fact]
@@ -295,33 +296,109 @@ public class RadialMenuStateTests : IDisposable
         Assert.Equal(new[] { "Undo", "Undo" }, _ran);
         Assert.True(RadialMenuState.IsOpen);
         b.Release(null!, null!);
-        TapAt(100, 0);                  // right = Copy, now it closes
+        TapAt(100, 0);                  // right = Copy; the menu still stays (V29 #131: only the X closes it)
         Assert.Equal("Copy", _ran.Last());
-        Assert.False(RadialMenuState.IsOpen);
+        Assert.True(RadialMenuState.IsOpen);
     }
 
-    [Theory]
-    [InlineData(0, 0)]        // the centre X
-    [InlineData(0, -900)]     // outside the ring
-    public void CentreOrOutside_Closes_WithoutAnAction(double dx, double dy)
+    [Fact]
+    public void TheCentreX_Closes_WithoutAnAction()
     {
         var b = Binding();
         b.Press(null!, null!);
-        TapAt(dx, dy);
+        TapAt(0, 0);
         Assert.Empty(_ran);
         Assert.False(RadialMenuState.IsOpen);
     }
 
     [Fact]
-    public void EmptySlice_Closes()
+    public void OutsideTheRing_TheTapGoesToTheApp_AndTheMenuStaysOpen()
+    {
+        // V29 #131: like a mouse click outside the menu.
+        var b = Binding();
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        _cursor = (500, 400 - 900);
+        Assert.False(RadialMenuState.TipDown());   // false = not the menu's: the stroke goes to the app
+        Assert.Empty(_ran);
+        Assert.True(RadialMenuState.IsOpen);
+        _cursor = (500, 300);                      // and the menu still works afterwards
+        Assert.True(RadialMenuState.TipDown());
+        Assert.Equal(new[] { "Undo" }, _ran);
+    }
+
+    [Fact]
+    public void Filter_AStrokeOutsideTheMenu_KeepsItsPressure_AStrokeOnTheMenuDoesNot()
+    {
+        var b = Binding();
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        var filter = new OpenTabletArtist.Dynamics.RadialMenuFilter();
+        uint seen = 999;
+        filter.Emit += r => seen = ((OpenTabletDriver.Plugin.Tablet.ITabletReport)r).Pressure;
+
+        _cursor = (500, 400 - 900);                         // outside: draws in the app, menu stays
+        filter.Consume(new PenReport { Pressure = 300 });
+        Assert.Equal(300u, seen);
+        filter.Consume(new PenReport { Pressure = 500 });   // the rest of that stroke too
+        Assert.Equal(500u, seen);
+        filter.Consume(new PenReport { Pressure = 0 });
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.Empty(_ran);
+
+        _cursor = (500, 300);                                // on Undo: the menu takes the stroke
+        filter.Consume(new PenReport { Pressure = 300 });
+        Assert.Equal(0u, seen);
+        Assert.Equal(new[] { "Undo" }, _ran);
+        filter.Consume(new PenReport { Pressure = 0 });
+        Assert.True(RadialMenuState.IsOpen);
+    }
+
+    private sealed class PenReport : OpenTabletDriver.Plugin.Tablet.ITabletReport
+    {
+        public byte[] Raw { get; set; } = Array.Empty<byte>();
+        public System.Numerics.Vector2 Position { get; set; }
+        public uint Pressure { get; set; }
+        public bool[] PenButtons { get; set; } = new bool[2];
+    }
+
+    [Fact]
+    public void EmptySlice_DoesNothing_AndTheMenuStaysOpen()
     {
         var m = RadialMenuDefaults.Create();
         m.Slices[2] = new RadialSlice();
         var b = Binding(m);
         b.Press(null!, null!);
+        b.Release(null!, null!);
         TapAt(100, 0);
         Assert.Empty(_ran);
-        Assert.False(RadialMenuState.IsOpen);
+        Assert.True(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void AClickSlice_TheMenuStepsAsideForTheClick_AndStaysOpen()
+    {
+        // V29 #131 (Zak 19 Nov: "Just dont close it when non of this is engaged"): the app lets clicks through the menu while the
+        // Click slice clicks, then the menu takes clicks again.
+        var m = RadialMenuDefaults.Create();
+        m.Slices[2] = new RadialSlice { Label = "Right click", Action = RadialActions.Click, Click = "Right" };
+        var b = Binding(m);
+        b.Press(null!, null!);
+        b.Release(null!, null!);
+        bool asideWhenClicked = false;
+        RadialMenuState.ActionRunner = (_, s) =>
+        {
+            _ran.Add(s.Label);
+            asideWhenClicked = State().GetProperty("stepAside").GetBoolean();
+        };
+        RadialMenuState.StepAsideMs = 0;   // no waiting in a test
+        try { TapAt(100, 0); }
+        finally { RadialMenuState.StepAsideMs = 150; }
+        Assert.Equal(new[] { "Right click" }, _ran);
+        Assert.True(asideWhenClicked);
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.False(State().GetProperty("stepAside").GetBoolean());
+        Assert.True(RadialMenuOverlay.Parse(File.ReadAllText(RadialMenuState.StateFilePath))!.StepAside == false);
     }
 
     [Fact]
@@ -350,7 +427,7 @@ public class RadialMenuStateTests : IDisposable
         Assert.Equal("Brush", State().GetProperty("slices")[0].GetProperty("label").GetString());
         TapAt(0, -100);                                 // Brush
         Assert.Equal(new[] { "Brush" }, _ran);
-        Assert.False(RadialMenuState.IsOpen);
+        Assert.True(RadialMenuState.IsOpen);            // V29 #131: stays open
     }
 
     [Fact]
@@ -366,16 +443,6 @@ public class RadialMenuStateTests : IDisposable
     {
         _cursor = null;
         Binding().Press(null!, null!);
-        Assert.False(RadialMenuState.IsOpen);
-    }
-
-    [Fact]
-    public void ClosesByItself_WhenLeftOpen()
-    {
-        RadialMenuState.IdleCloseMs = 0;
-        Binding().Press(null!, null!);
-        System.Threading.Thread.Sleep(5);
-        RadialMenuState.CloseIfIdle();
         Assert.False(RadialMenuState.IsOpen);
     }
 
@@ -470,36 +537,13 @@ public class RadialMenuStateTests : IDisposable
         Binding().Press(null!, null!);
         Mouse(RadialMenuCommand.Move, x: 900, y: 700);
         TapAt(0, -100);   // the pen taps relative to the cursor provider's frame; centre is now (900,700)
-        // (500,300) is far from (900,700): outside the ring, so it closes without running anything
+        // (500,300) is far from (900,700): outside the ring, so nothing runs and the menu stays (V29 #131)
         Assert.Empty(_ran);
-        Assert.False(RadialMenuState.IsOpen);
+        Assert.True(RadialMenuState.IsOpen);
 
-        Binding().Press(null!, null!);
-        Mouse(RadialMenuCommand.Move, x: 900, y: 700);
         _cursor = (900, 600);              // 100 points above the new centre: Undo
         RadialMenuState.TipDown();
         Assert.Equal(new[] { "Undo" }, _ran);
-    }
-
-    [Fact]
-    public void ParkedMenu_DoesNotCloseByItself()
-    {
-        RadialMenuState.IdleCloseMs = 1;
-        Binding().Press(null!, null!);
-        Mouse(RadialMenuCommand.Move, x: 500, y: 400);
-        System.Threading.Thread.Sleep(20);
-        RadialMenuState.CloseIfIdle();
-        Assert.True(RadialMenuState.IsOpen);
-    }
-
-    [Fact]
-    public void UnparkedMenu_StillClosesWhenIdle()
-    {
-        RadialMenuState.IdleCloseMs = 1;
-        Binding().Press(null!, null!);
-        System.Threading.Thread.Sleep(20);
-        RadialMenuState.CloseIfIdle();
-        Assert.False(RadialMenuState.IsOpen);
     }
 
     [Fact]
@@ -602,7 +646,6 @@ public class RadialMenuStateTests : IDisposable
     [Fact]
     public void Pen_DraggingTheHand_MovesTheMenu_AfterAFewPoints_AndParksIt()
     {
-        RadialMenuState.IdleCloseMs = 1;
         Binding().Press(null!, null!);
         TapAt(30, 30);                       // pen down on the hand at (530,430)
         _cursor = (532, 431);                // 2 pt: still not a drag
@@ -613,9 +656,7 @@ public class RadialMenuStateTests : IDisposable
         RadialMenuState.TipUp();             // writes the final place
         Assert.Equal(600, State().GetProperty("x").GetDouble());
         Assert.Equal(350, State().GetProperty("y").GetDouble());
-        System.Threading.Thread.Sleep(20);
-        RadialMenuState.CloseIfIdle();
-        Assert.True(RadialMenuState.IsOpen);  // parked
+        Assert.True(RadialMenuState.IsOpen);
         // and the pen's taps are now measured from the new centre
         _cursor = (600, 250);
         RadialMenuState.TipDown();
@@ -710,27 +751,15 @@ public class RadialMenuStateTests : IDisposable
         Assert.Empty(_ran);
     }
 
-    [Fact]
-    public void WhileTheAppEdits_TheMenuDoesNotCloseByItself()
-    {
-        RadialMenuState.IdleCloseMs = 1;
-        Binding().Press(null!, null!);
-        Mouse(RadialMenuCommand.Edit);
-        Mouse(RadialMenuCommand.Tap, 0);
-        System.Threading.Thread.Sleep(20);
-        RadialMenuState.CloseIfIdle();
-        Assert.True(RadialMenuState.IsOpen);
-    }
-
     // ── TASKS #65: the driver reports which slice ran and whether it worked ──
 
     [Fact]
-    public void APenTapThatClosesTheMenu_ReportsTheSliceInTheClosedState()
+    public void APenTap_ReportsTheSlice_AndTheMenuStaysOpen()
     {
         var b = Binding(); b.Press(null!, null!); b.Release(null!, null!);
         TapAt(110, 0);                                        // Copy
         var st = State();
-        Assert.Equal("closed", st.GetProperty("state").GetString());
+        Assert.Equal("open", st.GetProperty("state").GetString());   // V29 #131
         var used = st.GetProperty("used");
         Assert.Equal("Copy", used.GetProperty("label").GetString());
         Assert.Equal("Application+C", used.GetProperty("keys").GetString());
@@ -776,7 +805,8 @@ public class RadialMenuStateTests : IDisposable
     public void ANewSession_StartsWithoutTheLastRun()
     {
         var b = Binding(); b.Press(null!, null!); b.Release(null!, null!);
-        TapAt(0, -100);                                         // closes
+        TapAt(0, -100);                                         // runs Undo
+        TapAt(0, 0);                                            // the X closes
         b.Press(null!, null!);                                  // opens again
         Assert.Equal("open", State().GetProperty("state").GetString());
         Assert.Equal(JsonValueKind.Null, State().GetProperty("used").ValueKind);

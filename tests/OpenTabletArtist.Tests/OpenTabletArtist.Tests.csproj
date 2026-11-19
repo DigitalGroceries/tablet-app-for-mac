@@ -86,6 +86,7 @@
     <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\InBetweenPoints.cs" Link="Plugin\InBetweenPoints.cs" />
     <!-- TASKS #42: radial menu open / tap / close logic (pointer and actions are faked in the tests). -->
     <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\RadialMenu.cs" Link="Plugin\RadialMenu.cs" />
+    <Compile Include="..\..\plugins\OpenTabletArtist.Dynamics\FloatingKeyboard.cs" Link="Plugin\FloatingKeyboard.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,9 +18,11 @@ namespace OpenTabletArtist.Dynamics;
 
 /// <summary>
 /// Radial menu (TASKS #42), like Wacom's: a pen button or ExpressKey set to it shows an 8-slice menu centred
-/// on the pointer. Tap a slice with the pen tip to use it. Holding the button while tapping keeps the menu open
-/// (Wacom's rule), so Undo can be tapped several times. Tapping the centre, an empty slice or outside the ring,
-/// or pressing the button again, closes it. The menu lives in this binding's "Menu" setting (JSON), so it is
+/// on the pointer. Tap a slice with the pen tip to use it. V29 #131 (Zak 19 Nov: "The radial menu should never close if not
+/// closed by the user by clicking the X"): the menu stays open after a slice is used, an empty slice does nothing, a tap
+/// outside the ring goes to the app underneath (as a mouse click does) and the menu never closes by itself; the X in the
+/// centre closes it, and so do pressing the button again and Esc (Zak: "Just dont close it when non of this is engaged").
+/// A Click slice makes the menu step aside for a moment (the app lets clicks through it) so its click lands on the work below. The menu lives in this binding's "Menu" setting (JSON), so it is
 /// saved with the tablet's settings, per application and per pen like any other binding.
 /// The app draws the menu (Services/RadialMenuOverlay) from the state file this writes. The pen taps are read here;
 /// the Mac mouse's clicks come back from the app through a small command file (TASKS #54, <see cref="RadialMenuState.HandleCommand"/>).
@@ -45,6 +47,7 @@ public class RadialMenuBinding : IStateBinding
                 LogLevel.Warning);
             _warned = true;
         }
+        FloatingKeyboardKeys.Remember(Keyboard);   // V29 #141: the floating keyboard's keys are pressed on this device
         RadialMenuState.ButtonDown(this);
     }
 
@@ -63,37 +66,45 @@ public class RadialMenuFilter : IPositionedPipelineElement<IDeviceReport>
 
     public RadialMenuFilter() => Interlocked.Exchange(ref _constructed, 1);
 
+    /// <summary>V29 #141: lets the floating keyboard type even before the radial menu's button was pressed (e.g. after a driver restart).</summary>
+    [Resolved] public IVirtualKeyboard? Keyboard { set; get; }
+
     public PipelinePosition Position => PipelinePosition.PreTransform;
     public event Action<IDeviceReport>? Emit;
 
     private bool _down;
     private bool _swallow;
+    private bool _passThrough;   // V29 #131: a stroke that started outside the open menu goes to the app underneath
 
     public void Consume(IDeviceReport value)
     {
+        FloatingKeyboardKeys.Remember(Keyboard);
+        FloatingKeyboardKeys.LookNow();
         if (value is OutOfRangeReport)
         {
             if (_swallow) RadialMenuState.TipUp();
             _down = false;
             _swallow = false;
+            _passThrough = false;
         }
         else if (RingGestureGate.IsPenOnly(value) && value is ITabletReport pen)
         {
             bool down = pen.Pressure > 0;
             if (down && !_down && RadialMenuState.SwallowsPen)
             {
-                _swallow = true;               // this whole stroke belongs to the menu
-                RadialMenuState.TipDown();
+                // On the menu: this whole stroke belongs to it. Outside it: the stroke goes to the app (V29 #131).
+                if (RadialMenuState.TipDown()) _swallow = true;
+                else _passThrough = true;
             }
             else if (down && _swallow) RadialMenuState.PenMoved();   // a drag by the hand
             if (!down)
             {
                 if (_swallow) RadialMenuState.TipUp();
                 _swallow = false;
+                _passThrough = false;
             }
             _down = down;
-            if (_swallow || (down && RadialMenuState.SwallowsPen)) pen.Pressure = 0;
-            RadialMenuState.CloseIfIdle();
+            if (_swallow || (down && !_passThrough && RadialMenuState.SwallowsPen)) pen.Pressure = 0;
         }
         Emit?.Invoke(value);
     }
@@ -102,8 +113,6 @@ public class RadialMenuFilter : IPositionedPipelineElement<IDeviceReport>
 /// <summary>The one radial menu that can be open, shared by the binding and the filter. Thread-safe.</summary>
 public static class RadialMenuState
 {
-    /// <summary>Close by itself after this long without a tap, so a forgotten menu never blocks the pen.</summary>
-    public static int IdleCloseMs { get; set; } = 60_000;
 
     /// <summary>Per-user temp folder, shared with the app (same place as the ring-mode file).</summary>
     public static string StateFilePath { get; set; } =
@@ -132,6 +141,11 @@ public static class RadialMenuState
     private static readonly List<int> _path = new();
     private static double _cx, _cy;
     private static bool _held;
+    private static bool _stepAside;   // V29 #131: the app lets clicks through the menu while a Click slice clicks
+
+    /// <summary>A Click slice waits this long for the app to let clicks through the menu, and keeps it so this long after.</summary>
+    public static int StepAsideMs { get; set; } = 150;
+    public static int AfterClickMs { get; set; } = 100;
     private static long _lastActivity;
     private static long _seq;
     private static readonly KeyPulse Pulse = new() { HoldMs = 30 };
@@ -209,33 +223,44 @@ public static class RadialMenuState
         lock (Gate) if (ReferenceEquals(binding, _owner)) _held = false;
     }
 
-    /// <summary>The pen tip went down while the menu is open: act on whatever is under the pointer.</summary>
-    public static void TipDown()
+    /// <summary>The pen tip went down while the menu is open: act on whatever is under the pointer. Returns false when the
+    /// tip is not on the menu: that stroke then goes to the app underneath and the menu stays open (V29 #131, like the mouse).</summary>
+    public static bool TipDown()
     {
         RadialSlice? run = null;
         RadialMenuBinding? owner;
         lock (Gate)
         {
-            if (_top == null) return;
+            if (_top == null) return false;
             owner = _owner;
-            Touch();
             var at = CursorProvider();
-            if (at is not { } c) { CloseLocked("no pointer"); return; }
+            if (at is not { } c) return false;
             int slice = RadialMenuGeometry.SliceAt(c.X - _cx, c.Y - _cy, _top.Size);
-            if (slice == RadialMenuGeometry.Outside) { CloseLocked("outside"); return; }
+            if (slice == RadialMenuGeometry.Outside)
+            {
+                Log.Write("Radial menu", "Pen tap outside the menu: it goes to the app, the menu stays open.", LogLevel.Debug);
+                return false;
+            }
+            Touch();
             if (slice == RadialMenuGeometry.Hand)
             {
                 // The hand: only a drag does anything (see PenMoved); a tap that doesn't move changes nothing.
                 _penDrag = true; _penDragMoved = false;
                 _dragPx = c.X; _dragPy = c.Y; _dragCx = _cx; _dragCy = _cy;
-                return;
+                return true;
             }
-            if (slice < 0) { CentreQuarterLocked(slice); return; }
+            if (slice < 0) { CentreQuarterLocked(slice); return true; }
             run = SliceTappedLocked(slice, fromMouse: false);
-            if (run != null && !_held) CloseLocked("used " + Describe(run));
-            else if (run != null) WriteStateLocked();   // flash the choice; the menu stays while the button is held
+            // A Click slice clicks at the pointer, which is on the menu: the menu steps aside (lets clicks through) for it.
+            if (run is { Action: RadialActions.Click }) _stepAside = true;
+            if (run != null) WriteStateLocked();   // flash the choice; the menu stays open
         }
-        if (run != null && owner != null) RunAndReport(owner, run);
+        if (run != null && owner != null)
+        {
+            if (run.Action == RadialActions.Click) ClickSteppingAside(owner, run);
+            else RunAndReport(owner, run);
+        }
+        return true;
     }
 
     /// <summary>The X, the pencil or the circular arrow was tapped (pen or mouse).</summary>
@@ -260,7 +285,7 @@ public static class RadialMenuState
     }
 
     /// <summary>A slice was tapped. Normal: its action to run (null when it only opened a submenu, did nothing or was
-    /// used up by edit / restore). Pen taps on an empty slice close the menu; mouse taps leave it open.</summary>
+    /// used up by edit / restore). An empty slice does nothing, for the pen and the mouse alike (V29 #131).</summary>
     private static RadialSlice? SliceTappedLocked(int slice, bool fromMouse)
     {
         if (_top == null) return null;
@@ -281,11 +306,7 @@ public static class RadialMenuState
             return null;
         }
         var s = level.Slices[slice];
-        if (!s.IsSet)
-        {
-            if (!fromMouse) CloseLocked("empty slice");
-            return null;
-        }
+        if (!s.IsSet) return null;
         if (s.Action == RadialActions.Submenu)
         {
             _path.Add(slice);
@@ -341,14 +362,6 @@ public static class RadialMenuState
         }
     }
 
-    public static void CloseIfIdle()
-    {
-        lock (Gate)
-        {
-            if (_top != null && !_parked && !_busy && Environment.TickCount64 - Interlocked.Read(ref _lastActivity) > IdleCloseMs)
-                CloseLocked("no tap for a minute");
-        }
-    }
 
     public static void Close(string why) { lock (Gate) CloseLocked(why); }
 
@@ -360,6 +373,7 @@ public static class RadialMenuState
         _path.Clear();
         _held = false;
         _parked = false;
+        _stepAside = false;
         _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null;
         StopCommandPollingLocked();
         WriteStateLocked();
@@ -459,6 +473,30 @@ public static class RadialMenuState
         if (run != null && owner != null) RunAndReport(owner, run);
     }
 
+    /// <summary>V29 #131: run a Click slice once the app has let clicks through the menu, then make the menu take clicks again.</summary>
+    private static void ClickSteppingAside(RadialMenuBinding owner, RadialSlice run)
+    {
+        void Back()
+        {
+            lock (Gate)
+            {
+                _stepAside = false;
+                if (_top != null) WriteStateLocked();
+            }
+        }
+        if (StepAsideMs <= 0) { RunAndReport(owner, run); Back(); return; }
+        System.Threading.Tasks.Task.Run(async () =>
+        {
+            try
+            {
+                await System.Threading.Tasks.Task.Delay(StepAsideMs);
+                RunAndReport(owner, run);
+                await System.Threading.Tasks.Task.Delay(AfterClickMs);
+            }
+            finally { Back(); }
+        });
+    }
+
     /// <summary>Run a slice, then tell the app which one ran and whether it worked (TASKS #65: its short confirmation text, or the
     /// failure). Written with the next state, which is the closed state when this slice closed the menu.</summary>
     private static void RunAndReport(RadialMenuBinding owner, RadialSlice s)
@@ -488,6 +526,11 @@ public static class RadialMenuState
                     return Click(owner.Pointer, s.Click);
                 case RadialActions.Open:
                     return OpenApp(s.App);
+                case RadialActions.Keyboard:
+                    // V29 #141: the app shows or hides the keyboard when it sees this slice ran; the keys come back here.
+                    FloatingKeyboardKeys.Remember(owner.Keyboard);
+                    FloatingKeyboardKeys.Start();
+                    return true;
             }
             return true;
         }
@@ -571,7 +614,7 @@ public static class RadialMenuState
                 payload = new
                 {
                     state = "open", seq, x = _cx, y = _cy, size = _top.Size, transparency = _top.Transparency, depth = _path.Count, slices,
-                    editing = _editing, confirm = _confirm, busy = _busy,
+                    editing = _editing, confirm = _confirm, busy = _busy, stepAside = _stepAside,
                     menu = RadialMenuJson.Serialize(_top), request, used = UsedPayloadLocked(),
                 };
             }
@@ -593,7 +636,7 @@ public static class RadialMenuState
     {
         lock (Gate)
         {
-            _top = null; _owner = null; _path.Clear(); _held = false; _seq = 0; _parked = false;
+            _top = null; _owner = null; _path.Clear(); _held = false; _seq = 0; _parked = false; _stepAside = false;
             _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null; _used = null; _usedSeq = 0;
             StopCommandPollingLocked();
             Interlocked.Exchange(ref _lastActivity, Environment.TickCount64);

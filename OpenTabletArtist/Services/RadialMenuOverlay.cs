@@ -177,7 +177,7 @@ public sealed class RadialMenuOverlay : IDisposable
     public sealed record MenuState(string State, long Seq, double X, double Y, int Size, int Depth,
         IReadOnlyList<string> Labels, IReadOnlyList<bool> Set, IReadOnlyList<bool> Submenu,
         bool Editing = false, bool Confirm = false, string? Menu = null, RadialRequest? Request = null,
-        int Transparency = RadialMenuDef.DefaultTransparency, UsedSlice? Used = null, bool Busy = false);
+        int Transparency = RadialMenuDef.DefaultTransparency, UsedSlice? Used = null, bool Busy = false, bool StepAside = false);
 
     /// <summary>The slice the driver ran last and whether it worked (TASKS #65). <see cref="Seq"/> is new for each run.</summary>
     public sealed record UsedSlice(long Seq, string Label, string Keys, string Action, bool Ok);
@@ -250,7 +250,8 @@ public sealed class RadialMenuOverlay : IDisposable
                 r.TryGetProperty("transparency", out var tr) && tr.ValueKind == JsonValueKind.Number
                     ? Math.Clamp(tr.GetInt32(), RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency) : RadialMenuDef.DefaultTransparency,
                 used,
-                r.TryGetProperty("busy", out var bz) && bz.ValueKind == JsonValueKind.True);
+                r.TryGetProperty("busy", out var bz) && bz.ValueKind == JsonValueKind.True,
+                r.TryGetProperty("stepAside", out var sa) && sa.ValueKind == JsonValueKind.True);
         }
         catch (Exception)
         {
@@ -328,7 +329,8 @@ public sealed class RadialMenuOverlay : IDisposable
                 _window.Show();
             }
             if (_window.TryGetPlatformHandle() is Avalonia.Platform.IMacOSTopLevelPlatformHandle mac && mac.NSWindow != IntPtr.Zero)
-                MacDesktop.MakeOverlay(mac.NSWindow, clickThrough: false);
+                // V29 #131: while a Click slice clicks, clicks go through the menu to the work below (it stays on screen).
+                MacDesktop.MakeOverlay(mac.NSWindow, clickThrough: st.StepAside);
             _pointerTimer!.Start();
             if (!wasVisible)
             {
@@ -359,6 +361,12 @@ public sealed class RadialMenuOverlay : IDisposable
         _lastUsedSeq = u.Seq;
         try
         {
+            if (u.Ok && u.Action == RadialActions.Keyboard)
+            {
+                // V29 #141: the Keyboard slice shows or hides the floating keyboard (it appearing is the confirmation), under the menu.
+                FloatingKeyboard.Instance.Toggle(_cx, _cy + RadialMenuGeometry.OuterRadius(_size) + 12);
+                return;
+            }
             var text = RadialMenuConfirm.Text(Localizer.Te, u.Label, u.Keys, u.Ok);
             if (!u.Ok) AppLog.Warn($"Radial menu: the slice \"{u.Label}\" ({u.Action}) did not run; the menu says so.");
             else AppLog.Info($"Radial menu: slice \"{u.Label}\" ran, message \"{text}\".");

@@ -18,9 +18,9 @@ namespace OpenTabletArtist.ViewModels;
 /// </summary>
 public partial class RadialMenuEditorViewModel : ObservableObject
 {
-    public const int ActNothing = 0, ActKeys = 1, ActClick = 2, ActSubmenu = 3, ActOpen = 4;
+    public const int ActNothing = 0, ActKeys = 1, ActClick = 2, ActSubmenu = 3, ActOpen = 4, ActKeyboard = 5;
     private static readonly string[] ActionCodes =
-        { RadialActions.None, RadialActions.Keys, RadialActions.Click, RadialActions.Submenu, RadialActions.Open };
+        { RadialActions.None, RadialActions.Keys, RadialActions.Click, RadialActions.Submenu, RadialActions.Open, RadialActions.Keyboard };
 
     public static readonly string[] ClickValues = { "Left", "Right", "Middle", "DoubleClick" };
 
@@ -59,11 +59,12 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     public string ActionCaption => Localizer.Te("radial.action", "What it does");
     public IReadOnlyList<string> ActionNames { get; } = new[]
     {
-        Localizer.Te("radial.action.none", "Nothing (closes the menu)"),
+        Localizer.Te("radial.action.none", "Nothing"),
         Localizer.Te("radial.action.keys", "Keystroke"),
         Localizer.Te("radial.action.click", "Mouse click"),
         Localizer.Te("radial.action.submenu", "Submenu (8 more slices)"),
         Localizer.Te("radial.action.open", "Open an app"),
+        Localizer.Te("radial.action.keyboard", "Show or hide the keyboard"),   // V29 #141
     };
     public IReadOnlyList<string> ClickNames { get; } = new[]
     {
@@ -204,6 +205,11 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         s.Action = action;
         if (action == RadialActions.Click && string.IsNullOrEmpty(s.Click)) s.Click = ClickValues[Math.Max(0, ClickIndex)];
         if (action == RadialActions.Submenu && s.Submenu == null) s.Submenu = new RadialMenuDef();
+        if (action == RadialActions.Keyboard && string.IsNullOrWhiteSpace(s.Label))
+        {
+            s.Label = Localizer.Te("keyboard.title", "Keyboard");
+            SliceLabel = s.Label;
+        }
         Refresh();
     }
 

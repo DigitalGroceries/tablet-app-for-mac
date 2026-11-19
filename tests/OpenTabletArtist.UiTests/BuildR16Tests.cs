@@ -65,6 +65,32 @@ public class BuildR16Tests
     /// <summary>V29 (Zak 16 Nov 16:11: 'the Buttons column on the Pen and Eraser pages is squished at the right, its text is
     /// cut ... Move the column right next to the pen and show the full text'; missed in V29 builds 1-2, Zak 19 Nov): on both
     /// pages the cards start right next to the pen drawing, and a long action is shown in full, never cut with an ellipsis.</summary>
+    /// <summary>V29 #141 (Zak 18:46): the floating keyboard's transparency has a slider and a typed box on the Pen page, lined up
+    /// with the radial menu's own rows.</summary>
+    [AvaloniaFact]
+    public void KeyboardTransparency_HasASliderAndABox_InLineWithTheMenuRows()
+    {
+        var (vm, view, w) = Open("PenTab");
+        try
+        {
+            var slider = view.FindControl<Slider>("KeyboardTransparencySlider")!;
+            var box = view.FindControl<TextBox>("KeyboardTransparencyBox")!;
+            Assert.Equal(60, slider.Maximum);
+            vm.KeyboardLook.Transparency = 33;
+            Assert.Equal(33, slider.Value);
+            Assert.Equal("33", box.Text);
+            var menuBox = view.FindControl<TextBox>("RadialTransparencyBox")!;
+            Assert.Equal(menuBox.Width, box.Width);
+            Assert.Equal(view.FindControl<Grid>("RadialTransparencyRow")!.ColumnDefinitions.ToString(),
+                         view.FindControl<Grid>("KeyboardTransparencyRow")!.ColumnDefinitions.ToString());
+        }
+        finally
+        {
+            vm.KeyboardLook.Transparency = FloatingKeyboard.DefaultTransparency;
+            w.Close();
+        }
+    }
+
     [AvaloniaTheory]
     [InlineData("EraserTab", "EraserPenDiagram")]
     [InlineData("PenTab", null)]

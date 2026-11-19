@@ -1641,6 +1641,18 @@
                                              Text="{Binding RadialPreview.SizeInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                              AutomationProperties.Name="Menu size value" />
                                 </Grid>
+                                <!-- V29 #141 (Zak 18:46): the floating keyboard's transparency, same columns as the rows above. -->
+                                <TextBlock Text="{Binding KeyboardLook.TransparencyCaption}" FontSize="12" Margin="0,6,0,0" />
+                                <Grid x:Name="KeyboardTransparencyRow" ColumnDefinitions="*,8,52,4,18">
+                                    <Slider x:Name="KeyboardTransparencySlider" Minimum="0" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True"
+                                            Value="{Binding KeyboardLook.Transparency, Mode=TwoWay}" VerticalAlignment="Center"
+                                            AutomationProperties.Name="Keyboard transparency" />
+                                    <TextBox x:Name="KeyboardTransparencyBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
+                                             VerticalAlignment="Center" FontWeight="SemiBold" MaxLength="6"
+                                             Text="{Binding KeyboardLook.TransparencyInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                             AutomationProperties.Name="Keyboard transparency value" />
+                                    <TextBlock Grid.Column="4" Text="%" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                </Grid>
                             </StackPanel>
                         </StackPanel>
                     </Grid>

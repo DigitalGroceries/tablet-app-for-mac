@@ -119,10 +119,11 @@ public partial class App : Application
                 return w == null ? null : new Avalonia.Rect(w.Position.X, w.Position.Y, w.Bounds.Width, w.Bounds.Height);
             };
             _radialMenu = new RadialMenuOverlay();   // TASKS #42: draws the radial menu the driver opens
+            Services.FloatingKeyboard.WriteOpenFlag(false);   // V29 #141: a keyboard left over from last time never types
             RadialMenuOverlay.RequestHandler = RadialLiveEdit.HandleAsync;   // TASKS #54: the pencil and the circular arrow
             _radialMenu.Start();
             Services.AppSwitchFix.Sync();   // V29 #85: the driver's flag file matches the App window switching fix switch
-            desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); _radialMenu?.Dispose(); };
+            desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); _radialMenu?.Dispose(); Services.FloatingKeyboard.Current?.Dispose(); };
 
             // Build J: safety net for the experimental smooth-rotate gesture (releases stuck R / mouse button
             // if the driver dies or hangs mid-gesture, then starts the driver again).
