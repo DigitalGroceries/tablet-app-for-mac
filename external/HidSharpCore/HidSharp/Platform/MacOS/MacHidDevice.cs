@@ -14,6 +14,8 @@
    specific language governing permissions and limitations
    under the License. */
 #endregion
+/* Modified 2026 by the Tablet App for Mac team (DigitalGroceries) for issue #118: devices are keyed
+   and re-found by I/O Registry entry ID (MacDeviceKey) instead of by registry path alone. */
 
 using System;
 using System.Diagnostics;
@@ -32,18 +34,18 @@ namespace HidSharp.Platform.MacOS
         int _maxInput, _maxOutput, _maxFeature;
         bool _reportsUseID;
         byte[] _reportDescriptor;
-        NativeMethods.io_string_t _path;
+        MacDeviceKey _key;
 
         MacHidDevice()
         {
 
         }
 
-        internal static MacHidDevice TryCreate(NativeMethods.io_string_t path)
+        internal static MacHidDevice TryCreate(MacDeviceKey key)
         {
-            var d = new MacHidDevice() { _path = path };
+            var d = new MacHidDevice() { _key = key };
 
-            var service = NativeMethods.IORegistryEntryFromPath(0, ref path).ToIOObject();
+            var service = key.GetService(0).ToIOObject();
             if (!service.IsSet) { return null; }
 
             using (service)
@@ -127,7 +129,7 @@ namespace HidSharp.Platform.MacOS
         protected override DeviceStream OpenDeviceDirectly(OpenConfiguration openConfig)
         {
             var stream = new MacHidStream(this);
-            try { stream.Init(_path); return stream; }
+            try { stream.Init(_key); return stream; }
             catch { stream.Close(); throw; }
         }
 
@@ -297,7 +299,7 @@ namespace HidSharp.Platform.MacOS
             }
 
             // Determine USB device from HID path
-            var hidEntry = NativeMethods.IORegistryEntryFromPath(masterPort, ref _path).ToIOObject();
+            var hidEntry = _key.GetService(masterPort).ToIOObject();
             int deviceEntry = 0;
 
             if (hidEntry.IsSet)
@@ -319,7 +321,7 @@ namespace HidSharp.Platform.MacOS
 
         public override string DevicePath
         {
-            get { return _path.ToString(); }
+            get { return _key.ToDevicePath(); }
         }
 
         public override int VendorID

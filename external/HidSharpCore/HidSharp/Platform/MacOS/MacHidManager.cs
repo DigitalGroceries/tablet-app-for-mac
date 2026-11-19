@@ -14,6 +14,8 @@
    specific language governing permissions and limitations
    under the License. */
 #endregion
+/* Modified 2026 by the Tablet App for Mac team (DigitalGroceries) for issue #118: devices are keyed
+   and re-found by I/O Registry entry ID (MacDeviceKey) instead of by registry path alone. */
 
 using System;
 using System.Collections.Generic;
@@ -69,7 +71,7 @@ namespace HidSharp.Platform.MacOS
 
         object[] GetDeviceKeys(string kind)
         {
-            var paths = new List<NativeMethods.io_string_t>();
+            var keys = new List<MacDeviceKey>();
 
             var matching = NativeMethods.IOServiceMatching(kind).ToCFType(); // Consumed by IOServiceGetMatchingServices, so DON'T Dispose().
             if (matching.IsSet)
@@ -88,7 +90,10 @@ namespace HidSharp.Platform.MacOS
                                 NativeMethods.io_string_t path;
                                 if (NativeMethods.IOReturn.Success == NativeMethods.IORegistryEntryGetPath(handle, "IOService", out path))
                                 {
-                                    paths.Add(path);
+                                    // #118: two devices can share a registry path; the entry ID tells them apart.
+                                    ulong entryId;
+                                    if (NativeMethods.IOReturn.Success != NativeMethods.IORegistryEntryGetRegistryEntryID(handle, out entryId)) { entryId = 0; }
+                                    keys.Add(new MacDeviceKey(path, entryId));
                                 }
                             }
                         }
@@ -96,7 +101,7 @@ namespace HidSharp.Platform.MacOS
                 }
             }
 
-            return paths.Cast<object>().ToArray();
+            return keys.Cast<object>().ToArray();
         }
 
         protected override object[] GetBleDeviceKeys()
@@ -121,13 +126,13 @@ namespace HidSharp.Platform.MacOS
 
         protected override bool TryCreateHidDevice(object key, out Device device)
         {
-            device = MacHidDevice.TryCreate((NativeMethods.io_string_t)key);
+            device = MacHidDevice.TryCreate((MacDeviceKey)key);
             return device != null;
         }
 
         protected override bool TryCreateSerialDevice(object key, out Device device)
         {
-            device = MacSerialDevice.TryCreate((NativeMethods.io_string_t)key);
+            device = MacSerialDevice.TryCreate(((MacDeviceKey)key).Path); // serial devices: unchanged, by path
             return device != null;
         }
 

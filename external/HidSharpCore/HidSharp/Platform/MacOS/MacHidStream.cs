@@ -14,6 +14,8 @@
    specific language governing permissions and limitations
    under the License. */
 #endregion
+/* Modified 2026 by the Tablet App for Mac team (DigitalGroceries) for issue #118: devices are keyed
+   and re-found by I/O Registry entry ID (MacDeviceKey) instead of by registry path alone. */
 
 using System;
 using System.Collections.Generic;
@@ -44,13 +46,13 @@ namespace HidSharp.Platform.MacOS
             _writeThread = new Thread(WriteThread) { IsBackground = true, Name = "HID Writer" };
         }
 
-        internal void Init(NativeMethods.io_string_t path)
+        internal void Init(MacDeviceKey key)
         {
             IntPtr handle; int retryCount = 0, maxRetries = 10;
+            var newPath = key.ToDevicePath(); // for the error messages below
             while (true)
             {
-                var newPath = path.Clone();
-                using (var service = NativeMethods.IORegistryEntryFromPath(0, ref newPath).ToIOObject())
+                using (var service = key.GetService(0).ToIOObject())
                 {
                     string error;
 

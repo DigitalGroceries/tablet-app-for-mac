@@ -19,7 +19,6 @@
   </PropertyGroup>
 
   <ItemGroup Label="NuGet Packages">
-    <PackageReference Include="HidSharpCore" Version="1.3.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
@@ -34,6 +33,12 @@
     <EmbeddedResource Include=".\Configurations\*\*.json">
       <IncludeInPackage>true</IncludeInPackage>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup Label="Vendored">
+    <!-- HidSharpCore 1.3.0, vendored with the #118 fix (macOS devices keyed by registry entry ID).
+         Was: PackageReference HidSharpCore 1.3.0. See external/HidSharpCore/VENDORED.md. -->
+    <ProjectReference Include="..\..\HidSharpCore\HidSharp\HidSharp.csproj" />
   </ItemGroup>
 
 </Project>

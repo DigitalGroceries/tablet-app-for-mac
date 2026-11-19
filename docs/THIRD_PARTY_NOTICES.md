@@ -24,6 +24,12 @@ This file satisfies attribution and license-awareness obligations for bundled ar
 - **License:** LGPL-3.0 (submodule / bundled executable)
 - **Source:** https://github.com/OpenTabletDriver/OpenTabletDriver
 
+### HidSharpCore (inside the OpenTabletDriver daemon)
+
+- **License:** Apache-2.0 (`external/HidSharpCore/LICENSE`, `NOTICE.txt`: "HIDSharp, Copyright 2010-2019 James F. Bellinger")
+- **Source:** https://github.com/OpenTabletDriver/HidSharpCore at `bca4aee` (version 1.3.0), vendored in `external/HidSharpCore`
+- **Modified:** yes, for #118 (macOS devices keyed by registry entry ID); see `external/HidSharpCore/VENDORED.md`
+
 ### OpenTabletArtist Dynamics plugin
 
 - **License:** Same as OpenTabletArtist (first-party)

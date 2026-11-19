@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using OpenTabletDriver.Devices.HidSharpBackend;
 
 namespace OpenTabletDriver.Daemon
 {
@@ -17,6 +18,8 @@ namespace OpenTabletDriver.Daemon
         private const int kIOHIDReportTypeFeature = 2;
 
         [DllImport(IOKit)] private static extern uint IORegistryEntryFromPath(uint mainPort, string path);
+        [DllImport(IOKit)] private static extern IntPtr IORegistryEntryIDMatching(ulong entryId);
+        [DllImport(IOKit)] private static extern uint IOServiceGetMatchingService(uint mainPort, IntPtr matching); // consumes matching
         [DllImport(IOKit)] private static extern int IOObjectRelease(uint obj);
         [DllImport(IOKit)] private static extern IntPtr IOHIDDeviceCreate(IntPtr allocator, uint service);
         [DllImport(IOKit)] private static extern int IOHIDDeviceOpen(IntPtr device, uint options);
@@ -26,9 +29,9 @@ namespace OpenTabletDriver.Daemon
 
         /// <summary>Sends every report in order through one IOKit handle. Throws with the IOKit return code
         /// when the device can't be found, opened, or refuses a report.</summary>
-        public static void SendSequence(string registryPath, byte[][] reports)
+        public static void SendSequence(string devicePath, byte[][] reports)
         {
-            var service = IORegistryEntryFromPath(0, registryPath);
+            var service = FindService(devicePath);
             if (service == 0) throw new InvalidOperationException("Device not found in the I/O Registry.");
             try
             {
@@ -52,6 +55,18 @@ namespace OpenTabletDriver.Daemon
                 finally { CFRelease(device); }
             }
             finally { IOObjectRelease(service); }
+        }
+
+        /// <summary>#118: the device path may end in "#&lt;registry entry ID&gt;" (two devices can share a
+        /// registry path); then the ID finds the right one. A plain path is looked up as before.</summary>
+        private static uint FindService(string devicePath)
+        {
+            if (MacRegistryPath.TrySplit(devicePath, out var registryPath, out var entryId))
+            {
+                var matching = IORegistryEntryIDMatching(entryId);
+                return matching == IntPtr.Zero ? 0 : IOServiceGetMatchingService(0, matching);
+            }
+            return IORegistryEntryFromPath(0, registryPath);
         }
     }
 }

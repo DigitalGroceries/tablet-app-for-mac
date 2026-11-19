@@ -14,6 +14,8 @@
    specific language governing permissions and limitations
    under the License. */
 #endregion
+/* Modified 2026 by the Tablet App for Mac team (DigitalGroceries) for issue #118: devices are keyed
+   and re-found by I/O Registry entry ID (MacDeviceKey) instead of by registry path alone. */
 
 using System;
 using System.Linq;
@@ -729,6 +731,16 @@ namespace HidSharp.Platform.MacOS
 
         [DllImport(IOKit, EntryPoint = "IORegistryEntryGetPath")] // plane = IOService
         public static extern IOReturn IORegistryEntryGetPath(int entry, [MarshalAs(UnmanagedType.LPStr)] string plane, out io_string_t path);
+
+        // #118: key devices by registry entry ID (IDs are unique; registry paths are not, e.g. Bluetooth HID).
+        [DllImport(IOKit, EntryPoint = "IORegistryEntryGetRegistryEntryID")]
+        public static extern IOReturn IORegistryEntryGetRegistryEntryID(int entry, out ulong entryID);
+
+        [DllImport(IOKit, EntryPoint = "IORegistryEntryIDMatching")]
+        public static extern IntPtr IORegistryEntryIDMatching(ulong entryID);
+
+        [DllImport(IOKit, EntryPoint = "IOServiceGetMatchingService")] // consumes one reference to matching
+        public static extern int IOServiceGetMatchingService(uint masterPort, IntPtr matching);
 
         [DllImport(IOKit, EntryPoint = "IORegistryEntryGetParentEntry")]
         public static extern IOReturn IORegistryEntryGetParentEntry(int entry, [MarshalAs(UnmanagedType.LPStr)] string plane, out int parent);
