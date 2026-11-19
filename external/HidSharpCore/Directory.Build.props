@@ -1,0 +1,6 @@
+<Project>
+  <!--
+    Stops MSBuild walking up to the app's own Directory.Build.props (analyzers, CA1416 as error), so this
+    vendored copy builds with exactly the settings the published HidSharpCore 1.3.0 package was built with.
+  -->
+</Project>

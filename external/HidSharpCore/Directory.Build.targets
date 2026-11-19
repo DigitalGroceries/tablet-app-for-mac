@@ -1,0 +1,3 @@
+<Project>
+  <!-- Same reason as Directory.Build.props: keep the app's build targets away from this vendored library. -->
+</Project>
