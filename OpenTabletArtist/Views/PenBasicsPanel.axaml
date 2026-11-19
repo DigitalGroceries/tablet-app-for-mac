@@ -50,9 +50,10 @@
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBlock x:Name="PositionSmoothingCaption" Text="Position smoothing" VerticalAlignment="Center"
                                Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <TextBlock x:Name="PositionSmoothingValue" Grid.Column="1" Text="{Binding PositionSmoothingText}"
-                               FontFamily="{DynamicResource MonoFontFamily}" MinWidth="36" TextAlignment="Right" VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <!-- V29 #140 (Zak): the value is a box you can type in (0 to 10, one decimal), not just a number to read. -->
+                    <TextBox x:Name="PositionSmoothingValue" Grid.Column="1" Text="{Binding PositionSmoothingInput, UpdateSourceTrigger=LostFocus}"
+                             FontFamily="{DynamicResource MonoFontFamily}" Width="52" MinWidth="0" HorizontalContentAlignment="Right" VerticalAlignment="Center"
+                             FontWeight="SemiBold" MaxLength="6" AutomationProperties.Name="Position smoothing value" />
                 </Grid>
                 <Slider x:Name="PositionSmoothingSlider" HorizontalAlignment="Stretch"
                         Minimum="0" Maximum="10" TickFrequency="0.1" IsSnapToTickEnabled="True"

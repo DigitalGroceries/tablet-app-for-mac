@@ -293,15 +293,17 @@
                                 SmallChange="{TemplateBinding SmallChange}"
                                 LargeChange="{TemplateBinding LargeChange}"
                                 Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
-                        <TextBlock Grid.Column="2" x:Name="PART_Value" Text="{TemplateBinding ValueText}"
-                                   Width="{TemplateBinding ValueWidth}" MinWidth="36"
-                                   IsVisible="{TemplateBinding ShowValue}" TextAlignment="Right"
-                                   VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <!-- V29 #140 (Zak 19 Nov): the readout is a box you can type a value into (read on Enter or when you leave it). -->
+                        <TextBox Grid.Column="2" x:Name="PART_Value"
+                                 Width="{TemplateBinding ValueWidth}" MinWidth="52"
+                                 IsVisible="{TemplateBinding ShowValue}" HorizontalContentAlignment="Right" FontWeight="SemiBold"
+                                 VerticalAlignment="Center" MaxLength="8"
+                                 AutomationProperties.Name="{TemplateBinding Label, Converter={x:Static c:LabeledSlider.ValueBoxName}}" />
                     </Grid>
                 </ControlTemplate>
             </Setter>
             <!-- Monospace readout (primary color, fixed-width digits) for VM-formatted values. -->
-            <Style Selector="^[Monospace=True] /template/ TextBlock#PART_Value">
+            <Style Selector="^[Monospace=True] /template/ TextBox#PART_Value">
                 <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}" />
                 <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
             </Style>

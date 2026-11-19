@@ -664,9 +664,13 @@
                                            Foreground="{DynamicResource TextMutedBrush}" />
                                 <Slider Grid.Column="1" Minimum="10" Maximum="100" MinWidth="120"
                                         Value="{Binding ActiveAreaSizePercent}" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="2" Text="{Binding ActiveAreaSizePercent, StringFormat={}{0:0.0}%}"
-                                           MinWidth="38" VerticalAlignment="Center"
-                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <!-- V29 #140 (Zak): type the size, 10 to 100 %. -->
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                    <TextBox x:Name="MapSizeBox" Width="58" MinWidth="0" HorizontalContentAlignment="Right" VerticalAlignment="Center"
+                                             FontWeight="SemiBold" MaxLength="7" Text="{Binding ActiveAreaSizeInput, UpdateSourceTrigger=LostFocus}"
+                                             AutomationProperties.Name="Size value" />
+                                    <TextBlock Text="%" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                </StackPanel>
                                 <TextBlock x:Name="LblMapRotation" Grid.Column="3" Text="Rotation" VerticalAlignment="Center"
                                            Foreground="{DynamicResource TextMutedBrush}" />
                                 <ComboBox Grid.Column="4" MinWidth="104" VerticalAlignment="Center"
@@ -1494,11 +1498,19 @@
                         </HeaderedContentControl>
                         <HeaderedContentControl x:Name="PenTipFeelGroup" Classes="wacomGroup" Header="Tip Feel">
                             <StackPanel Spacing="4">
-                                <Slider x:Name="TipFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
-                                        TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
-                                        AutomationProperties.Name="Tip Feel" />
-                                <Grid ColumnDefinitions="*,*"><TextBlock x:Name="PenSoft" Text="Soft" FontSize="12" />
-                                    <TextBlock x:Name="PenFirm" Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <!-- V29 #130/#140 (Zak): a typed value 1 (Soft) to 100 (Firm) beside the slider, like Double Click Fix. -->
+                                <Grid x:Name="TipFeelRow" ColumnDefinitions="*,6,48" RowDefinitions="Auto,Auto">
+                                    <Slider x:Name="TipFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
+                                            TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
+                                            VerticalAlignment="Center" AutomationProperties.Name="Tip Feel" />
+                                    <TextBox x:Name="TipFeelBox" Grid.Column="2" Width="48" MinWidth="0" VerticalAlignment="Center"
+                                             HorizontalContentAlignment="Right" FontWeight="SemiBold" MaxLength="6" IsEnabled="{Binding CanEditPressure}"
+                                             Text="{Binding TipFeelInput, UpdateSourceTrigger=LostFocus}"
+                                             ToolTip.Tip="1 is the softest, 100 the firmest, 50 the middle."
+                                             AutomationProperties.Name="Tip Feel value" />
+                                    <Grid Grid.Row="1" ColumnDefinitions="*,*"><TextBlock x:Name="PenSoft" Text="Soft" FontSize="12" />
+                                        <TextBlock x:Name="PenFirm" Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                </Grid>
                                 <Button x:Name="PenCustomise" Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeFeel"
                                         ToolTip.Tip="Open the full pressure curve (shared by tip and eraser)." />
                                 <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock x:Name="LblPenCurrentPressure" Text="Current pressure" FontSize="12" />
@@ -1690,11 +1702,19 @@
                         </HeaderedContentControl>
                         <HeaderedContentControl x:Name="EraserFeelGroup" Classes="wacomGroup" Header="Eraser Feel">
                             <StackPanel Spacing="4">
-                                <Slider x:Name="EraserFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
-                                        TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
-                                        AutomationProperties.Name="Eraser Feel" />
-                                <Grid ColumnDefinitions="*,*"><TextBlock x:Name="EraserSoft" Text="Soft" FontSize="12" />
-                                    <TextBlock x:Name="EraserFirm" Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <!-- V29 #130/#140 (Zak): a typed value 1 (Soft) to 100 (Firm) beside the slider, like Double Click Fix. -->
+                                <Grid x:Name="EraserFeelRow" ColumnDefinitions="*,6,48" RowDefinitions="Auto,Auto">
+                                    <Slider x:Name="EraserFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
+                                            TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
+                                            VerticalAlignment="Center" AutomationProperties.Name="Eraser Feel" />
+                                    <TextBox x:Name="EraserFeelBox" Grid.Column="2" Width="48" MinWidth="0" VerticalAlignment="Center"
+                                             HorizontalContentAlignment="Right" FontWeight="SemiBold" MaxLength="6" IsEnabled="{Binding CanEditPressure}"
+                                             Text="{Binding TipFeelInput, UpdateSourceTrigger=LostFocus}"
+                                             ToolTip.Tip="1 is the softest, 100 the firmest, 50 the middle."
+                                             AutomationProperties.Name="Eraser Feel value" />
+                                    <Grid Grid.Row="1" ColumnDefinitions="*,*"><TextBlock x:Name="EraserSoft" Text="Soft" FontSize="12" />
+                                        <TextBlock x:Name="EraserFirm" Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                </Grid>
                                 <Button x:Name="EraserCustomizeButton" Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeEraserFeel"
                                         ToolTip.Tip="Open the full pressure curve." />
                                 <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock x:Name="LblEraserCurrentPressure" Text="Current pressure" FontSize="12" />

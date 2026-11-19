@@ -1560,6 +1560,26 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         return (await ApplySettingsAsync(settings)).IsLive;
     }
 
+    /// <summary>V29 #126/#129 (Zak's V29 test, 19 Nov 18:06-18:15): the Home "Fix" for a mapping that is partly off-screen. His
+    /// whole-desktop mapping had been made for an older monitor arrangement; mapping it to the primary display put the pen on the
+    /// built-in screen only. A mapping that spanned several screens now becomes All displays (today's whole desktop) and is
+    /// remembered, so it follows monitor changes from then on; any other mapping goes to the primary display as before.</summary>
+    public async Task<bool> FixOffScreenMappingAsync(string? tabletName)
+    {
+        Dispatcher.UIThread.VerifyAccess();
+        if (CurrentSettings is not { } settings || string.IsNullOrEmpty(tabletName)) return false;
+        var profile = settings.Profiles.FirstOrDefault(p => p.Tablet == tabletName);
+        if (profile == null) return false;
+        var displays = DisplayEnumerator.Enumerate();
+        if (!Domain.DisplayMappingApplier.SpansSeveralDisplays(profile, displays))
+            return await MapTabletToPrimaryDisplayAsync(tabletName);
+        bool force = AppSettings.Get("AllDisplaysForceProportions") != "0";
+        if (!Domain.DisplayMappingApplier.ApplyAllDisplays(profile, GetTabletDigitizer(tabletName), displays, force)) return false;
+        AppSettings.Set($"MapAllDisplays:{tabletName}", "1");
+        AppLog.Info($"Mapping fix: {tabletName}'s area covered several displays, so it now covers all {displays.Count} of them (All displays).");
+        return (await ApplySettingsAsync(settings)).IsLive;
+    }
+
     /// <summary>The Home health-check "Fix" for a non-cardinal active-area rotation (#629): snap the tablet's
     /// rotation to the nearest standard angle (0/90/180/270) and re-fit the area to its mapped display, then
     /// apply — un-skewing the pen axes. No-op if the tablet/profile is unavailable.</summary>

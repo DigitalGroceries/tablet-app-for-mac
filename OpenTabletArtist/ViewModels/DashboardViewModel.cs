@@ -136,6 +136,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                 // Re-map the tablet's active area cleanly to the primary display in place, and persist.
                 if (!string.IsNullOrEmpty(r.TabletName)) _ = ConfirmFixAsync(_session.MapTabletToPrimaryDisplayAsync(r.TabletName));
                 break;
+            case RemediationArea.TabletFixOffScreen:
+                // V29 #126/#129: a whole-desktop mapping from an older monitor arrangement becomes All displays again.
+                if (!string.IsNullOrEmpty(r.TabletName)) _ = ConfirmFixAsync(_session.FixOffScreenMappingAsync(r.TabletName));
+                break;
             case RemediationArea.TabletResetRotation:
                 // Snap the tablet's non-cardinal active-area rotation to the nearest standard angle, and persist.
                 if (!string.IsNullOrEmpty(r.TabletName)) _ = ConfirmFixAsync(_session.ResetTabletRotationToCardinalAsync(r.TabletName));

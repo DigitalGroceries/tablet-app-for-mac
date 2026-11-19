@@ -224,7 +224,7 @@ public sealed class FloatingKeyboard : IDisposable
         {
             Width = BarHeight, Height = BarHeight, CornerRadius = new CornerRadius(4), Background = new SolidColorBrush(Color.Parse("#3A3A3A")),
             HorizontalAlignment = HorizontalAlignment.Right, Cursor = new Cursor(StandardCursorType.Hand),
-            Child = new TextBlock { Text = "×", FontSize = 15, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+            Child = new TextBlock { Text = "×", FontSize = 15, Foreground = KeyText, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
         };
         close.PointerPressed += (_, e) => { e.Handled = true; Hide(); };
         var grip = new Border
@@ -274,7 +274,7 @@ public sealed class FloatingKeyboard : IDisposable
             CornerRadius = new CornerRadius(5), Cursor = new Cursor(StandardCursorType.Hand),
             Child = new TextBlock
             {
-                Text = key.Display, FontSize = key.Display.Length > 2 ? 11 : 13, Foreground = Brushes.White,
+                Text = key.Display, FontSize = key.Display.Length > 2 ? 11 : 13, Foreground = KeyText,
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             },
         };
@@ -288,6 +288,7 @@ public sealed class FloatingKeyboard : IDisposable
         return cap;
     }
 
+    private static readonly IBrush KeyText = new SolidColorBrush(Color.Parse("#E4E4E4"));   // the app's lightest text grey (R6)
     private static readonly IBrush KeyBrush = new SolidColorBrush(Color.Parse("#3A3A3A"));
     private static readonly IBrush OnBrush = new SolidColorBrush(Color.Parse("#2F6FD6"));
     private static readonly IBrush FlashBrush = new SolidColorBrush(Color.Parse("#6A6A6A"));

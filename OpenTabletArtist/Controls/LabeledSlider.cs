@@ -87,13 +87,63 @@ public class LabeledSlider : TemplatedControl
     public double ValueWidth { get => GetValue(ValueWidthProperty); set => SetValue(ValueWidthProperty, value); }
 
     private Slider? _slider;
+    private TextBox? _box;
+
+    /// <summary>The value box's accessible name: "&lt;label&gt; value".</summary>
+    public static readonly Avalonia.Data.Converters.IValueConverter ValueBoxName =
+        new Avalonia.Data.Converters.FuncValueConverter<string?, string>(l => (l ?? "") + " value");
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
         _slider = e.NameScope.Find<Slider>("PART_Slider");
+        if (_box != null)
+        {
+            _box.LostFocus -= OnBoxLostFocus;
+            _box.KeyDown -= OnBoxKeyDown;
+        }
+        _box = e.NameScope.Find<TextBox>("PART_Value");
+        if (_box != null)
+        {
+            _box.LostFocus += OnBoxLostFocus;
+            _box.KeyDown += OnBoxKeyDown;
+        }
         ApplyTicks();
         UpdateValueText();
+    }
+
+    private void OnBoxLostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => CommitTyped();
+
+    private void OnBoxKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        if (e.Key != Avalonia.Input.Key.Enter) return;
+        CommitTyped();
+        e.Handled = true;
+    }
+
+    /// <summary>V29 #140: what was typed in the box becomes the value (clamped to the slider, snapped to its ticks when it snaps);
+    /// anything that isn't a number puts the real value back. A "0%" readout is read as a percent ("50" or "50%" = 0.5).</summary>
+    public void CommitTyped()
+    {
+        if (_box == null) return;
+        if (TryReadTyped(_box.Text, out var v)) Value = v;
+        UpdateValueText();
+        _box.Text = ValueText;
+    }
+
+    internal bool TryReadTyped(string? text, out double value)
+    {
+        value = Value;
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        var m = System.Text.RegularExpressions.Regex.Match(text, @"[-+]?\d+(?:[.,]\d+)?|[-+]?[.,]\d+");
+        if (!m.Success) return false;
+        if (!double.TryParse(m.Value.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var d)) return false;
+        if ((ValueFormat ?? "").Contains('%') && string.IsNullOrEmpty(ValueTextOverride)) d /= 100.0;
+        d = Math.Clamp(d, Minimum, Maximum);
+        if (IsSnapToTickEnabled && TickFrequency > 0)
+            d = Math.Clamp(Minimum + Math.Round((d - Minimum) / TickFrequency) * TickFrequency, Minimum, Maximum);
+        value = d;
+        return true;
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -106,10 +156,13 @@ public class LabeledSlider : TemplatedControl
             ApplyTicks();
     }
 
-    private void UpdateValueText() =>
+    private void UpdateValueText()
+    {
         ValueText = !string.IsNullOrEmpty(ValueTextOverride)
             ? ValueTextOverride!
             : Value.ToString(ValueFormat, CultureInfo.CurrentCulture);
+        if (_box != null && !_box.IsFocused) _box.Text = ValueText;
+    }
 
     // The inner slider's Ticks is an AvaloniaList<double>; parse the comma-separated string into it.
     private void ApplyTicks()

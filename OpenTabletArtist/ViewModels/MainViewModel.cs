@@ -904,6 +904,12 @@ public partial class MainViewModel : ObservableObject, IDisposable
             // #38: the app's own switches back to factory too (All buttons and Touch Ring On, no key or ring
             // Off, nothing put aside), so they match the factory bindings.
             TabletAppState.ResetToFactory(TabletsOf(merged));
+            // V29 #129: the driver's factory mapping is the whole desktop (Wacom's default "Full" screen area too); remember it
+            // as All displays so it follows monitor changes instead of being reported as "partly off-screen" later.
+            var screens = DisplayEnumerator.Enumerate();
+            foreach (var p in merged.Profiles)
+                if (!string.IsNullOrEmpty(p.Tablet) && DisplayMappingApplier.IsAllDisplays(p, screens))
+                    AppSettings.Set($"MapAllDisplays:{p.Tablet}", "1");
             RadialMenuOverlay.Enabled = true;   // TASKS #56: the radial menu is shown / on again with the factory bindings
             // Force every open tablet page to adopt the factory profile (including re-added ones).
             ReconcileOpenTabletDetails();

@@ -211,6 +211,19 @@ public partial class BindingEditorViewModel : ObservableObject
     /// <summary>Speed slider visible for pen scroll / zoom / pan+zoom.</summary>
     public bool ShowGestureSpeed => AuxKeyBinding.IsPenGestureScroll(SelectedScroll);
 
+    /// <summary>V29 #140: the Speed number box, 1 to 100.</summary>
+    public string GestureSpeedInput
+    {
+        get => GestureSpeed.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        set
+        {
+            if (TypedValue.TryParse(value, 1, 100, 0, out var v)) GestureSpeed = (int)v;
+            OnPropertyChanged();
+        }
+    }
+
+    partial void OnGestureSpeedChanged(int value) => OnPropertyChanged(nameof(GestureSpeedInput));
+
     partial void OnSelectedMediaKeyChanged(string? value) => SaveCommand.NotifyCanExecuteChanged();
 
     [RelayCommand(CanExecute = nameof(CanSave))]

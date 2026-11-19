@@ -2594,6 +2594,18 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         set => Softness = Math.Clamp(-value, SoftnessMin, SoftnessMax);
     }
 
+    /// <summary>V29 #130 (Zak 18:17): the Tip Feel / Eraser Feel number box, 1 (Soft) to 100 (Firm); 50 is the straight curve.
+    /// Typed values are read when the box is left or Enter is pressed; anything that isn't a number puts the real value back.</summary>
+    public string TipFeelInput
+    {
+        get => FeelScale.ToDisplay(TipFeel).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        set
+        {
+            if (TypedValue.TryParse(value, FeelScale.Min, FeelScale.Max, 0, out var v)) TipFeel = FeelScale.FromDisplay((int)v);
+            OnPropertyChanged();
+        }
+    }
+
     /// <summary>Build O: the Pen tab's Default — the curve back to OTA's default (linear), like Wacom's
     /// Default on the Pen tab. The view confirms first.</summary>
     public void ResetPenFeelToDefault() => Curve = PressureCurveSettings.Default;
@@ -2635,6 +2647,17 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>V29 #140: the Position smoothing number box, 0 to 10 with one decimal.</summary>
+    public string PositionSmoothingInput
+    {
+        get => PositionSmoothingText;
+        set
+        {
+            if (TypedValue.TryParse(value, 0, PenMovementPolicy.SmoothingUiMax, 1, out var v)) PositionSmoothingScale = v;
+            OnPropertyChanged();
+        }
+    }
+
     /// <summary>Upper bound for the position-smoothing slider (#487); heavier smoothing is too laggy to be
     /// useful, so the slider stops here (see <see cref="PenSmoothing.MaxPositionSmoothingAmount"/>).</summary>
     public double PositionSmoothingMax => PenSmoothing.MaxPositionSmoothingAmount;
@@ -2657,6 +2680,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         OnPropertyChanged(nameof(PositionSmoothingText));
         OnPropertyChanged(nameof(PositionSmoothingScale));
+        OnPropertyChanged(nameof(PositionSmoothingInput));
         NotifyDynamicsStatus();
         SchedulePersist();
     }
@@ -2703,6 +2727,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CutBelowMinimum));
         OnPropertyChanged(nameof(Softness)); // keep the Softness slider in sync with node drags / presets
         OnPropertyChanged(nameof(TipFeel));
+        OnPropertyChanged(nameof(TipFeelInput));
         OnPropertyChanged(nameof(DeadzoneText));
         NotifyDynamicsStatus();
         SchedulePersist();
@@ -3016,8 +3041,20 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     private bool _sizeEditPending;   // a user slider edit is in flight (see OnActiveAreaSizePercentChanged)
     private readonly TrailingDebounce _sizeDebounce = new(250, "active area size");
 
+    /// <summary>V29 #140: the active area Size number box, 10 to 100 % with one decimal.</summary>
+    public string ActiveAreaSizeInput
+    {
+        get => TypedValue.Format(ActiveAreaSizePercent, 1);
+        set
+        {
+            if (TypedValue.TryParse(value, 10, 100, 1, out var v)) ActiveAreaSizePercent = v;
+            OnPropertyChanged();
+        }
+    }
+
     partial void OnActiveAreaSizePercentChanged(double value)
     {
+        OnPropertyChanged(nameof(ActiveAreaSizeInput));
         if (_syncingSize) return;   // programmatic sync from the stored area, not a user edit
         // A user edit is now in flight until its debounced apply lands. Guard against the periodic
         // RefreshTabletArea poll (it fires every few hundred ms) clobbering the slider with the *old*

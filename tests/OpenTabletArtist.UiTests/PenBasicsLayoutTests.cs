@@ -33,7 +33,7 @@ public class PenBasicsLayoutTests
     private static Slider PositionSmoothing(PenBasicsPanel v) => v.FindControl<Slider>("PositionSmoothingSlider")!;
     private static TextBlock Caption(PenBasicsPanel v) => v.FindControl<TextBlock>("PositionSmoothingCaption")!;
     private static TextBlock Note(PenBasicsPanel v) => v.FindControl<TextBlock>("PositionSmoothingNote")!;
-    private static TextBlock Number(PenBasicsPanel v) => v.FindControl<TextBlock>("PositionSmoothingValue")!;
+    private static TextBox Number(PenBasicsPanel v) => v.FindControl<TextBox>("PositionSmoothingValue")!;   // V29 #140: a box you can type in
 
     [AvaloniaFact]
     public void PositionSmoothing_IsInTheMovementColumn_BeforePressing()

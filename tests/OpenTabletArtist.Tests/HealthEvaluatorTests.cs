@@ -458,9 +458,9 @@ public class HealthEvaluatorTests
         var issue = Assert.Single(HealthEvaluator.Evaluate(input));
         Assert.Equal("tablet.mappingOffScreen:Wacom PTK-670", issue.Id);
         Assert.Equal(HealthSeverity.Misconfigured, issue.Severity);
-        // Primary "Fix" re-maps to the primary display directly.
+        // Primary "Fix" (V29 #126/#129): a several-screen mapping becomes All displays again, any other one goes to the primary display.
         Assert.Equal("Fix", issue.Remediation!.ActionLabel);
-        Assert.Equal(RemediationArea.TabletMapToPrimary, issue.Remediation.Area);
+        Assert.Equal(RemediationArea.TabletFixOffScreen, issue.Remediation.Area);
         Assert.Equal("Wacom PTK-670", issue.Remediation.TabletName);
         // Secondary "Review" just navigates to the Display Mapping tab.
         Assert.Equal("Review", issue.Secondary!.ActionLabel);

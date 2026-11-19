@@ -71,6 +71,10 @@ public enum RemediationArea
     /// <summary>One-click fix for a non-cardinal active-area rotation (#629): snap it to the nearest standard
     /// angle (0/90/180/270) and re-fit. Paired with a "Review" secondary that opens the Display Mapping tab.</summary>
     TabletResetRotation,
+    /// <summary>V29 #126/#129: one-click fix for a "partly off-screen" mapping. A mapping made for several screens (a whole
+    /// desktop from an older monitor arrangement) becomes All displays (today's whole desktop, remembered); any other one is
+    /// re-mapped to the primary display as <see cref="TabletMapToPrimary"/> does.</summary>
+    TabletFixOffScreen,
 }
 
 /// <summary>A fix action for an issue: a button label + where it leads. <see cref="TabletName"/> is set

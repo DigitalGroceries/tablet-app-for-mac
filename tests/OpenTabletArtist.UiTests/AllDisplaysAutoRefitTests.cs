@@ -236,6 +236,54 @@ public class AllDisplaysAutoRefitTests
         finally { System.IO.Directory.Delete(dir, true); }
     }
 
+    /// <summary>V29 #126/#129 (Zak's V29 test, 19 Nov): his whole-desktop mapping had been made for an older arrangement
+    /// (3512x2890) and the choice wasn't remembered, so Home said "partly off-screen"; its Fix put the pen on the built-in display
+    /// only. Now a mapping made for several screens is fixed to today's whole desktop and remembered.</summary>
+    [AvaloniaFact]
+    public async Task OffScreenFix_OfAnOldWholeDesktopMapping_MapsAllDisplays_AndRemembersIt()
+    {
+        DisplayInfo[] zaks =
+        {
+            new(1, "Built-in Retina Display", 1496, 967, 896, 2160, true),
+            new(2, "SONY TV", 3840, 2160, 0, 0, false),
+            new(3, "Display", 1600, 1000, 2392, 2160, false),
+        };
+        DisplayInfo[] older =
+        {
+            new(1, "Built-in Retina Display", 1496, 967, 0, 1923, true),
+            new(2, "SONY TV", 3512, 1923, 0, 0, false),
+        };
+        var tablet = NewTablet(allDisplays: false);
+        var (app, _, _) = await Open(tablet, older);
+        using var lifetime = app;
+        DisplayEnumerator.Use(new FixedDisplays(zaks));
+        try
+        {
+            Assert.False(DisplayMappingApplier.IsAllDisplays(app.CurrentSettings!.Profiles[0], zaks));
+            Assert.True(DisplayMappingApplier.SpansSeveralDisplays(app.CurrentSettings!.Profiles[0], zaks));
+            Assert.True(await app.FixOffScreenMappingAsync(tablet));
+            Assert.True(DisplayMappingApplier.IsAllDisplays(app.CurrentSettings!.Profiles[0], zaks));
+            Assert.Equal("1", AppSettings.Get($"MapAllDisplays:{tablet}"));
+        }
+        finally { DisplayEnumerator.Use(null); }
+    }
+
+    [AvaloniaFact]
+    public async Task OffScreenFix_OfAOneScreenMapping_StillGoesToThePrimaryDisplay()
+    {
+        var tablet = NewTablet(allDisplays: false);
+        var (app, _, _) = await Open(tablet, OneMonitor);    // a one-screen box
+        using var lifetime = app;
+        DisplayEnumerator.Use(new FixedDisplays(TwoMonitors));
+        try
+        {
+            Assert.False(DisplayMappingApplier.SpansSeveralDisplays(app.CurrentSettings!.Profiles[0], TwoMonitors));
+            Assert.True(await app.FixOffScreenMappingAsync(tablet));
+            Assert.Equal(1, DisplayMappingApplier.CurrentlyMapped(app.CurrentSettings!.Profiles[0], TwoMonitors)?.Number);
+        }
+        finally { DisplayEnumerator.Use(null); }
+    }
+
     [AvaloniaFact]
     public async Task HomeFix_MapsToOneMonitor_AndSaveDoesNotBringAllDisplaysBack()
     {

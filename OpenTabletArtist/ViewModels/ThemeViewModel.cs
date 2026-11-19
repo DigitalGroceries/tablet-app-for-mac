@@ -46,8 +46,21 @@ public partial class ThemeViewModel : ObservableObject
     public int Lightness
     {
         get => LightnessService.Saved;
-        set { if (value == LightnessService.Saved) return; LightnessService.Set(value); OnPropertyChanged(); }
+        set { if (value == LightnessService.Saved) return; LightnessService.Set(value); OnPropertyChanged(); OnPropertyChanged(nameof(LightnessInput)); }
     }
+    /// <summary>V29 #132 (Zak 18:23 asked for 1 to 100; 19:10 "Do whats more easy to understand and logical"): the app has 9
+    /// lightness levels (chosen so every text stays readable), so the Lightness box numbers them 1 (darkest) to 9 (lightest),
+    /// one number per slider position: what is typed is exactly what is shown.</summary>
+    public string LightnessInput
+    {
+        get => (Lightness + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        set
+        {
+            if (Domain.TypedValue.TryParse(value, 1, LightnessService.Steps, 0, out var v)) Lightness = (int)v - 1;
+            OnPropertyChanged();
+        }
+    }
+
     public bool LightnessApplies => SelectedTheme is { } t && LightnessService.DrivesTheme(t.Id);
 
     public string SelectedDescription => SelectedTheme?.Description ?? "";

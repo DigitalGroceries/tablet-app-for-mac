@@ -80,7 +80,7 @@ internal static class HealthIssuePresenter
         HealthCheckCodes.TabletMappingOffScreen => new HealthIssue($"tablet.mappingOffScreen:{f.TabletName}", Severity(f.Severity),
                     $"{f.TabletName}: mapped area is partly off-screen",
                     "This tablet's mapped area extends beyond your displays.",
-                    new Remediation("Fix", RemediationArea.TabletMapToPrimary, f.TabletName),
+                    new Remediation("Fix", RemediationArea.TabletFixOffScreen, f.TabletName),
                     Secondary: new Remediation("Review", RemediationArea.TabletDisplayMapping, f.TabletName)),
         HealthCheckCodes.TabletMappingCustom => new HealthIssue($"tablet.mappingCustom:{f.TabletName}", Severity(f.Severity),
                     $"{f.TabletName}: custom display mapping",
