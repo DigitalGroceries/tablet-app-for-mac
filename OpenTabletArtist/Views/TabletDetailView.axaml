@@ -1719,7 +1719,8 @@
                              flipped pen's order: button 1 (now nearest the top) first, the eraser card by the eraser end.
                              They are the same pen-button rows as the Pen tab: OTD has one set of barrel buttons. -->
                         <views:PenDiagram x:Name="EraserPenDiagram" Flipped="True" VerticalAlignment="Center" />
-                        <StackPanel x:Name="EraserCards" Grid.Column="2" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <!-- V29 (Zak 16 Nov 16:11: 'Move the column right next to the pen'): left-aligned, like the Pen page. -->
+                        <StackPanel x:Name="EraserCards" Grid.Column="2" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Left">
                             <views:PenSwitchCard DataContext="{Binding PenButton1Row}"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
                             <views:PenSwitchCard DataContext="{Binding PenButton2Row}"

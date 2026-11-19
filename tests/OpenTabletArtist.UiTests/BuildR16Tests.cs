@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
@@ -8,6 +9,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using OpenTabletArtist.Domain;
+using OpenTabletArtist.Services;
 using OpenTabletArtist.ViewModels;
 using OpenTabletArtist.Views;
 using OpenTabletDriver.Desktop.Profiles;
@@ -57,6 +59,47 @@ public class BuildR16Tests
         Assert.Same(vm.PenEraserRow, cards[^1].DataContext);
         var tops = cards.Select(c => c.TranslatePoint(new Point(0, 0), w)!.Value.Y).ToList();
         Assert.True(tops[0] < tops[1] && tops[1] < tops[^1]);
+        w.Close();
+    }
+
+    /// <summary>V29 (Zak 16 Nov 16:11: 'the Buttons column on the Pen and Eraser pages is squished at the right, its text is
+    /// cut ... Move the column right next to the pen and show the full text'; missed in V29 builds 1-2, Zak 19 Nov): on both
+    /// pages the cards start right next to the pen drawing, and a long action is shown in full, never cut with an ellipsis.</summary>
+    [AvaloniaTheory]
+    [InlineData("EraserTab", "EraserPenDiagram")]
+    [InlineData("PenTab", null)]
+    public void ButtonCards_SitNextToThePen_AndShowTheFullText(string tab, string? diagramName)
+    {
+        using var mac = UiPlatform.PretendMac();   // the value box (Change… cards) is a macOS feature
+        var (vm, view, w) = Open(tab);
+        Func<PenSwitchRowViewModel, Task> choose = _ => Task.CompletedTask;   // a real page can change the buttons: the value box shows
+        vm.PenButton1Row = new PenSwitchRowViewModel(PenSwitchKind.PenButton, 1, null, true, (_, _, _) => Task.CompletedTask, choose);
+        vm.PenButton2Row = new PenSwitchRowViewModel(PenSwitchKind.PenButton, 2, null, true, (_, _, _) => Task.CompletedTask, choose);
+        const string longText = "Radial menu: Undo, Redo, Copy, Paste, Zoom in, Zoom out…";
+        vm.PenButton2Row!.CurrentPlainLabel = longText;
+        Dispatcher.UIThread.RunJobs(); w.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        var diagram = diagramName != null ? view.FindControl<PenDiagram>(diagramName)!
+            : view.GetVisualDescendants().OfType<PenDiagram>().First(d => d.IsEffectivelyVisible && !d.Flipped);
+        var penRight = diagram.TranslatePoint(new Point(diagram.Bounds.Width, 0), w)!.Value.X;
+        var cards = view.GetVisualDescendants().OfType<PenSwitchCard>().Where(c => c.IsEffectivelyVisible).ToList();
+        Assert.NotEmpty(cards);
+        foreach (var c in cards)
+        {
+            var left = c.TranslatePoint(new Point(0, 0), w)!.Value.X;
+            Assert.True(left - penRight <= 40, $"card starts {left - penRight:0} pt right of the pen (should sit next to it)");
+        }
+        var card2 = cards.First(c => ReferenceEquals(c.DataContext, vm.PenButton2Row));
+        var text = card2.FindControl<Border>("ValueBox")!.Child as TextBlock;
+        Assert.NotNull(text);
+        Assert.Equal(longText, text!.Text);
+        Assert.Equal(TextTrimming.None, text.TextTrimming);
+        Assert.True(text.Bounds.Width > 0, "the value box is not shown");
+        var layout = text.TextLayout;
+        Assert.True(layout.TextLines.Count >= 2, "the long text should wrap onto more lines, not run past the box");
+        Assert.True(layout.TextLines.Sum(l => l.Length) >= longText.Length, "some characters were cut");   // every character laid out (the last line may count its end mark)
+        Assert.True(layout.Height <= text.Bounds.Height + 0.5, $"the text is cut off at the bottom: {layout.Height} > {text.Bounds.Height}");
+        var box = card2.FindControl<Border>("ValueBox")!;
+        Assert.True(box.Bounds.Height >= text.Bounds.Height, "the value box does not grow with its text");
         w.Close();
     }
 

@@ -15,19 +15,23 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
+        <!-- V29 (Zak 16 Nov 16:11, missed until 19 Nov): the action is shown in FULL ('Radial menu: Undo, Redo, Copy…',
+             'Default (eraser)'): the box wraps onto more lines instead of cutting the text. It keeps one width (146, the card's
+             240 minus the 84 heading and 10 gap) so every card lines up and the Radial Menu Settings picture keeps its real size. -->
         <Style Selector="TextBlock.penValue">
             <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="TextAlignment" Value="Center" />
         </Style>
         <Style Selector="Border.penValueBox">
             <Setter Property="Background" Value="#1A1A1A" />
             <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Width" Value="126" />
-            <Setter Property="Height" Value="34" />
-            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Width" Value="146" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="10,6" />
         </Style>
         <Style Selector="Border.penValueBox TextBlock.penValue">
             <Setter Property="Foreground" Value="#E4E4E4" />
@@ -64,7 +68,8 @@
     <!-- v27 (Zak 16:39): 240 wide (was 300). Every row is at most 220 (heading 84 + 10 + value box 126; Change… 104 + 12 + Default 104),
          so nothing on screen moves; the 60 points freed on the right let the Radial Menu Settings picture sit at its real size where the
          open menu was in Zak's screenshot. "Modified to X" wraps a little earlier. -->
-    <StackPanel Spacing="12" Width="240" HorizontalAlignment="Right">
+    <!-- V29 (Zak 16 Nov 16:11): the card sits right next to the pen drawing (left-aligned). -->
+    <StackPanel Spacing="12" Width="240" HorizontalAlignment="Left">
         <!-- Heading, with the current action on the same line for side buttons ("BUTTON 2:  Right click"). -->
         <!-- R14 (the user's mock-up): the button's current action in a dark value box. The heading column has a fixed
              width so every card's box starts at the same x; the boxes are one width (the two buttons below). -->
