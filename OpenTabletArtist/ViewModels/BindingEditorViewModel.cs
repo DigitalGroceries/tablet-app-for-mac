@@ -42,7 +42,7 @@ public partial class BindingEditorViewModel : ObservableObject
         "Hold the button and move the pen to scroll, like a mouse wheel. The cursor stays still.");
     public string PenZoomLabel => Localizer.Te("binding.scroll.pen_zoom", "Move pen to zoom");
     public string PenZoomTip => Localizer.Te("binding.scroll.pen_zoom_tip",
-        "Hold the button and move the pen up or down to zoom. Uses Option+scroll, like the touch ring Zoom mode.");
+        "Hold the button and move the pen up or down to zoom. Uses Option+scroll, like the Touch Ring Zoom mode.");
     public string PenPanZoomLabel => Localizer.Te("binding.scroll.pen_pan_zoom", "Move pen to pan and zoom");
     public string PenPanZoomTip => Localizer.Te("binding.scroll.pen_pan_zoom_tip",
         "Hold the button and move the pen: sideways to pan, up or down to zoom.");

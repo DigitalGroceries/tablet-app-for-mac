@@ -120,10 +120,16 @@ PY
   fi
 done
 (cd "$OUT" && sha256sum Tablet-App-for-Mac*.zip > SHA256SUMS && cat SHA256SUMS)
+if [ -z "$TEST" ]; then
+  # 19 Nov 2026 (TEAM-RULES 7.7 and 0.7: nothing left to memory): a release build names the release-flow steps.
+  echo "NEXT (TEAM-RULES 7.7, release flow): only after Zak has tested the test build. Publish as DigitalGroceries in Chrome"
+  echo "(no AI line), then answer every user in T7 Team/USERS-AWAITING-REPLY.md whose item is in Version $VER, on the"
+  echo "channel they used (name the version, how to update, what to try), and take them off that list."
+fi
 if [ -n "$TEST" ]; then
   # 19 Nov 2026 (TEAM-RULES 5.6; Claude twice left a test build out of Zak's TEST folder): say the next step here.
   echo "NEXT (TEAM-RULES 5.6): copy the zip to the T7 as Team/v$VER/Tablet-App-for-Mac-$VER-test.zip, then run"
   echo "  python3 \"/Volumes/4TB T7/AI/Team/Files/switchboard/switchboard.py\" deliver-test --as <You> --file <that zip>"
-  echo "It puts it in /Volumes/4TB T7/TEST (one file), keeps the old one and updates CATALOG.md. Then tell Zak."
+  echo "It puts the app, unzipped, alone in /Volumes/4TB T7/TEST, keeps the old one and updates CATALOG.md. Then tell Zak."
 fi
 echo PACKDONE
