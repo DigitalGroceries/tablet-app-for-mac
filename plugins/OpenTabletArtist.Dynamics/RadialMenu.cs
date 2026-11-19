@@ -279,10 +279,18 @@ public static class RadialMenuState
             }
             if (_palette)
             {
-                // V29 #142: a swatch: the app sets the colour (Photoshop) and copies its code; the palette stays open. Only the X
-                // of the centre works here (the pencil and the circular arrow belong to the menu).
+                // V29 #142: the centre works as on the menu (Zak ~20:05): X closes, the pencil then a swatch changes that colour,
+                // the circular arrow asks Yes / No to put the palette's colours back. A swatch: the app sets the colour (Photoshop)
+                // and copies its code; the palette stays open. While the Yes / No shows, the right half is Yes, the left half No.
+                if (_confirm)
+                {
+                    int yn = RadialMenuGeometry.SliceAt(c.X - _cx, c.Y - _cy, _top.PaletteSize);
+                    if (yn >= 0) PaletteAnswerLocked(yn);
+                    return true;
+                }
                 if (slice == RadialMenuGeometry.Centre) CloseLocked("centre");
-                else if (slice >= 0) PaletteSwatchLocked(slice);
+                else if (slice is RadialMenuGeometry.Edit or RadialMenuGeometry.Restore) CentreQuarterLocked(slice);
+                else if (slice >= 0) PaletteTapLocked(slice);
                 return true;
             }
             if (slice < 0) { CentreQuarterLocked(slice); return true; }
@@ -299,14 +307,31 @@ public static class RadialMenuState
         return true;
     }
 
-    /// <summary>V29 #142: report the tapped swatch's colour to the app (as a run slice, so it shows next to the palette).</summary>
-    private static void PaletteSwatchLocked(int swatch)
+    /// <summary>V29 #142: a swatch was tapped (pen or mouse): with the pencil on, ask the app to change its colour; otherwise report
+    /// its colour to the app (as a run slice, so it shows next to the palette).</summary>
+    private static void PaletteTapLocked(int swatch)
     {
-        var (hue, shade) = ColourPalette.Split(swatch);
-        _used = (++_usedSeq, ColourPalette.HueNames[hue] + ", " + ColourPalette.ShadeNames[shade], ColourPalette.Hex(hue, shade),
-            ColourPalette.Action, true);
+        if (_top == null || swatch < 0 || swatch >= ColourPalette.Count) return;
+        if (_editing)
+        {
+            _editing = false;
+            _busy = true;
+            _busySince = Environment.TickCount64;
+            NewRequestLocked("palette-edit", swatch);
+            return;
+        }
+        var hex = ColourPalette.HexFor(_top, swatch);
+        _used = (++_usedSeq, ColourPalette.NameOf(swatch), hex, ColourPalette.Action, true);
         WriteStateLocked();
-        Log.Write("Radial menu", $"Colour palette: {ColourPalette.Hex(hue, shade)} tapped.", LogLevel.Debug);
+        Log.Write("Radial menu", $"Colour palette: {hex} tapped.", LogLevel.Debug);
+    }
+
+    /// <summary>V29 #142: the answer to "Put the palette's colours back?": slice 2 (right) is Yes.</summary>
+    private static void PaletteAnswerLocked(int slice)
+    {
+        _confirm = false;
+        if (slice == 2) NewRequestLocked("palette-restore", -1);
+        else WriteStateLocked();
     }
 
     /// <summary>The X, the pencil or the circular arrow was tapped (pen or mouse).</summary>
@@ -512,8 +537,9 @@ public static class RadialMenuState
                     _parked = true;
                     if (_palette)
                     {
-                        // V29 #142: the Mac mouse clicked a swatch of the colour palette.
-                        if (cmd.Slice >= 0 && cmd.Slice < ColourPalette.Hues * ColourPalette.Shades) PaletteSwatchLocked(cmd.Slice);
+                        // V29 #142: the Mac mouse clicked a swatch of the colour palette (or Yes / No while that question shows).
+                        if (_confirm) { if (cmd.Slice >= 0) PaletteAnswerLocked(cmd.Slice); return; }
+                        PaletteTapLocked(cmd.Slice);
                         return;
                     }
                     if (cmd.Slice < 0 || cmd.Slice >= RadialMenuDef.SliceCount) return;

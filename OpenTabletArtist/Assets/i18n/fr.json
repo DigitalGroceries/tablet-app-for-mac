@@ -684,5 +684,11 @@
   "tablet.about.scroll_momentum": "Inertie du défilement",
   "tablet.about.scroll_momentum_hint": "Le défilement à deux doigts continue un instant après que vous levez les doigts, puis ralentit jusqu’à s’arrêter, comme sur un trackpad de Mac. Touchez la tablette pour l’arrêter.",
   "keyboard.title": "Clavier",
-  "keyboard.transparency": "Transparence du clavier"
+  "keyboard.transparency": "Transparence du clavier",
+  "palette.title": "Réglages de la palette de couleurs",
+  "palette.help": "Appuyez deux fois rapidement sur le bouton du stylet qui ouvre le menu radial pour afficher cette palette (deux nouveaux appuis ramènent au menu). Touchez une couleur : Photoshop l'utilise comme couleur du pinceau ; dans les autres applications, elle est copiée, ou prélevez-la avec la pipette de l'application.",
+  "palette.size": "Taille de la palette",
+  "palette.solid": "La palette est toujours opaque : les couleurs que vous choisissez sont donc exactes.",
+  "palette.set_photoshop": "Couleur {colour} définie dans Photoshop",
+  "palette.copied": "Couleur {colour} copiée"
 }

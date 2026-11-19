@@ -684,5 +684,11 @@
   "tablet.about.scroll_momentum": "スクロールの慣性",
   "tablet.about.scroll_momentum_hint": "2本指のスクロールが指を離した後も少し続き、Macのトラックパッドのように徐々に止まります。タブレットに触れると止まります。",
   "keyboard.title": "キーボード",
-  "keyboard.transparency": "キーボードの透明度"
+  "keyboard.transparency": "キーボードの透明度",
+  "palette.title": "カラーパレットの設定",
+  "palette.help": "ラジアルメニューを開くペンボタンを素早く2回押すと、このパレットが表示されます（もう一度素早く2回押すとメニューに戻ります）。色をタップすると、Photoshop ではブラシの色になります。ほかのアプリではコピーされます。アプリ側のスポイトで色を拾うこともできます。",
+  "palette.size": "パレットのサイズ",
+  "palette.solid": "パレットは常に不透明なので、正確な色を選べます。",
+  "palette.set_photoshop": "{colour} を Photoshop に設定しました",
+  "palette.copied": "{colour} をコピーしました"
 }

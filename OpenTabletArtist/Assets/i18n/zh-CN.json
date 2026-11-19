@@ -684,5 +684,11 @@
   "tablet.about.scroll_momentum": "滚动惯性",
   "tablet.about.scroll_momentum_hint": "双指滚动在抬起手指后会继续片刻，然后逐渐减速停止，就像 Mac 触控板一样。触碰数位板即可停止。",
   "keyboard.title": "键盘",
-  "keyboard.transparency": "键盘透明度"
+  "keyboard.transparency": "键盘透明度",
+  "palette.title": "调色板设置",
+  "palette.help": "快速按两下打开径向菜单的笔按键，即可显示此调色板（再快速按两下即切换回菜单）。点按一种颜色：Photoshop 会将它设为画笔颜色；在其他应用中，颜色会被复制，你也可以用应用自带的吸管工具吸取。",
+  "palette.size": "调色板大小",
+  "palette.solid": "调色板始终不透明，因此你选取的颜色是准确的。",
+  "palette.set_photoshop": "已在 Photoshop 中设置 {colour}",
+  "palette.copied": "已复制 {colour}"
 }

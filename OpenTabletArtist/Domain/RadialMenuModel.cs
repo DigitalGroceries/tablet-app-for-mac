@@ -80,6 +80,11 @@ public sealed class RadialMenuDef
     /// <summary>V29 #142: the colour palette's own size (same 1-50 scale and step slider as the menu); set on the Eraser page.
     /// The palette is always solid, so an eyedropper reads its colours exactly. Only the top menu's value is used.</summary>
     [JsonPropertyName("paletteSize")] public int PaletteSize { get; set; } = DefaultSize;
+
+    /// <summary>V29 #142 (Zak ~20:05: the pencil changes a swatch to your own colour): swatch number to "#RRGGBB", only for the
+    /// swatches the user changed; the circular arrow empties it. Only the top menu's value is used.</summary>
+    [JsonPropertyName("paletteColours")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? PaletteColours { get; set; }
 }
 
 public sealed class RadialSlice
@@ -116,6 +121,7 @@ public static class RadialMenuDefExtensions
         Size = def.Size,
         Transparency = def.Transparency,
         PaletteSize = def.PaletteSize,
+        PaletteColours = def.PaletteColours == null ? null : new Dictionary<string, string>(def.PaletteColours),
         Slices = def.Slices.Select(s => s.Clone()).ToList(),
     };
 }
@@ -175,6 +181,7 @@ public static class RadialMenuJson
             Size = ClampSize(def?.Size ?? RadialMenuDef.DefaultSize),
             Transparency = Math.Clamp(def?.Transparency ?? RadialMenuDef.DefaultTransparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency),
             PaletteSize = ClampSize(def?.PaletteSize ?? RadialMenuDef.DefaultSize),
+            PaletteColours = ColourPalette.CleanColours(def?.PaletteColours),
         };
     }
 
@@ -412,6 +419,58 @@ public static class ColourPalette
     public static int Swatch(int hue, int shade) => hue * Shades + shade;
     public static (int Hue, int Shade) Split(int swatch) => (swatch / Shades, swatch % Shades);
 
+    /// <summary>Zak ~20:05: a ring of greys, white to black, round the outside edge (12 steps, white at the top, clockwise).
+    /// Swatch numbers 48 to 59.</summary>
+    public const int Greys = 12;
+    public const int FirstGrey = Hues * Shades;
+    public const int Count = FirstGrey + Greys;
+    /// <summary>The grey ring's width as a share of the coloured part of the ring.</summary>
+    public const double GreyBand = 0.16;
+
+    public static bool IsGrey(int swatch) => swatch >= FirstGrey && swatch < Count;
+
+    /// <summary>The built-in colour of any swatch (0 to 59).</summary>
+    public static (byte R, byte G, byte B) Colour(int swatch)
+    {
+        if (IsGrey(swatch))
+        {
+            var v = (byte)Math.Round(255.0 * (Greys - 1 - (swatch - FirstGrey)) / (Greys - 1));
+            return (v, v, v);
+        }
+        var (h, s) = Split(Math.Clamp(swatch, 0, FirstGrey - 1));
+        return Colour(h, s);
+    }
+
+    /// <summary>"#RRGGBB" of a swatch: the user's own colour when the pencil changed it, else the built-in one.</summary>
+    public static string HexFor(RadialMenuDef? def, int swatch)
+    {
+        if (def?.PaletteColours != null && def.PaletteColours.TryGetValue(swatch.ToString(System.Globalization.CultureInfo.InvariantCulture), out var own)
+            && IsHex(own)) return own.ToUpperInvariant();
+        var (r, g, b) = Colour(swatch);
+        return $"#{r:X2}{g:X2}{b:X2}";
+    }
+
+    /// <summary>The swatch's name for the log and the bubble: "Red, light" or "Grey 4 of 12".</summary>
+    public static string NameOf(int swatch)
+    {
+        if (IsGrey(swatch)) return $"Grey {swatch - FirstGrey + 1} of {Greys}";
+        var (h, s) = Split(swatch);
+        return HueNames[h] + ", " + ShadeNames[s];
+    }
+
+    public static bool IsHex(string? s) => s != null && s.Length == 7 && s[0] == '#'
+        && s.Skip(1).All(Uri.IsHexDigit);
+
+    /// <summary>Only valid swatch numbers and colours are kept; null when nothing is left.</summary>
+    public static Dictionary<string, string>? CleanColours(Dictionary<string, string>? colours)
+    {
+        if (colours == null) return null;
+        var clean = new Dictionary<string, string>();
+        foreach (var (k, v) in colours)
+            if (int.TryParse(k, out var n) && n >= 0 && n < Count && IsHex(v)) clean[n.ToString(System.Globalization.CultureInfo.InvariantCulture)] = v.ToUpperInvariant();
+        return clean.Count == 0 ? null : clean;
+    }
+
     /// <summary>What is at offset (<paramref name="dx"/>, <paramref name="dy"/>) from the centre of a palette of this size: a swatch
     /// number (hue * 4 + shade, 0 to 47), one of the centre quarters (<see cref="RadialMenuGeometry.Centre"/> = the X,
     /// <see cref="RadialMenuGeometry.Hand"/> = drag, the other two do nothing), or <see cref="RadialMenuGeometry.Outside"/>.
@@ -423,9 +482,11 @@ public static class ColourPalette
         var deg = Math.Atan2(dx, -dy) * 180.0 / Math.PI;
         if (deg < 0) deg += 360;
         const double step = 360.0 / Hues;
-        int hue = (int)Math.Floor((deg + step / 2) / step) % Hues;
-        int shade = Math.Clamp((int)((outer - r) / ((outer - inner) / Shades)), 0, Shades - 1);
-        return Swatch(hue, shade);
+        int sector = (int)Math.Floor((deg + step / 2) / step) % Hues;
+        double greyEdge = outer - (outer - inner) * GreyBand;
+        if (r > greyEdge) return FirstGrey + sector;   // the greys ring has 12 steps, at the same angles as the hues
+        int shade = Math.Clamp((int)((greyEdge - r) / ((greyEdge - inner) / Shades)), 0, Shades - 1);
+        return Swatch(sector, shade);
     }
 
     /// <summary>The action name a palette tap is reported with (the colour itself travels as "#RRGGBB").</summary>

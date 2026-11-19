@@ -271,6 +271,9 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         }
     }
 
+    /// <summary>The menu the palette picture on the Eraser page draws its colours from (the user's own ones included).</summary>
+    public RadialMenuDef PaletteMenu => _top;
+
     public string PaletteHeading => Localizer.Te("palette.title", "Colour Palette Settings");
     public string PaletteHelp => Localizer.Te("palette.help",
         "Press the pen button that opens the radial menu twice quickly to show this palette (twice again swaps back). Tap a colour: Photoshop takes it as the brush colour; in other apps it is copied, or pick it with the app's own eyedropper.");

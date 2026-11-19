@@ -1769,7 +1769,7 @@
                             <TextBlock x:Name="PaletteSpotHeading" Text="{Binding RadialPreview.PaletteHeading}" FontWeight="SemiBold" TextWrapping="Wrap"
                                        HorizontalAlignment="Center" TextAlignment="Center" />
                             <Viewbox x:Name="PaletteSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" MaxWidth="324" MaxHeight="324">
-                                <ctrl:ColourPaletteWheel x:Name="PaletteSpotWheel" Width="324" Height="324" MenuSize="{Binding RadialPreview.PaletteSize}"
+                                <ctrl:ColourPaletteWheel x:Name="PaletteSpotWheel" Width="324" Height="324" MenuSize="{Binding RadialPreview.PaletteSize}" Menu="{Binding RadialPreview.PaletteMenu}"
                                                          Opacity="{Binding RadialSpotOpacity}" />
                             </Viewbox>
                             <TextBlock x:Name="PaletteSpotHelp" Text="{Binding RadialPreview.PaletteHelp}" FontSize="12" TextWrapping="Wrap" TextAlignment="Center"

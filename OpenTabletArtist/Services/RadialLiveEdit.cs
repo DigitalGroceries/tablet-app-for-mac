@@ -30,7 +30,29 @@ public static class RadialLiveEdit
                 AppLog.Warn("Radial menu: the app window isn't ready, so the menu wasn't changed.");
                 return;
             }
-            if (request.Kind == "restore")
+            if (request.Kind == "palette-restore")
+            {
+                // V29 #142: the palette's circular arrow (after Yes): its own colours again, everything else unchanged.
+                var m = RadialMenuJson.Parse(current);
+                m.PaletteColours = null;
+                result = RadialMenuJson.Serialize(m);
+            }
+            else if (request.Kind == "palette-edit")
+            {
+                // V29 #142: the palette's pencil, then a swatch: choose that swatch's colour.
+                var m = RadialMenuJson.Parse(current);
+                AppLog.Info($"Colour palette: changing swatch {request.Slice} ({ColourPalette.NameOf(request.Slice)}).");
+                window.BringToFront("palette colour edit", byUser: true);
+                wentForward = true;
+                var hex = await PaletteColourDialog.ShowAsync(window, ColourPalette.HexFor(m, request.Slice), ColourPalette.NameOf(request.Slice));
+                if (hex != null)
+                {
+                    m.PaletteColours ??= new System.Collections.Generic.Dictionary<string, string>();
+                    m.PaletteColours[request.Slice.ToString(System.Globalization.CultureInfo.InvariantCulture)] = hex;
+                    result = RadialMenuJson.Serialize(m);
+                }
+            }
+            else if (request.Kind == "restore")
             {
                 var defaults = RadialMenuDefaults.Create(Localizer.Te);
                 defaults.Size = RadialMenuJson.Parse(current).Size;
@@ -52,6 +74,8 @@ public static class RadialLiveEdit
             if (await vm.ReplaceRadialMenuAsync(current, result))
             {
                 if (request.Kind == "restore") ActionConfirmation.Show("confirm.radial_restored", "Menu restored");
+                else if (request.Kind == "palette-restore") ActionConfirmation.Show("palette.restored", "Palette colours restored");
+                else if (request.Kind == "palette-edit") ActionConfirmation.Show("palette.saved", "Colour saved");
                 else ActionConfirmation.Show("confirm.radial_saved", "Slice saved");
             }
             else

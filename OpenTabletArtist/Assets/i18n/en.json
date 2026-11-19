@@ -694,5 +694,10 @@
   "radial.keyboard_line": "Floating keyboard: put it on a slice of this menu, then tap that slice to type with the pen.",
   "radial.keyboard_put": "Put the keyboard there",
   "radial.slot_empty": "(empty)",
-  "radial.keyboard_on": "The keyboard is on slice {n}."
+  "radial.keyboard_on": "The keyboard is on slice {n}.",
+  "palette.edit_hint": "Tap the colour to change",
+  "palette.restore_prompt": "Put the palette's own colours back?",
+  "palette.change_title": "Change this colour",
+  "palette.saved": "Colour saved",
+  "palette.restored": "Palette colours restored"
 }

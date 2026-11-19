@@ -684,5 +684,11 @@
   "tablet.about.scroll_momentum": "Scroll-Trägheit",
   "tablet.about.scroll_momentum_hint": "Das Scrollen mit zwei Fingern läuft nach dem Anheben der Finger kurz weiter und wird dann langsamer, wie bei einem Mac-Trackpad. Tippe auf das Tablet, um es anzuhalten.",
   "keyboard.title": "Tastatur",
-  "keyboard.transparency": "Transparenz der Tastatur"
+  "keyboard.transparency": "Transparenz der Tastatur",
+  "palette.title": "Farbpaletten-Einstellungen",
+  "palette.help": "Drücke die Stift-Taste, die das Radialmenü öffnet, zweimal schnell hintereinander, um diese Palette anzuzeigen (erneutes zweimaliges Drücken wechselt zurück). Tippe auf eine Farbe: Photoshop übernimmt sie als Pinselfarbe; in anderen Apps wird sie kopiert, oder du nimmst sie mit der Pipette der App selbst auf.",
+  "palette.size": "Palettengröße",
+  "palette.solid": "Die Palette ist immer deckend, damit die Farben, die du auswählst, genau stimmen.",
+  "palette.set_photoshop": "{colour} in Photoshop eingestellt",
+  "palette.copied": "{colour} kopiert"
 }

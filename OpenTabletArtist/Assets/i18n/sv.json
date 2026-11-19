@@ -684,5 +684,11 @@
   "tablet.about.scroll_momentum": "Rullningströghet",
   "tablet.about.scroll_momentum_hint": "Rullning med två fingrar fortsätter en stund efter att du lyft fingrarna och saktar sedan in tills den stannar, som på en styrplatta på Mac. Rör vid ritplattan för att stoppa den.",
   "keyboard.title": "Tangentbord",
-  "keyboard.transparency": "Tangentbordets genomskinlighet"
+  "keyboard.transparency": "Tangentbordets genomskinlighet",
+  "palette.title": "Inställningar för färgpalett",
+  "palette.help": "Tryck snabbt två gånger på pennknappen som öppnar radialmenyn för att visa den här paletten (två snabba tryck till växlar tillbaka till menyn). Tryck på en färg: Photoshop använder den som penselfärg; i andra appar kopieras den, eller plocka upp den med appens egen pipett.",
+  "palette.size": "Palettstorlek",
+  "palette.solid": "Paletten är alltid ogenomskinlig, så färgerna du väljer blir exakta.",
+  "palette.set_photoshop": "{colour} inställd i Photoshop",
+  "palette.copied": "{colour} kopierad"
 }

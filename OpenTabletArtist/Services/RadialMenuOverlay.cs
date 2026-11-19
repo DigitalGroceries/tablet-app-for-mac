@@ -308,17 +308,21 @@ public sealed class RadialMenuOverlay : IDisposable
             // space as CGEventGetLocation, which is where the plugin took the centre from (see RingModeHud).
             _window.Position = new PixelPoint((int)Math.Round(st.X - d / 2), (int)Math.Round(st.Y - d / 2));
             // V29 #142: the colour palette takes the menu's place in the same window (same size, same centre).
-            if (st.IsPalette)
+            // While its Yes / No question shows, the palette uses the menu's ring for the answer (right Yes, left No).
+            if (st.IsPalette && !st.Confirm)
             {
                 if (!ReferenceEquals(_window.Content, _paletteWheel)) _window.Content = _paletteWheel;
                 _paletteWheel!.MenuSize = st.Size;
+                _paletteWheel.Editing = st.Editing;
+                _paletteWheel.Menu = string.IsNullOrEmpty(st.Menu) ? null : RadialMenuJson.Parse(st.Menu);
                 _paletteWheel.Highlight = HighlightNow();
             }
             else if (!ReferenceEquals(_window.Content, _pie)) _window.Content = _pie;
             _pie!.Editing = st.Editing;
             // TASKS #64: the pencil's hint sits under the menu itself (not a pop-up over the app that was in front) and stays until a slice
             // is chosen, the pencil is put down, or the menu closes.
-            if (st.Editing) _toast.Show(Localizer.Te("confirm.radial_edit_hint", "Edit the slice you tap next"), st.X, st.Y, r, hold: true);
+            if (st.Editing) _toast.Show(st.IsPalette ? Localizer.Te("palette.edit_hint", "Tap the colour to change")
+                                                     : Localizer.Te("confirm.radial_edit_hint", "Edit the slice you tap next"), st.X, st.Y, r, hold: true);
             else if (_wasEditing) _toast.HideHint();
             _wasEditing = st.Editing;
             var labels = st.Labels;
@@ -329,7 +333,8 @@ public sealed class RadialMenuOverlay : IDisposable
                 l[2] = Localizer.Te("radial.yes", "Yes");
                 l[6] = Localizer.Te("radial.no", "No");
                 labels = l;
-                _pie.CentreText = Localizer.Te("radial.restore_prompt", "Restore the 8 default slices?");
+                _pie.CentreText = st.IsPalette ? Localizer.Te("palette.restore_prompt", "Put the palette's own colours back?")
+                                               : Localizer.Te("radial.restore_prompt", "Restore the 8 default slices?");
             }
             else _pie.CentreText = null;
             _pie.Labels = labels;
@@ -406,7 +411,7 @@ public sealed class RadialMenuOverlay : IDisposable
     private int HighlightNow()
     {
         if (MacDesktop.CursorLocation() is not { } p) return -3;
-        return _shown?.IsPalette == true ? ColourPalette.SwatchAt(p.X - _cx, p.Y - _cy, _size)
+        return _shown is { IsPalette: true, Confirm: false } ? ColourPalette.SwatchAt(p.X - _cx, p.Y - _cy, _size)
                                          : RadialMenuGeometry.SliceAt(p.X - _cx, p.Y - _cy, _size);
     }
 
@@ -446,7 +451,7 @@ public sealed class RadialMenuOverlay : IDisposable
     {
         if (_pie == null) return;
         var h = HighlightNow();
-        if (_shown?.IsPalette == true) { if (_paletteWheel != null && h != _paletteWheel.Highlight) _paletteWheel.Highlight = h; }
+        if (_shown is { IsPalette: true, Confirm: false }) { if (_paletteWheel != null && h != _paletteWheel.Highlight) _paletteWheel.Highlight = h; }
         else if (h != _pie.Highlight) _pie.Highlight = h;
         // Esc closes the menu. The driver closes it (it owns the state); the window is hidden when it says so.
         bool esc = EscapeProbe();
@@ -467,16 +472,22 @@ public sealed class RadialMenuOverlay : IDisposable
         return new Point(s.X, s.Y);
     }
 
-    /// <summary>V29 #142: the Mac mouse on the colour palette: a swatch is a "slice" (the driver reports its colour back), the X
-    /// closes, the hand drags; the other two centre quarters do nothing here.</summary>
+    /// <summary>V29 #142: the Mac mouse on the colour palette: a swatch is a "slice" (the driver reports its colour back); the
+    /// centre's X, pencil, circular arrow and hand do what they do on the menu.</summary>
     private void OnPalettePressed(object? sender, PointerPressedEventArgs e)
     {
         if (_paletteWheel == null || _window == null) return;
         if (!e.GetCurrentPoint(_paletteWheel).Properties.IsLeftButtonPressed) return;
         var local = e.GetPosition(_paletteWheel);
         int hit = ColourPalette.SwatchAt(local.X - _paletteWheel.Bounds.Width / 2, local.Y - _paletteWheel.Bounds.Height / 2, _size);
-        RadialTarget? target = hit >= 0 ? RadialTarget.Slice : hit == RadialMenuGeometry.Centre ? RadialTarget.Close
-            : hit == RadialMenuGeometry.Hand ? RadialTarget.Hand : null;
+        RadialTarget? target = hit >= 0 ? RadialTarget.Slice : hit switch
+        {
+            RadialMenuGeometry.Centre => RadialTarget.Close,
+            RadialMenuGeometry.Hand => RadialTarget.Hand,
+            RadialMenuGeometry.Edit => RadialTarget.Edit,
+            RadialMenuGeometry.Restore => RadialTarget.Restore,
+            _ => null,
+        };
         if (target is not { } t || GlobalPointer(e) is not { } g) return;
         _press = new RadialMenuPress((g.X, g.Y), WindowOrigin(), t, hit);
         e.Pointer.Capture(_paletteWheel);

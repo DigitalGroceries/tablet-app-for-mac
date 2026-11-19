@@ -684,5 +684,11 @@
   "tablet.about.scroll_momentum": "Inerzia dello scorrimento",
   "tablet.about.scroll_momentum_hint": "Lo scorrimento a due dita continua per un momento dopo che sollevi le dita, poi rallenta fino a fermarsi, come su un trackpad del Mac. Tocca la tavoletta per fermarlo.",
   "keyboard.title": "Tastiera",
-  "keyboard.transparency": "Trasparenza tastiera"
+  "keyboard.transparency": "Trasparenza tastiera",
+  "palette.title": "Impostazioni tavolozza colori",
+  "palette.help": "Premi due volte rapidamente il pulsante della penna che apre il menu radiale per mostrare questa tavolozza (premilo di nuovo due volte per tornare al menu). Tocca un colore: Photoshop lo usa come colore del pennello; nelle altre app viene copiato, oppure prelevalo con il contagocce dell'app stessa.",
+  "palette.size": "Dimensioni tavolozza",
+  "palette.solid": "La tavolozza è sempre opaca, così i colori che scegli sono esatti.",
+  "palette.set_photoshop": "{colour} impostato in Photoshop",
+  "palette.copied": "{colour} copiato"
 }

@@ -90,9 +90,9 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     private IBrush CentreBack => Back(28, 31, 37, 1.0);
     private static IBrush Back(byte r, byte g, byte b, double k) =>
         new SolidColorBrush(Color.FromArgb((byte)Math.Round(255 * k), r, g, b));
-    private static readonly IBrush HighlightFill = new SolidColorBrush(Color.FromArgb(245, 61, 123, 217));
-    private static readonly IBrush SelectedFill = new SolidColorBrush(Color.FromArgb(245, 86, 96, 112));
-    private static readonly IPen Edge = new Pen(new SolidColorBrush(Color.FromArgb(160, 228, 228, 228)), 1.5);
+    internal static readonly IBrush HighlightFill = new SolidColorBrush(Color.FromArgb(245, 61, 123, 217));
+    internal static readonly IBrush SelectedFill = new SolidColorBrush(Color.FromArgb(245, 86, 96, 112));
+    internal static readonly IPen Edge = new Pen(new SolidColorBrush(Color.FromArgb(160, 228, 228, 228)), 1.5);
     private static readonly IBrush TextBrush = new SolidColorBrush(Color.FromRgb(228, 228, 228));   // the app never goes brighter than #E4
     private static readonly IBrush TextMuted = new SolidColorBrush(Color.FromArgb(150, 220, 220, 220));
 
@@ -144,11 +144,19 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
             ctx.DrawText(q, new Point(c.X - inner * 0.8, c.Y - q.Height / 2));
             return;
         }
+        DrawCentreQuarters(ctx, c, inner, Highlight, Editing, CentreBack, HighlightFill, SelectedFill, Edge, divider);
+    }
+
+    /// <summary>The centre's four quarter buttons with their icons (X, pencil, open hand, circular arrow). Shared with the colour
+    /// palette (V29 #142, Zak: the same buttons look the same on both menus).</summary>
+    internal static void DrawCentreQuarters(DrawingContext ctx, Point c, double inner, int highlight, bool editing,
+        IBrush centreBack, IBrush highlightFill, IBrush selectedFill, IPen edge, IPen divider)
+    {
         for (int quarter = 0; quarter < 4; quarter++)
         {
             int code = QuarterCodes[quarter];
-            bool on = code == RadialMenuGeometry.Edit && Editing;
-            ctx.DrawGeometry(Highlight == code ? HighlightFill : on ? SelectedFill : CentreBack, Edge, Quarter(c, inner, quarter));
+            bool on = code == RadialMenuGeometry.Edit && editing;
+            ctx.DrawGeometry(highlight == code ? highlightFill : on ? selectedFill : centreBack, edge, Quarter(c, inner, quarter));
         }
         // One shape for both lines, so the crossing point is not drawn twice (brighter) on a see-through menu.
         var cross = new StreamGeometry();

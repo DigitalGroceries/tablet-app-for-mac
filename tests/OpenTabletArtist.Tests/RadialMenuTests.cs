@@ -452,8 +452,9 @@ public class RadialMenuStateTests : IDisposable
         var b = Binding();
         b.Press(null!, null!); b.Release(null!, null!);
         b.Press(null!, null!); b.Release(null!, null!);
-        double outer = RadialMenuGeometry.OuterRadius(RadialMenuDef.DefaultSize);
-        _cursor = (500, 400 - (outer - 3));                         // top edge: yellow, the pure ring
+        double outer = RadialMenuGeometry.OuterRadius(RadialMenuDef.DefaultSize), inner = RadialMenuGeometry.InnerRadius(RadialMenuDef.DefaultSize);
+        double greyEdge = outer - (outer - inner) * ColourPalette.GreyBand;
+        _cursor = (500, 400 - (greyEdge - 3));                      // just inside the greys ring at the top: yellow, the pure ring
         Assert.True(RadialMenuState.TipDown());
         var used = State().GetProperty("used");
         Assert.Equal(ColourPalette.Action, used.GetProperty("action").GetString());
@@ -469,18 +470,71 @@ public class RadialMenuStateTests : IDisposable
     }
 
     [Fact]
-    public void PaletteGeometry_12Hues4Shades_PureOutsideDarkInside()
+    public void PaletteGeometry_GreysOutside_12Hues4Shades_PureOutsideDarkInside()
     {
         int size = RadialMenuDef.DefaultSize;
         double outer = RadialMenuGeometry.OuterRadius(size), inner = RadialMenuGeometry.InnerRadius(size);
-        Assert.Equal(ColourPalette.Swatch(0, 0), ColourPalette.SwatchAt(0, -(outer - 1), size));
+        double greyEdge = outer - (outer - inner) * ColourPalette.GreyBand;
+        Assert.Equal(ColourPalette.FirstGrey, ColourPalette.SwatchAt(0, -(outer - 1), size));          // top of the greys ring: white
+        Assert.Equal(ColourPalette.FirstGrey + 6, ColourPalette.SwatchAt(0, outer - 1, size));         // bottom: a dark grey
+        Assert.Equal(ColourPalette.Swatch(0, 0), ColourPalette.SwatchAt(0, -(greyEdge - 1), size));
         Assert.Equal(ColourPalette.Swatch(0, 3), ColourPalette.SwatchAt(0, -(inner + 1), size));
-        Assert.Equal(ColourPalette.Swatch(3, 0), ColourPalette.SwatchAt(outer - 1, 0, size));   // 90° = red-orange
+        Assert.Equal(ColourPalette.Swatch(3, 0), ColourPalette.SwatchAt(greyEdge - 1, 0, size));      // 90° = red-orange
         Assert.Equal(RadialMenuGeometry.Outside, ColourPalette.SwatchAt(0, -(outer + 5), size));
         Assert.Equal(RadialMenuGeometry.Centre, ColourPalette.SwatchAt(-1, -1, size));
-        var all = Enumerable.Range(0, 48).Select(i => { var (h, sh) = ColourPalette.Split(i); return ColourPalette.Hex(h, sh); }).ToList();
-        Assert.Equal(48, all.Distinct().Count());
+        Assert.Equal(RadialMenuGeometry.Edit, ColourPalette.SwatchAt(1, -1, size));
+        Assert.Equal(RadialMenuGeometry.Restore, ColourPalette.SwatchAt(-1, 1, size));
+        var all = Enumerable.Range(0, ColourPalette.Count).Select(i => ColourPalette.HexFor(null, i)).ToList();
+        Assert.Equal(ColourPalette.Count, all.Distinct().Count());
         Assert.Equal("#F4E500", ColourPalette.Hex(0, 0));
+        Assert.Equal("#FFFFFF", ColourPalette.HexFor(null, ColourPalette.FirstGrey));
+        Assert.Equal("#000000", ColourPalette.HexFor(null, ColourPalette.Count - 1));
+    }
+
+    [Fact]
+    public void PalettePencil_ThenASwatch_AsksTheAppToChangeIt_AndTheUsersColourIsUsed()
+    {
+        RadialMenuState.DoublePressMs = 400;
+        var m = RadialMenuDefaults.Create();
+        m.PaletteColours = new Dictionary<string, string> { ["0"] = "#123456", ["99"] = "#FFFFFF", ["5"] = "red" };
+        var b = Binding(m);
+        b.Press(null!, null!); b.Release(null!, null!);
+        b.Press(null!, null!); b.Release(null!, null!);
+        Assert.True(RadialMenuState.PaletteOpen);
+        var menu = RadialMenuJson.Parse(State().GetProperty("menu").GetString());
+        Assert.Equal(new Dictionary<string, string> { ["0"] = "#123456" }, menu.PaletteColours);   // bad entries dropped
+        double outer = RadialMenuGeometry.OuterRadius(RadialMenuDef.DefaultSize), inner = RadialMenuGeometry.InnerRadius(RadialMenuDef.DefaultSize);
+        double greyEdge = outer - (outer - inner) * ColourPalette.GreyBand;
+        _cursor = (500, 400 - (greyEdge - 3));
+        RadialMenuState.TipDown();
+        Assert.Equal("#123456", State().GetProperty("used").GetProperty("keys").GetString());   // the user's own colour
+        _cursor = (501, 399);                                       // the pencil
+        RadialMenuState.TipDown();
+        Assert.True(RadialMenuState.Editing);
+        _cursor = (500, 400 - (greyEdge - 3));
+        RadialMenuState.TipDown();
+        var req = State().GetProperty("request");
+        Assert.Equal("palette-edit", req.GetProperty("kind").GetString());
+        Assert.Equal(0, req.GetProperty("slice").GetInt32());
+        Assert.True(RadialMenuState.PaletteOpen);
+    }
+
+    [Fact]
+    public void PaletteCircularArrow_AsksYesNo_YesRestoresTheColours()
+    {
+        RadialMenuState.DoublePressMs = 400;
+        var b = Binding();
+        b.Press(null!, null!); b.Release(null!, null!);
+        b.Press(null!, null!); b.Release(null!, null!);
+        _cursor = (499, 401);                                       // the circular arrow
+        RadialMenuState.TipDown();
+        Assert.True(RadialMenuState.Confirming);
+        Assert.True(State().GetProperty("confirm").GetBoolean());
+        _cursor = (600, 400);                                       // right half: Yes
+        RadialMenuState.TipDown();
+        Assert.Equal("palette-restore", State().GetProperty("request").GetProperty("kind").GetString());
+        Assert.False(RadialMenuState.Confirming);
+        Assert.True(RadialMenuState.PaletteOpen);
     }
 
     [Fact]

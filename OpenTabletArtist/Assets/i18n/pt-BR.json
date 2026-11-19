@@ -684,5 +684,11 @@
   "tablet.about.scroll_momentum": "Inércia da rolagem",
   "tablet.about.scroll_momentum_hint": "A rolagem com dois dedos continua por um momento depois que você levanta os dedos e vai parando, como num trackpad do Mac. Toque na mesa digitalizadora para pará-la.",
   "keyboard.title": "Teclado",
-  "keyboard.transparency": "Transparência do teclado"
+  "keyboard.transparency": "Transparência do teclado",
+  "palette.title": "Ajustes da paleta de cores",
+  "palette.help": "Pressione duas vezes rapidamente o botão da caneta que abre o menu radial para mostrar esta paleta (pressione mais duas vezes para voltar ao menu). Toque numa cor: o Photoshop a usa como cor do pincel; em outros apps ela é copiada, ou pegue-a com o conta-gotas do próprio app.",
+  "palette.size": "Tamanho da paleta",
+  "palette.solid": "A paleta é sempre opaca, então as cores que você escolhe são exatas.",
+  "palette.set_photoshop": "Cor {colour} definida no Photoshop",
+  "palette.copied": "Cor {colour} copiada"
 }

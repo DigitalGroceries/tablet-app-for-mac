@@ -684,5 +684,11 @@
   "tablet.about.scroll_momentum": "Inercia del desplazamiento",
   "tablet.about.scroll_momentum_hint": "El desplazamiento con dos dedos sigue un momento después de levantar los dedos y luego se frena hasta parar, como en un trackpad de Mac. Toca la tableta para detenerlo.",
   "keyboard.title": "Teclado",
-  "keyboard.transparency": "Transparencia del teclado"
+  "keyboard.transparency": "Transparencia del teclado",
+  "palette.title": "Ajustes de la paleta de colores",
+  "palette.help": "Pulsa rápidamente dos veces el botón del lápiz que abre el menú radial para mostrar esta paleta (otras dos pulsaciones vuelven al menú). Toca un color: Photoshop lo toma como color del pincel; en otras apps se copia, o tómalo con el cuentagotas de la propia app.",
+  "palette.size": "Tamaño de la paleta",
+  "palette.solid": "La paleta siempre es sólida, así que los colores que eliges son exactos.",
+  "palette.set_photoshop": "{colour} establecido en Photoshop",
+  "palette.copied": "{colour} copiado"
 }
