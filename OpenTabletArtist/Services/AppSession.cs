@@ -259,7 +259,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
 
     /// <summary>What replaces <see cref="DisconnectedWithUnsavedChangesMessage"/> once the daemon is back.</summary>
     internal static string ReconnectedReplacedUnsavedChangesMessage => Localizer.Te("footer.driver_reconnected_replaced",
-        "Reconnected to the driver. Its current settings replaced the previous unsaved workspace.");
+        "Reconnected to the driver. Its current settings replaced your earlier unsaved changes.");
 
     /// <summary>Message shown when <see cref="IsDaemonExeMissing"/> — the most common cause of a
     /// dead connection (building only the app, or only running the test suite, never produces the
@@ -1094,8 +1094,8 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
                         // two events, and the first is the one that carries the loss.
                         if (DiscardedChangeNotice != ReconnectedReplacedUnsavedChangesMessage)
                             SettingsRefreshedNotice = Localizer.Te("footer.driver_refreshed",   // #117: in the app's language
-                                "Driver settings refreshed. It changed them and you had nothing unsaved "
-                                + "in progress, so this page now shows what it holds.");
+                                "Driver settings refreshed. The driver changed them and you had no unsaved changes, "
+                                + "so this page now shows its settings.");
                         SettingsReplaced?.Invoke();
                         PublishSettings();
                         SaveState = SettingsSaveState.None;

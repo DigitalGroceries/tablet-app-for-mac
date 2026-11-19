@@ -295,7 +295,7 @@
   "save.status.disconnected": "Déconnecté",
   "save.status.reload_continue": "Rechargez les réglages pour continuer",
   "save.status.reload": "Recharger les réglages",
-  "footer.restored_unsaved": "Modifications non enregistrées d'avant l'arrêt restaurées. Elles ne sont pas encore enregistrées : « Enregistrer » les garde, « Revenir à l'enregistré » les abandonne.",
+  "footer.restored_unsaved": "Les modifications non enregistrées de la dernière fermeture de l'app ont été restaurées. Elles ne sont pas encore enregistrées : « Enregistrer » les garde, « Revenir à l'enregistré » les abandonne.",
   "footer.driver_refreshed": "Réglages du pilote actualisés. Le pilote les a modifiés et aucune modification n'était en attente, donc cette page affiche maintenant ses réglages.",
   "footer.driver_disconnected_unsaved": "Le pilote s'est déconnecté. La reconnexion recharge ses réglages actuels ; les modifications non enregistrées peuvent être perdues.",
   "footer.driver_reconnected_replaced": "Reconnecté au pilote. Ses réglages actuels ont remplacé les modifications non enregistrées précédentes.",

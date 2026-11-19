@@ -295,7 +295,7 @@
   "save.status.disconnected": "Getrennt",
   "save.status.reload_continue": "Einstellungen neu laden, um fortzufahren",
   "save.status.reload": "Einstellungen neu laden",
-  "footer.restored_unsaved": "Ungespeicherte Änderungen von vor dem Herunterfahren wiederhergestellt. Sie sind noch nicht gespeichert: „Speichern“ behält sie, „Gespeichertes wiederherstellen“ verwirft sie.",
+  "footer.restored_unsaved": "Ungespeicherte Änderungen vom letzten Beenden der App wiederhergestellt. Sie sind noch nicht gespeichert: „Speichern“ behält sie, „Gespeichertes wiederherstellen“ verwirft sie.",
   "footer.driver_refreshed": "Treibereinstellungen aktualisiert. Der Treiber hat sie geändert und es gab keine ungespeicherten Änderungen, daher zeigt diese Seite jetzt seine Einstellungen.",
   "footer.driver_disconnected_unsaved": "Die Verbindung zum Treiber wurde getrennt. Beim erneuten Verbinden werden seine aktuellen Einstellungen geladen; ungespeicherte Änderungen können verloren gehen.",
   "footer.driver_reconnected_replaced": "Wieder mit dem Treiber verbunden. Seine aktuellen Einstellungen haben die vorherigen ungespeicherten Änderungen ersetzt.",

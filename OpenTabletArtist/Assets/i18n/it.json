@@ -299,7 +299,7 @@
   "save.status.disconnected": "Disconnesso",
   "save.status.reload_continue": "Ricarica le impostazioni per continuare",
   "save.status.reload": "Ricarica impostazioni",
-  "footer.restored_unsaved": "Ripristinate le modifiche non salvate di prima dello spegnimento. Non sono ancora salvate: \"Salva\" le mantiene, \"Ripristina salvataggio\" le scarta.",
+  "footer.restored_unsaved": "Ripristinate le modifiche non salvate dell'ultima chiusura dell'app. Non sono ancora salvate: \"Salva\" le mantiene, \"Ripristina salvataggio\" le scarta.",
   "footer.driver_refreshed": "Impostazioni del driver aggiornate. Il driver le ha cambiate e non c'erano modifiche non salvate, quindi questa pagina ora mostra le sue impostazioni.",
   "footer.driver_disconnected_unsaved": "Il driver si è disconnesso. La riconnessione ricarica le sue impostazioni attuali; le modifiche non salvate potrebbero andare perse.",
   "footer.driver_reconnected_replaced": "Riconnesso al driver. Le sue impostazioni attuali hanno sostituito le modifiche non salvate precedenti.",

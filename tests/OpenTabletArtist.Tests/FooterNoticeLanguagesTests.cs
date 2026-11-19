@@ -55,7 +55,7 @@ public class FooterNoticeLanguagesTests
     public void Without_the_language_tables_the_English_text_is_used()
     {
         // Unit tests run without the app's assets: Localizer.Te falls back to the English text, never the raw key.
-        Assert.StartsWith("Restored unsaved changes from before shutdown.", UnsavedSnapshot.RestoredNotice);
+        Assert.StartsWith("Restored unsaved changes from when the app last closed.", UnsavedSnapshot.RestoredNotice);
         Assert.Contains("Revert to saved", UnsavedSnapshot.RestoredNotice);
         Assert.StartsWith("The driver disconnected.", AppSession.DisconnectedWithUnsavedChangesMessage);
         Assert.StartsWith("Reconnected to the driver.", AppSession.ReconnectedReplacedUnsavedChangesMessage);
