@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using NSubstitute;
 using OpenTabletDriver.Configurations.Parsers.Wacom.IntuosBluetooth;
 using OpenTabletDriver.Devices;
 using OpenTabletDriver.Plugin.Devices;
+using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Tablet;
 using Xunit;
 
@@ -63,7 +65,32 @@ namespace OpenTabletDriver.Tests
             Assert.Equal(new[] { 1f, 2f, 3f, 4f, 5f, 6f }, reports.GetRange(0, 6).ConvertAll(r => ((ITabletReport)r).Position.X));
             Assert.IsType<OutOfRangeReport>(reports[6]);
             Assert.DoesNotContain(reports, r => r is IMultiFrameReport);
-            Assert.Equal(7, raws.Count);
+            Assert.Equal(3, raws.Count);     // one raw copy per input report, not per frame (Grok's review)
+        }
+
+        private sealed class Interpolator : AsyncPositionedPipelineElement<IDeviceReport>
+        {
+            public override PipelinePosition Position => PipelinePosition.PreTransform;
+            protected override void ConsumeState() { }
+            protected override void UpdateState() { }
+            public bool InRange => PenIsInRange();
+        }
+
+        [Fact]
+        public void Interpolators_Do_Not_Freeze_Between_Bluetooth_Reports()
+        {
+            // Grok's review of #120: four frames microseconds apart pulled the report-interval average down to a
+            // quarter, so PenIsInRange went false for most of every gap and interpolating filters stopped.
+            var f = new Interpolator();
+            var pen = new TabletReport { Raw = new byte[1] };
+            for (int i = 0; i < 25; i++)
+            {
+                for (int k = 0; k < 4; k++) f.Consume(pen);
+                Thread.Sleep(30);
+            }
+            for (int k = 0; k < 4; k++) f.Consume(pen);
+            Thread.Sleep(20);                // two thirds of the way to the next report
+            Assert.True(f.InRange);
         }
     }
 }

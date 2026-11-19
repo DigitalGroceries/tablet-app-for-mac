@@ -14,6 +14,9 @@ namespace OpenTabletDriver.Plugin.Output
         private HPETDeltaStopwatch consumeWatch = new HPETDeltaStopwatch(false);
         private ITimer? scheduler;
         private float? reportMsAvg;
+
+        /// <summary>Tablet App for Mac (#120): reports closer together than this came in one input report.</summary>
+        public const float BurstMs = 0.2f;
         private float frequency;
 
         /// <summary>
@@ -81,7 +84,11 @@ namespace OpenTabletDriver.Plugin.Output
             {
                 State = value;
                 var consumeDelta = (float)consumeWatch.Restart().TotalMilliseconds;
-                if (consumeDelta < 150 && consumeDelta != 0)
+                // Tablet App for Mac (#120): reports less than BurstMs apart came in one input report (a Wacom
+                // Bluetooth report holds up to 4 pen frames). Counting those near-zero gaps pulled the average
+                // down to a quarter of the real interval, so PenIsInRange said "out of range" for most of every
+                // gap and interpolating filters froze. Only the gaps between input reports count now.
+                if (consumeDelta < 150 && consumeDelta > BurstMs)
                     reportMsAvg = (reportMsAvg + ((consumeDelta - reportMsAvg) * 0.1f)) ?? consumeDelta;
                 ConsumeState();
             }

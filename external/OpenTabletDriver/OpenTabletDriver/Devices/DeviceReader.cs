@@ -128,11 +128,17 @@ namespace OpenTabletDriver.Devices
 
                     // Tablet App for Mac (#120): a report with several samples (Wacom Bluetooth: up to 4 pen
                     // frames) goes on as one report per sample, oldest first, so no sample is dropped.
+                    // The raw copy goes out once per input report (its first frame carries the whole report's Raw
+                    // bytes), so the debugger and "Record the problem" don't show the same bytes up to 4 times.
                     if (report is IMultiFrameReport multi)
                     {
+                        bool raw = RawClone;
                         foreach (var frame in multi.Frames)
-                            if (frame is T one)
-                                Emit(one);
+                        {
+                            if (frame is not T one) continue;
+                            if (raw) { OnRawReport(one); raw = false; }
+                            OnReport(one);
+                        }
                         continue;
                     }
 
