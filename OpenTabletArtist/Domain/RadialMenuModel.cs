@@ -76,6 +76,10 @@ public sealed class RadialMenuDef
     /// <summary>How see-through the whole menu is, 0 (solid) to 100 (clear, still <see cref="MinVisibleOpacity"/> so it stays usable).
     /// Only the top menu's value is used; a menu saved before this existed reads as <see cref="DefaultTransparency"/>.</summary>
     [JsonPropertyName("transparency")] public int Transparency { get; set; } = DefaultTransparency;
+
+    /// <summary>V29 #142: the colour palette's own size (same 1-50 scale and step slider as the menu); set on the Eraser page.
+    /// The palette is always solid, so an eyedropper reads its colours exactly. Only the top menu's value is used.</summary>
+    [JsonPropertyName("paletteSize")] public int PaletteSize { get; set; } = DefaultSize;
 }
 
 public sealed class RadialSlice
@@ -111,6 +115,7 @@ public static class RadialMenuDefExtensions
     {
         Size = def.Size,
         Transparency = def.Transparency,
+        PaletteSize = def.PaletteSize,
         Slices = def.Slices.Select(s => s.Clone()).ToList(),
     };
 }
@@ -169,6 +174,7 @@ public static class RadialMenuJson
             Slices = slices,
             Size = ClampSize(def?.Size ?? RadialMenuDef.DefaultSize),
             Transparency = Math.Clamp(def?.Transparency ?? RadialMenuDef.DefaultTransparency, RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency),
+            PaletteSize = ClampSize(def?.PaletteSize ?? RadialMenuDef.DefaultSize),
         };
     }
 
@@ -354,4 +360,74 @@ public static class FloatingKeyboardFiles
             if (RadialMenuCommand.Parse(line.Trim()) is { Op: RadialMenuCommand.Key } c) list.Add(c);
         return list;
     }
+}
+
+/// <summary>
+/// V29 #142 (Zak 19 Nov 18:50-19:35): the colour palette, a second radial menu "like a painter uses, where different shades of the
+/// paint are already mixed and ready to choose from", drawn as an artist's colour wheel: 12 hues round the edge, each with 4 ready
+/// mixed shades towards the centre. The same pen button opens it with a quick double press. Shared by the app (drawing, the mouse)
+/// and the driver plugin (pen taps), so both find the same swatch at the same place.
+/// </summary>
+public static class ColourPalette
+{
+    public const int Hues = 12, Shades = 4;
+
+    /// <summary>The artist's 12-hue wheel, clockwise from yellow at the top.</summary>
+    public static readonly string[] HueKeys =
+        { "yellow", "yellow_orange", "orange", "red_orange", "red", "red_violet", "violet", "blue_violet", "blue", "blue_green", "green", "yellow_green" };
+    public static readonly string[] HueNames =
+        { "Yellow", "Yellow-orange", "Orange", "Red-orange", "Red", "Red-violet", "Violet", "Blue-violet", "Blue", "Blue-green", "Green", "Yellow-green" };
+
+    private static readonly (byte R, byte G, byte B)[] Pure =
+    {
+        (0xF4, 0xE5, 0x00), (0xFD, 0xC6, 0x0B), (0xF1, 0x8E, 0x1C), (0xEA, 0x62, 0x1F), (0xE3, 0x23, 0x22), (0xC4, 0x03, 0x7D),
+        (0x6D, 0x39, 0x8B), (0x44, 0x4E, 0x99), (0x2A, 0x71, 0xB0), (0x06, 0x96, 0xBB), (0x00, 0x8E, 0x5B), (0x8C, 0xBB, 0x26),
+    };
+
+    /// <summary>The 4 rings from the outer edge inwards: the pure colour, a tint (white mixed in), a tone (grey mixed in) and a
+    /// shade (black mixed in), as a painter mixes them.</summary>
+    public static readonly string[] ShadeKeys = { "pure", "tint", "tone", "shade" };
+    public static readonly string[] ShadeNames = { "pure", "light", "muted", "dark" };
+
+    public static (byte R, byte G, byte B) Colour(int hue, int shade)
+    {
+        var (r, g, b) = Pure[((hue % Hues) + Hues) % Hues];
+        static byte Mix(byte c, byte with, double amount) => (byte)Math.Round(c + (with - c) * amount);
+        return Math.Clamp(shade, 0, Shades - 1) switch
+        {
+            1 => (Mix(r, 255, 0.45), Mix(g, 255, 0.45), Mix(b, 255, 0.45)),
+            2 => (Mix(r, 128, 0.40), Mix(g, 128, 0.40), Mix(b, 128, 0.40)),
+            3 => (Mix(r, 0, 0.45), Mix(g, 0, 0.45), Mix(b, 0, 0.45)),
+            _ => (r, g, b),
+        };
+    }
+
+    /// <summary>"#RRGGBB" for a swatch.</summary>
+    public static string Hex(int hue, int shade)
+    {
+        var (r, g, b) = Colour(hue, shade);
+        return $"#{r:X2}{g:X2}{b:X2}";
+    }
+
+    public static int Swatch(int hue, int shade) => hue * Shades + shade;
+    public static (int Hue, int Shade) Split(int swatch) => (swatch / Shades, swatch % Shades);
+
+    /// <summary>What is at offset (<paramref name="dx"/>, <paramref name="dy"/>) from the centre of a palette of this size: a swatch
+    /// number (hue * 4 + shade, 0 to 47), one of the centre quarters (<see cref="RadialMenuGeometry.Centre"/> = the X,
+    /// <see cref="RadialMenuGeometry.Hand"/> = drag, the other two do nothing), or <see cref="RadialMenuGeometry.Outside"/>.
+    /// The palette is the same size and shape as the radial menu.</summary>
+    public static int SwatchAt(double dx, double dy, int size)
+    {
+        double r = Math.Sqrt(dx * dx + dy * dy), outer = RadialMenuGeometry.OuterRadius(size), inner = RadialMenuGeometry.InnerRadius(size);
+        if (r <= inner || r > outer) return RadialMenuGeometry.SliceAt(dx, dy, size);
+        var deg = Math.Atan2(dx, -dy) * 180.0 / Math.PI;
+        if (deg < 0) deg += 360;
+        const double step = 360.0 / Hues;
+        int hue = (int)Math.Floor((deg + step / 2) / step) % Hues;
+        int shade = Math.Clamp((int)((outer - r) / ((outer - inner) / Shades)), 0, Shades - 1);
+        return Swatch(hue, shade);
+    }
+
+    /// <summary>The action name a palette tap is reported with (the colour itself travels as "#RRGGBB").</summary>
+    public const string Action = "Colour";
 }

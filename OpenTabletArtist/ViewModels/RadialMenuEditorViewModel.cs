@@ -239,6 +239,44 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         OpenTabletArtist.Services.RadialMenuOverlay.ShowLookLive(CurrentJson());   // v27: an open menu follows at once
     }
 
+    /// <summary>V29 #142: the colour palette's size (1-50, shown as a step 1 to 10 like the menu's), set on the Eraser page.</summary>
+    public int PaletteSize
+    {
+        get => _top.PaletteSize;
+        set
+        {
+            int v = Math.Clamp(value, RadialMenuDef.MinSize, RadialMenuDef.MaxSize);
+            if (v == _top.PaletteSize) return;
+            _top.PaletteSize = v;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(PaletteSizeStep));
+            OnPropertyChanged(nameof(PaletteSizeInput));
+        }
+    }
+
+    public int PaletteSizeStep
+    {
+        get => RadialMenuDef.StepForSize(PaletteSize);
+        set => PaletteSize = RadialMenuDef.SizeForStep(Math.Clamp(value, RadialMenuDef.MinSizeStep, RadialMenuDef.MaxSizeStep));
+    }
+
+    /// <summary>The palette size as typed in its box: a step 1 to 10.</summary>
+    public string PaletteSizeInput
+    {
+        get => PaletteSizeStep.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        set
+        {
+            if (TryParseSize(value, out var v)) PaletteSize = v;
+            OnPropertyChanged();
+        }
+    }
+
+    public string PaletteHeading => Localizer.Te("palette.title", "Colour Palette Settings");
+    public string PaletteHelp => Localizer.Te("palette.help",
+        "Press the pen button that opens the radial menu twice quickly to show this palette (twice again swaps back). Tap a colour: Photoshop takes it as the brush colour; in other apps it is copied, or pick it with the app's own eyedropper.");
+    public string PaletteSizeCaption => Localizer.Te("palette.size", "Palette size");
+    public string PaletteSolidNote => Localizer.Te("palette.solid", "The palette is always solid, so the colours you pick are exact.");
+
     /// <summary>v27 test (Zak 16:07): the size as the user sees and sets it, 1 to 10 (the sliders and the number box use this).
     /// <see cref="Size"/> stays the saved 1-50 the driver uses.</summary>
     public int SizeStep

@@ -90,6 +90,7 @@ public sealed class RadialMenuOverlay : IDisposable
     private FileSystemWatcher? _watcher;
     private Window? _window;
     private RadialMenuPie? _pie;
+    private ColourPaletteWheel? _paletteWheel;   // V29 #142
     private DispatcherTimer? _pointerTimer;
     private long _lastSeq = -1;
     private double _cx, _cy;
@@ -177,7 +178,12 @@ public sealed class RadialMenuOverlay : IDisposable
     public sealed record MenuState(string State, long Seq, double X, double Y, int Size, int Depth,
         IReadOnlyList<string> Labels, IReadOnlyList<bool> Set, IReadOnlyList<bool> Submenu,
         bool Editing = false, bool Confirm = false, string? Menu = null, RadialRequest? Request = null,
-        int Transparency = RadialMenuDef.DefaultTransparency, UsedSlice? Used = null, bool Busy = false, bool StepAside = false);
+        int Transparency = RadialMenuDef.DefaultTransparency, UsedSlice? Used = null, bool Busy = false, bool StepAside = false,
+        string Kind = "menu")
+    {
+        /// <summary>V29 #142: the colour palette is showing instead of the menu.</summary>
+        public bool IsPalette => Kind == "palette";
+    }
 
     /// <summary>The slice the driver ran last and whether it worked (TASKS #65). <see cref="Seq"/> is new for each run.</summary>
     public sealed record UsedSlice(long Seq, string Label, string Keys, string Action, bool Ok);
@@ -251,7 +257,8 @@ public sealed class RadialMenuOverlay : IDisposable
                     ? Math.Clamp(tr.GetInt32(), RadialMenuDef.MinTransparency, RadialMenuDef.MaxTransparency) : RadialMenuDef.DefaultTransparency,
                 used,
                 r.TryGetProperty("busy", out var bz) && bz.ValueKind == JsonValueKind.True,
-                r.TryGetProperty("stepAside", out var sa) && sa.ValueKind == JsonValueKind.True);
+                r.TryGetProperty("stepAside", out var sa) && sa.ValueKind == JsonValueKind.True,
+                r.TryGetProperty("kind", out var kd) ? kd.GetString() ?? "menu" : "menu");
         }
         catch (Exception)
         {
@@ -300,6 +307,14 @@ public sealed class RadialMenuOverlay : IDisposable
             // On macOS Avalonia's window coordinates are global points with a top-left origin, the same
             // space as CGEventGetLocation, which is where the plugin took the centre from (see RingModeHud).
             _window.Position = new PixelPoint((int)Math.Round(st.X - d / 2), (int)Math.Round(st.Y - d / 2));
+            // V29 #142: the colour palette takes the menu's place in the same window (same size, same centre).
+            if (st.IsPalette)
+            {
+                if (!ReferenceEquals(_window.Content, _paletteWheel)) _window.Content = _paletteWheel;
+                _paletteWheel!.MenuSize = st.Size;
+                _paletteWheel.Highlight = HighlightNow();
+            }
+            else if (!ReferenceEquals(_window.Content, _pie)) _window.Content = _pie;
             _pie!.Editing = st.Editing;
             // TASKS #64: the pencil's hint sits under the menu itself (not a pop-up over the app that was in front) and stays until a slice
             // is chosen, the pencil is put down, or the menu closes.
@@ -361,6 +376,13 @@ public sealed class RadialMenuOverlay : IDisposable
         _lastUsedSeq = u.Seq;
         try
         {
+            if (u.Ok && u.Action == ColourPalette.Action)
+            {
+                // V29 #142: a swatch: set it in the app in front where that app allows it (Photoshop), and always copy its code.
+                var picked = ColourPick.Apply(u.Keys, u.Label, _window);
+                _toast.Show(picked, _cx, _cy, RadialMenuGeometry.OuterRadius(_size), hold: false);
+                return;
+            }
             if (u.Ok && u.Action == RadialActions.Keyboard)
             {
                 // V29 #141: the Keyboard slice shows or hides the floating keyboard (it appearing is the confirmation), under the menu.
@@ -384,7 +406,8 @@ public sealed class RadialMenuOverlay : IDisposable
     private int HighlightNow()
     {
         if (MacDesktop.CursorLocation() is not { } p) return -3;
-        return RadialMenuGeometry.SliceAt(p.X - _cx, p.Y - _cy, _size);
+        return _shown?.IsPalette == true ? ColourPalette.SwatchAt(p.X - _cx, p.Y - _cy, _size)
+                                         : RadialMenuGeometry.SliceAt(p.X - _cx, p.Y - _cy, _size);
     }
 
     private void EnsureWindow()
@@ -395,6 +418,11 @@ public sealed class RadialMenuOverlay : IDisposable
         _pie.PointerMoved += OnPieMoved;
         _pie.PointerReleased += OnPieReleased;
         _pie.PointerCaptureLost += (_, _) => _press = null;
+        _paletteWheel = new ColourPaletteWheel();
+        _paletteWheel.PointerPressed += OnPalettePressed;
+        _paletteWheel.PointerMoved += OnPieMoved;
+        _paletteWheel.PointerReleased += OnPieReleased;
+        _paletteWheel.PointerCaptureLost += (_, _) => _press = null;
         _window = new Window
         {
             WindowDecorations = WindowDecorations.None,
@@ -418,7 +446,8 @@ public sealed class RadialMenuOverlay : IDisposable
     {
         if (_pie == null) return;
         var h = HighlightNow();
-        if (h != _pie.Highlight) _pie.Highlight = h;
+        if (_shown?.IsPalette == true) { if (_paletteWheel != null && h != _paletteWheel.Highlight) _paletteWheel.Highlight = h; }
+        else if (h != _pie.Highlight) _pie.Highlight = h;
         // Esc closes the menu. The driver closes it (it owns the state); the window is hidden when it says so.
         bool esc = EscapeProbe();
         if (esc && !_escWasDown) SendCommand(RadialMenuCommand.Close);
@@ -436,6 +465,22 @@ public sealed class RadialMenuOverlay : IDisposable
         if (_window == null) return null;
         var s = _window.PointToScreen(e.GetPosition(_window));
         return new Point(s.X, s.Y);
+    }
+
+    /// <summary>V29 #142: the Mac mouse on the colour palette: a swatch is a "slice" (the driver reports its colour back), the X
+    /// closes, the hand drags; the other two centre quarters do nothing here.</summary>
+    private void OnPalettePressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (_paletteWheel == null || _window == null) return;
+        if (!e.GetCurrentPoint(_paletteWheel).Properties.IsLeftButtonPressed) return;
+        var local = e.GetPosition(_paletteWheel);
+        int hit = ColourPalette.SwatchAt(local.X - _paletteWheel.Bounds.Width / 2, local.Y - _paletteWheel.Bounds.Height / 2, _size);
+        RadialTarget? target = hit >= 0 ? RadialTarget.Slice : hit == RadialMenuGeometry.Centre ? RadialTarget.Close
+            : hit == RadialMenuGeometry.Hand ? RadialTarget.Hand : null;
+        if (target is not { } t || GlobalPointer(e) is not { } g) return;
+        _press = new RadialMenuPress((g.X, g.Y), WindowOrigin(), t, hit);
+        e.Pointer.Capture(_paletteWheel);
+        e.Handled = true;
     }
 
     private void OnPiePressed(object? sender, PointerPressedEventArgs e)

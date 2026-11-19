@@ -238,10 +238,12 @@ public class RadialMenuStateTests : IDisposable
         RadialMenuState.ActionRunner = (_, s) => _ran.Add(s.Label);
         RadialMenuState.CommandFilePath = Path.Combine(_dir, "radial-menu-cmd");
         RadialMenuState.CommandPollMs = 40;
+        RadialMenuState.DoublePressMs = -1;   // presses in a test come fast: only the palette tests count double presses
     }
 
     public void Dispose()
     {
+        RadialMenuState.DoublePressMs = 400;
         RadialMenuState.ResetForTests();
         RadialMenuState.ActionRunner = null;
         try { Directory.Delete(_dir, true); } catch (IOException) { }
@@ -409,6 +411,76 @@ public class RadialMenuStateTests : IDisposable
         b.Release(null!, null!);
         b.Press(null!, null!);
         Assert.False(RadialMenuState.IsOpen);
+    }
+
+    // ── V29 #142 (Zak 19 Nov 19:35): a double press on the same pen button opens the colour palette or swaps ──
+
+    [Fact]
+    public void DoublePress_OpensTheColourPalette_AndAnotherDoublePressSwapsBack()
+    {
+        RadialMenuState.DoublePressMs = 400;
+        var b = Binding();
+        b.Press(null!, null!); b.Release(null!, null!);
+        b.Press(null!, null!); b.Release(null!, null!);          // quick second press: swap, not close
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.True(RadialMenuState.PaletteOpen);
+        Assert.Equal("palette", State().GetProperty("kind").GetString());
+        b.Press(null!, null!); b.Release(null!, null!);          // a new double press while it is open...
+        b.Press(null!, null!); b.Release(null!, null!);          // ...swaps back to the menu
+        Assert.True(RadialMenuState.IsOpen);
+        Assert.False(RadialMenuState.PaletteOpen);
+        Assert.Equal("menu", State().GetProperty("kind").GetString());
+    }
+
+    [Fact]
+    public void SinglePress_WhileThePaletteIsOpen_ClosesIt()
+    {
+        RadialMenuState.DoublePressMs = 400;
+        var b = Binding();
+        b.Press(null!, null!); b.Release(null!, null!);
+        b.Press(null!, null!); b.Release(null!, null!);
+        Assert.True(RadialMenuState.PaletteOpen);
+        System.Threading.Thread.Sleep(450);
+        b.Press(null!, null!);
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void PaletteSwatch_ReportsItsColour_AndThePaletteStaysOpen()
+    {
+        RadialMenuState.DoublePressMs = 400;
+        var b = Binding();
+        b.Press(null!, null!); b.Release(null!, null!);
+        b.Press(null!, null!); b.Release(null!, null!);
+        double outer = RadialMenuGeometry.OuterRadius(RadialMenuDef.DefaultSize);
+        _cursor = (500, 400 - (outer - 3));                         // top edge: yellow, the pure ring
+        Assert.True(RadialMenuState.TipDown());
+        var used = State().GetProperty("used");
+        Assert.Equal(ColourPalette.Action, used.GetProperty("action").GetString());
+        Assert.Equal(ColourPalette.Hex(0, 0), used.GetProperty("keys").GetString());
+        Assert.Equal("Yellow, pure", used.GetProperty("label").GetString());
+        Assert.True(RadialMenuState.PaletteOpen);
+        Assert.Empty(_ran);                                         // nothing pressed in the app: the app sets the colour itself
+        _cursor = (500, 400 - 900);
+        Assert.False(RadialMenuState.TipDown());                    // outside: goes to the work (so an eyedropper can drag in)
+        _cursor = (499, 399);
+        RadialMenuState.TipDown();                                  // the X
+        Assert.False(RadialMenuState.IsOpen);
+    }
+
+    [Fact]
+    public void PaletteGeometry_12Hues4Shades_PureOutsideDarkInside()
+    {
+        int size = RadialMenuDef.DefaultSize;
+        double outer = RadialMenuGeometry.OuterRadius(size), inner = RadialMenuGeometry.InnerRadius(size);
+        Assert.Equal(ColourPalette.Swatch(0, 0), ColourPalette.SwatchAt(0, -(outer - 1), size));
+        Assert.Equal(ColourPalette.Swatch(0, 3), ColourPalette.SwatchAt(0, -(inner + 1), size));
+        Assert.Equal(ColourPalette.Swatch(3, 0), ColourPalette.SwatchAt(outer - 1, 0, size));   // 90° = red-orange
+        Assert.Equal(RadialMenuGeometry.Outside, ColourPalette.SwatchAt(0, -(outer + 5), size));
+        Assert.Equal(RadialMenuGeometry.Centre, ColourPalette.SwatchAt(-1, -1, size));
+        var all = Enumerable.Range(0, 48).Select(i => { var (h, sh) = ColourPalette.Split(i); return ColourPalette.Hex(h, sh); }).ToList();
+        Assert.Equal(48, all.Distinct().Count());
+        Assert.Equal("#F4E500", ColourPalette.Hex(0, 0));
     }
 
     [Fact]

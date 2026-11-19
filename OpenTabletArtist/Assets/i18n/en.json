@@ -684,5 +684,11 @@
   "tablet.about.scroll_momentum": "Scroll momentum",
   "tablet.about.scroll_momentum_hint": "Two-finger scrolling keeps going for a moment after you lift your fingers, then slows to a stop, like a Mac trackpad. Touch the tablet to stop it.",
   "keyboard.title": "Keyboard",
-  "keyboard.transparency": "Keyboard transparency"
+  "keyboard.transparency": "Keyboard transparency",
+  "palette.title": "Colour Palette Settings",
+  "palette.help": "Press the pen button that opens the radial menu twice quickly to show this palette (twice again swaps back). Tap a colour: Photoshop takes it as the brush colour; in other apps it is copied, or pick it with the app's own eyedropper.",
+  "palette.size": "Palette size",
+  "palette.solid": "The palette is always solid, so the colours you pick are exact.",
+  "palette.set_photoshop": "{colour} set in Photoshop",
+  "palette.copied": "{colour} copied"
 }

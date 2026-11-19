@@ -142,6 +142,15 @@ public static class RadialMenuState
     private static double _cx, _cy;
     private static bool _held;
     private static bool _stepAside;   // V29 #131: the app lets clicks through the menu while a Click slice clicks
+    // V29 #142 (Zak 19:35): a quick double press on the same pen button opens the colour palette, or swaps between the two.
+    private static bool _palette;
+    private static long _lastPressAt = long.MinValue / 2;
+    private static bool _lastClosedPalette;
+
+    /// <summary>Two presses closer than this count as a double press.</summary>
+    public static int DoublePressMs { get; set; } = 400;
+    /// <summary>Tests: is the colour palette showing (rather than the menu)?</summary>
+    public static bool PaletteOpen { get { lock (Gate) return _top != null && _palette; } }
 
     /// <summary>A Click slice waits this long for the app to let clicks through the menu, and keeps it so this long after.</summary>
     public static int StepAsideMs { get; set; } = 150;
@@ -196,16 +205,34 @@ public static class RadialMenuState
     {
         lock (Gate)
         {
+            var now = Environment.TickCount64;
+            bool quick = now - _lastPressAt <= DoublePressMs;
+            _lastPressAt = now;
             if (_top != null)
             {
+                if (quick)
+                {
+                    // V29 #142: the second press of a double press swaps the menu and the colour palette instead of closing.
+                    _palette = !_palette;
+                    _editing = false; _confirm = false; _path.Clear(); _lastPressAt = long.MinValue / 2;
+                    Touch();
+                    WriteStateLocked();
+                    Log.Write("Radial menu", _palette ? "Double press: colour palette." : "Double press: radial menu.", LogLevel.Debug);
+                    return;
+                }
                 // Pressing the button again closes it (Wacom), whichever button opened it.
+                _lastClosedPalette = _palette;
                 CloseLocked("button pressed again");
                 return;
             }
+            // A quick press right after a press that closed one of the two opens the other one (a double press while it was open).
+            bool openPalette = quick && !_lastClosedPalette;
+            if (quick) _lastPressAt = long.MinValue / 2;
             if (File.Exists(OffFlagPath)) return;
             var at = CursorProvider();
             if (at is not { } c) return;   // not macOS, or no pointer: do nothing
             _owner = binding;
+            _palette = openPalette;
             _top = RadialMenuJson.Parse(binding.Menu);
             _path.Clear();
             _cx = c.X; _cy = c.Y;
@@ -235,7 +262,8 @@ public static class RadialMenuState
             owner = _owner;
             var at = CursorProvider();
             if (at is not { } c) return false;
-            int slice = RadialMenuGeometry.SliceAt(c.X - _cx, c.Y - _cy, _top.Size);
+            int slice = _palette ? ColourPalette.SwatchAt(c.X - _cx, c.Y - _cy, _top.PaletteSize)
+                                 : RadialMenuGeometry.SliceAt(c.X - _cx, c.Y - _cy, _top.Size);
             if (slice == RadialMenuGeometry.Outside)
             {
                 Log.Write("Radial menu", "Pen tap outside the menu: it goes to the app, the menu stays open.", LogLevel.Debug);
@@ -247,6 +275,14 @@ public static class RadialMenuState
                 // The hand: only a drag does anything (see PenMoved); a tap that doesn't move changes nothing.
                 _penDrag = true; _penDragMoved = false;
                 _dragPx = c.X; _dragPy = c.Y; _dragCx = _cx; _dragCy = _cy;
+                return true;
+            }
+            if (_palette)
+            {
+                // V29 #142: a swatch: the app sets the colour (Photoshop) and copies its code; the palette stays open. Only the X
+                // of the centre works here (the pencil and the circular arrow belong to the menu).
+                if (slice == RadialMenuGeometry.Centre) CloseLocked("centre");
+                else if (slice >= 0) PaletteSwatchLocked(slice);
                 return true;
             }
             if (slice < 0) { CentreQuarterLocked(slice); return true; }
@@ -261,6 +297,16 @@ public static class RadialMenuState
             else RunAndReport(owner, run);
         }
         return true;
+    }
+
+    /// <summary>V29 #142: report the tapped swatch's colour to the app (as a run slice, so it shows next to the palette).</summary>
+    private static void PaletteSwatchLocked(int swatch)
+    {
+        var (hue, shade) = ColourPalette.Split(swatch);
+        _used = (++_usedSeq, ColourPalette.HueNames[hue] + ", " + ColourPalette.ShadeNames[shade], ColourPalette.Hex(hue, shade),
+            ColourPalette.Action, true);
+        WriteStateLocked();
+        Log.Write("Radial menu", $"Colour palette: {ColourPalette.Hex(hue, shade)} tapped.", LogLevel.Debug);
     }
 
     /// <summary>The X, the pencil or the circular arrow was tapped (pen or mouse).</summary>
@@ -374,6 +420,7 @@ public static class RadialMenuState
         _held = false;
         _parked = false;
         _stepAside = false;
+        _palette = false;
         _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null;
         StopCommandPollingLocked();
         WriteStateLocked();
@@ -463,6 +510,12 @@ public static class RadialMenuState
                     return;
                 case RadialMenuCommand.Tap:
                     _parked = true;
+                    if (_palette)
+                    {
+                        // V29 #142: the Mac mouse clicked a swatch of the colour palette.
+                        if (cmd.Slice >= 0 && cmd.Slice < ColourPalette.Hues * ColourPalette.Shades) PaletteSwatchLocked(cmd.Slice);
+                        return;
+                    }
                     if (cmd.Slice < 0 || cmd.Slice >= RadialMenuDef.SliceCount) return;
                     run = SliceTappedLocked(cmd.Slice, fromMouse: true);
                     break;
@@ -613,8 +666,9 @@ public static class RadialMenuState
                 object? request = _request is { } r ? new { seq = r.Seq, kind = r.Kind, slice = r.Slice, path = r.Path } : null;
                 payload = new
                 {
-                    state = "open", seq, x = _cx, y = _cy, size = _top.Size, transparency = _top.Transparency, depth = _path.Count, slices,
-                    editing = _editing, confirm = _confirm, busy = _busy, stepAside = _stepAside,
+                    state = "open", seq, x = _cx, y = _cy, size = _palette ? _top.PaletteSize : _top.Size,
+                    transparency = _palette ? 0 : _top.Transparency, depth = _path.Count, slices,
+                    editing = _editing, confirm = _confirm, busy = _busy, stepAside = _stepAside, kind = _palette ? "palette" : "menu",
                     menu = RadialMenuJson.Serialize(_top), request, used = UsedPayloadLocked(),
                 };
             }
@@ -637,6 +691,7 @@ public static class RadialMenuState
         lock (Gate)
         {
             _top = null; _owner = null; _path.Clear(); _held = false; _seq = 0; _parked = false; _stepAside = false;
+            _palette = false; _lastPressAt = long.MinValue / 2; _lastClosedPalette = false;
             _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null; _used = null; _usedSeq = 0;
             StopCommandPollingLocked();
             Interlocked.Exchange(ref _lastActivity, Environment.TickCount64);

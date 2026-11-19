@@ -48,6 +48,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
   <key>CFBundleExecutable</key><string>OpenTabletArtist</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>NSAppleEventsUsageDescription</key><string>The colour palette sets the colour you tap as the foreground colour in Photoshop.</string>
   <key>CFBundleDocumentTypes</key>
   <array>
     <dict>

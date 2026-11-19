@@ -1746,7 +1746,7 @@
                             </StackPanel>
                         </HeaderedContentControl>
                     </StackPanel>
-                    <Grid Grid.Column="2" ColumnDefinitions="64,24,*">
+                    <Grid Grid.Column="2" ColumnDefinitions="64,24,Auto,24,*">
                         <!-- R16: the drawing turned 180° (badges stay upright on their buttons), so the cards run in the
                              flipped pen's order: button 1 (now nearest the top) first, the eraser card by the eraser end.
                              They are the same pen-button rows as the Pen tab: OTD has one set of barrel buttons. -->
@@ -1760,6 +1760,33 @@
                             <views:PenSwitchCard DataContext="{Binding PenButton3Row}"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton3Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
                             <views:PenSwitchCard DataContext="{Binding PenEraserRow}" Margin="0,8,0,0" />
+                        </StackPanel>
+                        <!-- V29 #142 (Zak 19 Nov ~19:07: "use the emptied space for the colour pallet new radial menu settings just like the
+                             default radial menu is positioned on the pen page"): the colour palette's picture and its size, in the free
+                             space right of the Buttons column, laid out like Radial Menu Settings on the Pen page. -->
+                        <StackPanel x:Name="PaletteSpot" Grid.Column="4" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="324"
+                                    IsVisible="{Binding RadialPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                            <TextBlock x:Name="PaletteSpotHeading" Text="{Binding RadialPreview.PaletteHeading}" FontWeight="SemiBold" TextWrapping="Wrap"
+                                       HorizontalAlignment="Center" TextAlignment="Center" />
+                            <Viewbox x:Name="PaletteSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" MaxWidth="324" MaxHeight="324">
+                                <ctrl:ColourPaletteWheel x:Name="PaletteSpotWheel" Width="324" Height="324" MenuSize="{Binding RadialPreview.PaletteSize}"
+                                                         Opacity="{Binding RadialSpotOpacity}" />
+                            </Viewbox>
+                            <TextBlock x:Name="PaletteSpotHelp" Text="{Binding RadialPreview.PaletteHelp}" FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
+                                       HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                            <StackPanel x:Name="PaletteSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}" Opacity="{Binding RadialSpotOpacity}">
+                                <TextBlock Text="{Binding RadialPreview.PaletteSizeCaption}" FontSize="12" />
+                                <Grid x:Name="PaletteSizeRow" ColumnDefinitions="*,8,52,4,18">
+                                    <Slider x:Name="PaletteSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
+                                            Value="{Binding RadialPreview.PaletteSizeStep, Mode=TwoWay}" VerticalAlignment="Center"
+                                            AutomationProperties.Name="Palette size" />
+                                    <TextBox x:Name="PaletteSizeBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
+                                             VerticalAlignment="Center" FontWeight="SemiBold" MaxLength="6"
+                                             Text="{Binding RadialPreview.PaletteSizeInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                             AutomationProperties.Name="Palette size value" />
+                                </Grid>
+                                <TextBlock Text="{Binding RadialPreview.PaletteSolidNote}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+                            </StackPanel>
                         </StackPanel>
                     </Grid>
                 </Grid>

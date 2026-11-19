@@ -86,7 +86,8 @@ public partial class TabletDetailViewModel
     private void OnRadialPreviewPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (sender is not RadialMenuEditorViewModel vm || !ReferenceEquals(vm, RadialPreview)) return;
-        if (e.PropertyName is not (nameof(RadialMenuEditorViewModel.Size) or nameof(RadialMenuEditorViewModel.Transparency))) return;
+        if (e.PropertyName is not (nameof(RadialMenuEditorViewModel.Size) or nameof(RadialMenuEditorViewModel.Transparency)
+            or nameof(RadialMenuEditorViewModel.PaletteSize))) return;   // V29 #142: the palette's size is saved the same way
         RadialPictureSize = PictureSizeFor(vm);
         if (_applyAction == null || _radialOpenerJson == null) return;   // nothing to write to (the page is read-only or no button opens the menu)
         _spotDirty = true;
