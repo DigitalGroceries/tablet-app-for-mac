@@ -109,6 +109,21 @@ PY
   "$RC" print-signature-info "$M/Daemon/$a/OpenTabletDriver.Daemon" 2>/dev/null | grep -E "identifier:" | sort -u
   # Must say "certificate root = H…", never cdhash, or permissions are lost on every update.
   "$RC" print-signature-info "$M/OpenTabletArtist" 2>/dev/null | grep -E "designated" | sort -u
+  # 19 Nov 2026 (TASKS #125, nothing left to memory): the build must be signed with the release key every version
+  # since 18 has used (root 5dac9c39), never the abandoned 20 Oct test key (dc88d47d) that sits in an obvious folder.
+  # Checked here instead of by eye. Override only on purpose: EXPECT_ROOT=<40 hex> (or EXPECT_ROOT=any).
+  EXPECT_ROOT=${EXPECT_ROOT:-5dac9c397c7eebde1924465a1d9cedf905ce98b9}
+  if [ "$EXPECT_ROOT" != any ] && ! "$RC" print-signature-info "$M/OpenTabletArtist" 2>/dev/null | grep -q "certificate root = H\"$EXPECT_ROOT\""; then
+    echo "WRONG SIGNING KEY: the app is not signed with certificate root $EXPECT_ROOT. macOS would see a new app and" >&2
+    echo "drop Zak's permissions. Use the key from Team/Files/important-backups/tablet-app-signing-2026-10-30.tar.gz." >&2
+    exit 1
+  fi
 done
 (cd "$OUT" && sha256sum Tablet-App-for-Mac*.zip > SHA256SUMS && cat SHA256SUMS)
+if [ -n "$TEST" ]; then
+  # 19 Nov 2026 (TEAM-RULES 5.6; Claude twice left a test build out of Zak's TEST folder): say the next step here.
+  echo "NEXT (TEAM-RULES 5.6): copy the zip to the T7 as Team/v$VER/Tablet-App-for-Mac-$VER-test.zip, then run"
+  echo "  python3 \"/Volumes/4TB T7/AI/Team/Files/switchboard/switchboard.py\" deliver-test --as <You> --file <that zip>"
+  echo "It puts it in /Volumes/4TB T7/TEST (one file), keeps the old one and updates CATALOG.md. Then tell Zak."
+fi
 echo PACKDONE
