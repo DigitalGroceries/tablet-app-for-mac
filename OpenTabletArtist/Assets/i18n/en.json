@@ -690,5 +690,9 @@
   "palette.size": "Palette size",
   "palette.solid": "The palette is always solid, so the colours you pick are exact.",
   "palette.set_photoshop": "{colour} set in Photoshop",
-  "palette.copied": "{colour} copied"
+  "palette.copied": "{colour} copied",
+  "radial.keyboard_line": "Floating keyboard: put it on a slice of this menu, then tap that slice to type with the pen.",
+  "radial.keyboard_put": "Put the keyboard there",
+  "radial.slot_empty": "(empty)",
+  "radial.keyboard_on": "The keyboard is on slice {n}."
 }

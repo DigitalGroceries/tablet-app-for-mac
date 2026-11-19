@@ -101,3 +101,29 @@ public class BrightnessKeyTests
         Assert.Equal("BrightnessUp", vm.SelectedMediaKey);
     }
 }
+
+/// <summary>V29 #143 (Zak's build 3 test, 'No floating keyboard menu'): the keyboard goes on the menu in one click from the
+/// pen button's Radial menu tab.</summary>
+public class KeyboardOnTheMenuTests
+{
+    [Fact]
+    public void PutKeyboard_PutsItOnTheChosenSlice_OnlyOnce()
+    {
+        var vm = new OpenTabletArtist.ViewModels.BindingEditorViewModel(AuxBinding.RadialMenu(null), "Pen button 2");
+        Assert.Equal(8, vm.KeyboardSlots.Count);
+        Assert.Equal(7, vm.KeyboardSlot);                    // the default menu is full: the last slice is offered
+        Assert.Equal("", vm.KeyboardStatus);
+        vm.KeyboardSlot = 6;                                  // Zoom out
+        vm.PutKeyboardCommand.Execute(null);
+        var m = RadialMenuJson.Parse(vm.RadialMenuText);
+        Assert.Equal(RadialActions.Keyboard, m.Slices[6].Action);
+        Assert.Equal("Keyboard", m.Slices[6].Label);
+        Assert.Equal("The keyboard is on slice 7.", vm.KeyboardStatus);
+        vm.KeyboardSlot = 0;                                  // moving it: never two keyboard slices
+        vm.PutKeyboardCommand.Execute(null);
+        m = RadialMenuJson.Parse(vm.RadialMenuText);
+        Assert.Equal(1, m.Slices.Count(s => s.Action == RadialActions.Keyboard));
+        Assert.Equal(RadialActions.Keyboard, m.Slices[0].Action);
+        Assert.False(m.Slices[6].IsSet);
+    }
+}
