@@ -238,7 +238,7 @@ public sealed class RadialMenuOverlay : IDisposable
         IReadOnlyList<string> Labels, IReadOnlyList<bool> Set, IReadOnlyList<bool> Submenu,
         bool Editing = false, bool Confirm = false, string? Menu = null, RadialRequest? Request = null,
         int Transparency = RadialMenuDef.DefaultTransparency, UsedSlice? Used = null, bool Busy = false, bool StepAside = false,
-        string Kind = "menu")
+        string Kind = "menu", bool Moving = false)
     {
         /// <summary>V29 #142: the colour palette is showing instead of the menu.</summary>
         public bool IsPalette => Kind == "palette";
@@ -317,7 +317,8 @@ public sealed class RadialMenuOverlay : IDisposable
                 used,
                 r.TryGetProperty("busy", out var bz) && bz.ValueKind == JsonValueKind.True,
                 r.TryGetProperty("stepAside", out var sa) && sa.ValueKind == JsonValueKind.True,
-                r.TryGetProperty("kind", out var kd) ? kd.GetString() ?? "menu" : "menu");
+                r.TryGetProperty("kind", out var kd) ? kd.GetString() ?? "menu" : "menu",
+                r.TryGetProperty("moving", out var mv) && mv.ValueKind == JsonValueKind.True);
         }
         catch (Exception)
         {
@@ -351,28 +352,57 @@ public sealed class RadialMenuOverlay : IDisposable
         });
     }
 
-    /// <summary>The scale of the screen the window was last shown for (0 = not shown yet). V29 #174.</summary>
-    private double _shownScale;
+    /// <summary>The scale of the screen the current window was made (first shown) for; 0 = not shown yet. V29 #174.</summary>
+    private double _madeForScale;
+    /// <summary>The screen scale at the last show (a drag that crosses screens is redrawn once at the crossing).</summary>
+    private double _lastScale;
+    /// <summary>The screen scale the window's real drawing scale was last checked for (Grok's review: once per screen change).</summary>
+    private double _scaleCheckedFor;
     /// <summary>The scale the window really draws at (tests replace it: headless windows always draw at 1).</summary>
     internal static Func<Window, double> RenderScaleOf { get; set; } = w => w.RenderScaling;
     /// <summary>The screen scale at a global point (Retina 2, a TV 1); 0 when unknown. Tests replace it.</summary>
     internal static Func<Window, double, double, double> ScaleAt { get; set; } = (w, x, y) =>
         w.Screens?.ScreenFromPoint(new PixelPoint((int)Math.Round(x), (int)Math.Round(y)))?.Scaling ?? 0;
-    private bool _remadeForScale;
     /// <summary>How many times the window was made again for another screen (tests).</summary>
     internal int Remade { get; private set; }
 
+    private static bool Differs(double a, double b) => a > 0 && b > 0 && Math.Abs(a - b) > 0.01;
+
     /// <summary>V29 #174 (Zak 20 Nov, build 8 screenshots): moved by the app to a screen of another scale (his Retina screen is 2, the TV 1),
     /// the menu's window kept the old screen's scale and drew twice too big (a quarter showing) or too small. Avalonia has the same kind of
-    /// bug for windows moved by code (issue #13917). So the window is made again whenever the menu goes to a screen of another scale.</summary>
+    /// bug for windows moved by code (issue #13917). So the window is made again whenever the menu goes to a screen of another scale.
+    /// Nothing listens to the old window's Closed/Closing, so closing it doesn't close the menu; the hint bubble is a window of its own.</summary>
     private void RemakeWindow()
     {
         var old = _window;
         _pointerTimer?.Stop();
-        _window = null; _pie = null; _paletteWheel = null;
+        _window = null; _pie = null; _paletteWheel = null; _press = null; _madeForScale = 0;
         try { old?.Close(); } catch (Exception e) { AppLog.Warn("Radial menu: closing the old window failed", e); }
-        EnsureWindow();
+        EnsureWindow();                         // a new pointer timer too; Show starts it and makes the new window an overlay
         Remade++;
+    }
+
+    /// <summary>Grok's review: the Mac tells a moved window about its new screen a moment later, so the drawing scale is checked after the
+    /// window is shown (a posted job), once per screen change; one more remake if it is still wrong, then only a log line.</summary>
+    private void CheckDrawScale(Window w0, double scale, bool mayRemake)
+    {
+        try
+        {
+            if (!ReferenceEquals(w0, _window) || _shown == null || !w0.IsVisible || _press is { Dragging: true } || _shown.Moving) return;
+            double drawn = RenderScaleOf(w0);
+            if (!Differs(drawn, scale)) return;
+            if (!mayRemake)
+            {
+                AppLog.Warn($"Radial menu: the window still draws at {drawn:0.##} on a screen of scale {scale:0.##} after being made again; left as it is (#174).");
+                return;
+            }
+            AppLog.Warn($"Radial menu: the window draws at {drawn:0.##} on a screen of scale {scale:0.##}; making it again once (#174).");
+            RemakeWindow();
+            Show(_shown);
+            var w1 = _window;
+            if (w1 != null) Dispatcher.UIThread.Post(() => CheckDrawScale(w1, scale, mayRemake: false), DispatcherPriority.Background);
+        }
+        catch (Exception e) { AppLog.Warn("Radial menu: checking the drawing scale failed", e); }
     }
 
     private void Show(MenuState st)
@@ -381,9 +411,12 @@ public sealed class RadialMenuOverlay : IDisposable
         {
             EnsureWindow();
             double scale = ScaleAt(_window!, st.X, st.Y);
-            if (_shownScale > 0 && scale > 0 && Math.Abs(scale - _shownScale) > 0.01 && _press is not { Dragging: true })
+            // A mouse drag (the app's) or a pen drag (the driver's, Grok's review) carries it: no new window mid-drag; the state written
+            // when the drag ends finds the window still made for the old scale and makes it again there.
+            bool moving = _press is { Dragging: true } || st.Moving;
+            if (Differs(scale, _madeForScale) && !moving)
             {
-                AppLog.Info($"Radial menu: {(_isPalette ? "the palette" : "the menu")} goes to a screen of scale {scale:0.##} (it was drawn for {_shownScale:0.##}); its window is made again for that screen (#174).");
+                AppLog.Info($"Radial menu: {(_isPalette ? "the palette" : "the menu")} goes to a screen of scale {scale:0.##} (it was drawn for {_madeForScale:0.##}); its window is made again for that screen (#174).");
                 RemakeWindow();
             }
             bool wasVisible = _window!.IsVisible;
@@ -400,13 +433,13 @@ public sealed class RadialMenuOverlay : IDisposable
             // Zak 20 Nov: on the other screen it "fixes itself as long as you continue clicking" - it only needed a fresh drawing. While a
             // mouse drag carries it across (the window can't be made again mid-drag), it is redrawn now and once more after the Mac has
             // told the window about its new screen.
-            if (_shownScale > 0 && scale > 0 && Math.Abs(scale - _shownScale) > 0.01)
+            if (moving && Differs(scale, _lastScale))
             {
                 (_window.Content as Control)?.InvalidateVisual();
                 var w0 = _window;
                 Dispatcher.UIThread.Post(() => { if (ReferenceEquals(w0, _window)) (w0.Content as Control)?.InvalidateVisual(); }, DispatcherPriority.Background);
             }
-            if (scale > 0) _shownScale = scale;
+            if (scale > 0) { _lastScale = scale; if (_madeForScale <= 0) _madeForScale = scale; }
             // V29 #142: the colour palette takes the menu's place in the same window (same size, same centre).
             // While its Yes / No question shows, the palette uses the menu's ring for the answer (right Yes, left No).
             if (st.IsPalette && !st.Confirm)
@@ -462,13 +495,12 @@ public sealed class RadialMenuOverlay : IDisposable
                 AppLog.Info($"Radial menu shown at {st.X:0},{st.Y:0} (size {st.Size}, transparency {st.Transparency}%, opacity {opacity:0.00}, level {st.Depth}; " +
                             $"screen scale {scale:0.##}, window drawn at {_window.RenderScaling:0.##}).");
             }
-            // V29 #174: the window must draw at its screen's scale; if it doesn't, it is made again once on this screen.
-            if (scale > 0 && Math.Abs(RenderScaleOf(_window) - scale) > 0.01 && !_remadeForScale && _press is not { Dragging: true })
+            // V29 #174: the window must draw at its screen's scale; checked once per screen change, after the Mac has told the window.
+            if (scale > 0 && !moving && (_scaleCheckedFor <= 0 || Differs(scale, _scaleCheckedFor)))
             {
-                AppLog.Warn($"Radial menu: the window draws at {RenderScaleOf(_window):0.##} on a screen of scale {scale:0.##}; making it again (#174).");
-                _remadeForScale = true;
-                try { RemakeWindow(); Show(st); }
-                finally { _remadeForScale = false; }
+                _scaleCheckedFor = scale;
+                var w0 = _window;
+                Dispatcher.UIThread.Post(() => CheckDrawScale(w0, scale, mayRemake: true), DispatcherPriority.Background);
             }
         }
         catch (Exception e)

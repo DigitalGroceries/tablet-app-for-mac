@@ -585,8 +585,14 @@ public sealed class FloatingKeyboard : IDisposable
         if (_shownScale > 0 && scale > 0 && Math.Abs(scale - _shownScale) > 0.01)
         {
             AppLog.Info($"Floating keyboard: dragged onto a screen of scale {scale:0.##} (it was drawn for {_shownScale:0.##}); its window is made again (#174).");
-            try { RemakeWindow(); RefreshLayout(); PlaceAndShow(px, py, scale); }
-            catch (Exception ex) { AppLog.Warn("Floating keyboard: making it again on the other screen failed", ex); }
+            // Grok's review: not inside this window's own release event (it still holds the pointer); a moment later, after the release.
+            var w0 = _window;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (!ReferenceEquals(w0, _window) || !w0.IsVisible) return;
+                try { RemakeWindow(); RefreshLayout(); PlaceAndShow(px, py, scale); }
+                catch (Exception ex) { AppLog.Warn("Floating keyboard: making it again on the other screen failed", ex); }
+            }, DispatcherPriority.Background);
         }
     }
 

@@ -875,6 +875,7 @@ public static class RadialMenuState
                     state = "open", seq, x = _cx, y = _cy, size = _palette ? _top.PaletteSize : _top.Size,
                     transparency = _palette ? 0 : _top.Transparency, depth = _path.Count, slices,
                     editing = _editing, confirm = _confirm, busy = _busy, stepAside = _stepAside, kind = _palette ? "palette" : "menu",
+                    moving = _penDrag && _penDragMoved,   // V29 #174 (Grok): the app doesn't make the window again mid pen drag
                     menu = RadialMenuJson.Serialize(_top), request, used = UsedPayloadLocked(),
                 };
             }

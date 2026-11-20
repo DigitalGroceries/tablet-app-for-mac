@@ -14,10 +14,10 @@ namespace OpenTabletArtist.UiTests;
 [Collection("FloatingKeyboardFiles")]
 public class ScreenScaleRemakeTests
 {
-    private static RadialMenuOverlay.MenuState At(long seq, double x, string kind = "menu") =>
+    private static RadialMenuOverlay.MenuState At(long seq, double x, string kind = "menu", bool moving = false) =>
         new("open", seq, x, 400, 50, 0,
             new[] { "Undo", "Redo", "Copy", "Paste", "Cut", "Select all", "Zoom out", "Zoom in" }.ToList(),
-            Enumerable.Repeat(true, 8).ToList(), Enumerable.Repeat(false, 8).ToList(), Kind: kind);
+            Enumerable.Repeat(true, 8).ToList(), Enumerable.Repeat(false, 8).ToList(), Kind: kind, Moving: moving);
 
     private static void Pump() { for (int i = 0; i < 4; i++) Dispatcher.UIThread.RunJobs(); }
 
@@ -52,6 +52,79 @@ public class ScreenScaleRemakeTests
             finally { overlay.Dispose(); }
         }
         RadialMenuOverlay.ScaleAt = keep; RadialMenuOverlay.RenderScaleOf = keepR;
+    }
+
+    [AvaloniaFact]
+    public void ManyShowsOnTheNewScreen_BeforeTheMacUpdatesTheDrawingScale_MakeTheWindowOnlyOnce()
+    {
+        // Grok's review (finding 1): the Mac tells a moved window its new scale a moment later. Every pen move writes a state, so
+        // several shows come before that; none of them may make the window again.
+        _ = new ThemeViewModel();
+        var keep = RadialMenuOverlay.ScaleAt; var keepR = RadialMenuOverlay.RenderScaleOf;
+        RadialMenuOverlay.ScaleAt = (_, x, _) => FakeScale(x);
+        RadialMenuOverlay.RenderScaleOf = w => FakeScale(w.Position.X + w.Width / 2);
+        var overlay = new RadialMenuOverlay(palette: false);
+        try
+        {
+            overlay.ShowNowForTest(At(1, 500)); Pump();
+            for (int i = 0; i < 5; i++) overlay.ShowNowForTest(At(2 + i, 1500 + i));   // no pumping between them
+            Pump();
+            Assert.Equal(1, overlay.Remade);
+        }
+        finally { overlay.Dispose(); RadialMenuOverlay.ScaleAt = keep; RadialMenuOverlay.RenderScaleOf = keepR; }
+    }
+
+    [AvaloniaFact]
+    public void AWindowThatStillDrawsAtTheWrongScale_IsMadeAgainOnce_ThenLeft()
+    {
+        _ = new ThemeViewModel();
+        var keep = RadialMenuOverlay.ScaleAt; var keepR = RadialMenuOverlay.RenderScaleOf;
+        RadialMenuOverlay.ScaleAt = (_, x, _) => FakeScale(x);
+        RadialMenuOverlay.RenderScaleOf = _ => 2;                     // stuck at the Retina scale, even on the TV
+        var overlay = new RadialMenuOverlay(palette: false);
+        try
+        {
+            overlay.ShowNowForTest(At(1, 500)); Pump();
+            Assert.Equal(0, overlay.Remade);
+            overlay.ShowNowForTest(At(2, 1500)); Pump();               // the screen change, then one more after the check
+            Assert.Equal(2, overlay.Remade);
+            for (int i = 0; i < 5; i++) { overlay.ShowNowForTest(At(3 + i, 1500 + i)); Pump(); }
+            Assert.Equal(2, overlay.Remade);                            // no loop
+            Assert.True(overlay.MenuWindow!.IsVisible);
+        }
+        finally { overlay.Dispose(); RadialMenuOverlay.ScaleAt = keep; RadialMenuOverlay.RenderScaleOf = keepR; }
+    }
+
+    [AvaloniaFact]
+    public void APenDragAcrossScreens_KeepsItsWindow_UntilTheDragEnds()
+    {
+        // Grok's review (finding 2): the driver says "moving" while the pen drags the menu; the window is made again once, when it ends.
+        _ = new ThemeViewModel();
+        var keep = RadialMenuOverlay.ScaleAt; var keepR = RadialMenuOverlay.RenderScaleOf;
+        RadialMenuOverlay.ScaleAt = (_, x, _) => FakeScale(x);
+        RadialMenuOverlay.RenderScaleOf = w => FakeScale(w.Position.X + w.Width / 2);
+        var overlay = new RadialMenuOverlay(palette: true);
+        try
+        {
+            overlay.ShowNowForTest(At(1, 900, "palette")); Pump();
+            var first = overlay.MenuWindow;
+            foreach (var x in new[] { 960.0, 1010, 990, 1020, 1100 })   // back and forth over the edge
+            { overlay.ShowNowForTest(At(2, x, "palette", moving: true)); Pump(); }
+            Assert.Equal(0, overlay.Remade);
+            Assert.Same(first, overlay.MenuWindow);
+            overlay.ShowNowForTest(At(3, 1100, "palette", moving: false)); Pump();   // let go on the TV
+            Assert.Equal(1, overlay.Remade);
+            Assert.True(overlay.MenuWindow!.IsVisible);
+        }
+        finally { overlay.Dispose(); RadialMenuOverlay.ScaleAt = keep; RadialMenuOverlay.RenderScaleOf = keepR; }
+    }
+
+    [AvaloniaFact]
+    public void TheDriversMovingFlag_IsRead()
+    {
+        var st = RadialMenuOverlay.Parse("{\"state\":\"open\",\"seq\":3,\"x\":10,\"y\":20,\"moving\":true}");
+        Assert.True(st!.Moving);
+        Assert.False(RadialMenuOverlay.Parse("{\"state\":\"open\",\"seq\":3,\"x\":10,\"y\":20}")!.Moving);
     }
 
     [AvaloniaFact]

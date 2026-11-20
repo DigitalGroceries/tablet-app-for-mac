@@ -499,6 +499,26 @@ public class RadialMenuStateTests : IDisposable
     }
 
     [Fact]
+    public void APenDrag_TellsTheAppItIsMoving_UntilThePenIsLifted()
+    {
+        // Grok's review of #174: the app must not make the menu's window again while the pen drags it across screens.
+        RadialMenuState.DoublePressMs = 400;
+        var b = Binding();
+        b.Press(null!, null!); b.Release(null!, null!);
+        System.Threading.Thread.Sleep(450);
+        Assert.True(RadialMenuState.MenuOpen);
+        double mx = State().GetProperty("x").GetDouble(), my = State().GetProperty("y").GetDouble();
+        Assert.False(State().GetProperty("moving").GetBoolean());
+        _cursor = (mx + 30, my + 30);
+        Assert.True(RadialMenuState.TipDown());
+        _cursor = (mx + 130, my + 30);
+        RadialMenuState.PenMoved();
+        Assert.True(State().GetProperty("moving").GetBoolean());
+        RadialMenuState.TipUp();
+        Assert.False(State().GetProperty("moving").GetBoolean());
+    }
+
+    [Fact]
     public void QuickPressesOfTwoDifferentButtons_AreTwoSinglePresses()
     {
         // Grok's review: Zak's double press is the SAME button pressed twice quickly.
