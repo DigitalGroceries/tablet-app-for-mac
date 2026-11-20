@@ -168,9 +168,9 @@ public partial class TabletDetailViewModel
         _ = PutKeyboardAsync(_keyboardChoices[value].Slot);
     }
 
-    /// <summary>The keyboard goes on <paramref name="slot"/> (0-based; -1: on no slice) of the menu shown above, and off any other.</summary>
     private readonly System.Threading.SemaphoreSlim _keyboardPutGate = new(1, 1);
 
+    /// <summary>The keyboard goes on <paramref name="slot"/> (0-based; -1: on no slice) of the menu shown above, and off any other.</summary>
     internal async Task PutKeyboardAsync(int slot)
     {
         // Grok's review 20 Nov (5): two quick picks must not both start from the same old menu, so one runs after the other.
