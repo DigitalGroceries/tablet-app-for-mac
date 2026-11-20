@@ -23,6 +23,7 @@ internal static class MacWindowDrag
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern double SendDouble(IntPtr obj, IntPtr sel);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern void SendArg(IntPtr obj, IntPtr sel, IntPtr arg);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)] private static extern bool SendBool(IntPtr obj, IntPtr sel);
+    [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern void SendBoolArg(IntPtr obj, IntPtr sel, [MarshalAs(UnmanagedType.I1)] bool value);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern NSRect SendRectArm(IntPtr obj, IntPtr sel);
     [DllImport(ObjC, EntryPoint = "objc_msgSend_stret")] private static extern void SendRectStret(out NSRect r, IntPtr obj, IntPtr sel);
 
@@ -79,6 +80,25 @@ internal static class MacWindowDrag
             return true;
         }
         catch (Exception e) { note = "failed: " + e.Message; return false; }
+    }
+
+    /// <summary>V29 #176 build 12 (Grok, from umputun/agterm#869): on macOS 27.2 the window server can start its own drag in the native
+    /// title strip under our transparent strip, before the app sees the press, and AppKit then re-fits the frame (jumps, sticks at a
+    /// display edge). A window that isn't movable is never dragged by macOS; the app's own moves (setFrameTopLeftPoint) still work.</summary>
+    public static bool MakeNotMovableByMac(Window w)
+    {
+        if (!OperatingSystem.IsMacOS()) return false;
+        try
+        {
+            var win = NSWindowOf(w);
+            if (win == IntPtr.Zero) return false;
+            bool ok = false;
+            if (ObjCGuard.RespondsTo(win, ObjCSelectors.SetMovable)) { SendBoolArg(win, sel_registerName(ObjCSelectors.SetMovable), false); ok = true; }
+            if (ObjCGuard.RespondsTo(win, ObjCSelectors.SetMovableByWindowBackground))
+                SendBoolArg(win, sel_registerName(ObjCSelectors.SetMovableByWindowBackground), false);
+            return ok;
+        }
+        catch { return false; }
     }
 
     /// <summary>The window's real top-left in Avalonia's global points (top-left origin), read from the NSWindow's frame; null

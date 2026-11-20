@@ -47,6 +47,8 @@ public static class ObjCSelectors
     public const string Screens = "screens";
     public const string FirstObject = "firstObject";
     public const string IsKeyWindow = "isKeyWindow";
+    public const string SetMovable = "setMovable:";
+    public const string SetMovableByWindowBackground = "setMovableByWindowBackground:";
 
     public static IReadOnlyList<string> All { get; } = new[]
     {
@@ -57,6 +59,7 @@ public static class ObjCSelectors
         ActivateWithOptions, IsActive,
         SetOpaque, SetBackgroundColor, ClearColor,
         CurrentEvent, Type, Timestamp, PerformWindowDragWithEvent, Screens, FirstObject, IsKeyWindow,
+        SetMovable, SetMovableByWindowBackground,
     };
 }
 

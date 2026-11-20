@@ -148,6 +148,11 @@ public partial class MainWindow : Window
         // warpdotdev/warp#16508, Apple FB25207761); like the other affected apps, the window is moved by hand and macOS is never asked.
         if (ManualDragOs && WindowState == WindowState.Normal && MacDesktop.CursorLocation() is { } c)
         {
+            if (!_madeNotMovable)
+            {
+                _madeNotMovable = true;
+                AppLog.Info($"Window drag: macOS's own window dragging switched off for this window ({(MacWindowDrag.MakeNotMovableByMac(this) ? "done" : "not possible")}); the app moves it (#176).");
+            }
             _titleDrag.Release();
             _manualDrag.Press(RealPosition(), new PixelPoint((int)Math.Round(c.X), (int)Math.Round(c.Y)));
             _manualNotes = 0;
@@ -183,14 +188,18 @@ public partial class MainWindow : Window
     private System.Collections.Generic.List<TitleBarDrag.ScreenArea> ScreenAreas() =>
         Screens.All.Select(sc => new TitleBarDrag.ScreenArea(sc.Bounds, sc.WorkingArea)).ToList();
 
-    private static readonly bool ManualDragOs = OperatingSystem.IsMacOSVersionAtLeast(27, 2);
+    // Grok's review: since macOS 26 a process can be shown a compatibility version (16.x), which would silently switch this off; the
+    // hand-made drag works on every macOS version (Warp found it reliable), so it is used on all of them.
+    private static readonly bool ManualDragOs = OperatingSystem.IsMacOS();
     private readonly ManualWindowDrag _manualDrag = new();
+    private bool _madeNotMovable;
     private int _manualNotes;
 
     /// <summary>#176 build 12: one move of the hand-made drag (macOS 27.2+).</summary>
     private void ManualDragMoved(PointerEventArgs e)
     {
-        if (MacWindowDrag.LeftButtonUp() || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) { EndManualDrag(e.Pointer); return; }
+        if (MacWindowDrag.LeftButtonUp()) { EndManualDrag(e.Pointer, "macOS says the button is up"); return; }
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) { EndManualDrag(e.Pointer, "the app saw the button up"); return; }
         if (MacDesktop.CursorLocation() is not { } c) return;
         bool wasMoving = _manualDrag.Moving;
         var real = RealPosition();
@@ -202,18 +211,18 @@ public partial class MainWindow : Window
         if (_manualDrag.Move(new PixelPoint((int)Math.Round(c.X), (int)Math.Round(c.Y))) is not { } to) return;
         if (!wasMoving)
             AppLog.Info($"Window drag: the app moves the window itself ({e.Pointer.Type}, from {real.X},{real.Y}, scale {RenderScaling:0.##}; "
-                        + $"macOS {Environment.OSVersion.Version}: its own drag of custom title bars is unreliable from 27.2) (#176).");
+                        + $"macOS {Environment.OSVersion.Version}; the Mac's own drag of custom title bars is unreliable on 27.2) (#176).");
         Position = to;
     }
 
-    private void EndManualDrag(IPointer? pointer)
+    private void EndManualDrag(IPointer? pointer, string why = "released")
     {
         if (!_manualDrag.Pressed) return;
         bool moved = _manualDrag.Release();
         pointer?.Capture(null);
         if (!moved) return;
         var real = RealPosition();
-        AppLog.Info($"Window drag by the app ended at {real.X},{real.Y} (scale {RenderScaling:0.##}) (#176).");
+        AppLog.Info($"Window drag by the app ended at {real.X},{real.Y} (scale {RenderScaling:0.##}; {why}) (#176).");
         if (TitleBarDrag.BelowMenuBar(new PixelRect(real, FramePixels()), ScreenAreas()) is { } down)
         {
             AppLog.Info($"Window drag: its top was under the menu bar; moved down to {down.X},{down.Y} (#176).");
