@@ -725,11 +725,6 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "タッチリングのモード",
-    "path": "タブレット › ファンクション › タッチリング",
-    "route": "tablet/ToolFunctionsButton/WheelsTab"
-  },
-  {
     "text": "タッチリングについて",
     "path": "タブレット › ファンクション › タッチリング",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

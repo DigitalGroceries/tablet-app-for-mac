@@ -97,7 +97,7 @@ public sealed record RingMode(string Name, AuxCombo Clockwise, AuxCombo CounterC
 /// in order, so the ring button never lands on an empty mode. The full list (names, modes that are off)
 /// is kept by the app beside the profile, see <see cref="Serialize"/>.
 /// </summary>
-public static class RingModeBinding
+public static partial class RingModeBinding
 {
     // Plugin type names — hardcoded because the app doesn't reference the plugin assembly; the
     // PluginTypeNameGuardTests keep them in step with the plugin.
@@ -221,6 +221,16 @@ public static class RingModeBinding
         var active = ActiveModes(modes);
         if (active.Count == 0 || wheel.WheelButtons.Count == 0) return false;
 
+        WriteTurns(wheel, active, modesSwitch: true);
+        wheel.WheelButtons[0] = MakeNext(active.Count, active.Select(m => m.Name));
+        return true;
+    }
+
+    /// <summary>Write the two turn bindings for <paramref name="active"/> (the modes in the order the plugin counts them).
+    /// V29 #158: <paramref name="modesSwitch"/> false (the centre button does something else) makes the plugin always use
+    /// mode 1.</summary>
+    private static void WriteTurns(WheelBindingSettings wheel, IReadOnlyList<RingMode> active, bool modesSwitch)
+    {
         // Each direction's "ring step" is the wheel's own activation threshold for that OTD direction: how far
         // the ring turns per call the plugin gets. The plugin then acts once per mode step (build H); smooth
         // actions get their Speed as a step (Version 16 BETA 2, RingMode.WrittenStepDegrees).
@@ -239,8 +249,9 @@ public static class RingModeBinding
         wheel.CounterClockwiseRotation = MakeTurn(active.Select(m => m.CounterClockwise), steps, otdCcwTick,
             scrolls.Select(v => -v).ToList(), rotates.Select(v => -v).ToList(), sizes.Select(v => -v).ToList(),
             hards.Select(v => -v).ToList(), wheels.Select(v => -v).ToList());
-        wheel.WheelButtons[0] = MakeNext(active.Count, active.Select(m => m.Name));
-        return true;
+        if (!modesSwitch)
+            foreach (var turn in new[] { wheel.ClockwiseRotation, wheel.CounterClockwiseRotation })
+                turn?.Settings.Add(new PluginSetting(ModesSwitchProperty, false));
     }
 
     /// <summary>True when <see cref="Apply"/> would write something: the wheel has a ring button and at least

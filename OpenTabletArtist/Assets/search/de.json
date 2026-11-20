@@ -670,11 +670,6 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Touch-Ring-Modi",
-    "path": "Tablet › Funktionen › Touch-ring",
-    "route": "tablet/ToolFunctionsButton/WheelsTab"
-  },
-  {
     "text": "Über den Touch-Ring",
     "path": "Tablet › Funktionen › Touch-ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

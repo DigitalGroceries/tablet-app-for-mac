@@ -292,6 +292,13 @@ public class RingModeTurnBinding : IStateBinding
     [Property("Direction version"), DefaultPropertyValue(0)]
     public int DirectionVersion { get; set; }
 
+    /// <summary>V29 #158: false when the ring's centre button does something else than "Next mode" (Do nothing, a key, a
+    /// click): nothing can switch modes then, so the ring always uses mode 1 (the shared mode left by an earlier
+    /// Next press is ignored). Missing in bindings written before V29 = true.</summary>
+    [Property("Modes switch"), DefaultPropertyValue(true),
+     ToolTip("On: the centre button switches modes. Off: the ring always uses mode 1. Set by Tablet App for Mac.")]
+    public bool ModesSwitch { get; set; } = true;
+
     private readonly KeyPulse _pulse = new();
     /// <summary>Build R: how long a ring key is held before it is let go (OTD releases instantly otherwise).</summary>
     public int KeyHoldMs { get => _pulse.HoldMs; set => _pulse.HoldMs = value; }
@@ -299,7 +306,7 @@ public class RingModeTurnBinding : IStateBinding
 
     public void Press(TabletReference tablet, IDeviceReport report)
     {
-        int mode = RingModeState.Current;
+        int mode = ModesSwitch ? RingModeState.Current : 0;
         bool valid = mode >= 0 && mode < RingModeState.MaxModes;
         double ring = RingStep > 0 ? RingStep : 5;
         if (valid && _modeWheel[mode] != 0)

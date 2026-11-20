@@ -64,12 +64,14 @@ public class RingPlainRowsTests
         Assert.Null(AuxKeyBinding.MediaKeyName("A"));
     }
 
+    /// <summary>V29 #158: there is no modes switch any more; only a ring whose plain rows were set up in OpenTabletDriver in a way
+    /// modes can't show keeps its rows, and the line says so.</summary>
     [Fact]
-    public void ModesSwitchOff_SaysTheModesAreAnOptionalExtra()
+    public void ARingThatKeptItsPlainRows_SaysWhy()
     {
         var editor = new RingModesEditor(0, RingModeBinding.Defaults, isOn: false, hasRingButton: true, canEdit: true,
             editBinding: null, setOn: null, changed: null);
-        Assert.StartsWith("Optional.", editor.Summary);
+        Assert.Contains("OpenTabletDriver", editor.Summary);
     }
 }
 

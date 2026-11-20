@@ -123,9 +123,34 @@ public partial class ButtonBinding : ObservableObject
         var before = _applied;
         _applied = binding;
         OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(KeysText));
         ClearCommand.NotifyCanExecuteChanged();
         if (_applyBinding != null) await _applyBinding(Index, binding);
         Services.RadialMenuOverlay.ReplaceLive(before, binding);   // V29 #161: an ExpressKey's open menu follows too
+    }
+
+    /// <summary>V29 #158: the shortcut box's text while it is empty.</summary>
+    public string KeysHint => Localizer.Te("tablet.ring.keys_hint", "Click, then press the keys");
+    public string ClearKeysTip => Localizer.Te("tablet.ring.keys_clear", "Clear the shortcut");
+
+    /// <summary>V29 #158: the keyboard shortcut shown in a ring mode's shortcut box (empty when none is set).</summary>
+    public string KeysText => _applied.Kind == AuxKind.Keyboard && _applied.Combo.IsBound ? AuxKeyBinding.Describe(_applied) : "";
+
+    /// <summary>V29 #158 (Zak: shortcuts set in place, no extra window): a shortcut typed into the row's box
+    /// (<see cref="Controls.KeyCaptureBox"/>); <see cref="AuxCombo.Unbound"/> empties the row.</summary>
+    [RelayCommand(CanExecute = nameof(CanEdit))]
+    private async Task SetKeys(AuxCombo? combo)
+    {
+        if (!CanEdit) return;
+        var binding = combo is { IsBound: true }
+            ? new AuxBinding(AuxKind.Keyboard, combo, AuxKeyBinding.None, AuxKeyBinding.None) : AuxBinding.Unbound;
+        if (binding == _applied && !IsOtherBinding) return;
+        _applied = binding;
+        IsOtherBinding = false;
+        OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(KeysText));
+        ClearCommand.NotifyCanExecuteChanged();
+        if (_applyBinding != null) await _applyBinding(Index, binding);
     }
 
     /// <summary>V29 #153: show <paramref name="binding"/> (set by its owner, e.g. a ring mode's Function menu) without
@@ -135,6 +160,7 @@ public partial class ButtonBinding : ObservableObject
         _applied = binding;
         IsOtherBinding = false;
         OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(KeysText));
         ClearCommand.NotifyCanExecuteChanged();
     }
 
@@ -151,6 +177,7 @@ public partial class ButtonBinding : ObservableObject
         IsOtherBinding = false;
         OtherLabel = "";
         OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(KeysText));
         ClearCommand.NotifyCanExecuteChanged();
         if (_applyBinding != null) await _applyBinding(Index, _applied);
     }

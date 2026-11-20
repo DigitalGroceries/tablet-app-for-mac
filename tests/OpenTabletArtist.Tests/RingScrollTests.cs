@@ -127,7 +127,8 @@ public class RingScrollTests : IDisposable
     {
         // V29 #153: Volume, Brightness and Previous / next track come after Scroll; the RingAction indices keep their meaning.
         Assert.Equal("Scroll", RingModeRow.ActionNames[(int)RingAction.Scroll]);
-        Assert.Equal((int)RingAction.Scroll + 1 + RingModeRow.Presets.Count, RingModeRow.ActionNames.Count);
+        // V29 #158: then "Do nothing", last.
+        Assert.Equal((int)RingAction.Scroll + 1 + RingModeRow.Presets.Count + 1, RingModeRow.ActionNames.Count);
         Assert.Equal("Smooth zoom", RingModeRow.ActionNames[(int)RingAction.SmoothZoom]);
     }
 

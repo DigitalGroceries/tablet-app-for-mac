@@ -1979,6 +1979,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var canEdit = _applyAction != null && WheelEnabled;
         var list = new List<WheelEditor>();
         var stepSync = new List<(int Wheel, List<RingMode> Modes)>();
+        var plainMoves = new List<(int Wheel, RingMode ModeOne, RingCentre Centre)>();
         bool multi = wheels.Count > 1;
         // Version 16: Intuos3 and the older Cintiqs report their touch strips as wheels; label them Up / Down.
         bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.TabletsWithRemembered, TabletName)?.WheelsAreTouchStrips == true;
@@ -2020,18 +2021,30 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                     (_, bind) => ApplyWheelButtonAsync(wi, bi, bind)));
             }
             // Wacom-style ring modes (needs the ring button to switch them).
-            var modes = RingModeBinding.Load(ws, SavedRingModes(wi),
-                AuxKeyBinding.ReadCombo(ws.ClockwiseRotation), AuxKeyBinding.ReadCombo(ws.CounterClockwiseRotation));
-            var ringModes = new RingModesEditor(wi, modes, RingModeBinding.IsActive(ws),
-                hasRingButton: ws.WheelButtons.Count > 0, canEdit: canEdit, editBinding: _editBinding,
-                setOn: canEdit ? (on, m) => SetRingModesAsync(wi, on, m) : null,
-                changed: canEdit ? m => RingModesChangedAsync(wi, m) : null);
+            // V29 #158 (Zak 20 Nov: one switch, one menu): a ring is always shown as its modes, with the centre button's own menu.
+            // A ring still set up with plain rows moves into mode 1 once (same keys, same pace, centre unchanged); one whose
+            // plain rows hold something a mode can't send keeps them.
+            bool hasCentre = ws.WheelButtons.Count > 0;
+            bool modesLayout = !strips && hasCentre && RingModeBinding.IsModesLayout(ws);
+            if (!strips && hasCentre && !modesLayout && canEdit && string.IsNullOrEmpty(SelectedPenKey)
+                && !RingDowngrade.IsPrepared(_profile.Tablet) && RingModeBinding.TryPlainAsMode(ws, out var modeOne)
+                && _ringPlainMoveTried.Add($"{_profile.Tablet}:{SelectedAppBundleId}:{wi}"))
+                plainMoves.Add((wi, modeOne, RingModeBinding.ReadCentre(ws)));
+            var modes = modesLayout ? RingModeBinding.LoadLayout(ws, SavedRingModes(wi))
+                : RingModeBinding.Load(ws, SavedRingModes(wi),
+                    AuxKeyBinding.ReadCombo(ws.ClockwiseRotation), AuxKeyBinding.ReadCombo(ws.CounterClockwiseRotation));
+            var ringModes = new RingModesEditor(wi, modes, modesLayout,
+                hasRingButton: hasCentre, canEdit: canEdit, editBinding: _editBinding,
+                setOn: null,
+                changed: canEdit ? m => RingModesChangedAsync(wi, m) : null,
+                centre: RingModeBinding.ReadCentre(ws),
+                setCentre: canEdit ? (c, m) => SetRingCentreAsync(wi, c, m) : null);
             // Build H: a ring set up by an earlier build has no per-mode steps in the profile yet; write them
             // once so the steps shown are the ones in effect (latched, so it can't loop).
             // Version 16 BETA 2: bindings from BETA 1 or earlier (reversed directions) are rewritten too, every time
             // they show up (e.g. after Revert to saved before Save); a rewritten wheel is no longer legacy, so this
             // can't loop. Not for an extra pen's table (its wheels are an unused copy).
-            if (canEdit && RingModeBinding.IsActive(ws) && string.IsNullOrEmpty(SelectedPenKey)
+            if (canEdit && RingModeBinding.IsActive(ws) && RingModeBinding.CentreIsNext(ws) && string.IsNullOrEmpty(SelectedPenKey)
                 && !RingDowngrade.IsPrepared(_profile.Tablet)
                 && (RingModeBinding.IsLegacy(ws)
                     || ((!RingModeBinding.SameSteps(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws))
@@ -2060,9 +2073,50 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         }
         Wheels = list;
         foreach (var (wi, modes) in stepSync) _ = RingModesChangedAsync(wi, modes);
+        foreach (var (wi, modeOne, centre) in plainMoves) _ = MovePlainRingIntoModeOneAsync(wi, modeOne, centre);
     }
 
     private readonly HashSet<string> _ringStepSyncTried = new();
+    private readonly HashSet<string> _ringPlainMoveTried = new();
+
+    /// <summary>V29 #158 (Zak 20 Nov: "plain-ring users move into mode 1"): the ring's plain Clockwise / Anticlockwise keys
+    /// become mode 1 and its centre button keeps what it did, so the ring does exactly what it did before; the page then
+    /// shows it like every other ring. Latched per table and ring, so it can't loop.</summary>
+    private async Task MovePlainRingIntoModeOneAsync(int wheelIndex, RingMode modeOne, RingCentre centre)
+    {
+        var modes = RingModeBinding.WithModeOne(SavedRingModes(wheelIndex), modeOne);
+        AppSettings.Set(RingModesKey(wheelIndex), RingModeBinding.Serialize(modes));
+        bool written = false;
+        await ApplyRingBindingsAsync(b =>
+        {
+            var w = b.WheelBindings;
+            if (wheelIndex < w.Count) written = RingModeBinding.ApplyLayout(w[wheelIndex], modes, centre);
+        });
+        AppLog.Info($"Touch Ring {wheelIndex + 1}: its plain rows moved into mode 1 (V29 #158; centre button kept: "
+                    + (centre.NextMode ? "Next mode" : centre.Other?.Path ?? AuxKeyBinding.Describe(centre.Binding))
+                    + (written ? ")." : "); nothing was written."));
+        RefreshWheels();
+    }
+
+    /// <summary>V29 #158: the centre button's menu. Writes the choice with the current modes (only mode 1 is used when the
+    /// choice isn't Next mode). False when nothing could be written; the menu then shows the old choice again.</summary>
+    private async Task<bool> SetRingCentreAsync(int wheelIndex, RingCentre centre, IReadOnlyList<RingMode> modes)
+    {
+        if (!WheelEnabled) return false;
+        var wheels = WorkingBindings().WheelBindings;
+        if (wheelIndex < 0 || wheelIndex >= wheels.Count) return false;
+        AppSettings.Set(RingModesKey(wheelIndex), RingModeBinding.Serialize(modes));
+        bool written = false;
+        var applied = await ApplyRingBindingsAsync(b =>
+        {
+            var w = b.WheelBindings;
+            if (wheelIndex < w.Count) written = RingModeBinding.ApplyLayout(w[wheelIndex], modes, centre);
+        });
+        AppLog.Info($"Touch Ring {wheelIndex + 1}: the centre button now does "
+                    + (centre.NextMode ? "Next mode" : centre.Other?.Path ?? AuxKeyBinding.Describe(centre.Binding))
+                    + (applied && written ? "." : " (NOT applied)."));
+        return applied && written;
+    }
 
     /// <summary>Version 16: "Touch strip" for a tablet with one, "Left touch strip" / "Right touch strip" for
     /// two (strip 1 is the left one in the Wacom pad report).</summary>
@@ -2158,9 +2212,6 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     private string RingModesKey(int wheelIndex) => string.IsNullOrEmpty(SelectedAppBundleId)
         ? $"RingModes:{_profile.Tablet}:{wheelIndex}"
         : $"RingModes:{_profile.Tablet}:{wheelIndex}:app:{SelectedAppBundleId}";
-    private string RingModesBackupKey(int wheelIndex) => string.IsNullOrEmpty(SelectedAppBundleId)
-        ? $"RingModesBackup:{_profile.Tablet}:{wheelIndex}"
-        : $"RingModesBackup:{_profile.Tablet}:{wheelIndex}:app:{SelectedAppBundleId}";
 
     /// <summary>The saved mode list for the selected table; an app without its own list yet starts from All's.</summary>
     private string? SavedRingModes(int wheelIndex)
@@ -2170,72 +2221,17 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         return AppSettings.Get($"RingModes:{_profile.Tablet}:{wheelIndex}");
     }
 
-    /// <summary>The plain bindings a wheel had before ring modes took it over, so turning modes off
-    /// gives them back.</summary>
-    private sealed class RingPlainBackup
-    {
-        public PluginSettingStore? Clockwise { get; set; }
-        public PluginSettingStore? CounterClockwise { get; set; }
-        public PluginSettingStore? Button { get; set; }
-    }
-
-    /// <summary>Turn ring modes on/off for a wheel. Returns whether the bindings really changed, so the switch
-    /// can flip back when nothing could be applied (Build F, review item 2).</summary>
-    private async Task<bool> SetRingModesAsync(int wheelIndex, bool on, IReadOnlyList<RingMode> modes)
-    {
-        if (!WheelEnabled) return false;
-        AppSettings.Set(RingModesKey(wheelIndex), RingModeBinding.Serialize(modes));
-        var current = WorkingBindings().WheelBindings;
-        if (wheelIndex < 0 || wheelIndex >= current.Count) return false;
-        // Nothing to write (no ring button, or no mode that is on and has a key): don't pretend modes are on.
-        if (on && !RingModeBinding.CanApply(current[wheelIndex], modes)) return false;
-        var backupKey = RingModesBackupKey(wheelIndex);
-        var backupJson = AppSettings.Get(backupKey);
-        // An app's table copied from All while modes were on has no backup of its own: All's plain keys are its.
-        if (string.IsNullOrEmpty(backupJson) && !string.IsNullOrEmpty(SelectedAppBundleId))
-            backupJson = AppSettings.Get($"RingModesBackup:{_profile.Tablet}:{wheelIndex}");
-        bool changed = false;
-        await ApplyRingBindingsAsync(b =>
-        {
-            var wheels = b.WheelBindings;
-            if (wheelIndex < 0 || wheelIndex >= wheels.Count) return;
-            var ws = wheels[wheelIndex];
-            if (on)
-            {
-                if (RingModeBinding.IsActive(ws)) { changed = RingModeBinding.Apply(ws, modes); return; }
-                var backup = new RingPlainBackup
-                {
-                    Clockwise = ws.ClockwiseRotation,
-                    CounterClockwise = ws.CounterClockwiseRotation,
-                    Button = ws.WheelButtons.Count > 0 ? ws.WheelButtons[0] : null,
-                };
-                changed = RingModeBinding.Apply(ws, modes);
-                if (changed)
-                    AppSettings.Set(backupKey, JsonConvert.SerializeObject(backup));
-            }
-            else
-            {
-                RingPlainBackup? backup = null;
-                try { if (!string.IsNullOrEmpty(backupJson)) backup = JsonConvert.DeserializeObject<RingPlainBackup>(backupJson); }
-                catch (JsonException) { /* corrupt stash — treated as no backup */ }
-                // No backup (modes set up by hand in OTD, or the stash was lost): only the ring-mode slots are
-                // cleared, instead of also unbinding whatever else the ring button had.
-                RingModeBinding.Remove(ws, backup != null, backup?.Clockwise, backup?.CounterClockwise, backup?.Button);
-                AppSettings.Set(backupKey, "");
-                changed = true;
-            }
-        });
-        return changed;
-    }
-
     /// <summary>Build N.1: Wacom-like "Default" on the Touch ring page — every wheel's ring modes back to OTA's
     /// four defaults, through the same path as editing a mode (the view confirms first; nothing is saved
     /// to disk here — Save stays the user's).</summary>
     public async Task ResetTouchRingToDefaultsAsync()
     {
         bool ok = true;
+        // V29 #158: the factory centre button (Next mode) comes back too.
         for (int wi = 0; wi < Wheels.Count; wi++)
-            ok &= await RingModesChangedAsync(wi, RingModeBinding.Defaults.ToList());
+            ok &= Wheels[wi].RingModes?.IsOn == true
+                ? await SetRingCentreAsync(wi, RingCentre.Next, RingModeBinding.Defaults.ToList())
+                : await RingModesChangedAsync(wi, RingModeBinding.Defaults.ToList());
         RefreshWheels();
         if (ok) ActionConfirmation.Show("confirm.ring_default", "Touch Ring reset");
     }
@@ -2258,12 +2254,15 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         AppSettings.Set(RingModesKey(wheelIndex), RingModeBinding.Serialize(modes));
         var wheels = WorkingBindings().WheelBindings;
-        if (!WheelEnabled || wheelIndex < 0 || wheelIndex >= wheels.Count || !RingModeBinding.IsActive(wheels[wheelIndex]))
-            return Task.FromResult(true);   // modes off: just remember the list
+        // V29 #158: a ring shown as its modes is written with its centre button's choice; a ring that kept its plain rows
+        // (set up in OpenTabletDriver) only remembers the list.
+        if (!WheelEnabled || wheelIndex < 0 || wheelIndex >= wheels.Count || !RingModeBinding.IsModesLayout(wheels[wheelIndex]))
+            return Task.FromResult(true);
+        var centre = RingModeBinding.ReadCentre(wheels[wheelIndex]);
         return ApplyRingBindingsAsync(b =>
         {
             var w = b.WheelBindings;
-            if (wheelIndex < w.Count) RingModeBinding.Apply(w[wheelIndex], modes);
+            if (wheelIndex < w.Count) RingModeBinding.ApplyLayout(w[wheelIndex], modes, centre);
         });
     }
 

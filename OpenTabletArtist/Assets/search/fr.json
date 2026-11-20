@@ -670,11 +670,6 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Modes de l'anneau tactile",
-    "path": "Tablette › Fonctions › Anneau tactile",
-    "route": "tablet/ToolFunctionsButton/WheelsTab"
-  },
-  {
     "text": "À propos de l'anneau tactile",
     "path": "Tablette › Fonctions › Anneau tactile",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

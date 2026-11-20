@@ -14,7 +14,7 @@
             <TextBlock Text="{Binding Name}" FontSize="12" Margin="4,0,0,0" TextTrimming="CharacterEllipsis"
                        Foreground="{DynamicResource TextSecondaryBrush}" />
         </StackPanel>
-        <Grid Grid.Column="2" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="6">
+        <Grid Grid.Column="2" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="6" IsVisible="{Binding HasSpeed}">
             <Slider x:Name="SpeedSlider" Grid.ColumnSpan="2" Minimum="{Binding MinSpeed}" Maximum="{Binding MaxSpeed}"
                     SmallChange="1" LargeChange="10" VerticalAlignment="Center" MinWidth="110"
                     TickFrequency="10" TickPlacement="BottomRight"

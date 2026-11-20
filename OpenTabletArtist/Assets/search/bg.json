@@ -655,11 +655,6 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Режими на сензорния пръстен",
-    "path": "Таблет › Функции › Сензорен пръстен",
-    "route": "tablet/ToolFunctionsButton/WheelsTab"
-  },
-  {
     "text": "За сензорния пръстен",
     "path": "Таблет › Функции › Сензорен пръстен",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

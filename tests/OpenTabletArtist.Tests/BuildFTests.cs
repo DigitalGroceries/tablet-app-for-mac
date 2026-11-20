@@ -68,25 +68,8 @@ public class BuildFTests
         Assert.Same(btn, w.WheelButtons[0]);
     }
 
-    [Fact]
-    public void RingModesSwitch_FlipsBack_WhenNothingCouldBeApplied()
-    {
-        var calls = 0;
-        var editor = new RingModesEditor(0, new[] { Mapped("A") }, isOn: false, hasRingButton: true, canEdit: true,
-            editBinding: null, setOn: (_, _) => { calls++; return Task.FromResult(false); }, changed: null);
-        editor.IsOn = true;
-        Assert.Equal(1, calls);
-        Assert.False(editor.IsOn);   // was left "on" in build E
-    }
-
-    [Fact]
-    public void RingModesSwitch_StaysOn_WhenApplied()
-    {
-        var editor = new RingModesEditor(0, new[] { Mapped("A") }, isOn: false, hasRingButton: true, canEdit: true,
-            editBinding: null, setOn: (_, _) => Task.FromResult(true), changed: null);
-        editor.IsOn = true;
-        Assert.True(editor.IsOn);
-    }
+    // V29 #158 (Zak 20 Nov: one switch, one menu): the Touch Ring modes switch is gone, so its two tests (flip back when nothing
+    // could be applied, stay on when applied) went with it; RingModeLayoutTests covers what replaced it.
 
     private sealed class FixedDisplays(params DisplayInfo[] displays) : IDisplayEnumerator
     {

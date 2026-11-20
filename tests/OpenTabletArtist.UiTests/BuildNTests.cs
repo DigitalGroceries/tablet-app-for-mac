@@ -23,7 +23,7 @@ public class BuildNTests
         // Version 26 (#35): "Scroll" (a plain mouse wheel) added last. V29 #153: "Keystroke…" is "Keyboard shortcut…", and
         // Volume, Brightness and Previous / next track can be picked straight from the menu.
         Assert.Equal(new[] { "Keyboard shortcut…", "Smooth rotate", "Smooth zoom", "Smooth brush size", "Smooth hardness", "Scroll",
-                             "Volume", "Brightness", "Previous / next track" },
+                             "Volume", "Brightness", "Previous / next track", "Do nothing" },   // V29 #158: Do nothing last
             RingModeRow.ActionNames.ToArray());
         // Build Q: "(Experimental)" suffix; the dropdown stretches to half the row, so 32 chars is the cap.
         Assert.All(RingModeRow.ActionNames, n => Assert.True(n.Length <= 32, n));

@@ -670,11 +670,6 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Modalità Touch Ring",
-    "path": "Tavoletta › Funzioni › Touch Ring",
-    "route": "tablet/ToolFunctionsButton/WheelsTab"
-  },
-  {
     "text": "Informazioni sul Touch Ring",
     "path": "Tavoletta › Funzioni › Touch Ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

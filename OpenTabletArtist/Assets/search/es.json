@@ -670,11 +670,6 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Modos del anillo táctil",
-    "path": "Tableta › Funciones › Anillo táctil",
-    "route": "tablet/ToolFunctionsButton/WheelsTab"
-  },
-  {
     "text": "Acerca del anillo táctil",
     "path": "Tableta › Funciones › Anillo táctil",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

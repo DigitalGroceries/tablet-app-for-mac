@@ -16,26 +16,34 @@ namespace OpenTabletArtist.ViewModels;
 /// </summary>
 public partial class RingModesEditor : ObservableObject
 {
-    private readonly Func<bool, IReadOnlyList<RingMode>, Task<bool>>? _setOn;
     private readonly Func<IReadOnlyList<RingMode>, Task>? _changed;
-    private bool _suppress;
+    private readonly Func<RingCentre, IReadOnlyList<RingMode>, Task<bool>>? _setCentre;
+    private RingCentre _centre;
+    private bool _centreWantsKeys;
 
+    /// <param name="isOn">V29 #158: the ring is shown as its modes (always, except a ring whose plain rows were set up in
+    /// OpenTabletDriver in a way modes can't show). There is no switch any more.</param>
+    /// <param name="setOn">Unused since V29 #158 (the Touch Ring modes switch is gone); kept so older callers compile.</param>
+    /// <param name="centre">What the centre button does now (null: Next mode).</param>
+    /// <param name="setCentre">Writes a new centre-button choice with the current modes; false when it couldn't.</param>
     public RingModesEditor(int wheelIndex, IReadOnlyList<RingMode> modes, bool isOn, bool hasRingButton,
         bool canEdit, Func<AuxBinding, string, Task<AuxBinding?>>? editBinding,
-        Func<bool, IReadOnlyList<RingMode>, Task<bool>>? setOn, Func<IReadOnlyList<RingMode>, Task>? changed)
+        Func<bool, IReadOnlyList<RingMode>, Task<bool>>? setOn, Func<IReadOnlyList<RingMode>, Task>? changed,
+        RingCentre? centre = null, Func<RingCentre, IReadOnlyList<RingMode>, Task<bool>>? setCentre = null)
     {
+        _ = setOn;
         WheelIndex = wheelIndex;
         HasRingButton = hasRingButton;
         CanEdit = canEdit && hasRingButton;
-        _setOn = setOn;
         _changed = changed;
-        _suppress = true;
+        _setCentre = setCentre;
+        _centre = centre ?? RingCentre.Next;
         IsOn = isOn;
-        _suppress = false;
         Rows = modes.Take(RingModeBinding.MaxModes)
             .Select((m, i) => new RingModeRow(i + 1, m, CanEdit, editBinding, OnRowChanged))
             .ToList();
         SizeNameBoxes();
+        UpdateReach();
     }
 
     // ---- Version 1: no text box wider than the longest function name in it --------------------------
@@ -74,8 +82,8 @@ public partial class RingModesEditor : ObservableObject
 
     public IReadOnlyList<RingModeRow> Rows { get; }
 
-    /// <summary>Modes on: the ring button switches modes and the rows below drive the ring.</summary>
-    [ObservableProperty] private bool _isOn;
+    /// <summary>The ring is shown as its modes (V29 #158: no switch; see the constructor).</summary>
+    public bool IsOn { get; }
 
     /// <summary>Show the new mode's name on screen for a moment, like Wacom (app-wide setting).</summary>
     public bool ShowOnScreen
@@ -89,19 +97,143 @@ public partial class RingModesEditor : ObservableObject
         }
     }
 
-    /// <summary>"3 modes · ring button switches mode", or why nothing would happen.</summary>
+    /// <summary>"3 modes. Press the ring's centre button to switch.", or what the ring does instead.</summary>
     public string Summary
     {
         get
         {
+            if (!HasRingButton) return Localizer.Te("tablet.ring.no_button", "This tablet's ring has no button to switch modes.");
+            if (!IsOn) return Localizer.Te("tablet.ring.plain_kept",
+                "This ring was set up in OpenTabletDriver in a way the modes can't show, so it keeps these rows.");
+            if (!_centre.NextMode) return Localizer.Te("tablet.ring.mode1_only",
+                "The centre button doesn't switch modes, so the ring always does what mode 1 is set to.");
             int n = Modes.Count(m => m.Enabled && m.IsMapped);
-            if (!HasRingButton) return "This tablet's ring has no button to switch modes.";
-            // V29 #149 (Zak 20 Nov, design 1): the plain rows are the Touch Ring; the modes are an optional extra.
-            if (!IsOn) return Services.Localizer.Te("tablet.ring.modes_optional",
-                "Optional. Off: the ring uses the rows above. On: the centre button switches between up to 4 modes and shows each one on screen.");
-            if (n == 0) return "No mode has a key set yet.";
-            return n == 1 ? "1 mode. The centre button has nothing to switch." : $"{n} modes. Press the ring's centre button to switch.";
+            if (n == 0) return Localizer.Te("tablet.ring.no_mode", "No mode does anything, so the ring does nothing.");
+            return n == 1 ? Localizer.Te("tablet.ring.one_mode", "1 mode. The centre button has nothing to switch.")
+                : Localizer.Te("tablet.ring.n_modes", "{count} modes. Press the ring's centre button to switch.")
+                    .Replace("{count}", n.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal);
         }
+    }
+
+    // ---- V29 #158 (Zak 20 Nov): the centre button's own menu, "Next mode" first (the factory choice) ----------------------
+    /// <summary>One choice of the centre button's menu; <see cref="Centre"/> null = "Keyboard shortcut…" (typed in the box).</summary>
+    public sealed record CentreItem(Func<string> Label, RingCentre? Centre);
+
+    private static CentreItem Mouse(string key, string english, string button) =>
+        new(() => Localizer.Te(key, english), new RingCentre(false, new AuxBinding(AuxKind.Mouse, AuxCombo.Unbound, button, AuxKeyBinding.None)));
+
+    private static CentreItem MediaItem(string key) =>
+        new(() => AuxKeyBinding.MediaKeyName(key) ?? key,
+            new RingCentre(false, new AuxBinding(AuxKind.Keyboard, new AuxCombo(false, false, false, key), AuxKeyBinding.None, AuxKeyBinding.None)));
+
+    public const int CentreNextIndex = 0, CentreNothingIndex = 1, CentreKeysIndex = 2;
+
+    public static IReadOnlyList<CentreItem> CentreItems { get; } = new[]
+    {
+        new CentreItem(() => Localizer.Te("tablet.ring.centre.next", "Next mode"), RingCentre.Next),
+        new CentreItem(() => Localizer.Te("tablet.ring.fn.nothing", "Do nothing"), RingCentre.Nothing),
+        new CentreItem(() => Localizer.Te("tablet.ring.fn.keys", "Keyboard shortcut…"), null),
+        Mouse("binding.mouse.left", "Left click", "Left"),
+        Mouse("binding.mouse.right", "Right click", "Right"),
+        Mouse("binding.mouse.middle", "Middle click", "Middle"),
+        Mouse("binding.mouse.double_click", "Double Click", AuxKeyBinding.DoubleClickValue),
+        MediaItem("Mute"), MediaItem("VolumeUp"), MediaItem("VolumeDown"), MediaItem("PlayPause"),
+        MediaItem("PreviousSong"), MediaItem("NextSong"), MediaItem("BrightnessUp"), MediaItem("BrightnessDown"),
+    };
+
+    public IReadOnlyList<string> CentreChoices => CentreItems.Select(i => i.Label()).ToList();
+
+    public string CentreLabel => Localizer.Te("tablet.ring.centre", "Centre button");
+    public string KeysHint => Localizer.Te("tablet.ring.keys_hint", "Click, then press the keys");
+
+    /// <summary>What the centre button does now.</summary>
+    public RingCentre Centre => _centre;
+
+    /// <summary>The centre button switches modes (otherwise only mode 1 is used).</summary>
+    public bool SwitchesModes => _centre.NextMode;
+
+    /// <summary>The menu's selection; -1 for a centre binding the menu doesn't list (set up elsewhere), shown in
+    /// <see cref="CentreOther"/>.</summary>
+    public int CentreIndex
+    {
+        get
+        {
+            if (_centreWantsKeys) return CentreKeysIndex;
+            if (_centre.NextMode) return CentreNextIndex;
+            if (_centre.Other != null) return -1;
+            if (!_centre.Binding.IsBound) return CentreNothingIndex;
+            for (int i = 0; i < CentreItems.Count; i++)
+                if (CentreItems[i].Centre is { } c && c.Binding == _centre.Binding) return i;
+            return _centre.Binding.Kind == AuxKind.Keyboard ? CentreKeysIndex : -1;
+        }
+        set
+        {
+            if (value < 0 || value >= CentreItems.Count || value == CentreIndex) return;
+            if (CentreItems[value].Centre is not { } centre)
+            {
+                // "Keyboard shortcut…": the box appears; nothing changes until keys are typed into it.
+                _centreWantsKeys = true;
+                NotifyCentre();
+                return;
+            }
+            _centreWantsKeys = false;
+            _ = SetCentreAsync(centre);
+        }
+    }
+
+    /// <summary>The shortcut box under the menu is shown.</summary>
+    public bool ShowCentreKeys => CentreIndex == CentreKeysIndex;
+
+    /// <summary>The centre button's shortcut, for its box (empty when none is set yet).</summary>
+    public string CentreKeysText => _centre is { NextMode: false, Other: null, Binding: { Kind: AuxKind.Keyboard } b } && b.Combo.IsBound
+        && CentreItems.All(i => i.Centre?.Binding != b) ? AuxKeyBinding.Describe(b) : "";
+
+    /// <summary>A centre binding set up elsewhere (not in the menu), by name.</summary>
+    public string CentreOther => CentreIndex >= 0 ? ""
+        : Localizer.Te("tablet.ring.centre.other", "Now: {action}").Replace("{action}",
+            _centre.Other != null ? _centre.Other.Path ?? "" : AuxKeyBinding.Describe(_centre.Binding), StringComparison.Ordinal);
+    public bool HasCentreOther => CentreOther.Length > 0;
+
+    /// <summary>A shortcut typed into the centre button's box; empty = Do nothing (the box stays for new keys).</summary>
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private Task SetCentreKeys(AuxCombo? combo)
+    {
+        _centreWantsKeys = true;
+        return SetCentreAsync(combo is { IsBound: true }
+            ? new RingCentre(false, new AuxBinding(AuxKind.Keyboard, combo, AuxKeyBinding.None, AuxKeyBinding.None))
+            : RingCentre.Nothing);
+    }
+
+    private async Task SetCentreAsync(RingCentre centre)
+    {
+        var before = _centre;
+        _centre = centre;
+        NotifyCentre();
+        if (_setCentre == null) return;
+        bool ok;
+        try { ok = await _setCentre(centre, Modes); }
+        catch (Exception ex)
+        {
+            AppLog.Warn("Touch Ring: changing what the centre button does failed.", ex);
+            ok = false;
+        }
+        if (ok) return;
+        _centre = before;
+        NotifyCentre();
+    }
+
+    private void NotifyCentre()
+    {
+        foreach (var n in new[] { nameof(CentreIndex), nameof(ShowCentreKeys), nameof(CentreKeysText), nameof(CentreOther),
+                     nameof(HasCentreOther), nameof(SwitchesModes), nameof(Centre), nameof(Summary) })
+            OnPropertyChanged(n);
+        UpdateReach();
+    }
+
+    /// <summary>Modes 2-4 are dimmed while the centre button doesn't switch modes (only mode 1 is used then).</summary>
+    private void UpdateReach()
+    {
+        foreach (var r in Rows) r.IsReachable = _centre.NextMode || r.Number == 1;
     }
 
     public IReadOnlyList<RingMode> Modes => Rows.Select(r => r.ToMode()).ToList();
@@ -150,31 +282,6 @@ public partial class RingModesEditor : ObservableObject
         catch (Exception) { /* no file yet (no press since the daemon started): leave as is */ }
     }
 
-    partial void OnIsOnChanged(bool value)
-    {
-        OnPropertyChanged(nameof(Summary));
-        if (_suppress) return;
-        _ = ToggleAsync(value);
-    }
-
-    /// <summary>Apply the switch; if the host couldn't apply it (nothing to write, wheel off, or an error),
-    /// flip the switch back so it never shows "on" while the ring still does its old thing. (Build F.)</summary>
-    private async Task ToggleAsync(bool value)
-    {
-        if (_setOn == null) return;
-        bool ok;
-        try { ok = await _setOn(value, Modes); }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Ring modes switch failed: {ex.Message}");
-            ok = false;
-        }
-        if (ok || IsOn != value) return;
-        _suppress = true;
-        try { IsOn = !value; }
-        finally { _suppress = false; }
-    }
-
     private Task OnRowChanged()
     {
         SizeNameBoxes();
@@ -196,6 +303,10 @@ public partial class RingModeRow : ObservableObject
 
     /// <summary>R18: this is the driver's current mode (its badge is lit).</summary>
     [ObservableProperty] private bool _isActive;
+
+    /// <summary>V29 #158: false for modes 2-4 while the centre button doesn't switch modes (the row is dimmed).</summary>
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(RowOpacity))] private bool _isReachable = true;
+    public double RowOpacity => IsReachable ? 1.0 : 0.45;
 
     /// <summary>Version 1: the name box fits the longest mode name (set by the editor).</summary>
     [ObservableProperty] private double _nameBoxWidth = 120;
@@ -309,7 +420,8 @@ public partial class RingModeRow : ObservableObject
 
     /// <summary>Zak 9 Nov: what turning the ring does in this mode and where it works, in one or two plain
     /// sentences. The app-specific tip is the separate <see cref="ModeSetup"/> line.</summary>
-    public string ModeNote => Action switch
+    public string ModeNote => !Enabled ? Localizer.Te("tablet.ring.note.nothing",
+            "The ring does nothing in this mode, and the centre button skips it.") : Action switch
     {
         RingAction.SmoothRotate => Localizer.Te("tablet.ring.note.rotate",
             "Turn the ring to rotate the canvas smoothly (experimental). Works in Photoshop and Affinity. Other apps get this mode's keys instead."),
@@ -326,7 +438,7 @@ public partial class RingModeRow : ObservableObject
     };
 
     /// <summary>Zak 9 Nov: the app setting a smooth mode needs, on its own "Setup:" line. Empty for keys.</summary>
-    public string ModeSetup => Action switch
+    public string ModeSetup => !Enabled ? "" : Action switch
     {
         RingAction.SmoothRotate => Localizer.Te("tablet.ring.setup.rotate",
             "Setup: in Affinity, turn on \"Enable canvas rotation with ⌘+scroll wheel\" in Settings › Tools. Photoshop needs no setup."),
@@ -451,7 +563,13 @@ public partial class RingModeRow : ObservableObject
         Localizer.Te("tablet.ring.fn.smooth_hardness", "Smooth hardness"),
         // Version 26 (#35, Maxime): a plain mouse-wheel scroll in every app, like Wacom's Touch Ring "Scroll".
         Localizer.Te("tablet.ring.fn.scroll", "Scroll"),
-    }.Concat(Presets.Select(p => p.Name)).ToList();
+    }.Concat(Presets.Select(p => p.Name))
+        // V29 #158 (Zak 20 Nov: "If anyone wants to turn off ... the touch ring just let them choose 'Do nothing'"): last, so the
+        // indices above keep their meaning. It is the mode's Off (the old "On" tick box): the ring does nothing, the centre skips it.
+        .Append(Localizer.Te("tablet.ring.fn.nothing", "Do nothing")).ToList();
+
+    /// <summary>V29 #158: the Function menu's "Do nothing" (the last item).</summary>
+    public static int DoNothingIndex => (int)RingAction.Scroll + 1 + Presets.Count;
     public IReadOnlyList<string> ActionChoices => ActionNames;
 
     /// <summary>The preset these keys are, or null.</summary>
@@ -459,12 +577,37 @@ public partial class RingModeRow : ObservableObject
         ? Presets.FirstOrDefault(p => p.Clockwise == _cw && p.CounterClockwise == _ccw) : null;
 
     /// <summary>Build N: short function name for the ring diagram ("Keyboard shortcut…", "Smooth rotate", "Volume", …).</summary>
-    public string ActionShort => !Enabled ? "Skip" : Preset is { } preset ? preset.Name : ActionNames[(int)Action];
+    public string ActionShort => !Enabled ? Localizer.Te("tablet.ring.fn.nothing", "Do nothing") : Preset is { } preset ? preset.Name : ActionNames[(int)Action];
 
     public int ActionIndex
     {
-        get => Preset is { } preset ? (int)RingAction.Scroll + 1 + Presets.ToList().IndexOf(preset) : (int)Action;
+        get => !Enabled ? DoNothingIndex
+            : Preset is { } preset ? (int)RingAction.Scroll + 1 + Presets.ToList().IndexOf(preset) : (int)Action;
         set
+        {
+            if (value == ActionIndex) return;
+            if (value == DoNothingIndex)
+            {
+                Enabled = false;   // saves (OnEnabledChanged)
+                return;
+            }
+            if (!Enabled)
+            {
+                // Back from Do nothing: the mode is on again with the function picked (saved once, below or by the setter).
+                SetQuietly(() => Enabled = true);
+                NotifyEnabled();
+                var before = Action;
+                var keysBefore = (_cw, _ccw);
+                SetFunction(value);
+                if (Action == before && (_cw, _ccw) == keysBefore) _ = _changed();
+                return;
+            }
+            SetFunction(value);
+        }
+    }
+
+    private void SetFunction(int value)
+    {
         {
             int presetIndex = value - ((int)RingAction.Scroll + 1);
             if (presetIndex >= 0 && presetIndex < Presets.Count) { UsePreset(Presets[presetIndex]); return; }
@@ -617,7 +760,10 @@ public partial class RingModeRow : ObservableObject
         _ = _changed();
     }
 
-    public bool UsesKeys => Action == RingAction.Keys;
+    public bool UsesKeys => Enabled && Action == RingAction.Keys;
+
+    /// <summary>V29 #158: the Speed is shown for a mode that does something (not for Do nothing).</summary>
+    public bool HasSpeed => Enabled;
 
     /// <summary>The sensitivity slider was released: commit it (scroll mode only).</summary>
     public void CommitScrollSensitivity()
@@ -654,8 +800,16 @@ public partial class RingModeRow : ObservableObject
 
     partial void OnEnabledChanged(bool value)
     {
-        OnPropertyChanged(nameof(ActionShort));
+        NotifyEnabled();
         if (!_suppress) _ = _changed();
+    }
+
+    /// <summary>Everything that shows whether the mode is on (V29 #158: Do nothing in the Function menu is the mode's Off).</summary>
+    private void NotifyEnabled()
+    {
+        foreach (var n in new[] { nameof(ActionShort), nameof(ActionIndex), nameof(Preset), nameof(UsesKeys), nameof(HasSpeed),
+                     nameof(ModeNote), nameof(ModeSetup), nameof(HasModeSetup) })
+            OnPropertyChanged(n);
     }
 
     private ButtonBinding MakeDirection(bool clockwise, AuxCombo combo,
