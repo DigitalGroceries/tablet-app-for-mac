@@ -22,13 +22,15 @@ public static class MacKeyboardLayout
     [DllImport(HIToolbox)] private static extern IntPtr TISGetInputSourceProperty(IntPtr inputSource, IntPtr propertyKey);
     [DllImport(HIToolbox)] private static extern byte LMGetKbdType();
     [DllImport(HIToolbox)] private static extern uint KBGetLayoutType(short keyboardType);
-    [DllImport(CoreServices)]
+    // Grok's review 20 Nov (1): without CharSet.Unicode a char[] is marshalled as 1-byte ANSI, so UTF-16 Cyrillic came back as
+    // Latin junk ('ч' as 'G') while ASCII looked fine. Both calls write UTF-16 (UniChar).
+    [DllImport(CoreServices, CharSet = CharSet.Unicode)]
     private static extern int UCKeyTranslate(IntPtr keyLayoutPtr, ushort virtualKeyCode, ushort keyAction, uint modifierKeyState,
         uint keyboardType, uint keyTranslateOptions, ref uint deadKeyState, nuint maxStringLength, out nuint actualStringLength,
         [Out] char[] unicodeString);
     [DllImport(CoreFoundation)] private static extern IntPtr CFDataGetBytePtr(IntPtr data);
     [DllImport(CoreFoundation)] private static extern nint CFStringGetLength(IntPtr str);
-    [DllImport(CoreFoundation)] private static extern void CFStringGetCharacters(IntPtr str, CFRange range, [Out] char[] buffer);
+    [DllImport(CoreFoundation, CharSet = CharSet.Unicode)] private static extern void CFStringGetCharacters(IntPtr str, CFRange range, [Out] char[] buffer);
     [DllImport(CoreFoundation)] private static extern void CFRelease(IntPtr obj);
 
     [StructLayout(LayoutKind.Sequential)]

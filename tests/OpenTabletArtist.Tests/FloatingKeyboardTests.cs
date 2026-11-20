@@ -78,7 +78,7 @@ public class FloatingKeyboardTests : IDisposable
     }
 
     /// <summary>A layout read from the Mac, for tests: British-like, or Bulgarian letters on the letter keys.</summary>
-    internal sealed class FakeLabels(string id, string name, KeyboardShape shape, bool cyrillic = false) : IKeyLabels
+    internal sealed class FakeLabels(string id, string name, KeyboardShape shape, bool cyrillic = false, bool sharpS = false) : IKeyLabels
     {
         public string Id => id;
         public string Name => name;
@@ -88,6 +88,7 @@ public class FloatingKeyboardTests : IDisposable
             var key = FloatingKeyboardLayout.MacKeyCodes.FirstOrDefault(p => p.Value == code).Key;
             if (key == null) return null;
             if (cyrillic && key == "Q") return ("я", "Я");
+            if (sharpS && key == "Minus") return ("ß", "?");
             if (key.Length == 1) return (key.ToLowerInvariant(), key);
             return key switch { "D3" => ("3", "£"), "D2" => ("2", "@"), "Section" => ("§", "±"), "Grave" => ("`", "~"), _ => ("?", "?") };
         }
@@ -109,6 +110,10 @@ public class FloatingKeyboardTests : IDisposable
         Assert.Equal("Я", FloatingKeyboardLayout.LabelFor(key("Q"), shift: false, capsLock: true, bulgarian));
         Assert.True(FloatingKeyboardLayout.IsLetter(key("Q"), bulgarian));
         Assert.False(FloatingKeyboardLayout.IsLetter(key("D3"), bulgarian));
+        // Grok's review 20 Nov (2): a letter whose Shift is not its capital (German ß -> ?) is not a letter for Caps Lock
+        var german = new FakeLabels("com.apple.keylayout.German", "German", KeyboardShape.Iso, sharpS: true);
+        Assert.False(FloatingKeyboardLayout.IsLetter(key("Minus"), german));
+        Assert.Equal("ß", FloatingKeyboardLayout.LabelFor(key("Minus"), shift: false, capsLock: true, german));
         // without the Mac's layout: the US labels, letters small unless Shift / Caps Lock
         Assert.Equal("a", FloatingKeyboardLayout.LabelFor(key("A"), shift: false, capsLock: false));
         Assert.Equal("[", FloatingKeyboardLayout.LabelFor(key("LeftBracket"), shift: true, capsLock: false));

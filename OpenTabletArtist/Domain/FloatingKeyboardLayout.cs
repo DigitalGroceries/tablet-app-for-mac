@@ -107,7 +107,11 @@ public static class FloatingKeyboardLayout
     public static bool IsLetter(FloatingKey key, IKeyLabels? labels = null)
     {
         if (key.IsModifier) return false;
-        if (Typed(key, labels) is { } t) return t.Normal.Length == 1 && char.IsLetter(t.Normal[0]);
+        // Grok's review 20 Nov (2): a letter key whose Shift gives something else (German ß, French é/è/ç/à on the digit row) is
+        // not a letter for Caps Lock: Caps would type that other thing, not a capital.
+        if (Typed(key, labels) is { } t)
+            return t.Normal.Length == 1 && char.IsLetter(t.Normal[0])
+                && string.Equals(t.Shifted, t.Normal.ToUpperInvariant(), StringComparison.Ordinal);
         return key.Value.Length == 1 && key.Value[0] is >= 'A' and <= 'Z';
     }
 
@@ -119,7 +123,7 @@ public static class FloatingKeyboardLayout
         if (Typed(key, labels) is { } t)
         {
             if (shift && t.Shifted.Length > 0) return t.Shifted;
-            return capsLock && IsLetter(key, labels) ? t.Normal.ToUpperInvariant() : t.Normal;
+            return capsLock && IsLetter(key, labels) ? t.Shifted : t.Normal;      // Caps sends Shift: show what Shift types
         }
         if (!IsLetter(key)) return key.Display;
         return shift || capsLock ? key.Display.ToUpperInvariant() : key.Display.ToLowerInvariant();

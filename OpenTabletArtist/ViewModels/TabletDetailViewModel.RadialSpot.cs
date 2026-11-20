@@ -169,8 +169,12 @@ public partial class TabletDetailViewModel
     }
 
     /// <summary>The keyboard goes on <paramref name="slot"/> (0-based; -1: on no slice) of the menu shown above, and off any other.</summary>
+    private readonly System.Threading.SemaphoreSlim _keyboardPutGate = new(1, 1);
+
     internal async Task PutKeyboardAsync(int slot)
     {
+        // Grok's review 20 Nov (5): two quick picks must not both start from the same old menu, so one runs after the other.
+        await _keyboardPutGate.WaitAsync();
         try
         {
             await FlushRadialSpotAsync();   // a slider change still waiting to be sent goes first
@@ -190,7 +194,9 @@ public partial class TabletDetailViewModel
         catch (Exception ex)
         {
             AppLog.Warn("Floating keyboard: putting it on a slice failed.", ex);
+            RefreshKeyboardSlots();         // the menu snaps back to where the keyboard really is
         }
+        finally { _keyboardPutGate.Release(); }
     }
 
     private string _spotAppliedJson = "";

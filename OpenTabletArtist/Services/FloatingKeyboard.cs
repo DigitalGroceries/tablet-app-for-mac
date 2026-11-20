@@ -231,6 +231,9 @@ public sealed class FloatingKeyboard : IDisposable
             // pen, on the pen's screen; above it when there is no room below; kept inside the screen (as the palette hint is placed).
             var (_, h) = Size();
             double x = nearX - w / 2, y = nearY;
+            // Units (Grok's review 20 Nov (4)): on macOS Avalonia's Screen.Bounds/WorkingArea and Window.Position are global points,
+            // the same space as the pen's CGEvent location (verified on Zak's Mac, see PenSampleMapping and RadialMenuOverlay.Show),
+            // so nearX/nearY, the working area and the position need no Retina scaling here.
             var screen = _window.Screens?.ScreenFromPoint(new PixelPoint((int)nearX, (int)nearY));
             if (screen != null)
             {
@@ -576,6 +579,8 @@ public sealed class FloatingKeyboard : IDisposable
 
     public void Dispose()
     {
+        _layoutTimer?.Stop();                                   // Grok's review 20 Nov (6)
+        _layoutTimer = null;
         WriteOpenFlag(false);
         _window?.Close();
         _window = null;
