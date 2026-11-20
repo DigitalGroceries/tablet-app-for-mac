@@ -238,7 +238,7 @@
   "tablet.ring.note.scroll": "Gire o anel para rolar, como a roda do mouse: no sentido horário rola para baixo, no anti-horário rola para cima. Funciona em todos os apps.",
   "tablet.ring.note.keys": "Girar o anel envia as teclas abaixo, uma vez a cada {degrees}°.",
   "tablet.ring.setup.rotate": "Configuração: no Affinity, ative “Enable canvas rotation with ⌘+scroll wheel” em Settings › Tools. O Photoshop não precisa de configuração.",
-  "tablet.ring.setup.zoom": "Configuração: se o Photoshop mover a imagem para cima e para baixo em vez de aplicar zoom, desmarque “Zoom with Scroll Wheel” em Settings › Tools do Photoshop. Ou escolha Keystroke… e use ⌘= e ⌘−.",
+  "tablet.ring.setup.zoom": "Configuração: se o Photoshop mover a imagem para cima e para baixo em vez de aplicar zoom, desmarque “Zoom with Scroll Wheel” em Settings › Tools do Photoshop. Ou escolha Atalho de teclado… e use ⌘= e ⌘−.",
   "tablet.ring.setup.size": "Configuração: no Photoshop, escolha uma ferramenta de pincel e ative “Use Graphics Processor” em Settings › Performance.",
   "tablet.ring.setup.hardness": "Configuração: no Photoshop, ative “Vary Round Brush Hardness based on HUD vertical movement” em Settings › Tools. Sem isso, o anel muda a opacidade.",
   "tablet.ring.slow": "Lento",
@@ -710,5 +710,14 @@
   "binding.media.stop": "Parar",
   "binding.media.brightness_down": "Diminuir brilho",
   "binding.media.brightness_up": "Aumentar brilho",
-  "binding.media.brightness_tip": "Como a tecla de brilho do Mac: muda a tela em que você clicou por último."
+  "binding.media.brightness_tip": "Como a tecla de brilho do Mac: muda a tela em que você clicou por último.",
+  "tablet.ring.fn.keys": "Atalho de teclado…",
+  "tablet.ring.fn.smooth_rotate": "Rotação suave",
+  "tablet.ring.fn.smooth_zoom": "Zoom suave",
+  "tablet.ring.fn.smooth_size": "Tamanho do pincel suave",
+  "tablet.ring.fn.smooth_hardness": "Dureza suave",
+  "tablet.ring.fn.scroll": "Rolagem",
+  "tablet.ring.fn.volume": "Volume",
+  "tablet.ring.fn.brightness": "Brilho",
+  "tablet.ring.fn.tracks": "Faixa anterior / próxima"
 }

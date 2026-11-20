@@ -1254,19 +1254,25 @@
                                          modes, each sending its own keys per direction (brush size, zoom, …). -->
                                     <!-- Version 16: touch strips have no ring modes (no centre button). -->
                                     <Border Classes="wheelRowDivider" Margin="0,10,0,0" IsVisible="{Binding IsRing}" />
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,8,364,8" IsVisible="{Binding IsRing}">
-                                        <StackPanel Spacing="2" VerticalAlignment="Center">
-                                            <TextBlock x:Name="LblTouchRingModes" Text="Touch Ring modes" FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextPrimaryBrush}" />
-                                            <TextBlock Text="{Binding RingModes.Summary}" TextWrapping="Wrap"
+                                    <!-- V29 #152 (Zak 20 Nov): the switch sits right after its name with Off / On, like the Touch Ring
+                                         switch at the top; the line under it says what Off and On do. -->
+                                    <StackPanel Spacing="4" Margin="0,8,364,8" IsVisible="{Binding IsRing}">
+                                        <StackPanel x:Name="RingModesSwitchRow" Orientation="Horizontal" Spacing="6">
+                                            <TextBlock x:Name="LblTouchRingModes" Text="{Binding ModesLabel}" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,6,0" />
+                                            <TextBlock Text="{Binding OffText}" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                            <ToggleSwitch x:Name="RingModesSwitch" IsChecked="{Binding RingModes.IsOn}"
+                                                          IsEnabled="{Binding RingModes.CanEdit}"
+                                                          OnContent="" OffContent="" MinWidth="0" VerticalAlignment="Center"
+                                                          AutomationProperties.Name="Ring modes"
+                                                          ToolTip.Tip="Up to four ring modes, each with its own keys. The centre button switches mode." />
+                                            <TextBlock Text="{Binding OnText}" VerticalAlignment="Center"
                                                        Foreground="{DynamicResource TextSecondaryBrush}" />
                                         </StackPanel>
-                                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding RingModes.IsOn}"
-                                                      IsEnabled="{Binding RingModes.CanEdit}"
-                                                      OnContent="" OffContent="" MinWidth="0" VerticalAlignment="Center"
-                                                      AutomationProperties.Name="Ring modes"
-                                                      ToolTip.Tip="Up to four ring modes, each with its own keys. The centre button switches mode." />
-                                    </Grid>
+                                        <TextBlock Text="{Binding RingModes.Summary}" TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                                    </StackPanel>
                                     <CheckBox x:Name="ChkShowTouchRing" Content="Show Touch Ring setting (on-screen mode display)"
                                               IsChecked="{Binding RingModes.ShowOnScreen}"
                                               IsVisible="{Binding RingModes.IsOn, FallbackValue=False}"

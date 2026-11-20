@@ -331,7 +331,7 @@ public partial class RingModeRow : ObservableObject
         RingAction.SmoothRotate => Localizer.Te("tablet.ring.setup.rotate",
             "Setup: in Affinity, turn on \"Enable canvas rotation with ⌘+scroll wheel\" in Settings › Tools. Photoshop needs no setup."),
         RingAction.SmoothZoom => Localizer.Te("tablet.ring.setup.zoom",
-            "Setup: if Photoshop moves the picture up and down instead of zooming, untick \"Zoom with Scroll Wheel\" in Photoshop's Settings › Tools. Or choose Keystroke… and use ⌘= and ⌘−."),
+            "Setup: if Photoshop moves the picture up and down instead of zooming, untick \"Zoom with Scroll Wheel\" in Photoshop's Settings › Tools. Or choose Keyboard shortcut… and use ⌘= and ⌘−."),
         RingAction.SmoothSize => Localizer.Te("tablet.ring.setup.size",
             "Setup: in Photoshop, pick a brush tool and turn on \"Use Graphics Processor\" in Settings › Performance."),
         RingAction.SmoothHardness => Localizer.Te("tablet.ring.setup.hardness",
@@ -422,35 +422,81 @@ public partial class RingModeRow : ObservableObject
         if (changed) _ = _changed();
     }
 
-    /// <summary>Build L: the "Ring does" dropdown (index into <see cref="ActionNames"/>, same order as RingAction).</summary>
-    public static IReadOnlyList<string> ActionNames { get; } = new[]
+    /// <summary>V29 #153 (Zak 20 Nov: "The Brightness and all other functions should be available to choose from the menu
+    /// called Keystroke ... so the need of extra app window goes away"): actions with a ready pair of keys, picked straight
+    /// from the Function menu. Underneath they are the Keys action with these keys (so the driver needs nothing new).</summary>
+    public sealed record KeyPreset(string Key, string English, AuxCombo Clockwise, AuxCombo CounterClockwise)
     {
-        "Keystroke…",
-        // Build Q: the hold-and-drag actions are labelled Experimental; none is on by default (Defaults use keys).
-        "Smooth rotate",
-        "Smooth zoom",
-        "Smooth brush size",
-        "Smooth hardness",
-        // Version 26 (#35, Maxime): a plain mouse-wheel scroll in every app, like Wacom's Touch Ring "Scroll".
-        "Scroll",
+        public string Name => Localizer.Te(Key, English);
+    }
+
+    public static IReadOnlyList<KeyPreset> Presets { get; } = new[]
+    {
+        new KeyPreset("tablet.ring.fn.volume", "Volume", Media("VolumeUp"), Media("VolumeDown")),
+        new KeyPreset("tablet.ring.fn.brightness", "Brightness", Media("BrightnessUp"), Media("BrightnessDown")),
+        new KeyPreset("tablet.ring.fn.tracks", "Previous / next track", Media("NextSong"), Media("PreviousSong")),
     };
+
+    private static AuxCombo Media(string key) => new(false, false, false, key);
+
+    /// <summary>Build L: the Function dropdown. The first six follow RingAction's order; V29 #153's presets come after
+    /// them. Names in the app's language (V29: they were English in every language).</summary>
+    public static IReadOnlyList<string> ActionNames => new[]
+    {
+        Localizer.Te("tablet.ring.fn.keys", "Keyboard shortcut…"),
+        // Build Q: the hold-and-drag actions are labelled Experimental; none is on by default (Defaults use keys).
+        Localizer.Te("tablet.ring.fn.smooth_rotate", "Smooth rotate"),
+        Localizer.Te("tablet.ring.fn.smooth_zoom", "Smooth zoom"),
+        Localizer.Te("tablet.ring.fn.smooth_size", "Smooth brush size"),
+        Localizer.Te("tablet.ring.fn.smooth_hardness", "Smooth hardness"),
+        // Version 26 (#35, Maxime): a plain mouse-wheel scroll in every app, like Wacom's Touch Ring "Scroll".
+        Localizer.Te("tablet.ring.fn.scroll", "Scroll"),
+    }.Concat(Presets.Select(p => p.Name)).ToList();
     public IReadOnlyList<string> ActionChoices => ActionNames;
 
-    /// <summary>Build N: short function name for the ring diagram ("Keystroke…", "Rotate", …).</summary>
-    public string ActionShort => !Enabled ? "Skip" : Action switch
-    {
-        RingAction.SmoothRotate => "Smooth rotate",
-        RingAction.SmoothZoom => "Smooth zoom",
-        RingAction.SmoothSize => "Smooth brush size",
-        RingAction.SmoothHardness => "Smooth hardness",
-        RingAction.Scroll => "Scroll",
-        _ => "Keystroke…",
-    };
+    /// <summary>The preset these keys are, or null.</summary>
+    public KeyPreset? Preset => Action == RingAction.Keys
+        ? Presets.FirstOrDefault(p => p.Clockwise == _cw && p.CounterClockwise == _ccw) : null;
+
+    /// <summary>Build N: short function name for the ring diagram ("Keyboard shortcut…", "Smooth rotate", "Volume", …).</summary>
+    public string ActionShort => !Enabled ? "Skip" : Preset is { } preset ? preset.Name : ActionNames[(int)Action];
 
     public int ActionIndex
     {
-        get => (int)Action;
-        set { if (value >= 0 && value < ActionNames.Count) Action = (RingAction)value; }
+        get => Preset is { } preset ? (int)RingAction.Scroll + 1 + Presets.ToList().IndexOf(preset) : (int)Action;
+        set
+        {
+            int presetIndex = value - ((int)RingAction.Scroll + 1);
+            if (presetIndex >= 0 && presetIndex < Presets.Count) { UsePreset(Presets[presetIndex]); return; }
+            if (value < 0 || value > (int)RingAction.Scroll) return;
+            // Leaving a preset for "Keyboard shortcut…": start from empty rows for the user's own keys (picking the preset
+            // again puts its keys back), so the menu doesn't jump back to the preset's name.
+            if (value == (int)RingAction.Keys && Preset != null) SetKeys(AuxCombo.Unbound, AuxCombo.Unbound);
+            Action = (RingAction)value;
+            NotifyFunction();
+        }
+    }
+
+    private void UsePreset(KeyPreset preset)
+    {
+        SetQuietly(() => Action = RingAction.Keys);
+        SetKeys(preset.Clockwise, preset.CounterClockwise);
+        NotifyFunction();
+        if (!_suppress) _ = _changed();
+    }
+
+    private void SetKeys(AuxCombo cw, AuxCombo ccw)
+    {
+        _cw = cw; _ccw = ccw;
+        Clockwise.ShowQuietly(cw.IsBound ? new AuxBinding(AuxKind.Keyboard, cw, AuxKeyBinding.None, AuxKeyBinding.None) : AuxBinding.Unbound);
+        CounterClockwise.ShowQuietly(ccw.IsBound ? new AuxBinding(AuxKind.Keyboard, ccw, AuxKeyBinding.None, AuxKeyBinding.None) : AuxBinding.Unbound);
+    }
+
+    private void NotifyFunction()
+    {
+        OnPropertyChanged(nameof(ActionIndex));
+        OnPropertyChanged(nameof(ActionShort));
+        OnPropertyChanged(nameof(Preset));
     }
 
     private static int Sens(double v, int min, int max) => (int)Math.Round(Math.Clamp(v, min, max));
@@ -632,6 +678,7 @@ public partial class RingModeRow : ObservableObject
                 // The ring plugin sends keys; a mouse or scroll choice can't be kept for a mode.
                 var keys = b.Kind == AuxKind.Keyboard ? b.Combo : AuxCombo.Unbound;
                 if (clockwise) _cw = keys; else _ccw = keys;
+                NotifyFunction();   // V29 #153: e.g. Volume up + Volume down set by hand shows as "Volume"
                 return _changed();
             },
             label: label,

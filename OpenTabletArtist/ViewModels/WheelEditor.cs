@@ -87,6 +87,8 @@ public partial class WheelEditor : ObservableObject
 
     public string OffText => Services.Localizer.Te("tablet.switch.off", "Off");
     public string OnText => Services.Localizer.Te("tablet.switch.on", "On");
+    /// <summary>V29 #152: the Touch Ring modes switch's name, in the app's language (it showed English in every language).</summary>
+    public string ModesLabel => Services.Localizer.Te("tablet.ring.modes", "Touch Ring modes");
 
     partial void OnIsOnChanged(bool value)
     {

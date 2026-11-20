@@ -72,3 +72,52 @@ public class RingPlainRowsTests
         Assert.StartsWith("Optional.", editor.Summary);
     }
 }
+
+/// <summary>V29 #153 (Zak 20 Nov): Volume, Brightness and Previous / next track picked straight from a ring mode's Function
+/// menu, no key window.</summary>
+public class RingFunctionPresetTests
+{
+    private static RingModeRow Row(RingMode mode, System.Func<System.Threading.Tasks.Task>? changed = null) =>
+        new(1, mode, canEdit: true, editBinding: null, changed: changed ?? (() => System.Threading.Tasks.Task.CompletedTask));
+
+    private const int Volume = 6, Brightness = 7, Tracks = 8;
+
+    [Fact]
+    public void PickingBrightness_SetsBothDirections_AndSaves()
+    {
+        int saves = 0;
+        var row = Row(RingModeBinding.Defaults[1], () => { saves++; return System.Threading.Tasks.Task.CompletedTask; });
+        row.ActionIndex = Brightness;
+        var mode = row.ToMode();
+        Assert.Equal("BrightnessUp", mode.Clockwise.Key);
+        Assert.Equal("BrightnessDown", mode.CounterClockwise.Key);
+        Assert.Equal(Brightness, row.ActionIndex);
+        Assert.Equal("Brightness", row.ActionShort);
+        Assert.Equal("Brightness up", row.Clockwise.Summary);
+        Assert.True(saves >= 1);
+    }
+
+    [Fact]
+    public void AModeAlreadySetToVolumeKeys_ShowsVolume()
+    {
+        var mode = new RingMode("Mine", new AuxCombo(false, false, false, "VolumeUp"), new AuxCombo(false, false, false, "VolumeDown"));
+        Assert.Equal(Volume, Row(mode).ActionIndex);
+    }
+
+    [Fact]
+    public void BackToKeyboardShortcut_FromAPreset_StartsWithEmptyKeys()
+    {
+        var row = Row(RingModeBinding.Defaults[1]);
+        row.ActionIndex = Tracks;
+        row.ActionIndex = 0;
+        Assert.Equal(0, row.ActionIndex);
+        Assert.False(row.ToMode().Clockwise.IsBound);
+        Assert.False(row.ToMode().CounterClockwise.IsBound);
+    }
+
+    [Fact]
+    public void TheDefaultZoomMode_StaysAKeyboardShortcut()
+    {
+        Assert.Equal(0, Row(RingModeBinding.Defaults[1]).ActionIndex);
+    }
+}

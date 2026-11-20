@@ -234,7 +234,7 @@
   "tablet.ring.note.scroll": "Drehe den Ring, um wie mit einem Mausrad zu scrollen: im Uhrzeigersinn nach unten, gegen den Uhrzeigersinn nach oben. Funktioniert in jeder App.",
   "tablet.ring.note.keys": "Beim Drehen des Rings werden die Tasten unten alle {degrees}° gesendet.",
   "tablet.ring.setup.rotate": "Einrichtung: Schalte in Affinity unter Settings › Tools „Enable canvas rotation with ⌘+scroll wheel“ ein. Photoshop braucht keine Einrichtung.",
-  "tablet.ring.setup.zoom": "Einrichtung: Wenn Photoshop das Bild nach oben und unten verschiebt, statt zu zoomen, entferne in Photoshop unter Settings › Tools das Häkchen bei „Zoom with Scroll Wheel“. Oder wähle Keystroke… und nutze ⌘= und ⌘−.",
+  "tablet.ring.setup.zoom": "Einrichtung: Wenn Photoshop das Bild nach oben und unten verschiebt, statt zu zoomen, entferne in Photoshop unter Settings › Tools das Häkchen bei „Zoom with Scroll Wheel“. Oder wähle Tastenkürzel… und nutze ⌘= und ⌘−.",
   "tablet.ring.setup.size": "Einrichtung: Wähle in Photoshop ein Pinsel-Werkzeug und schalte unter Settings › Performance „Use Graphics Processor“ ein.",
   "tablet.ring.setup.hardness": "Einrichtung: Schalte in Photoshop unter Settings › Tools „Vary Round Brush Hardness based on HUD vertical movement“ ein. Ohne diese Option ändert der Ring stattdessen die Deckkraft.",
   "tablet.ring.slow": "Langsam",
@@ -710,5 +710,14 @@
   "binding.media.stop": "Stopp",
   "binding.media.brightness_down": "Helligkeit verringern",
   "binding.media.brightness_up": "Helligkeit erhöhen",
-  "binding.media.brightness_tip": "Wie die Helligkeitstaste des Mac: ändert den Bildschirm, auf den du zuletzt geklickt hast."
+  "binding.media.brightness_tip": "Wie die Helligkeitstaste des Mac: ändert den Bildschirm, auf den du zuletzt geklickt hast.",
+  "tablet.ring.fn.keys": "Tastenkürzel…",
+  "tablet.ring.fn.smooth_rotate": "Stufenlos drehen",
+  "tablet.ring.fn.smooth_zoom": "Stufenlos zoomen",
+  "tablet.ring.fn.smooth_size": "Pinselgröße stufenlos",
+  "tablet.ring.fn.smooth_hardness": "Härte stufenlos",
+  "tablet.ring.fn.scroll": "Scrollen",
+  "tablet.ring.fn.volume": "Lautstärke",
+  "tablet.ring.fn.brightness": "Helligkeit",
+  "tablet.ring.fn.tracks": "Vorheriger / nächster Titel"
 }

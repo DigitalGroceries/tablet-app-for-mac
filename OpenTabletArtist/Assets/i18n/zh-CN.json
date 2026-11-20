@@ -234,7 +234,7 @@
   "tablet.ring.note.scroll": "转动触控环即可像鼠标滚轮一样滚动：顺时针向下滚动，逆时针向上滚动。适用于所有应用。",
   "tablet.ring.note.keys": "触控环每转动 {degrees}°，就发送一次下方的按键。",
   "tablet.ring.setup.rotate": "设置：在 Affinity 的 Settings › Tools 中开启“Enable canvas rotation with ⌘+scroll wheel”。Photoshop 无需设置。",
-  "tablet.ring.setup.zoom": "设置：如果 Photoshop 上下移动画面而不是缩放，请在 Photoshop 的 Settings › Tools 中取消勾选“Zoom with Scroll Wheel”。或者选择 Keystroke…，使用 ⌘= 和 ⌘−。",
+  "tablet.ring.setup.zoom": "设置：如果 Photoshop 上下移动画面而不是缩放，请在 Photoshop 的 Settings › Tools 中取消勾选“Zoom with Scroll Wheel”。或者选择 键盘快捷键…，使用 ⌘= 和 ⌘−。",
   "tablet.ring.setup.size": "设置：在 Photoshop 中选择画笔工具，并在 Settings › Performance 中开启“Use Graphics Processor”。",
   "tablet.ring.setup.hardness": "设置：在 Photoshop 的 Settings › Tools 中开启“Vary Round Brush Hardness based on HUD vertical movement”。未开启时，触控环会改变不透明度而不是硬度。",
   "tablet.ring.slow": "慢",
@@ -710,5 +710,14 @@
   "binding.media.stop": "停止",
   "binding.media.brightness_down": "降低亮度",
   "binding.media.brightness_up": "提高亮度",
-  "binding.media.brightness_tip": "与 Mac 的亮度键相同：调节你最后点按的屏幕的亮度。"
+  "binding.media.brightness_tip": "与 Mac 的亮度键相同：调节你最后点按的屏幕的亮度。",
+  "tablet.ring.fn.keys": "键盘快捷键…",
+  "tablet.ring.fn.smooth_rotate": "平滑旋转",
+  "tablet.ring.fn.smooth_zoom": "平滑缩放",
+  "tablet.ring.fn.smooth_size": "平滑笔刷大小",
+  "tablet.ring.fn.smooth_hardness": "平滑硬度",
+  "tablet.ring.fn.scroll": "滚动",
+  "tablet.ring.fn.volume": "音量",
+  "tablet.ring.fn.brightness": "亮度",
+  "tablet.ring.fn.tracks": "上一首 / 下一首"
 }

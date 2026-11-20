@@ -238,7 +238,7 @@
   "tablet.ring.note.scroll": "Ruota l'anello per scorrere, come la rotella del mouse: in senso orario scorre in basso, in senso antiorario scorre in alto. Funziona in tutte le app.",
   "tablet.ring.note.keys": "Ruotando l'anello si inviano i tasti qui sotto, una volta ogni {degrees}°.",
   "tablet.ring.setup.rotate": "Configurazione: in Affinity, attiva \"Enable canvas rotation with ⌘+scroll wheel\" in Settings › Tools. Photoshop non richiede configurazione.",
-  "tablet.ring.setup.zoom": "Configurazione: se Photoshop sposta l'immagine su e giù invece di fare zoom, deseleziona \"Zoom with Scroll Wheel\" in Settings › Tools di Photoshop. Oppure scegli Keystroke… e usa ⌘= e ⌘−.",
+  "tablet.ring.setup.zoom": "Configurazione: se Photoshop sposta l'immagine su e giù invece di fare zoom, deseleziona \"Zoom with Scroll Wheel\" in Settings › Tools di Photoshop. Oppure scegli Scorciatoia da tastiera… e usa ⌘= e ⌘−.",
   "tablet.ring.setup.size": "Configurazione: in Photoshop, scegli uno strumento pennello e attiva \"Use Graphics Processor\" in Settings › Performance.",
   "tablet.ring.setup.hardness": "Configurazione: in Photoshop, attiva \"Vary Round Brush Hardness based on HUD vertical movement\" in Settings › Tools. Senza questa opzione, l'anello cambia invece l'opacità.",
   "tablet.ring.slow": "Lenta",
@@ -710,5 +710,14 @@
   "binding.media.stop": "Stop",
   "binding.media.brightness_down": "Riduci luminosità",
   "binding.media.brightness_up": "Aumenta luminosità",
-  "binding.media.brightness_tip": "Come il tasto luminosità del Mac: cambia lo schermo su cui hai fatto clic per ultimo."
+  "binding.media.brightness_tip": "Come il tasto luminosità del Mac: cambia lo schermo su cui hai fatto clic per ultimo.",
+  "tablet.ring.fn.keys": "Scorciatoia da tastiera…",
+  "tablet.ring.fn.smooth_rotate": "Rotazione fluida",
+  "tablet.ring.fn.smooth_zoom": "Zoom fluido",
+  "tablet.ring.fn.smooth_size": "Dimensione pennello fluida",
+  "tablet.ring.fn.smooth_hardness": "Durezza fluida",
+  "tablet.ring.fn.scroll": "Scorrimento",
+  "tablet.ring.fn.volume": "Volume",
+  "tablet.ring.fn.brightness": "Luminosità",
+  "tablet.ring.fn.tracks": "Brano precedente / successivo"
 }

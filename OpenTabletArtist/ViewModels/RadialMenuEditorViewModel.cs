@@ -251,6 +251,8 @@ public partial class RadialMenuEditorViewModel : ObservableObject
             OnPropertyChanged();
             OnPropertyChanged(nameof(PaletteSizeStep));
             OnPropertyChanged(nameof(PaletteSizeInput));
+            // V29 #155 (Zak 20 Nov): an open palette follows at once, as the radial menu does (v27).
+            OpenTabletArtist.Services.RadialMenuOverlay.ShowLookLive(CurrentJson());
         }
     }
 

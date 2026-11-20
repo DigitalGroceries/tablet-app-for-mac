@@ -238,7 +238,7 @@
   "tablet.ring.note.scroll": "Turn the ring to scroll, like a mouse wheel: clockwise scrolls down, anticlockwise scrolls up. Works in every app.",
   "tablet.ring.note.keys": "Turning the ring sends the keys below, once every {degrees}°.",
   "tablet.ring.setup.rotate": "Setup: in Affinity, turn on \"Enable canvas rotation with ⌘+scroll wheel\" in Settings › Tools. Photoshop needs no setup.",
-  "tablet.ring.setup.zoom": "Setup: if Photoshop moves the picture up and down instead of zooming, untick \"Zoom with Scroll Wheel\" in Photoshop's Settings › Tools. Or choose Keystroke… and use ⌘= and ⌘−.",
+  "tablet.ring.setup.zoom": "Setup: if Photoshop moves the picture up and down instead of zooming, untick \"Zoom with Scroll Wheel\" in Photoshop's Settings › Tools. Or choose Keyboard shortcut… and use ⌘= and ⌘−.",
   "tablet.ring.setup.size": "Setup: in Photoshop, pick a brush tool and turn on \"Use Graphics Processor\" in Settings › Performance.",
   "tablet.ring.setup.hardness": "Setup: in Photoshop, turn on \"Vary Round Brush Hardness based on HUD vertical movement\" in Settings › Tools. Without it, the ring changes opacity instead.",
   "tablet.ring.slow": "Slow",
@@ -710,5 +710,14 @@
   "binding.media.stop": "Stop",
   "binding.media.brightness_down": "Brightness down",
   "binding.media.brightness_up": "Brightness up",
-  "binding.media.brightness_tip": "Like the Mac's brightness key: changes the screen you last clicked in."
+  "binding.media.brightness_tip": "Like the Mac's brightness key: changes the screen you last clicked in.",
+  "tablet.ring.fn.keys": "Keyboard shortcut…",
+  "tablet.ring.fn.smooth_rotate": "Smooth rotate",
+  "tablet.ring.fn.smooth_zoom": "Smooth zoom",
+  "tablet.ring.fn.smooth_size": "Smooth brush size",
+  "tablet.ring.fn.smooth_hardness": "Smooth hardness",
+  "tablet.ring.fn.scroll": "Scroll",
+  "tablet.ring.fn.volume": "Volume",
+  "tablet.ring.fn.brightness": "Brightness",
+  "tablet.ring.fn.tracks": "Previous / next track"
 }

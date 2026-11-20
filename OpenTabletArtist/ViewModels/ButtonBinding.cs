@@ -126,6 +126,16 @@ public partial class ButtonBinding : ObservableObject
         if (_applyBinding != null) await _applyBinding(Index, binding);
     }
 
+    /// <summary>V29 #153: show <paramref name="binding"/> (set by its owner, e.g. a ring mode's Function menu) without
+    /// applying it again; the owner saves it itself.</summary>
+    public void ShowQuietly(AuxBinding binding)
+    {
+        _applied = binding;
+        IsOtherBinding = false;
+        OnPropertyChanged(nameof(Summary));
+        ClearCommand.NotifyCanExecuteChanged();
+    }
+
     /// <summary>Something is mapped here, so there is something to clear. An unmodellable binding counts:
     /// it is exactly the case the modal editor cannot undo.</summary>
     private bool CanClear => CanEdit && (_applied.IsBound || IsOtherBinding);

@@ -234,7 +234,7 @@
   "tablet.ring.note.scroll": "Поворачивайте кольцо, чтобы прокручивать, как колёсиком мыши: по часовой стрелке — вниз, против часовой стрелки — вверх. Работает в любом приложении.",
   "tablet.ring.note.keys": "При повороте кольца клавиши ниже отправляются каждые {degrees}°.",
   "tablet.ring.setup.rotate": "Настройка: в Affinity включите «Enable canvas rotation with ⌘+scroll wheel» в Settings › Tools. Для Photoshop настройка не нужна.",
-  "tablet.ring.setup.zoom": "Настройка: если Photoshop сдвигает изображение вверх и вниз вместо масштабирования, снимите флажок «Zoom with Scroll Wheel» в Settings › Tools в Photoshop. Или выберите Keystroke… и используйте ⌘= и ⌘−.",
+  "tablet.ring.setup.zoom": "Настройка: если Photoshop сдвигает изображение вверх и вниз вместо масштабирования, снимите флажок «Zoom with Scroll Wheel» в Settings › Tools в Photoshop. Или выберите Сочетание клавиш… и используйте ⌘= и ⌘−.",
   "tablet.ring.setup.size": "Настройка: в Photoshop выберите инструмент «Кисть» и включите «Use Graphics Processor» в Settings › Performance.",
   "tablet.ring.setup.hardness": "Настройка: в Photoshop включите «Vary Round Brush Hardness based on HUD vertical movement» в Settings › Tools. Без этой опции кольцо меняет непрозрачность.",
   "tablet.ring.slow": "Медленно",
@@ -710,5 +710,14 @@
   "binding.media.stop": "Стоп",
   "binding.media.brightness_down": "Уменьшить яркость",
   "binding.media.brightness_up": "Увеличить яркость",
-  "binding.media.brightness_tip": "Как клавиша яркости Mac: меняет яркость экрана, на котором вы щёлкнули в последний раз."
+  "binding.media.brightness_tip": "Как клавиша яркости Mac: меняет яркость экрана, на котором вы щёлкнули в последний раз.",
+  "tablet.ring.fn.keys": "Сочетание клавиш…",
+  "tablet.ring.fn.smooth_rotate": "Плавный поворот",
+  "tablet.ring.fn.smooth_zoom": "Плавное масштабирование",
+  "tablet.ring.fn.smooth_size": "Плавный размер кисти",
+  "tablet.ring.fn.smooth_hardness": "Плавная жёсткость",
+  "tablet.ring.fn.scroll": "Прокрутка",
+  "tablet.ring.fn.volume": "Громкость",
+  "tablet.ring.fn.brightness": "Яркость",
+  "tablet.ring.fn.tracks": "Предыдущий / следующий трек"
 }

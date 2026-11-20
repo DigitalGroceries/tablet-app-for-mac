@@ -125,12 +125,15 @@ public sealed class RadialMenuOverlay : IDisposable
             if (st.Editing || st.Confirm || st.Busy) return false;
             if (!SameSlices(st.Menu, previewMenuJson)) return false;
             var preview = RadialMenuJson.Parse(previewMenuJson);
-            if (preview.Size == st.Size && preview.Transparency == st.Transparency) return true;
+            // V29 #155 (Zak 20 Nov): an open colour palette follows its own size slider live too (its transparency is fixed).
+            if (st.IsPalette ? preview.PaletteSize == st.Size
+                             : preview.Size == st.Size && preview.Transparency == st.Transparency) return true;
             SendCommand(RadialMenuCommand.MenuChanged, menu: previewMenuJson);
             if (Environment.TickCount64 - _lastLiveLog > 2000)
             {
                 _lastLiveLog = Environment.TickCount64;
-                AppLog.Info($"Radial menu: the open menu now follows the settings (size {preview.Size}, transparency {preview.Transparency}%).");
+                AppLog.Info(st.IsPalette ? $"Colour palette: the open palette now follows the settings (size {preview.PaletteSize})."
+                    : $"Radial menu: the open menu now follows the settings (size {preview.Size}, transparency {preview.Transparency}%).");
             }
             return true;
         }
@@ -141,13 +144,13 @@ public sealed class RadialMenuOverlay : IDisposable
         }
     }
 
-    /// <summary>Same slices (labels, actions, submenus), whatever the size and transparency.</summary>
+    /// <summary>Same slices (labels, actions, submenus), whatever the size and transparency of the menu and the palette.</summary>
     internal static bool SameSlices(string? openMenuJson, string previewMenuJson)
     {
         if (string.IsNullOrWhiteSpace(openMenuJson)) return false;
         var a = RadialMenuJson.Parse(openMenuJson);
         var b = RadialMenuJson.Parse(previewMenuJson);
-        a.Size = b.Size; a.Transparency = b.Transparency;
+        a.Size = b.Size; a.Transparency = b.Transparency; a.PaletteSize = b.PaletteSize;   // V29 #155
         return RadialMenuJson.Serialize(a) == RadialMenuJson.Serialize(b);
     }
 

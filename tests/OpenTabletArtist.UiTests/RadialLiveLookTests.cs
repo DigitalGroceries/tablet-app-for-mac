@@ -63,6 +63,25 @@ public class RadialLiveLookTests
     }
 
     [AvaloniaFact]
+    public void AnOpenColourPalette_FollowsItsSizeSlider_AtOnce()
+    {
+        // V29 #155 (Zak 20 Nov): the palette's size used to change only the next time it opened.
+        var (overlay, dir, old) = Start();
+        try
+        {
+            var menu = Menu(50, 40); menu.PaletteSize = 40;
+            overlay.ShowNowForTest(Open(menu) with { Size = 40, Kind = "palette", Transparency = 0 });
+            Dispatcher.UIThread.RunJobs();
+            var smaller = Menu(50, 40); smaller.PaletteSize = 30;
+            Assert.True(overlay.TryLook(RadialMenuJson.Serialize(smaller)));
+            var cmd = Assert.IsType<RadialMenuCommand>(Sent());
+            Assert.Equal(RadialMenuCommand.MenuChanged, cmd.Op);
+            Assert.Equal(30, RadialMenuJson.Parse(cmd.Menu).PaletteSize);
+        }
+        finally { overlay.Dispose(); RadialMenuOverlay.CommandFilePath = old; try { System.IO.Directory.Delete(dir, true); } catch (System.IO.IOException) { } }
+    }
+
+    [AvaloniaFact]
     public void ADifferentMenu_OrAnEditInProgress_OrNoOpenMenu_IsLeftAlone()
     {
         var (overlay, dir, old) = Start();
@@ -88,6 +107,6 @@ public class RadialLiveLookTests
         var dir = AppContext.BaseDirectory;
         while (dir != null && !System.IO.File.Exists(System.IO.Path.Combine(dir, "OpenTabletArtist.slnx"))) dir = System.IO.Path.GetDirectoryName(dir);
         var vm = System.IO.File.ReadAllText(System.IO.Path.Combine(dir!, "OpenTabletArtist", "ViewModels", "RadialMenuEditorViewModel.cs"));
-        Assert.Equal(2, vm.Split("RadialMenuOverlay.ShowLookLive(CurrentJson())").Length - 1);   // size and transparency
+        Assert.Equal(3, vm.Split("RadialMenuOverlay.ShowLookLive(CurrentJson())").Length - 1);   // size, transparency and (V29 #155) palette size
     }
 }

@@ -238,7 +238,7 @@
   "tablet.ring.note.scroll": "Gira el anillo para desplazarte como con la rueda del ratón: en sentido horario hacia abajo y en sentido antihorario hacia arriba. Funciona en todas las apps.",
   "tablet.ring.note.keys": "Al girar el anillo se envían las teclas de abajo cada {degrees}°.",
   "tablet.ring.setup.rotate": "Configuración: en Affinity, activa «Enable canvas rotation with ⌘+scroll wheel» en Settings › Tools. Photoshop no necesita configuración.",
-  "tablet.ring.setup.zoom": "Configuración: si Photoshop mueve la imagen arriba y abajo en lugar de hacer zoom, desmarca «Zoom with Scroll Wheel» en Settings › Tools de Photoshop. O elige Keystroke… y usa ⌘= y ⌘−.",
+  "tablet.ring.setup.zoom": "Configuración: si Photoshop mueve la imagen arriba y abajo en lugar de hacer zoom, desmarca «Zoom with Scroll Wheel» en Settings › Tools de Photoshop. O elige Atajo de teclado… y usa ⌘= y ⌘−.",
   "tablet.ring.setup.size": "Configuración: en Photoshop, elige una herramienta de pincel y activa «Use Graphics Processor» en Settings › Performance.",
   "tablet.ring.setup.hardness": "Configuración: en Photoshop, activa «Vary Round Brush Hardness based on HUD vertical movement» en Settings › Tools. Sin esta opción, el anillo cambia la opacidad.",
   "tablet.ring.slow": "Lento",
@@ -710,5 +710,14 @@
   "binding.media.stop": "Detener",
   "binding.media.brightness_down": "Bajar brillo",
   "binding.media.brightness_up": "Subir brillo",
-  "binding.media.brightness_tip": "Como la tecla de brillo del Mac: cambia la pantalla en la que hiciste clic por última vez."
+  "binding.media.brightness_tip": "Como la tecla de brillo del Mac: cambia la pantalla en la que hiciste clic por última vez.",
+  "tablet.ring.fn.keys": "Atajo de teclado…",
+  "tablet.ring.fn.smooth_rotate": "Rotación gradual",
+  "tablet.ring.fn.smooth_zoom": "Zoom gradual",
+  "tablet.ring.fn.smooth_size": "Tamaño de pincel gradual",
+  "tablet.ring.fn.smooth_hardness": "Dureza gradual",
+  "tablet.ring.fn.scroll": "Desplazar",
+  "tablet.ring.fn.volume": "Volumen",
+  "tablet.ring.fn.brightness": "Brillo",
+  "tablet.ring.fn.tracks": "Pista anterior / siguiente"
 }
