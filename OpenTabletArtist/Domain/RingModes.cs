@@ -248,6 +248,29 @@ public static class RingModeBinding
     public static bool CanApply(WheelBindingSettings? wheel, IEnumerable<RingMode> modes) =>
         wheel != null && wheel.WheelButtons.Count > 0 && ActiveModes(modes).Count > 0;
 
+    /// <summary>V29 (Zak, 20 Nov 2026: "even if the top button is On the bottom button needs to be On too in order for the touch
+    /// ring menu to show"; and a factory restore left the ring doing nothing): a ring with a centre button now always works in
+    /// modes, like Wacom's Touch Ring, and the separate "Touch Ring modes" switch is gone. This gives the modes a ring still on
+    /// its plain clockwise / anticlockwise rows moves to, or null when it can't move without losing something: a mouse or scroll
+    /// action on a direction, or any action on the centre button (the centre button becomes the mode switch).
+    /// Empty rows: <paramref name="modes"/> as they are (the saved list, else the four defaults). Keys on the rows: they become
+    /// mode 1, "Ring keys", turning once per ring step as before; the first three other modes follow.</summary>
+    public static List<RingMode>? ForPlainRing(WheelBindingSettings? wheel, IReadOnlyList<RingMode> modes)
+    {
+        if (wheel == null || wheel.WheelButtons.Count == 0 || IsActive(wheel)) return null;
+        if (wheel.WheelButtons.Any(b => b?.Path != null)) return null;
+        var cw = AuxKeyBinding.ReadCombo(wheel.ClockwiseRotation);
+        var ccw = AuxKeyBinding.ReadCombo(wheel.CounterClockwiseRotation);
+        if (cw == null || ccw == null) return null;
+        var list = modes.Take(MaxModes).ToList();
+        if (!cw.IsBound && !ccw.IsBound) return list;
+        var others = list.Where(m => !SendsTheSame(m, cw, ccw)).Take(MaxModes - 1);
+        return new[] { new RingMode(PlainKeysModeName, cw, ccw) }.Concat(others).ToList();
+    }
+
+    /// <summary>The name of the mode a ring's own plain keys move to (<see cref="ForPlainRing"/>).</summary>
+    public const string PlainKeysModeName = "Ring keys";
+
     /// <summary>
     /// Turn ring modes off on <paramref name="wheel"/>. With a backup (the plain bindings saved when modes were
     /// turned on) those are put back. Without one, only the slots that hold a ring-mode binding are cleared;

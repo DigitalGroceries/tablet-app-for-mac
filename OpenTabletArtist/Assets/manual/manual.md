@@ -172,7 +172,7 @@ A pen button or an ExpressKey can open a radial menu, like the one in Wacom's dr
 ## Tablet › Functions › Touch ring
 
 - **Touch Ring** (a tablet with one ring), **Touch Rings** (two rings, for example Cintiq 24HD), or **Touch Strip** / **Touch Strips** (tablets with touch strips, for example Intuos3 or Cintiq 22HD): an Off / On switch, On. Off pauses the ring or strip actions without deleting them. With two rings or strips, each one also has its own Off / On switch next to its name; it works only while the main switch is On, and the main switch never changes it.
-- **Touch Ring modes**: On. "4 modes. Press the ring's centre button to switch."
+- **Touch Ring modes**: "4 modes. Press the ring's centre button to switch." Since Version 29 a ring with a centre button always works in its modes, like Wacom's Touch Ring: **Touch Ring** On is all you need, and **Restore factory settings** gives the ring its four modes. A ring you had set up with its own keys on Clockwise and Anticlockwise keeps them as mode 1, **Ring keys**. Only a ring the app can't move to modes by itself (a mouse or scroll action on it, or an action on its centre button) still shows a **Touch Ring modes** switch.
 - **Show touch ring setting (on-screen mode display)**: On. Shows the mode name when you switch.
 - The dial follows the ring live: the dot sits under your finger. The angle and turn direction show under the ring, for example "0° · Clockwise". 12 o'clock is 0° and 3 o'clock is 90°.
 - The active mode is highlighted; its number is lit, centred, and also shows on the centre button.

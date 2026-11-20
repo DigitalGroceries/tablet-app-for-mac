@@ -1977,6 +1977,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var canEdit = _applyAction != null && WheelEnabled;
         var list = new List<WheelEditor>();
         var stepSync = new List<(int Wheel, List<RingMode> Modes)>();
+        var toModes = new List<(int Wheel, List<RingMode> Modes)>();
         bool multi = wheels.Count > 1;
         // Version 16: Intuos3 and the older Cintiqs report their touch strips as wheels; label them Up / Down.
         bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.TabletsWithRemembered, TabletName)?.WheelsAreTouchStrips == true;
@@ -2036,6 +2037,12 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                          || !RingModeBinding.SameKeys(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws)))   // build K migration
                         && _ringStepSyncTried.Add($"{_profile.Tablet}:{SelectedAppBundleId}:{wi}"))))
                 stepSync.Add((wi, modes));
+            // V29 (Zak 20 Nov): a ring with a centre button always works in modes (one switch, like Wacom); a ring still on
+            // its plain rows moves to modes once, when nothing would be lost (RingModeBinding.ForPlainRing).
+            if (canEdit && !strips && string.IsNullOrEmpty(SelectedPenKey) && !RingDowngrade.IsPrepared(_profile.Tablet)
+                && RingModeBinding.ForPlainRing(ws, modes) is { } plainToModes
+                && _ringToModesTried.Add($"{_profile.Tablet}:{SelectedAppBundleId}:{wi}"))
+                toModes.Add((wi, plainToModes));
             list.Add(new WheelEditor(
                 wheelIndex: wi,
                 title: strips ? StripTitle(w, wheels.Count) : RingTitle(w, wheels.Count),
@@ -2058,9 +2065,24 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         }
         Wheels = list;
         foreach (var (wi, modes) in stepSync) _ = RingModesChangedAsync(wi, modes);
+        foreach (var (wi, modes) in toModes) _ = RingToModesAsync(wi, modes);
     }
 
     private readonly HashSet<string> _ringStepSyncTried = new();
+    private readonly HashSet<string> _ringToModesTried = new();
+
+    /// <summary>V29: move a plain ring to its modes (the same path as the old "Touch Ring modes" switch, which keeps the
+    /// plain rows aside), then show the modes.</summary>
+    private async Task RingToModesAsync(int wheelIndex, List<RingMode> modes)
+    {
+        try
+        {
+            if (!await SetRingModesAsync(wheelIndex, true, modes)) return;
+            AppLog.Info($"Touch Ring {wheelIndex + 1}: now works in its {RingModeBinding.ActiveModes(modes).Count} modes (V29: one switch, like Wacom).");
+            RefreshWheels();
+        }
+        catch (Exception ex) { AppLog.Warn("Touch Ring: couldn't move the ring to its modes.", ex); }
+    }
 
     /// <summary>Version 16: "Touch strip" for a tablet with one, "Left touch strip" / "Right touch strip" for
     /// two (strip 1 is the left one in the Wacom pad report).</summary>

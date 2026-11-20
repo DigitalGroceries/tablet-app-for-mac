@@ -1249,7 +1249,11 @@
                                             <TextBlock Text="{Binding RingModes.Summary}" TextWrapping="Wrap"
                                                        Foreground="{DynamicResource TextSecondaryBrush}" />
                                         </StackPanel>
-                                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding RingModes.IsOn}"
+                                        <!-- V29 (Zak 20 Nov: two switches for one ring): a ring works in its modes whenever Touch Ring is
+                                             On, so this switch only shows for a ring the app could not move to modes by itself (a mouse
+                                             or scroll action on it, or something on its centre button); once on, it is gone. -->
+                                        <ToggleSwitch x:Name="RingModesSwitch" Grid.Column="1" IsChecked="{Binding RingModes.IsOn}"
+                                                      IsVisible="{Binding !RingModes.IsOn, FallbackValue=False}"
                                                       IsEnabled="{Binding RingModes.CanEdit}"
                                                       OnContent="" OffContent="" MinWidth="0" VerticalAlignment="Center"
                                                       AutomationProperties.Name="Ring modes"
