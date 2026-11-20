@@ -196,12 +196,28 @@ public partial class AboutViewModel : ObservableObject
     /// just once a week"). With "Update automatically" on, downloads then asks
     /// OK to install; otherwise asks before downloading. Version 14: only a newer stable version is offered
     /// this way (a BETA only to someone already running a BETA); other BETAs are a choice on Home.</summary>
-    public async Task LaunchCheckAsync()
+    /// <remarks>V29 (Zak, 20 Nov 2026: "The app shows a message on the Mac screen after every Mac boot saying that it checked for
+    /// updates. Remove that. The login should be silent like all other Mac apps."): the launch check never shows "Checked for
+    /// updates" (that line answers a click on Check for updates now), and at a login start (the app starts hidden) it opens no
+    /// window either: a found update waits on Home ("Install Version N") until the user opens the app.</remarks>
+    public Task LaunchCheckAsync() => LaunchCheckAsync(Program.LaunchInBackground);
+
+    /// <summary>What the launch check does once it knows whether an update is waiting. Never a window at a login start.</summary>
+    public enum LaunchUpdateStep { Nothing, Ask, DownloadThenAsk }
+
+    internal static LaunchUpdateStep LaunchStep(bool updateWaiting, bool automatic, bool loginStart) =>
+        !updateWaiting || loginStart ? LaunchUpdateStep.Nothing
+        : automatic ? LaunchUpdateStep.DownloadThenAsk : LaunchUpdateStep.Ask;
+
+    internal async Task LaunchCheckAsync(bool loginStart)
     {
-        await CheckForUpdates();
+        await Services.AppUpdateState.Shared.CheckAsync();       // quietly: no "Checked for updates" on screen
         var pending = Services.AppUpdateState.Shared.Pending;
-        if (pending == null) return;
-        if (UpdateAutomatically)
+        var step = LaunchStep(pending != null, UpdateAutomatically, loginStart);
+        if (pending != null && step == LaunchUpdateStep.Nothing)
+            Services.AppLog.Info($"Update check at login: Version {pending.Label} is available; it waits on Home (no window at login).");
+        if (pending == null || step == LaunchUpdateStep.Nothing) return;
+        if (step == LaunchUpdateStep.DownloadThenAsk)
         {
             var err = await Services.AppUpdateState.Shared.DownloadPendingAsync();
             if (err != null) return;
