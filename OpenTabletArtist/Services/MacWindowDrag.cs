@@ -22,7 +22,15 @@ internal static class MacWindowDrag
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern nuint SendNUInt(IntPtr obj, IntPtr sel);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern double SendDouble(IntPtr obj, IntPtr sel);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern void SendArg(IntPtr obj, IntPtr sel, IntPtr arg);
-    [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern NSRect SendRect(IntPtr obj, IntPtr sel);
+    [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern NSRect SendRectArm(IntPtr obj, IntPtr sel);
+    [DllImport(ObjC, EntryPoint = "objc_msgSend_stret")] private static extern void SendRectStret(out NSRect r, IntPtr obj, IntPtr sel);
+
+    /// <summary>Grok's review: a 32-byte struct comes back in registers only on arm64; an x64 run (Intel, Rosetta) needs _stret.</summary>
+    private static NSRect SendRect(IntPtr obj, IntPtr sel)
+    {
+        if (RuntimeInformation.ProcessArchitecture == Architecture.X64) { SendRectStret(out var r, obj, sel); return r; }
+        return SendRectArm(obj, sel);
+    }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct NSRect { public double X, Y, Width, Height; }

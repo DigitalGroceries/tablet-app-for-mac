@@ -329,7 +329,16 @@ public partial class CalibrationOverlayWindow : Window
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
     private static extern void objc_msgSend_void_long(IntPtr receiver, IntPtr selector, long arg);
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern NSRect objc_msgSend_rect(IntPtr receiver, IntPtr selector);
+    private static extern NSRect objc_msgSend_rect_arm(IntPtr receiver, IntPtr selector);
+    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend_stret")]
+    private static extern void objc_msgSend_rect_stret(out NSRect r, IntPtr receiver, IntPtr selector);
+
+    // V29 #176 review (Grok): a 32-byte struct comes back in registers only on arm64; an x64 run (Intel, Rosetta) needs _stret.
+    private static NSRect objc_msgSend_rect(IntPtr receiver, IntPtr selector)
+    {
+        if (RuntimeInformation.ProcessArchitecture == Architecture.X64) { objc_msgSend_rect_stret(out var r, receiver, selector); return r; }
+        return objc_msgSend_rect_arm(receiver, selector);
+    }
     [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
     private static extern void objc_msgSend_setFrame(IntPtr receiver, IntPtr selector, NSRect frame,
         [MarshalAs(UnmanagedType.I1)] bool display);

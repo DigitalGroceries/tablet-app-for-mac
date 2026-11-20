@@ -119,4 +119,23 @@ public class TitleBarDragTests
         Assert.NotNull(d.Move(new PixelPoint(200, 37), V(0, -10), T0.AddMilliseconds(40)));
         Assert.True(d.ByApp);
     }
+
+    [Fact]
+    public void ALowerWindow_IsAMenuBarPush_OnlyAtTheScreensUsableTop()
+    {
+        // Grok's review of #176: lower than where the app put it AND at the usable top = macOS pushed it from under the menu bar: keep going
+        var d = new TitleBarDrag();
+        d.Press(new PixelPoint(200, 100), T0);
+        Assert.Equal(new PixelPoint(200, 20), d.Move(new PixelPoint(200, 100), V(0, -80), T0.AddMilliseconds(20)));
+        Assert.NotNull(d.Move(new PixelPoint(200, 37), V(0, -5), T0.AddMilliseconds(40), workTop: 37));
+        Assert.True(d.ByApp);
+        // lower anywhere else = the Mac's own drag started late going down: hand over
+        var e = new TitleBarDrag();
+        e.Press(new PixelPoint(200, 300), T0);
+        Assert.Equal(new PixelPoint(200, 340), e.Move(new PixelPoint(200, 300), V(0, 40), T0.AddMilliseconds(20)));
+        Assert.Null(e.Move(new PixelPoint(200, 380), V(0, 5), T0.AddMilliseconds(40), workTop: 37));
+        Assert.False(e.Pressed);
+        Assert.Equal(37, TitleBarDrag.WorkTopOf(new PixelRect(200, 300, 1100, 720), Both));
+        Assert.Equal(-1055, TitleBarDrag.WorkTopOf(new PixelRect(200, -900, 1100, 720), Both));
+    }
 }

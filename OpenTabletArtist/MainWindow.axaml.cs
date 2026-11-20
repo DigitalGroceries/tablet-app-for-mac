@@ -149,6 +149,8 @@ public partial class MainWindow : Window
         {
             if (MacWindowDrag.TryStart(this, e.Timestamp, out var note))
             {
+                // Grok's review: the window server now owns this drag and its release, so the app's fallback must not stay pressed.
+                _titleDrag.Release();
                 AppLog.Info($"Window drag: the Mac's own drag was started with this press ({note}) (#176).");
                 return;
             }
@@ -186,7 +188,8 @@ public partial class MainWindow : Window
             _moveNotes++;   // #176 logs for build 10: where macOS really has the window against where the app put it
             AppLog.Info($"Window drag: the window is at {real.X},{real.Y}; the app last put it at {Position.X},{Position.Y}.");
         }
-        var to = _titleDrag.Move(real, fromGrab, DateTime.UtcNow);
+        int? workTop = OperatingSystem.IsMacOS() ? TitleBarDrag.WorkTopOf(new PixelRect(real, FramePixels()), ScreenAreas()) : null;
+        var to = _titleDrag.Move(real, fromGrab, DateTime.UtcNow, workTop);
         if (wasByApp && !_titleDrag.Pressed)
         {
             AppLog.Info("Window drag: the Mac's own drag started late; the app stopped moving the window.");

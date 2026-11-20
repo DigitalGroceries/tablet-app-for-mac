@@ -49,7 +49,7 @@ public sealed class TitleBarDrag
     /// grabbed, both converted to the screen with the window where it is now. Returns the window's new position when the app moves
     /// it, else null (and stops when the Mac's drag moved the window, or this press is stale).
     /// </summary>
-    public PixelPoint? Move(PixelPoint window, PixelVector fromGrab, DateTime now)
+    public PixelPoint? Move(PixelPoint window, PixelVector fromGrab, DateTime now, int? workTop = null)
     {
         if (!Pressed) return null;
         if (!ByApp)
@@ -62,10 +62,12 @@ public sealed class TitleBarDrag
             if (Math.Abs(fromGrab.X) < StartDistance && Math.Abs(fromGrab.Y) < StartDistance) return null;
             ByApp = true;
         }
-        else if (Math.Abs(window.X - _lastSet.X) > HandOverDistance || window.Y < _lastSet.Y - HandOverDistance)
+        else if (Math.Abs(window.X - _lastSet.X) > HandOverDistance || window.Y < _lastSet.Y - HandOverDistance
+                 || (window.Y > _lastSet.Y + HandOverDistance && workTop is { } top && Math.Abs(window.Y - top) > HandOverDistance))
         {
-            // The Mac's drag started late and moved it too: hand over (macOS only pushes a window DOWN from under the menu bar,
-            // so a window lower than where it was put is a clamp, not a drag).
+            // The Mac's drag started late and moved it too: hand over. macOS only pushes a window DOWN from under the menu bar, so a
+            // window lower than where it was put is a clamp when it sits at that screen's usable top (#176, Grok: only then; a lower
+            // window anywhere else is a late Mac drag going down).
             Pressed = false;
             ByApp = false;
             return null;
@@ -135,6 +137,13 @@ public sealed class TitleBarDrag
             if (a > most) { most = a; best = i; }
         }
         return best;
+    }
+
+    /// <summary>The usable top of the screen holding most of <paramref name="window"/> (null when it is on none).</summary>
+    public static int? WorkTopOf(PixelRect window, IReadOnlyList<ScreenArea> screens)
+    {
+        int i = MostOf(screens, window);
+        return i < 0 ? null : screens[i].Work.Y;
     }
 
     private static long Area(PixelRect r) => r.Width <= 0 || r.Height <= 0 ? 0 : (long)r.Width * r.Height;
