@@ -845,11 +845,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Tastatur dorthin legen",
-    "path": "Tablet › Stift › Stift",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Tastaturgröße",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"

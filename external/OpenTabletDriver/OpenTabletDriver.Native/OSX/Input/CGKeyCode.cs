@@ -12,6 +12,8 @@ namespace OpenTabletDriver.Native.OSX.Input
         kVK_ANSI_X = 0x07,
         kVK_ANSI_C = 0x08,
         kVK_ANSI_V = 0x09,
+        // Tablet App for Mac V29 (#171): the § key left of 1 on ISO (British, European) Mac keyboards.
+        kVK_ISO_Section = 0x0A,
         kVK_ANSI_B = 0x0B,
         kVK_ANSI_Q = 0x0C,
         kVK_ANSI_W = 0x0D,

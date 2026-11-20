@@ -694,6 +694,8 @@
   "keyboard.hold_opens": "Open the keyboard",
   "keyboard.hold_other": "Pen button 1 does something else now (set with Change…). Pick one here to change it.",
   "keyboard.no_menu": "No pen button opens the radial menu yet, so there is no slice to put the keyboard on.",
+  "keyboard.not_on_menu": "Not on the radial menu",
+  "keyboard.no_free_slice": "Every slice of the radial menu is in use. To put the keyboard on one, first empty a slice: click the radial menu picture at the top of the page.",
   "keyboard.resize_tip": "Drag to make the keyboard bigger or smaller",
   "keyboard.section": "Floating keyboard",
   "keyboard.section_intro": "A small keyboard that floats over your work, so you can type with the pen. Drag its top bar to move it, and its bottom-right corner to make it bigger or smaller.",

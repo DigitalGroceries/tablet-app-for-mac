@@ -845,11 +845,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Metti la tastiera lì",
-    "path": "Tavoletta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Dimensione tastiera",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"

@@ -121,6 +121,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
             { "D9", CGKeyCode.kVK_ANSI_9 },
             { "Minus", CGKeyCode.kVK_ANSI_Minus },
             { "Grave", CGKeyCode.kVK_ANSI_Grave },
+            // Tablet App for Mac V29 (#171): the floating keyboard's § key on ISO Mac keyboards.
+            { "Section", CGKeyCode.kVK_ISO_Section },
             //{ "Insert", CGKeyCode.kVK_ANSI_INSERT },
             { "Home", CGKeyCode.kVK_Home },
             { "PageUp", CGKeyCode.kVK_PageUp },

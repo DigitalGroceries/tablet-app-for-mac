@@ -133,38 +133,60 @@ public partial class TabletDetailViewModel
     /// <summary>The slice row works when a pen button opens the radial menu and the page can write settings.</summary>
     public bool CanPutKeyboard => CanEditRadial;
 
+    private IReadOnlyList<(string Label, int Slot)> _keyboardChoices = Array.Empty<(string, int)>();
+    private bool _keyboardSlotQuiet;
+
     private void RefreshKeyboardSlots()
     {
-        if (_radialOpenerJson == null)
+        _keyboardSlotQuiet = true;
+        try
         {
-            KeyboardSlots = Array.Empty<string>();
-            KeyboardSlot = -1;
-            KeyboardStatus = Localizer.Te("keyboard.no_menu", "No pen button opens the radial menu yet, so there is no slice to put the keyboard on.");
+            if (_radialOpenerJson == null)
+            {
+                _keyboardChoices = Array.Empty<(string, int)>();
+                KeyboardSlots = Array.Empty<string>();
+                KeyboardSlot = -1;
+                KeyboardStatus = Localizer.Te("keyboard.no_menu", "No pen button opens the radial menu yet, so there is no slice to put the keyboard on.");
+            }
+            else
+            {
+                _keyboardChoices = FloatingKeyboardPlacement.Choices(_radialOpenerJson);
+                KeyboardSlots = _keyboardChoices.Select(c => c.Label).ToList();
+                KeyboardSlot = FloatingKeyboardPlacement.ChoiceNow(_radialOpenerJson);
+                KeyboardStatus = FloatingKeyboardPlacement.Note(_radialOpenerJson);
+            }
         }
-        else
-        {
-            KeyboardSlots = FloatingKeyboardPlacement.Slots(_radialOpenerJson);
-            KeyboardSlot = FloatingKeyboardPlacement.SuggestedSlot(_radialOpenerJson);
-            KeyboardStatus = FloatingKeyboardPlacement.Status(_radialOpenerJson);
-        }
+        finally { _keyboardSlotQuiet = false; }
         OnPropertyChanged(nameof(CanPutKeyboard));
     }
 
-    /// <summary>"Put the keyboard there": the keyboard goes on the chosen slice (and off any other) of the menu shown above.</summary>
-    [RelayCommand]
-    private async Task PutKeyboardAsync()
+    /// <summary>V29 (Zak 20 Nov: "Put the keyboard there" was confusing): picking a choice puts the keyboard on that slice (or takes it
+    /// off the menu) at once.</summary>
+    partial void OnKeyboardSlotChanged(int value)
     {
+        if (_keyboardSlotQuiet || value < 0 || value >= _keyboardChoices.Count) return;
+        _ = PutKeyboardAsync(_keyboardChoices[value].Slot);
+    }
+
+    /// <summary>The keyboard goes on <paramref name="slot"/> (0-based; -1: on no slice) of the menu shown above, and off any other.</summary>
+    private readonly System.Threading.SemaphoreSlim _keyboardPutGate = new(1, 1);
+
+    internal async Task PutKeyboardAsync(int slot)
+    {
+        // Grok's review 20 Nov (5): two quick picks must not both start from the same old menu, so one runs after the other.
+        await _keyboardPutGate.WaitAsync();
         try
         {
             await FlushRadialSpotAsync();   // a slider change still waiting to be sent goes first
             var json = _radialOpenerJson;
             if (json == null || _applyAction == null) { AppLog.Warn("Floating keyboard: no pen button opens the radial menu (or the page is read-only), so the keyboard can't be put on a slice."); return; }
             var current = RadialMenuJson.Serialize(RadialMenuJson.Parse(json));
-            int slot = KeyboardSlot;
-            var result = FloatingKeyboardPlacement.Put(current, slot, out var was);
+            var was = "";
+            var result = slot < 0 ? FloatingKeyboardPlacement.Remove(current) : FloatingKeyboardPlacement.Put(current, slot, out was);
             if (result == current) { RefreshKeyboardSlots(); return; }
             if (await ReplaceRadialMenuAsync(current, result))
-                AppLog.Info($"Floating keyboard: put on slice {Math.Clamp(slot, 0, 7) + 1} of the radial menu" + (was.Length > 0 ? $" (it was '{was}')." : "."));
+                AppLog.Info(slot < 0 ? "Floating keyboard: taken off the radial menu."
+                    : $"Floating keyboard: put on slice {slot + 1} of the radial menu" + (was.Length > 0 ? $" (it was '{was}')." : "."));
             else
                 AppLog.Warn("Floating keyboard: putting it on a slice was NOT applied (see the preceding log line).");
             RefreshRadialSpot();
@@ -172,7 +194,9 @@ public partial class TabletDetailViewModel
         catch (Exception ex)
         {
             AppLog.Warn("Floating keyboard: putting it on a slice failed.", ex);
+            RefreshKeyboardSlots();         // the menu snaps back to where the keyboard really is
         }
+        finally { _keyboardPutGate.Release(); }
     }
 
     private string _spotAppliedJson = "";

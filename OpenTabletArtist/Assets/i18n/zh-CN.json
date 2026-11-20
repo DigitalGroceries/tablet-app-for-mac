@@ -694,6 +694,8 @@
   "keyboard.hold_opens": "打开键盘",
   "keyboard.hold_other": "笔按键 1 目前执行其他操作（通过“更改…”设置）。在这里选择一项即可更改。",
   "keyboard.no_menu": "还没有笔按键能打开径向菜单，所以没有扇区可放键盘。",
+  "keyboard.not_on_menu": "不放在径向菜单上",
+  "keyboard.no_free_slice": "径向菜单的所有扇区都已占用。要放键盘，请先清空一个扇区：点击页面顶部的径向菜单图。",
   "keyboard.resize_tip": "拖动以放大或缩小键盘",
   "keyboard.section": "浮动键盘",
   "keyboard.section_intro": "一个浮在作品上方的小键盘，让你用笔打字。拖动顶部栏可移动它，拖动右下角可放大或缩小它。",

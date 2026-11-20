@@ -40,23 +40,83 @@ public class FloatingKeyboardTests : IDisposable
         try { Directory.Delete(_dir, true); } catch (IOException) { }
     }
 
-    [Fact]
-    public void Layout_IsCompact_FiveRowsThatLineUp()
+    [Theory]
+    [InlineData(KeyboardShape.Ansi)]
+    [InlineData(KeyboardShape.Iso)]
+    public void Layout_IsCompact_FiveRowsThatLineUp(KeyboardShape shape)
     {
-        Assert.Equal(5, FloatingKeyboardLayout.Rows.Count);
-        foreach (var row in FloatingKeyboardLayout.Rows)
+        var rows = FloatingKeyboardLayout.RowsFor(shape);
+        Assert.Equal(5, rows.Count);
+        foreach (var row in rows)
             Assert.Equal(FloatingKeyboardLayout.RowUnits, row.Sum(k => k.Units), 3);
-        var all = FloatingKeyboardLayout.Rows.SelectMany(r => r).ToList();
+        var all = rows.SelectMany(r => r).ToList();
         foreach (var letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ") Assert.Contains(all, k => k.Value == letter.ToString());
-        foreach (var v in new[] { "Space", "Enter", "Backspace", "Escape", "Tab", "Up", "Down", "Left", "Right", "D0", "D9" })
+        foreach (var v in new[] { "Space", "Enter", "Backspace", "Escape", "Tab", "Up", "Down", "Left", "Right", "D0", "D9", "Grave", "Backslash" })
             Assert.Contains(all, k => k.Value == v);
-        // Zak 20 Nov (build 7): Caps Lock where a Mac has it, and a right Shift where Del was.
+        // Zak 20 Nov (build 7): Caps Lock where a Mac has it, and a Shift at each end of the Z row (Del is gone).
         Assert.Equal(new[] { "Caps", "Shift", "Shift", "Ctrl", "Alt", "Cmd" }, all.Where(k => k.IsModifier).Select(k => k.Value));
-        Assert.Equal("Caps", FloatingKeyboardLayout.Rows[2][0].Value);
-        Assert.Equal("Shift", FloatingKeyboardLayout.Rows[3][^1].Value);
-        // Same key names as the Pen button window's keyboard (no new names the driver doesn't know).
+        Assert.Equal("Caps", rows[2][0].Value);
+        Assert.Equal("Shift", rows[3][^1].Value);
+        Assert.DoesNotContain(all, k => k.Value == "Delete");
+        // Same key names as the Pen button window's keyboard (no new names the driver doesn't know); ISO's § key is a macOS key
+        // (added to the driver for #171), not on this test machine's list.
         var known = AuxKeyBinding.Options.Select(o => o.Value).ToHashSet();
-        foreach (var k in all.Where(k => !k.IsModifier)) Assert.Contains(k.Value, known);
+        foreach (var k in all.Where(k => !k.IsModifier && k.Value != FloatingKeyboardLayout.Section)) Assert.Contains(k.Value, known);
+        // every key that types a character has a Mac key code, so its label can come from the Mac's layout
+        foreach (var k in all.Where(k => !k.IsModifier && k.Value.Length == 1)) Assert.True(FloatingKeyboardLayout.MacKeyCodes.ContainsKey(k.Value), k.Value);
+    }
+
+    [Fact]
+    public void IsoShape_HasTheSectionKey_TheKeyLeftOfZ_AndATallEnter()
+    {
+        var rows = FloatingKeyboardLayout.RowsFor(KeyboardShape.Iso);
+        Assert.Equal("Section", rows[0][0].Value);
+        Assert.Equal("Grave", rows[3][1].Value);
+        Assert.Equal("Enter", rows[1][^1].Value);
+        Assert.Equal("Enter", rows[2][^1].Value);
+        Assert.Equal("Grave", FloatingKeyboardLayout.RowsFor(KeyboardShape.Ansi)[0][0].Value);
+    }
+
+    /// <summary>A layout read from the Mac, for tests: British-like, or Bulgarian letters on the letter keys.</summary>
+    internal sealed class FakeLabels(string id, string name, KeyboardShape shape, bool cyrillic = false, bool sharpS = false) : IKeyLabels
+    {
+        public string Id => id;
+        public string Name => name;
+        public KeyboardShape Shape => shape;
+        public (string Normal, string Shifted)? For(int code)
+        {
+            var key = FloatingKeyboardLayout.MacKeyCodes.FirstOrDefault(p => p.Value == code).Key;
+            if (key == null) return null;
+            if (cyrillic && key == "Q") return ("я", "Я");
+            if (sharpS && key == "Minus") return ("ß", "?");
+            if (key.Length == 1) return (key.ToLowerInvariant(), key);
+            return key switch { "D3" => ("3", "£"), "D2" => ("2", "@"), "Section" => ("§", "±"), "Grave" => ("`", "~"), _ => ("?", "?") };
+        }
+    }
+
+    [Fact]
+    public void Labels_FollowTheMacsLayout_SmallLettersUntilShiftOrCapsLock()
+    {
+        var british = new FakeLabels("com.apple.keylayout.British", "British", KeyboardShape.Iso);
+        var key = (string v) => FloatingKeyboardLayout.RowsFor(KeyboardShape.Iso).SelectMany(r => r).First(k => k.Value == v);
+        Assert.Equal("a", FloatingKeyboardLayout.LabelFor(key("A"), shift: false, capsLock: false, british));
+        Assert.Equal("A", FloatingKeyboardLayout.LabelFor(key("A"), shift: true, capsLock: false, british));
+        Assert.Equal("A", FloatingKeyboardLayout.LabelFor(key("A"), shift: false, capsLock: true, british));
+        Assert.Equal("£", FloatingKeyboardLayout.LabelFor(key("D3"), shift: true, capsLock: false, british));
+        Assert.Equal("3", FloatingKeyboardLayout.LabelFor(key("D3"), shift: false, capsLock: true, british));   // Caps Lock: letters only
+        Assert.Equal("§", FloatingKeyboardLayout.LabelFor(key("Section"), shift: false, capsLock: false, british));
+        var bulgarian = new FakeLabels("com.apple.keylayout.Bulgarian-Phonetic", "Bulgarian – QWERTY", KeyboardShape.Iso, cyrillic: true);
+        Assert.Equal("я", FloatingKeyboardLayout.LabelFor(key("Q"), shift: false, capsLock: false, bulgarian));
+        Assert.Equal("Я", FloatingKeyboardLayout.LabelFor(key("Q"), shift: false, capsLock: true, bulgarian));
+        Assert.True(FloatingKeyboardLayout.IsLetter(key("Q"), bulgarian));
+        Assert.False(FloatingKeyboardLayout.IsLetter(key("D3"), bulgarian));
+        // Grok's review 20 Nov (2): a letter whose Shift is not its capital (German ß -> ?) is not a letter for Caps Lock
+        var german = new FakeLabels("com.apple.keylayout.German", "German", KeyboardShape.Iso, sharpS: true);
+        Assert.False(FloatingKeyboardLayout.IsLetter(key("Minus"), german));
+        Assert.Equal("ß", FloatingKeyboardLayout.LabelFor(key("Minus"), shift: false, capsLock: true, german));
+        // without the Mac's layout: the US labels, letters small unless Shift / Caps Lock
+        Assert.Equal("a", FloatingKeyboardLayout.LabelFor(key("A"), shift: false, capsLock: false));
+        Assert.Equal("[", FloatingKeyboardLayout.LabelFor(key("LeftBracket"), shift: true, capsLock: false));
     }
 
     [Fact]
@@ -82,9 +142,6 @@ public class FloatingKeyboardTests : IDisposable
     {
         var kb = new FloatingKeyboard();
         var key = (string v) => FloatingKeyboardLayout.Rows.SelectMany(r => r).First(k => k.Value == v);
-        Assert.Equal("a", FloatingKeyboardLayout.LabelFor(key("A"), upper: false));
-        Assert.Equal("A", FloatingKeyboardLayout.LabelFor(key("A"), upper: true));
-        Assert.Equal("1", FloatingKeyboardLayout.LabelFor(key("D1"), upper: true));
         Assert.Null(kb.Tap(key("Caps")));
         Assert.True(kb.IsOn("Caps"));
         Assert.Equal("Shift+A", kb.Tap(key("A")));

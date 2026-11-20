@@ -845,11 +845,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Placer le clavier sur cette part",
-    "path": "Tablette › Stylet › Stylet",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Taille du clavier",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"

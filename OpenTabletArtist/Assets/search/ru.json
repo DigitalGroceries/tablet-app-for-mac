@@ -845,11 +845,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Поместить клавиатуру в этот сектор",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Размер клавиатуры",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"

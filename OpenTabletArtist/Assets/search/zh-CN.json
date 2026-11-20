@@ -925,11 +925,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "将键盘放到所选扇区",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "还没有笔按键能打开径向菜单，所以没有扇区可放键盘。",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"

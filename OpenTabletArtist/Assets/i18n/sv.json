@@ -694,6 +694,8 @@
   "keyboard.hold_opens": "Öppna tangentbordet",
   "keyboard.hold_other": "Pennknapp 1 gör något annat just nu (valt med Ändra…). Välj något här för att ändra det.",
   "keyboard.no_menu": "Ingen pennknapp öppnar radialmenyn än, så det finns ingen sektor att lägga tangentbordet på.",
+  "keyboard.not_on_menu": "Inte i radialmenyn",
+  "keyboard.no_free_slice": "Alla sektorer i radialmenyn används. För att lägga tangentbordet där, töm först en sektor: klicka på bilden av radialmenyn högst upp på sidan.",
   "keyboard.resize_tip": "Dra för att göra tangentbordet större eller mindre",
   "keyboard.section": "Flytande tangentbord",
   "keyboard.section_intro": "Ett litet tangentbord som svävar över ditt arbete, så att du kan skriva med pennan. Dra i den övre listen för att flytta det och i det nedre högra hörnet för att göra det större eller mindre.",

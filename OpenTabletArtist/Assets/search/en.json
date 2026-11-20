@@ -850,11 +850,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Put the keyboard there",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Keyboard size",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
