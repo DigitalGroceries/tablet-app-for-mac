@@ -233,11 +233,17 @@ namespace OpenTabletDriver.Desktop.Profiles
             new PluginSettingStore("OpenTabletArtist.Dynamics.RadialMenuBinding",
                 new System.Collections.ObjectModel.ObservableCollection<PluginSetting>()) { Enable = true };
 
+        /// <summary>V29 #160 (Zak 20 Nov): the default for pen button 1 is the app's "click, hold for keyboard" binding: a quick press
+        /// right-clicks when let go, holding it shows or hides the floating keyboard. No settings means its defaults (Right, 500 ms).</summary>
+        private static PluginSettingStore HoldForKeyboardDefaultButton1() =>
+            new PluginSettingStore("OpenTabletArtist.Dynamics.HoldForKeyboardBinding",
+                new System.Collections.ObjectModel.ObservableCollection<PluginSetting>()) { Enable = true };
+
         private void AddPenButtons(TabletSpecifications tabletSpecifications)
         {
             uint buttonCount = tabletSpecifications.Pen.ButtonCount;
             if (buttonCount >= 1)
-                PenButtons.Add(new PluginSettingStore(new AdaptiveBinding(PenAction.BarrelButton1)));
+                PenButtons.Add(HoldForKeyboardDefaultButton1());   // V29 #160: pen button 1 starts as right click + hold for keyboard
             if (buttonCount >= 2)
                 PenButtons.Add(RadialMenuDefaultButton2());   // TASKS #56: pen button 2 starts as the Radial menu
             if (buttonCount >= 3)

@@ -805,11 +805,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Tangentbordets genomskinlighet",
-    "path": "Ritplatta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Rörelse",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
@@ -836,6 +831,36 @@
   },
   {
     "text": "Stäng av tryckkänslighet",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Lägg tangentbordet där",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Tangentbordets genomskinlighet",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

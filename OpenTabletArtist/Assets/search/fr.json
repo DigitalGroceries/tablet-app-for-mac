@@ -805,11 +805,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Transparence du clavier",
-    "path": "Tablette › Stylet › Stylet",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Mouvement",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
@@ -836,6 +831,36 @@
   },
   {
     "text": "Désactiver la sensibilité à la pression",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Placer le clavier sur cette part",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Transparence du clavier",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
   },

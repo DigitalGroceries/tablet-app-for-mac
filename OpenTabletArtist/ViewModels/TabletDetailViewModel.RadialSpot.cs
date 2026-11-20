@@ -56,10 +56,171 @@ public partial class TabletDetailViewModel
     /// <summary>The sliders only work when a pen button opens the menu and the page can write settings.</summary>
     public bool CanEditRadialSliders => CanEditRadial;
 
-    /// <summary>V29 #141: the floating keyboard's transparency (one app-wide setting, shown with the menu's sliders).</summary>
+    /// <summary>V29 #141: the floating keyboard's transparency and (#162) size: app-wide settings, in the Pen page's Floating keyboard
+    /// section (#163).</summary>
     public FloatingKeyboardLookViewModel KeyboardLook { get; } = new();
 
+    // ── V29 #163 (Zak 20 Nov ~09:10, screenshot "Put the keyboard settings menu and how it is triggered here"): the Floating keyboard
+    // section under Movement / Pen input. Its slice row puts the keyboard on a slice of the radial menu shown above (the menu of the
+    // first pen button that opens it), through ReplaceRadialMenuAsync like the sliders, so an open menu shows it at once (#161).
+    [ObservableProperty] private IReadOnlyList<string> _keyboardSlots = Array.Empty<string>();
+    [ObservableProperty] private int _keyboardSlot = -1;
+    /// <summary>"The keyboard is on slice 7." when it is on one, or why the row can't be used.</summary>
+    [ObservableProperty] private string _keyboardStatus = "";
+
+    // ── V29 #160 (Zak 20 Nov ~09:18-09:24): what holding pen button 1 does, in the Floating keyboard section. ──
+    /// <summary>"Open the keyboard" (0, factory: a quick press right-clicks when let go) or "Drag with the right button" (1: the
+    /// button's Default, held down like a mouse button). -1 while pen button 1 does something else (set with Change…).</summary>
+    [ObservableProperty] private int _holdChoice = -1;
+    /// <summary>Pen button 1 opens the keyboard when held: the line under the pen tip says so.</summary>
+    [ObservableProperty] private bool _holdOpensKeyboard;
+    [ObservableProperty] private bool _hasPenButton1;
+    private bool _holdQuiet;
+
+    public IReadOnlyList<string> HoldChoices => new[]
+    {
+        Localizer.Te("keyboard.hold_opens", "Open the keyboard"),
+        Localizer.Te("keyboard.hold_drags", "Drag with the right button"),
+    };
+    public string HoldCaption => Localizer.Te("keyboard.hold_caption", "Holding pen button 1");
+    public string HoldNote => Localizer.Te("keyboard.hold_note", "A quick press right-clicks. Holding it about half a second opens or closes the keyboard.");
+    public string HoldOtherNote => Localizer.Te("keyboard.hold_other", "Pen button 1 does something else now (set with Change…). Pick one here to change it.");
+    /// <summary>Under the pen tip's "Default setting" (Zak's words, with long press).</summary>
+    public string PenTipHoldLine => Localizer.Te("tablet.pen.hold_keyboard_note", "Long press of Pen button 1 opens the Keyboard");
+    public bool HoldIsOther => HasPenButton1 && HoldChoice < 0;
+    public bool CanChooseHold => HasPenButton1 && _applyAction != null;
+
+    partial void OnHoldChoiceChanged(int value)
+    {
+        OnPropertyChanged(nameof(HoldIsOther));
+        if (_holdQuiet || value < 0) return;
+        _ = ApplyHoldChoiceAsync(value);
+    }
+
+    private void RefreshHoldChoice(OpenTabletDriver.Desktop.Profiles.BindingSettings bindings)
+    {
+        var store = bindings.PenButtons.Count > 0 ? bindings.PenButtons[0] : null;
+        HasPenButton1 = bindings.PenButtons.Count > 0;
+        HoldOpensKeyboard = HoldKeyboardBinding.Is(store);
+        _holdQuiet = true;
+        try
+        {
+            HoldChoice = !HasPenButton1 ? -1
+                : HoldOpensKeyboard ? 0
+                : PenSwitchBinding.DetectMode(store, PenSwitchKind.PenButton, 1) == PenSwitchBindingMode.Auto ? 1 : -1;
+        }
+        finally { _holdQuiet = false; }
+        OnPropertyChanged(nameof(HoldIsOther));
+        OnPropertyChanged(nameof(CanChooseHold));
+    }
+
+    private async Task ApplyHoldChoiceAsync(int choice)
+    {
+        try
+        {
+            if (_applyAction == null || !HasPenButton1) return;
+            var store = choice == 0 ? HoldKeyboardBinding.Make() : PenSwitchBinding.MakeAdaptiveBinding(PenSwitchKind.PenButton, 1);
+            AppLog.Info($"Floating keyboard: holding pen button 1 now {(choice == 0 ? "opens the keyboard (a quick press right-clicks)" : "drags with the right button")}.");
+            await ApplyPenSwitchBindingAsync(PenSwitchKind.PenButton, 1, store);
+            RefreshPenSwitchRows();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn("Floating keyboard: changing what holding pen button 1 does failed.", ex);
+        }
+    }
+
+    // ── V29 #169 (Zak 20 Nov ~09:56: the palette's size slider didn't change the palette on screen while Photoshop was in front):
+    // Photoshop's own table (Application row) had its own radial menu and palette, which is what the pen opened there, while the page
+    // showed All. The page now says which applications use their own menu, so the user knows where to change it. ──
+    [ObservableProperty] private string _radialOwnTablesNote = "";
+    public bool HasRadialOwnTablesNote => RadialOwnTablesNote.Length > 0;
+    partial void OnRadialOwnTablesNoteChanged(string value) => OnPropertyChanged(nameof(HasRadialOwnTablesNote));
+
+    /// <summary>"Adobe Photoshop 2025 and Affinity use their own radial menu and palette. …", shown on All's page only.</summary>
+    internal static string OwnTablesNote(IReadOnlyList<string> apps)
+    {
+        if (apps.Count == 0) return "";
+        string names = apps.Count == 1 ? apps[0]
+            : string.Join(", ", apps.Take(apps.Count - 1)) + " " + Localizer.Te("radial_spot.and", "and") + " " + apps[^1];
+        var t = apps.Count == 1
+            ? Localizer.Te("radial_spot.own_one", "{apps} uses its own radial menu and colour palette. To change them, choose it in the Application row.")
+            : Localizer.Te("radial_spot.own_many", "{apps} use their own radial menu and colour palette. To change theirs, choose them in the Application row.");
+        return t.Replace("{apps}", names, StringComparison.Ordinal);
+    }
+
+    private void RefreshOwnTablesNote()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(SelectedAppBundleId) || !string.IsNullOrEmpty(SelectedPenKey)) { RadialOwnTablesNote = ""; return; }
+            var apps = PerAppBindingStore.List(_profile.Tablet ?? "")
+                .Where(a => a.Bindings?.PenButtons?.Any(RadialMenuBinding.Is) == true)
+                .Select(a => string.IsNullOrWhiteSpace(a.DisplayName) ? a.BundleId : a.DisplayName)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Distinct()
+                .ToList();
+            RadialOwnTablesNote = OwnTablesNote(apps!);
+        }
+        catch (Exception ex)
+        {
+            RadialOwnTablesNote = "";
+            AppLog.Warn("Radial menu settings: couldn't list the applications with their own menu.", ex);
+        }
+    }
+
+    /// <summary>The slice row works when a pen button opens the radial menu and the page can write settings.</summary>
+    public bool CanPutKeyboard => CanEditRadial;
+
+    private void RefreshKeyboardSlots()
+    {
+        if (_radialOpenerJson == null)
+        {
+            KeyboardSlots = Array.Empty<string>();
+            KeyboardSlot = -1;
+            KeyboardStatus = Localizer.Te("keyboard.no_menu", "No pen button opens the radial menu yet, so there is no slice to put the keyboard on.");
+        }
+        else
+        {
+            KeyboardSlots = FloatingKeyboardPlacement.Slots(_radialOpenerJson);
+            KeyboardSlot = FloatingKeyboardPlacement.SuggestedSlot(_radialOpenerJson);
+            KeyboardStatus = FloatingKeyboardPlacement.Status(_radialOpenerJson);
+        }
+        OnPropertyChanged(nameof(CanPutKeyboard));
+    }
+
+    /// <summary>"Put the keyboard there": the keyboard goes on the chosen slice (and off any other) of the menu shown above.</summary>
+    [RelayCommand]
+    private async Task PutKeyboardAsync()
+    {
+        try
+        {
+            await FlushRadialSpotAsync();   // a slider change still waiting to be sent goes first
+            var json = _radialOpenerJson;
+            if (json == null || _applyAction == null) { AppLog.Warn("Floating keyboard: no pen button opens the radial menu (or the page is read-only), so the keyboard can't be put on a slice."); return; }
+            var current = RadialMenuJson.Serialize(RadialMenuJson.Parse(json));
+            int slot = KeyboardSlot;
+            var result = FloatingKeyboardPlacement.Put(current, slot, out var was);
+            if (result == current) { RefreshKeyboardSlots(); return; }
+            if (await ReplaceRadialMenuAsync(current, result))
+                AppLog.Info($"Floating keyboard: put on slice {Math.Clamp(slot, 0, 7) + 1} of the radial menu" + (was.Length > 0 ? $" (it was '{was}')." : "."));
+            else
+                AppLog.Warn("Floating keyboard: putting it on a slice was NOT applied (see the preceding log line).");
+            RefreshRadialSpot();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn("Floating keyboard: putting it on a slice failed.", ex);
+        }
+    }
+
     private string _spotAppliedJson = "";
+    /// <summary>V29 #166: when the user last moved a slider or typed in a box under the picture (Environment.TickCount64).</summary>
+    private long _spotLastEdit;
+    /// <summary>V29 #166: for this long after the last slider move, a page refresh never puts older stored values back.</summary>
+    internal static int SpotEditQuietMs { get; set; } = 1500;
+    /// <summary>V29 #166: the table (tablet, application, pen) the picture was built for.</summary>
+    private string _spotTable = "";
     private bool _spotDirty;
     private CancellationTokenSource? _spotDelay;
     private Task _spotApply = Task.CompletedTask;
@@ -89,6 +250,7 @@ public partial class TabletDetailViewModel
         if (e.PropertyName is not (nameof(RadialMenuEditorViewModel.Size) or nameof(RadialMenuEditorViewModel.Transparency)
             or nameof(RadialMenuEditorViewModel.PaletteSize))) return;   // V29 #142: the palette's size is saved the same way
         RadialPictureSize = PictureSizeFor(vm);
+        _spotLastEdit = Environment.TickCount64;   // V29 #166
         if (_applyAction == null || _radialOpenerJson == null) return;   // nothing to write to (the page is read-only or no button opens the menu)
         _spotDirty = true;
         try { _spotDelay?.Cancel(); } catch (ObjectDisposedException) { }
@@ -134,6 +296,7 @@ public partial class TabletDetailViewModel
             if (!current) return;
             _spotAppliedJson = newJson;
             _radialOpenerJson = newJson;
+            RefreshKeyboardSlots();
             if (RadialCanonical(preview.CurrentJson()) != RadialCanonical(newJson)) { await ApplySpotNowAsync(); return; }   // moved again meanwhile
             _spotDirty = false;
         }
@@ -180,9 +343,23 @@ public partial class TabletDetailViewModel
                 RadialSpotLine = Localizer.Te("radial_spot.none", "No pen button opens the radial menu yet");
             }
             OnPropertyChanged(nameof(CanEditRadialSliders));
+            RefreshKeyboardSlots();   // V29 #163
+            RefreshOwnTablesNote();   // V29 #169
             // The picture: this menu, or the starting menu (dimmed by the page) when nothing opens one. A slider change that is still on its
             // way to the driver is never thrown away by a refresh: the sliders keep what the user set.
             if (_spotDirty && RadialPreview != null && openers.Count > 0) return;
+            // V29 #166 (Zak 20 Nov ~09:45: "The transparency and the size is out of synk and jump on different values than what I
+            // put them"): a refresh that arrives while the user is still moving a slider (an earlier value was just applied, the
+            // next one not yet) rebuilt the sliders from the stored menu, so they jumped back. The picture is kept when it already
+            // shows the stored menu, or when a slider moved in the last moment (the pending apply brings the two together).
+            var table = $"{_profile.Tablet}|{SelectedAppBundleId}|{SelectedPenKey}";
+            if (RadialPreview != null && openers.Count > 0 && table == _spotTable)   // another table always gets its own picture
+            {
+                bool same = RadialCanonical(RadialPreview.CurrentJson()) == RadialCanonical(_radialOpenerJson);
+                bool justMoved = Environment.TickCount64 - _spotLastEdit < SpotEditQuietMs;
+                if (same || justMoved) return;
+            }
+            _spotTable = table;
             RadialPreview = new RadialMenuEditorViewModel(_radialOpenerJson, Localizer.Te("radial.title", "Radial menu"));
         }
         catch (Exception ex)

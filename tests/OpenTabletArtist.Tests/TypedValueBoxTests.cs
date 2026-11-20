@@ -102,28 +102,34 @@ public class BrightnessKeyTests
     }
 }
 
-/// <summary>V29 #143 (Zak's build 3 test, 'No floating keyboard menu'): the keyboard goes on the menu in one click from the
-/// pen button's Radial menu tab.</summary>
+/// <summary>V29 #143 (Zak's build 3 test, 'No floating keyboard menu'): the keyboard goes on the menu in one click; V29 #163 moved the
+/// row from the pen button's Radial menu tab to the Pen page's Floating keyboard section (FloatingKeyboardPlacement).</summary>
 public class KeyboardOnTheMenuTests
 {
     [Fact]
     public void PutKeyboard_PutsItOnTheChosenSlice_OnlyOnce()
     {
-        var vm = new OpenTabletArtist.ViewModels.BindingEditorViewModel(AuxBinding.RadialMenu(null), "Pen button 2");
-        Assert.Equal(8, vm.KeyboardSlots.Count);
-        Assert.Equal(7, vm.KeyboardSlot);                    // the default menu is full: the last slice is offered
-        Assert.Equal("", vm.KeyboardStatus);
-        vm.KeyboardSlot = 6;                                  // Zoom out
-        vm.PutKeyboardCommand.Execute(null);
-        var m = RadialMenuJson.Parse(vm.RadialMenuText);
+        string json = RadialMenuJson.Serialize(RadialMenuJson.Parse(null));
+        Assert.Equal(8, OpenTabletArtist.ViewModels.FloatingKeyboardPlacement.Slots(json).Count);
+        Assert.Equal(7, OpenTabletArtist.ViewModels.FloatingKeyboardPlacement.SuggestedSlot(json));   // the default menu is full: the last slice
+        Assert.Equal("", OpenTabletArtist.ViewModels.FloatingKeyboardPlacement.Status(json));
+        json = OpenTabletArtist.ViewModels.FloatingKeyboardPlacement.Put(json, 6, out var was);        // Zoom out
+        Assert.Equal("Zoom out", was);
+        var m = RadialMenuJson.Parse(json);
         Assert.Equal(RadialActions.Keyboard, m.Slices[6].Action);
         Assert.Equal("Keyboard", m.Slices[6].Label);
-        Assert.Equal("The keyboard is on slice 7.", vm.KeyboardStatus);
-        vm.KeyboardSlot = 0;                                  // moving it: never two keyboard slices
-        vm.PutKeyboardCommand.Execute(null);
-        m = RadialMenuJson.Parse(vm.RadialMenuText);
+        Assert.Equal("The keyboard is on slice 7.", OpenTabletArtist.ViewModels.FloatingKeyboardPlacement.Status(json));
+        Assert.Equal(6, OpenTabletArtist.ViewModels.FloatingKeyboardPlacement.SuggestedSlot(json));
+        json = OpenTabletArtist.ViewModels.FloatingKeyboardPlacement.Put(json, 0, out _);              // moving it: never two keyboard slices
+        m = RadialMenuJson.Parse(json);
         Assert.Equal(1, m.Slices.Count(s => s.Action == RadialActions.Keyboard));
         Assert.Equal(RadialActions.Keyboard, m.Slices[0].Action);
         Assert.False(m.Slices[6].IsSet);
+    }
+
+    [Fact]
+    public void TheChangeWindow_NoLongerHasTheKeyboardRow()
+    {
+        Assert.Null(typeof(OpenTabletArtist.ViewModels.BindingEditorViewModel).GetProperty("KeyboardSlots"));
     }
 }

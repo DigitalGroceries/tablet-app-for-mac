@@ -381,8 +381,11 @@ public sealed class RadialMenuOverlay : IDisposable
             _pie!.Editing = st.Editing;
             // TASKS #64: the pencil's hint sits under the menu itself (not a pop-up over the app that was in front) and stays until a slice
             // is chosen, the pencil is put down, or the menu closes.
-            if (st.Editing) _toast.Show(st.IsPalette ? Localizer.Te("palette.edit_hint", "Tap the colour to change")
-                                                     : Localizer.Te("confirm.radial_edit_hint", "Edit the slice you tap next"), st.X, st.Y, r, hold: true);
+            var hint = st.IsPalette ? Localizer.Te("palette.edit_hint", "Tap the colour to change")
+                                    : Localizer.Te("confirm.radial_edit_hint", "Edit the slice you tap next");
+            // V29 #169: while the hint already shows, it only follows the menu (a pen drag writes a state for every step).
+            if (st.Editing && _toast.IsVisible && _toast.IsHint && _toast.Text == hint) _toast.Follow(st.X, st.Y, r);
+            else if (st.Editing) _toast.Show(hint, st.X, st.Y, r, hold: true);
             else if (_wasEditing) _toast.HideHint();
             _wasEditing = st.Editing;
             var labels = st.Labels;
@@ -581,6 +584,7 @@ public sealed class RadialMenuOverlay : IDisposable
         _window.Position = new PixelPoint((int)Math.Round(origin.X), (int)Math.Round(origin.Y));
         var (cx, cy) = Centre();
         _cx = cx; _cy = cy;
+        _toast.Follow(cx, cy, RadialMenuGeometry.OuterRadius(_size));   // V29 #169: its text goes with it
         // Tell the driver the new centre (its pen taps are measured from it), not more than ~20 times a second.
         if (Environment.TickCount64 - _lastMoveSent > 50)
         {

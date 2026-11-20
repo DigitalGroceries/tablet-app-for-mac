@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -25,14 +26,77 @@ public sealed class FloatingKeyboard : IDisposable
 {
     public const string TransparencyKey = "FloatingKeyboardTransparency";
     public const string PositionKey = "FloatingKeyboardPosition";
+    public const string SizeKey = "FloatingKeyboardSize";
     /// <summary>Same range as the radial menu's transparency (above 60% the keys can't be read).</summary>
     public const int MinTransparency = RadialMenuDef.MinTransparency, MaxTransparency = RadialMenuDef.MaxTransparency;
-    public const int DefaultTransparency = 20;
+    /// <summary>V29 (Zak 20 Nov ~09:30: "The default factory transparency for the floating keyboard should be 40%"; was 20).</summary>
+    public const int DefaultTransparency = 40;
+    /// <summary>V29 #162 (Zak 20 Nov ~09:10: "the keyboard is microscopic and you did not include a keyboard resizing slider"):
+    /// Keyboard size in percent of the first keyboard (30-point keys). 150% unless changed; the slider, the number box and
+    /// dragging the keyboard's bottom-right corner all set it.</summary>
+    public const int MinSize = 60, MaxSize = 300, DefaultSize = 150;
     /// <summary>One key unit, in points.</summary>
     public const double Unit = 30;
     public const double KeyHeight = 30, Gap = 3, Pad = 8, BarHeight = 22;
 
     public static string OpenFlagPath { get; set; } = FloatingKeyboardFiles.OpenFlag;
+    public static string ToggleRequestPath { get; set; } = FloatingKeyboardFiles.ToggleRequest;
+
+    private static FileSystemWatcher? _toggleWatcher;
+    private static long _lastToggle;
+
+    /// <summary>V29 #160: watch for the driver's "pen button 1 was held" request (App start). The first look only notes the number
+    /// already there, so an old request never opens the keyboard.</summary>
+    public static void WatchHoldRequests()
+    {
+        try
+        {
+            _lastToggle = ReadToggle();
+            var dir = Path.GetDirectoryName(ToggleRequestPath)!;
+            Directory.CreateDirectory(dir);
+            _toggleWatcher?.Dispose();
+            _toggleWatcher = new FileSystemWatcher(dir, Path.GetFileName(ToggleRequestPath))
+            {
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size,
+            };
+            _toggleWatcher.Changed += (_, _) => OnToggleFile();
+            _toggleWatcher.Created += (_, _) => OnToggleFile();
+            _toggleWatcher.Renamed += (_, _) => OnToggleFile();
+            _toggleWatcher.EnableRaisingEvents = true;
+        }
+        catch (Exception e)
+        {
+            AppLog.Warn("Floating keyboard: can't watch for pen button 1 being held", e);
+        }
+    }
+
+    private static long ReadToggle()
+    {
+        try { return File.Exists(ToggleRequestPath) ? FloatingKeyboardFiles.ParseToggle(File.ReadAllText(ToggleRequestPath)) : 0; }
+        catch (IOException) { return 0; }
+    }
+
+    private static void OnToggleFile()
+    {
+        var n = ReadToggle();
+        if (n == 0 || n == Interlocked.Exchange(ref _lastToggle, n)) return;
+        Dispatcher.UIThread.Post(HandleHoldRequest);
+    }
+
+    /// <summary>Pen button 1 was held: show the keyboard just under the pointer (where the pen is), or hide it.</summary>
+    internal static void HandleHoldRequest()
+    {
+        var p = MacDesktop.CursorLocation();
+        double x = p?.X ?? 400, y = p?.Y ?? 300;
+        AppLog.Info("Floating keyboard: pen button 1 was held.");
+        Instance.Toggle(x, y + 24);
+    }
+
+    public static void StopWatchingHoldRequests()
+    {
+        _toggleWatcher?.Dispose();
+        _toggleWatcher = null;
+    }
     public static string CommandFilePath { get; set; } = FloatingKeyboardFiles.CommandFile;
 
     private static FloatingKeyboard? _instance;
@@ -52,8 +116,38 @@ public sealed class FloatingKeyboard : IDisposable
         }
     }
 
+    /// <summary>V29 #162: the keyboard's size in percent (60-300). Saved; an open keyboard follows at once.</summary>
+    public static int SizePercent
+    {
+        get => int.TryParse(AppSettings.Get(SizeKey), out var t) ? Math.Clamp(t, MinSize, MaxSize) : DefaultSize;
+        set
+        {
+            var v = Math.Clamp(value, MinSize, MaxSize);
+            AppSettings.Set(SizeKey, v.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            _instance?.ApplySize();
+            SizeChanged?.Invoke();
+        }
+    }
+
+    /// <summary>Raised when the size changes (a corner drag), so the Pen page's slider follows.</summary>
+    public static event Action? SizeChanged;
+
+    /// <summary>V29: Restore factory settings puts the keyboard's look back (40% see-through, 150% size); where it was left is kept.</summary>
+    public static void ResetToFactory()
+    {
+        AppSettings.Remove(TransparencyKey);
+        AppSettings.Remove(SizeKey);
+        _instance?.ApplyLook();
+        _instance?.ApplySize();
+        SizeChanged?.Invoke();
+    }
+
     private Window? _window;
     private Border? _panel;
+    private LayoutTransformControl? _scaler;
+    private (double X, double Y)? _resizeStart;
+    private double _resizeStartWidth;
+    private int _resizeStartSize;
     private readonly List<(FloatingKey Key, Border Cap)> _caps = new();
     private (double X, double Y)? _dragStart;
     private (double X, double Y) _dragWindowStart;
@@ -65,6 +159,8 @@ public sealed class FloatingKeyboard : IDisposable
     public bool IsShown => _window?.IsVisible == true;
     /// <summary>The window (tests).</summary>
     internal Window? Window => _window;
+    /// <summary>The keyboard's panel, the part that fades with the transparency (tests).</summary>
+    internal Border? Panel => _panel;
 
     /// <summary>Show it if hidden, hide it if shown. <paramref name="nearX"/>/<paramref name="nearY"/>: where to put it the first time
     /// (global points, top centre of the keyboard); after a drag it opens where it was left.</summary>
@@ -79,9 +175,8 @@ public sealed class FloatingKeyboard : IDisposable
         try
         {
             EnsureWindow();
-            var (w, h) = Size();
-            _window!.Width = w;
-            _window.Height = h;
+            ApplySize();
+            var (w, _) = Size();
             var (x, y) = SavedPosition() ?? (nearX - w / 2, nearY);
             _window.Position = new PixelPoint((int)Math.Round(x), (int)Math.Round(y));
             ApplyLook();
@@ -89,7 +184,7 @@ public sealed class FloatingKeyboard : IDisposable
             if (_window.TryGetPlatformHandle() is Avalonia.Platform.IMacOSTopLevelPlatformHandle mac && mac.NSWindow != IntPtr.Zero)
                 MacDesktop.MakeOverlay(mac.NSWindow, clickThrough: false);
             WriteOpenFlag(true);
-            AppLog.Info($"Floating keyboard shown at {x:0},{y:0} (transparency {Transparency}%).");
+            AppLog.Info($"Floating keyboard shown at {x:0},{y:0} (transparency {Transparency}%, size {SizePercent}%).");
         }
         catch (Exception e)
         {
@@ -185,10 +280,36 @@ public sealed class FloatingKeyboard : IDisposable
         }
     }
 
-    /// <summary>Width and height of the whole keyboard, in points.</summary>
-    public static (double W, double H) Size() =>
+    /// <summary>Width and height of the whole keyboard at 100%, in points.</summary>
+    public static (double W, double H) BaseSize() =>
         (Pad * 2 + FloatingKeyboardLayout.RowUnits * Unit,
          Pad * 2 + BarHeight + Gap + FloatingKeyboardLayout.Rows.Count * KeyHeight);
+
+    /// <summary>Width and height of the whole keyboard at its <see cref="SizePercent"/>, in points.</summary>
+    public static (double W, double H) Size()
+    {
+        var (w, h) = BaseSize();
+        double k = SizePercent / 100.0;
+        return (Math.Round(w * k), Math.Round(h * k));
+    }
+
+    /// <summary>V29 #162: the size in percent a corner drag gives, from the width the keyboard had when the drag began.</summary>
+    public static int SizeForDrag(int startPercent, double startWidth, double dx)
+    {
+        if (startWidth <= 0) return startPercent;
+        var v = (int)Math.Round(startPercent * (startWidth + dx) / startWidth);
+        return Math.Clamp(v, MinSize, MaxSize);
+    }
+
+    private void ApplySize()
+    {
+        if (_window == null || _scaler == null) return;
+        double k = SizePercent / 100.0;
+        _scaler.LayoutTransform = new ScaleTransform(k, k);
+        var (w, h) = Size();
+        _window.Width = w;
+        _window.Height = h;
+    }
 
     private void ApplyLook()
     {
@@ -249,6 +370,20 @@ public sealed class FloatingKeyboard : IDisposable
             BorderBrush = new SolidColorBrush(Color.Parse("#4A4A4A")), BorderThickness = new Thickness(1),
             Child = new StackPanel { Children = { bar, rows } },
         };
+        // V29 #162 (Zak 20 Nov ~09:12: "Let a corner dragging resize the floating keyboard too"): the bottom-right corner.
+        var corner = new Border
+        {
+            Width = 16, Height = 16, Background = Brushes.Transparent, HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Bottom, Cursor = new Cursor(StandardCursorType.BottomRightCorner),
+            Child = new TextBlock { Text = "◢", FontSize = 11, Foreground = Brushes.Gray, HorizontalAlignment = HorizontalAlignment.Right,
+                                    VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 3, 1) },
+        };
+        ToolTip.SetTip(corner, Localizer.Te("keyboard.resize_tip", "Drag to make the keyboard bigger or smaller"));
+        corner.PointerPressed += OnCornerPressed;
+        corner.PointerMoved += OnCornerMoved;
+        corner.PointerReleased += OnCornerReleased;
+        _scaler = new LayoutTransformControl { Child = _panel };
+        var root = new Grid { Children = { _scaler, corner } };
         _window = new Window
         {
             WindowDecorations = WindowDecorations.None,
@@ -260,7 +395,7 @@ public sealed class FloatingKeyboard : IDisposable
             Background = Brushes.Transparent,
             TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent },
             Focusable = false,
-            Content = _panel,
+            Content = root,
             Title = "Keyboard",
         };
         RefreshCaps();
@@ -346,6 +481,36 @@ public sealed class FloatingKeyboard : IDisposable
         e.Pointer.Capture(null);
         var inv = System.Globalization.CultureInfo.InvariantCulture;
         AppSettings.Set(PositionKey, _window.Position.X.ToString(inv) + "," + _window.Position.Y.ToString(inv));
+        e.Handled = true;
+    }
+
+    private void OnCornerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (_window == null || Pointer(e) is not { } p) return;
+        _resizeStart = p;
+        _resizeStartWidth = _window.Width;
+        _resizeStartSize = SizePercent;
+        e.Pointer.Capture(sender as IInputElement);
+        e.Handled = true;
+    }
+
+    private void OnCornerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_resizeStart is not { } start || _window == null || Pointer(e) is not { } p) return;
+        // Width decides (the keyboard keeps its shape); the top-left corner stays where it is.
+        var v = SizeForDrag(_resizeStartSize, _resizeStartWidth, p.X - start.X);
+        if (v != SizePercent) AppSettings.Set(SizeKey, v.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        ApplySize();
+        e.Handled = true;
+    }
+
+    private void OnCornerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_resizeStart == null) return;
+        _resizeStart = null;
+        e.Pointer.Capture(null);
+        SizePercent = SizePercent;   // saves it and lets the Pen page's slider follow
+        AppLog.Info($"Floating keyboard resized by its corner to {SizePercent}%.");
         e.Handled = true;
     }
 

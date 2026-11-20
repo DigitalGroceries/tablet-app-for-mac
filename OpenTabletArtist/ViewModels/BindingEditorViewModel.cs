@@ -96,41 +96,10 @@ public partial class BindingEditorViewModel : ObservableObject
     partial void OnRadialMenuTextChanged(string value)
     {
         OnPropertyChanged(nameof(RadialSummary));
-        RefreshKeyboardSlots();
     }
 
-    // ── V29 #143 (Zak's build 3 test, 'No floating keyboard menu'): the floating keyboard in one click from this tab ──
-    public string KeyboardLineLabel => Localizer.Te("radial.keyboard_line",
-        "Floating keyboard: put it on a slice of this menu, then tap that slice to type with the pen.");
-    public string KeyboardPutLabel => Localizer.Te("radial.keyboard_put", "Put the keyboard there");
-    /// <summary>The 8 top slices by name ("3 · Copy", "8 · (empty)") to choose where the keyboard goes.</summary>
-    [ObservableProperty] private IReadOnlyList<string> _keyboardSlots = Array.Empty<string>();
-    [ObservableProperty] private int _keyboardSlot = -1;
-    /// <summary>"The keyboard is on slice 7." when it already is (the button then only moves it).</summary>
-    [ObservableProperty] private string _keyboardStatus = "";
-
-    private void RefreshKeyboardSlots()
-    {
-        var m = Domain.RadialMenuJson.Parse(RadialMenuText);
-        var empty = Localizer.Te("radial.slot_empty", "(empty)");
-        KeyboardSlots = m.Slices.Select((s, i) => $"{i + 1} · {(s.IsSet ? (string.IsNullOrWhiteSpace(s.Label) ? s.Action : s.Label) : empty)}").ToList();
-        int on = m.Slices.FindIndex(s => s.Action == RadialActions.Keyboard);
-        int firstEmpty = m.Slices.FindIndex(s => !s.IsSet);
-        KeyboardSlot = on >= 0 ? on : firstEmpty >= 0 ? firstEmpty : m.Slices.Count - 1;
-        KeyboardStatus = on >= 0 ? Localizer.Te("radial.keyboard_on", "The keyboard is on slice {n}.").Replace("{n}", (on + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal) : "";
-    }
-
-    [RelayCommand]
-    private void PutKeyboard()
-    {
-        var m = Domain.RadialMenuJson.Parse(RadialMenuText);
-        int i = Math.Clamp(KeyboardSlot, 0, m.Slices.Count - 1);
-        foreach (var s in m.Slices.Where(s => s.Action == RadialActions.Keyboard)) { s.Action = RadialActions.None; s.Label = ""; }
-        var was = m.Slices[i].IsSet ? m.Slices[i].Label : "";
-        m.Slices[i] = new RadialSlice { Label = Localizer.Te("keyboard.title", "Keyboard"), Action = RadialActions.Keyboard };
-        RadialMenuText = Domain.RadialMenuJson.Serialize(m);
-        AppLog.Info($"Binding editor '{Title}': the floating keyboard was put on slice {i + 1}" + (was.Length > 0 ? $" (it was '{was}')." : "."));
-    }
+    // V29 #163 (Zak 20 Nov ~09:10): putting the floating keyboard on a slice moved from here (V29 #143) to the Pen page's
+    // Floating keyboard section (FloatingKeyboardPlacement).
 
     // ── Touch on/off (V28 #77) ─────────────────────────────────────────────────
     /// <summary>Offered only for a tablet whose finger touch the app drives (<see cref="BindingEditorContext.TouchTablet"/>),
@@ -153,7 +122,6 @@ public partial class BindingEditorViewModel : ObservableObject
     {
         Title = title;
         BuildKeyboard();
-        RefreshKeyboardSlots();   // V29 #143
         switch (initial.Kind)
         {
             case AuxKind.Keyboard when initial.Combo.IsBound && MediaKeyValues.Contains(initial.Combo.Key):

@@ -880,11 +880,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "键盘透明度",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "移动",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
@@ -911,6 +906,36 @@
   },
   {
     "text": "关闭压感",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "将键盘放到所选扇区",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "键盘透明度",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },

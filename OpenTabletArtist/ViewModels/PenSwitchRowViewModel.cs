@@ -103,7 +103,9 @@ public partial class PenSwitchRowViewModel : ObservableObject
         BindingLabel = PenSwitchBinding.GetDisplayLabel(store, _kind, _penButtonIndex, GetPluginFriendlyName);
         CurrentPlainLabel = PenSwitchBinding.GetPlainCurrentLabel(store, _kind, _penButtonIndex, GetPluginFriendlyName);
         // A keystroke / mouse button / scroll reads as what it does ("Right click", "⌘Z"), not its type.
-        if (AuxKeyBinding.ReadBinding(store) is { IsBound: true } action)
+        if (HoldKeyboardBinding.Is(store))   // V29 #160
+            CurrentPlainLabel = Localizer.Te("tablet.pen.hold_keyboard_label", "Right click; hold for the keyboard");
+        else if (AuxKeyBinding.ReadBinding(store) is { IsBound: true } action)
             CurrentPlainLabel = AuxKeyBinding.Describe(action);
         else if (Mode == PenSwitchBindingMode.Auto && _kind == PenSwitchKind.PenButton)
             CurrentPlainLabel = _penButtonIndex == 1 ? "Default (right click)" : "Default (middle click)";

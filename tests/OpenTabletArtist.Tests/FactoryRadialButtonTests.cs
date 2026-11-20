@@ -38,7 +38,8 @@ public class FactoryRadialButtonTests
         var after = new Settings { Profiles = new ProfileCollection { Profile("Wacom PTH-651", 2) } };
         var merged = FactorySettingsMerge.Apply(null, after);
         var p = Assert.Single(merged.Profiles);
-        Assert.Equal(Adaptive, p.BindingSettings.PenButtons[0]!.Path);                 // button 1 as it was
+        // V29 #160: button 1 now gets the factory long press (right click; hold for the keyboard).
+        Assert.True(HoldKeyboardBinding.Is(p.BindingSettings.PenButtons[0]));
         Assert.True(RadialMenuBinding.Is(p.BindingSettings.PenButtons[1]));            // button 2 = Radial menu
         Assert.True(p.BindingSettings.PenButtons[1]!.Enable);
         Assert.Single(p.Filters.OfType<PluginSettingStore>(), f => f.Path == RadialMenuBinding.FilterTypeName && f.Enable);
@@ -51,7 +52,7 @@ public class FactoryRadialButtonTests
         var after = new Settings { Profiles = new ProfileCollection { Profile("A", 3), Profile("B", 1) } };
         var merged = FactorySettingsMerge.Apply(null, after);
         Assert.Equal(Adaptive, merged.Profiles[0].BindingSettings.PenButtons[2]!.Path);
-        Assert.Equal(Adaptive, merged.Profiles[1].BindingSettings.PenButtons[0]!.Path);
+        Assert.True(HoldKeyboardBinding.Is(merged.Profiles[1].BindingSettings.PenButtons[0]));   // V29 #160: a one-button pen too
         Assert.False(RadialMenuBinding.IsUsed(merged.Profiles[1]));
         // V29 #159: the factory restore now writes the pen curve (Tip Feel 80); no radial menu filter is added.
         Assert.All(merged.Profiles[1].Filters, f => Assert.Equal(PressureCurveProfile.FilterTypeName, f.Path));
@@ -78,7 +79,7 @@ public class FactoryRadialButtonTests
     {
         var spec = new TabletSpecifications { Digitizer = new DigitizerSpecifications { Width = 100, Height = 50, MaxX = 1000, MaxY = 500 }, Pen = new PenSpecifications { ButtonCount = 3 } };
         var b = BindingSettings.GetDefaults(spec);
-        Assert.Equal(Adaptive, b.PenButtons[0]!.Path);
+        Assert.True(HoldKeyboardBinding.Is(b.PenButtons[0]));   // V29 #160: right click, hold for the keyboard
         Assert.True(RadialMenuBinding.Is(b.PenButtons[1]));
         Assert.Equal(Adaptive, b.PenButtons[2]!.Path);
         var back = SettingsCodec.Clone(new Settings { Profiles = new ProfileCollection { new Profile { Tablet = "T", OutputMode = new PluginSettingStore(typeof(AbsoluteMode)), BindingSettings = b } } });

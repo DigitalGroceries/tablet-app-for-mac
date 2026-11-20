@@ -72,6 +72,33 @@ public class RadialToastTests
         finally { ActionConfirmation.Recorder = null; overlay.Dispose(); }
     }
 
+    /// <summary>V29 #169 (Zak 20 Nov ~09:56: "The text 'Tap the colour to change' got separated from the palette and stuck hanging on the
+    /// desktop"): the hint follows a menu moved by the mouse too (the app moves the window itself then, with no new driver state), and a
+    /// pen drag no longer writes a log line for every step.</summary>
+    [AvaloniaFact]
+    public async Task TheHint_FollowsTheMenu_WhenItIsMoved_AndADragIsNotLoggedStepByStep()
+    {
+        _ = new ThemeViewModel();
+        var overlay = new RadialMenuOverlay();
+        try
+        {
+            overlay.ShowNowForTest(Open(600, 400, editing: true, seq: 1));
+            Pump();
+            var toast = overlay.Toast.ToastWindow!;
+            overlay.Toast.Follow(900, 300, RadialMenuGeometry.OuterRadius(50));    // what a mouse drag of the window does
+            Assert.True(Math.Abs(toast.Position.X + toast.Width / 2 - 900) <= 2, "the hint did not follow the menu");
+            Assert.True(overlay.Toast.IsHint);
+            var lines = await Logged(() =>
+            {
+                for (int i = 2; i < 8; i++) { overlay.ShowNowForTest(Open(600 + i * 10, 400, editing: true, seq: i)); Pump(); }
+                return Task.CompletedTask;
+            });
+            Assert.True(lines.Count(l => l.Contains("text bubble")) <= 1, "a drag logged the bubble at every step");
+            Assert.True(Math.Abs(toast.Position.X + toast.Width / 2 - 670) <= 2);
+        }
+        finally { overlay.Dispose(); }
+    }
+
     /// <summary>v27 (Zak 13 Nov 14:47: the hint was "too transparent"): the text box is fully solid with a light edge, even when the menu itself is
     /// set to 100% transparency, and where it went is logged next to the menu centre.</summary>
     [AvaloniaFact]

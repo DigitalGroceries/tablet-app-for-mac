@@ -38,6 +38,60 @@ public static class InWindowSheet
     /// <summary>True when a sheet is open in the main window.</summary>
     public static bool IsOpen => _stack.Count > 0;
 
+    // ── V29 #167 (Zak 20 Nov ~09:46: "I cant record report file because when recording is happening the radial menu settings are
+    // not available because the app is held in recording mode"): while Record the problem runs, the report sheet steps aside so
+    // the whole app can be used, and a small bar at the bottom of the window says it is recording and has Stop recording. ──
+    static readonly Dictionary<Window, (Panel Host, Control Sheet)> _sheets = new();
+    static readonly HashSet<Control> _aside = new();
+    static Border? _bar;
+    static TextBlock? _barText;
+
+    /// <summary>Hide (<paramref name="aside"/> true) or show again the sheet that holds <paramref name="dialog"/>, without closing it.
+    /// While it is aside the page behind can be used. False when the dialog isn't a sheet (it is its own window then).</summary>
+    public static bool StepAside(Window dialog, bool aside)
+    {
+        if (!_sheets.TryGetValue(dialog, out var s)) return false;
+        if (aside) _aside.Add(s.Sheet); else _aside.Remove(s.Sheet);
+        bool onTop = _stack.TryPeek(out var top) && ReferenceEquals(top, s.Sheet);
+        if (onTop) s.Sheet.IsVisible = !aside;
+        s.Host.IsVisible = _stack.Any(x => !_aside.Contains(x));
+        return true;
+    }
+
+    /// <summary>Show (or update) the recording bar at the bottom of the main window; <paramref name="stop"/> runs on its button.</summary>
+    public static void ShowBar(string text, string stopLabel, Action stop)
+    {
+        var mw = Main();
+        if (mw?.FindControl<Panel>(HostName)?.Parent is not Panel root) return;
+        if (_bar == null)
+        {
+            _barText = new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap, MaxWidth = 420 }.Fg("TextPrimaryBrush");
+            var dot = new Avalonia.Controls.Shapes.Ellipse { Width = 10, Height = 10, Fill = new SolidColorBrush(Color.Parse("#E5484D")), VerticalAlignment = VerticalAlignment.Center };
+            var button = new Button { Name = "RecordingBarStop", Content = stopLabel, Padding = new Thickness(12, 6), VerticalAlignment = VerticalAlignment.Center };
+            button.Click += (_, _) => stop();
+            _bar = new Border
+            {
+                Name = "RecordingBar", ZIndex = 1001, CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 8),
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 16),
+                BorderThickness = new Thickness(1), BoxShadow = BoxShadows.Parse("0 4 16 0 #80000000"),
+                Child = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, Children = { dot, _barText, button } },
+            };
+            _bar.Use(Border.BackgroundProperty, "BgElevatedBrush").Use(Border.BorderBrushProperty, "GlassBorderBrush");
+            root.Children.Add(_bar);
+        }
+        else if (_barText != null) _barText.Text = text;
+    }
+
+    public static void HideBar()
+    {
+        if (_bar?.Parent is Panel p) p.Children.Remove(_bar);
+        _bar = null;
+        _barText = null;
+    }
+
+    /// <summary>The recording bar (tests).</summary>
+    internal static Border? Bar => _bar;
+
     /// <summary>Modal: completes when the dialog closes (its Close() is called and not cancelled).</summary>
     public static Task ShowDialogAsync(Window dialog, Window? owner = null)
     {
@@ -136,6 +190,7 @@ public static class InWindowSheet
             if (e.Cancel) return;
             Dispatcher.UIThread.Post(() =>
             {
+                _sheets.Remove(dialog);
                 Detach(host, sheet);
                 RestoreFocus(focusBefore);
                 if (!closedFired) Invoke(dialog, "OnClosed", EventArgs.Empty);
@@ -145,6 +200,9 @@ public static class InWindowSheet
 
         if (_stack.TryPeek(out var below)) below.IsVisible = false;
         _stack.Push(sheet);
+        host.IsVisible = true;   // V29 #167: a new sheet shows even while the report is aside
+        _sheets[dialog] = (host, sheet);
+        dialog.Closed += (_, _) => _sheets.Remove(dialog);
         host.Children.Add(sheet);
         host.IsVisible = true;
         Dispatcher.UIThread.Post(() =>
@@ -184,8 +242,10 @@ public static class InWindowSheet
         var rest = _stack.Where(s => !ReferenceEquals(s, sheet)).Reverse().ToList();
         _stack.Clear();
         foreach (var s in rest) _stack.Push(s);
-        if (_stack.TryPeek(out var top)) top.IsVisible = true;
-        host.IsVisible = host.Children.Count > 0;
+        _aside.Remove(sheet);
+        // V29 #167: a sheet that stepped aside (the report while recording) stays hidden when one opened over it closes.
+        if (_stack.TryPeek(out var top)) top.IsVisible = !_aside.Contains(top);
+        host.IsVisible = _stack.Any(x => !_aside.Contains(x));
     }
 
     static void Invoke(Window w, string method, EventArgs e)

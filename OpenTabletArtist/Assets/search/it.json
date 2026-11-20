@@ -805,11 +805,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Trasparenza tastiera",
-    "path": "Tavoletta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Movimento",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
@@ -836,6 +831,36 @@
   },
   {
     "text": "Disattiva sensibilità alla pressione",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Metti la tastiera lì",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Trasparenza tastiera",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

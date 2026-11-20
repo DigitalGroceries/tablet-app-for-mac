@@ -805,11 +805,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Transparenz der Tastatur",
-    "path": "Tablet › Stift › Stift",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Bewegung",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
@@ -836,6 +831,36 @@
   },
   {
     "text": "Druckempfindlichkeit deaktivieren",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Tastatur dorthin legen",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Transparenz der Tastatur",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },

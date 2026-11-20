@@ -46,6 +46,7 @@ public static class FactorySettingsMerge
             ApplyFactoryRadialButton(profile);
             ApplyFactoryRingModes(profile);
             ApplyFactoryTipFeel(profile);
+            ApplyFactoryHoldKeyboard(profile);
         }
 
         SyncAllStashes(merged);
@@ -98,6 +99,17 @@ public static class FactorySettingsMerge
             changed |= Domain.RingModeBinding.Apply(w, Domain.RingModeBinding.Defaults);
         }
         return changed;
+    }
+
+    /// <summary>V29 #160 (Zak 20 Nov ~09:18-09:24: "Make a double click with pen button one opening the keyboard be the default
+    /// factory settings", then a long press instead): pen button 1 right-clicks on a quick press and opens the floating keyboard when
+    /// held. A pen with no buttons is left alone. Only the reset paths call this.</summary>
+    public static bool ApplyFactoryHoldKeyboard(Profile profile)
+    {
+        var buttons = profile.BindingSettings?.PenButtons;
+        if (buttons == null || buttons.Count < 1) return false;
+        buttons[0] = Domain.HoldKeyboardBinding.Make();
+        return true;
     }
 
     /// <summary>V29 #159 (Zak 20 Nov ~09:03: "make the default factory value for the Tip Feel to be 80"): after a factory

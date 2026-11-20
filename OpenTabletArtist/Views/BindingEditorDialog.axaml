@@ -259,17 +259,7 @@
                            Foreground="{DynamicResource TextMutedBrush}" />
                 <Button Content="{Binding RadialEditLabel}" Command="{Binding EditRadialCommand}"
                         Theme="{StaticResource AccentButton}" Padding="16,8" HorizontalAlignment="Left" />
-                <!-- V29 #143 (Zak's build 3 test: 'No floating keyboard menu'): the keyboard is one click away here. -->
-                <StackPanel x:Name="KeyboardLine" Spacing="6" Margin="0,8,0,0">
-                    <TextBlock Text="{Binding KeyboardLineLabel}" TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <ComboBox x:Name="KeyboardSlotBox" ItemsSource="{Binding KeyboardSlots}" SelectedIndex="{Binding KeyboardSlot, Mode=TwoWay}"
-                                  MinWidth="200" AutomationProperties.Name="Slice for the keyboard" />
-                        <Button x:Name="KeyboardPutButton" Content="{Binding KeyboardPutLabel}" Command="{Binding PutKeyboardCommand}" Padding="12,6" />
-                    </StackPanel>
-                    <TextBlock Text="{Binding KeyboardStatus}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
-                               IsVisible="{Binding KeyboardStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                </StackPanel>
+                <!-- V29 #163: the floating keyboard is put on a slice in the Pen page's Floating keyboard section now. -->
             </StackPanel>
 
             <!-- Touch on/off (V28 #77): only for tablets whose finger touch the app drives. -->

@@ -12,6 +12,7 @@ namespace OpenTabletArtist.Tests;
 
 /// <summary>V29 #141 (Zak 19 Nov 2026): the floating keyboard the radial menu's Keyboard slice shows. The app writes each tapped key
 /// to a small file; the driver presses it in the app in front, once, in order, and only while the keyboard is on screen.</summary>
+[Collection("FloatingKeyboardFiles")]
 public class FloatingKeyboardTests : IDisposable
 {
     private readonly string _dir = Path.Combine(Path.GetTempPath(), "ota-kb-" + Guid.NewGuid().ToString("N"));

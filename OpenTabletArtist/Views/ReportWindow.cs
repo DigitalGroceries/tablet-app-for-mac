@@ -217,6 +217,7 @@ public sealed class ReportWindow : Window
             if (e.PropertyName == nameof(ReportViewModel.IsHowToOpen)) howToSteps.IsVisible = vm.IsHowToOpen;
             if (e.PropertyName == nameof(ReportViewModel.RecordLabel)) record.Content = vm.RecordLabel;
             if (e.PropertyName == nameof(ReportViewModel.RecordStatus)) recordStatus.Text = vm.RecordStatus;
+            if (e.PropertyName is nameof(ReportViewModel.IsRecording) or nameof(ReportViewModel.RecordStatus)) FollowRecording(vm);
             if (e.PropertyName == nameof(ReportViewModel.Status)) { status.Text = vm.Status; status.IsVisible = vm.Status.Length > 0; }
             if (e.PropertyName == nameof(ReportViewModel.SavedPath)) ShowSaved();
             if (e.PropertyName == nameof(ReportViewModel.AskingEmail))
@@ -229,7 +230,31 @@ public sealed class ReportWindow : Window
             }
         };
         vm.Finished += _ => Close();
+        Closed += (_, _) => { if (_aside) { _aside = false; InWindowSheet.HideBar(); } };
         Opened += (_, _) => text.Focus();
+    }
+
+    private bool _aside;
+
+    /// <summary>V29 #167 (Zak 20 Nov ~09:46): while recording, the sheet steps aside so the app can be used (the radial menu settings,
+    /// any page); a bar at the bottom of the window shows the recording and stops it. Stopping brings the report back.</summary>
+    private void FollowRecording(ReportViewModel vm)
+    {
+        if (vm.IsRecording)
+        {
+            if (!_aside && InWindowSheet.StepAside(this, true))
+            {
+                _aside = true;
+                AppLog.Info("Report: the report steps aside while recording, so the app can be used.");
+            }
+            if (_aside) InWindowSheet.ShowBar(vm.RecordStatus, vm.RecordLabel, () => vm.ToggleRecordCommand.Execute(null));
+        }
+        else if (_aside)
+        {
+            _aside = false;
+            InWindowSheet.HideBar();
+            InWindowSheet.StepAside(this, false);
+        }
     }
 
     static Bitmap? LoadThumb(string path)

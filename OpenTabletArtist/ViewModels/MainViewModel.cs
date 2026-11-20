@@ -904,6 +904,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             // #38: the app's own switches back to factory too (All buttons and Touch Ring On, no key or ring
             // Off, nothing put aside), so they match the factory bindings.
             TabletAppState.ResetToFactory(TabletsOf(merged));
+            FloatingKeyboard.ResetToFactory();   // V29: 40% see-through, 150% size
             // V29 #129: the driver's factory mapping is the whole desktop (Wacom's default "Full" screen area too); remember it
             // as All displays so it follows monitor changes instead of being reported as "partly off-screen" later.
             var screens = DisplayEnumerator.Enumerate();

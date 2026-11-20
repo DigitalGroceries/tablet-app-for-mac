@@ -810,11 +810,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Keyboard transparency",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Movement",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
@@ -841,6 +836,36 @@
   },
   {
     "text": "Disable pressure sensitivity",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Put the keyboard there",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard transparency",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },

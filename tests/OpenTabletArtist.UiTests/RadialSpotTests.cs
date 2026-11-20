@@ -419,6 +419,28 @@ public class RadialSpotTests
         finally { window.Close(); }
     }
 
+    /// <summary>V29 #166 (Zak 20 Nov ~09:45: "The transparency and the size is out of synk and jump on different values than what I
+    /// put them"): a page refresh after an apply used to build new sliders even when nothing differed, so a slider being dragged
+    /// jumped. The picture and its sliders stay the same objects while they already show the stored menu.</summary>
+    [AvaloniaFact]
+    public async Task ARefreshAfterAnApply_KeepsTheSameSliders_WhenNothingDiffers()
+    {
+        int applies = 0;
+        var profile = NewProfile(Name(), new PluginSettingStore?[] { null, Radial("A") });
+        var (vm, view, window, _) = Open(profile, apply: _ => { applies++; return Task.FromResult(SettingsApplyOutcome.Live); });
+        try
+        {
+            Find<Slider>(view, "RadialTransparencySlider").Value = 44;
+            await PumpUntil(() => applies >= 1);
+            await Pump(TabletDetailViewModel.RadialApplyDelay.Milliseconds + 100);
+            var before = vm.RadialPreview;
+            vm.RefreshRadialSpot();
+            Assert.Same(before, vm.RadialPreview);
+            Assert.Equal(44, (int)Find<Slider>(view, "RadialTransparencySlider").Value);
+        }
+        finally { window.Close(); }
+    }
+
     private static Settings Document(string tablet, int transparency, int size)
     {
         var menu = RadialMenuDefaults.Create(Localizer.Te); menu.Transparency = transparency; menu.Size = size;

@@ -805,11 +805,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Прозрачность клавиатуры",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Движение",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
@@ -836,6 +831,36 @@
   },
   {
     "text": "Отключить чувствительность к давлению",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Поместить клавиатуру в этот сектор",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Прозрачность клавиатуры",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },

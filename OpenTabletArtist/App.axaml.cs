@@ -124,8 +124,10 @@ public partial class App : Application
             _radialMenu.Start();
             _radialPalette = new RadialMenuOverlay(palette: true);   // V29 #154: the colour palette's own window (both can be open)
             _radialPalette.Start();
+            Services.FloatingKeyboard.WatchHoldRequests();   // V29 #160: pen button 1 held shows the keyboard
+            Helpers.EnterCommitsBoxes.Install();               // V29 #168: Enter applies a typed value at once
             Services.AppSwitchFix.Sync();   // V29 #85: the driver's flag file matches the App window switching fix switch
-            desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); _radialMenu?.Dispose(); _radialPalette?.Dispose(); Services.FloatingKeyboard.Current?.Dispose(); };
+            desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); _radialMenu?.Dispose(); _radialPalette?.Dispose(); Services.FloatingKeyboard.Current?.Dispose(); Services.FloatingKeyboard.StopWatchingHoldRequests(); };
 
             // Build J: safety net for the experimental smooth-rotate gesture (releases stuck R / mouse button
             // if the driver dies or hangs mid-gesture, then starts the driver again).

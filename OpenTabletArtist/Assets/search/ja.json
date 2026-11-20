@@ -885,11 +885,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "キーボードの透明度",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "移動",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
@@ -916,6 +911,36 @@
   },
   {
     "text": "筆圧を無効",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "選んだ項目にキーボードを配置",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "キーボードの透明度",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },

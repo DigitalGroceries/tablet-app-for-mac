@@ -11,6 +11,9 @@ public partial class TabletDetailViewModel
     internal async Task<bool> ReplaceRadialMenuAsync(string oldJson, string newJson)
     {
         if (!RadialMenuBinding.AnyUses(WorkingBindings(), oldJson)) return false;
-        return await ApplyBindingMutationAsync(b => RadialMenuBinding.ReplaceMenu(b, oldJson, newJson));
+        var ok = await ApplyBindingMutationAsync(b => RadialMenuBinding.ReplaceMenu(b, oldJson, newJson));
+        // V29 #161: a menu open on screen that still shows the old slices gets the new ones at once.
+        if (ok) Services.RadialMenuOverlay.ReplaceLive(AuxBinding.RadialMenu(oldJson), AuxBinding.RadialMenu(newJson));
+        return ok;
     }
 }

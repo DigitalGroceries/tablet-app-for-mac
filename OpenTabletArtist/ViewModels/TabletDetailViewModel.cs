@@ -1748,6 +1748,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         PenButton1Row = buttons.ElementAtOrDefault(0);
         PenButton2Row = buttons.ElementAtOrDefault(1);
         PenButton3Row = buttons.ElementAtOrDefault(2);
+        RefreshHoldChoice(bindings);   // V29 #160
     }
 
     /// <summary>Wacom-style action picker for a pen side switch (macOS): the same editor the express keys use

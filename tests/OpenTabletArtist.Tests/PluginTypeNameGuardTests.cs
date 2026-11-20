@@ -107,6 +107,20 @@ public class PluginTypeNameGuardTests
         Assert.Contains(filter!.GetInterfaces(), i => i.Name.StartsWith("IPositionedPipelineElement"));
     }
 
+    /// <summary>V29 #160: the app writes this binding on pen button 1 (factory); the plugin must have it with these settings.</summary>
+    [Fact]
+    public void HoldForKeyboardTypeName_ResolvesToTheBuiltBinding_WithTheSettingsTheAppWrites()
+    {
+        var dll = FindPluginDll();
+        Assert.True(dll != null, "Plugin DLL not found — build the solution (it compiles the plugin).");
+        var asm = Assembly.LoadFrom(dll!);
+        var binding = asm.GetType(OpenTabletArtist.Domain.HoldKeyboardBinding.BindingTypeName);
+        Assert.True(binding != null, $"'{OpenTabletArtist.Domain.HoldKeyboardBinding.BindingTypeName}' matches no type in the plugin assembly.");
+        Assert.Contains(binding!.GetInterfaces(), i => i.Name == "IStateBinding");
+        foreach (var s in OpenTabletArtist.Domain.HoldKeyboardBinding.Make().Settings)
+            Assert.NotNull(binding.GetProperty(s.Property));
+    }
+
     [Fact]
     public void PenZoomTypeNames_ResolveToTheBuiltBindingAndFilter_WithTheSettingsTheAppWrites()
     {

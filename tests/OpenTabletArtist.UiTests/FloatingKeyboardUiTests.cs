@@ -44,8 +44,11 @@ public class FloatingKeyboardUiTests
             var menu = overlay.MenuWindow!; var w = kb.Window!;
             Assert.True(w.Position.Y >= menu.Position.Y + menu.Height - 6, "the keyboard is not under the menu");
             Assert.True(Math.Abs(w.Position.X + w.Width / 2 - 600) <= 2, "the keyboard is not centred under the menu");
-            var (kw, kh) = FloatingKeyboard.Size();
-            Assert.True(kw <= 480 && kh <= 200, $"the keyboard is not compact: {kw}x{kh}");
+            var (kw, kh) = FloatingKeyboard.BaseSize();
+            Assert.True(kw <= 480 && kh <= 200, $"the keyboard is not compact at 100%: {kw}x{kh}");
+            // V29 #162: shown at its Keyboard size (150% unless changed)
+            Assert.Equal(FloatingKeyboard.Size().W, w.Width, 1);
+            Assert.Equal(FloatingKeyboard.Size().H, w.Height, 1);
             Assert.False(w.ShowActivated);                                     // never takes the focus from the user's app
             Assert.True(w.Topmost);
 
@@ -77,7 +80,7 @@ public class FloatingKeyboardUiTests
             look.Transparency = 0;
             FloatingKeyboard.Instance.Show(600, 400);
             Pump();
-            var panel = (Border)FloatingKeyboard.Current!.Window!.Content!;
+            var panel = FloatingKeyboard.Current!.Panel!;
             Assert.Equal(1.0, panel.Opacity, 3);
             look.TransparencyInput = "40";
             Assert.Equal(RadialMenuDef.OpacityFor(40), panel.Opacity, 3);
@@ -86,6 +89,36 @@ public class FloatingKeyboardUiTests
         {
             FloatingKeyboard.Current?.Dispose();
             AppSettings.Set(FloatingKeyboard.TransparencyKey, "");
+            FloatingKeyboard.OpenFlagPath = FloatingKeyboardFiles.OpenFlag;
+            try { Directory.Delete(dir, true); } catch (IOException) { }
+        }
+    }
+
+    /// <summary>V29 #162 (Zak 20 Nov ~09:10: "the keyboard is microscopic"): an open keyboard follows the Keyboard size at once.</summary>
+    [AvaloniaFact]
+    public void Size_FollowsTheSetting_AtOnce()
+    {
+        _ = new ThemeViewModel();
+        var dir = Path.Combine(Path.GetTempPath(), "ota-kbui-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        FloatingKeyboard.OpenFlagPath = Path.Combine(dir, "keyboard-open");
+        var look = new FloatingKeyboardLookViewModel();
+        try
+        {
+            look.Size = 100;
+            FloatingKeyboard.Instance.Show(600, 400);
+            Pump();
+            var w = FloatingKeyboard.Current!.Window!;
+            var (bw, bh) = FloatingKeyboard.BaseSize();
+            Assert.Equal(bw, w.Width, 1);
+            look.SizeInput = "200";
+            Assert.Equal(Math.Round(bw * 2), w.Width, 1);
+            Assert.Equal(Math.Round(bh * 2), w.Height, 1);
+        }
+        finally
+        {
+            FloatingKeyboard.Current?.Dispose();
+            FloatingKeyboard.ResetToFactory();
             FloatingKeyboard.OpenFlagPath = FloatingKeyboardFiles.OpenFlag;
             try { Directory.Delete(dir, true); } catch (IOException) { }
         }

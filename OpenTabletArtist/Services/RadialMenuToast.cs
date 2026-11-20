@@ -27,7 +27,18 @@ internal sealed class RadialMenuToast
 
     /// <summary>Show <paramref name="text"/> under the ring centred at (<paramref name="cx"/>, <paramref name="cy"/>) with outer radius
     /// <paramref name="radius"/>. <paramref name="hold"/> keeps it until <see cref="HideHint"/>; otherwise it hides itself.</summary>
-    public void Show(string text, double cx, double cy, double radius, bool hold)
+    public void Show(string text, double cx, double cy, double radius, bool hold) => Place(text, cx, cy, radius, hold, log: true);
+
+    /// <summary>V29 #169 (Zak 20 Nov ~09:56: "The text 'Tap the colour to change' got separated from the palette and stuck hanging on
+    /// the desktop until I closed the palette"): the text follows its menu or palette when that is moved (by the mouse or the pen),
+    /// with no new log line for every step of the move.</summary>
+    public void Follow(double cx, double cy, double radius)
+    {
+        if (!IsVisible || _text?.Text is not { } text) return;
+        Place(text, cx, cy, radius, IsHint, log: false);
+    }
+
+    private void Place(string text, double cx, double cy, double radius, bool hold, bool log)
     {
         try
         {
@@ -53,7 +64,7 @@ internal sealed class RadialMenuToast
             if (_window.TryGetPlatformHandle() is Avalonia.Platform.IMacOSTopLevelPlatformHandle mac && mac.NSWindow != IntPtr.Zero)
                 MacDesktop.MakeOverlay(mac.NSWindow, clickThrough: true);
             // v27: where the bubble went, so a test can check it sits beside the menu (menu centre and radius given).
-            AppLog.Info($"Radial menu text bubble ({(hold ? "hint" : "confirmation")}): \"{text}\" at {_window.Position.X},{_window.Position.Y} " +
+            if (log) AppLog.Info($"Radial menu text bubble ({(hold ? "hint" : "confirmation")}): \"{text}\" at {_window.Position.X},{_window.Position.Y} " +
                         $"({w:0}x{h:0} pt), menu centre {cx:0},{cy:0}, radius {radius:0}.");
         }
         catch (Exception e)

@@ -80,6 +80,49 @@ public class ReportRecordTests
         }
     }
 
+    /// <summary>V29 #167 (Zak 20 Nov ~09:46: "I cant record report file because when recording is happening the radial menu settings are
+    /// not available because the app is held in recording mode"): while recording, the report steps aside so the whole app can be
+    /// used, and a bar at the bottom of the window shows the recording and stops it; stopping brings the report back.</summary>
+    [AvaloniaFact]
+    public void While_recording_the_report_steps_aside_and_a_bar_stops_it()
+    {
+        var d = new Daemon();
+        var vm = new ReportViewModel(Inputs, null, "test", recorder: new ProblemRecorder(d));
+        var (mw, sheet) = OpenSheet(vm);
+        try
+        {
+            var host = mw.FindControl<Panel>(InWindowSheet.HostName)!;
+            Assert.True(host.IsVisible);
+            vm.ToggleRecordCommand.Execute(null);
+            Dispatcher.UIThread.RunJobs();
+            Assert.True(vm.IsRecording);
+            Assert.False(sheet.IsVisible);
+            Assert.False(host.IsVisible);                         // the page behind can be used
+            var bar = InWindowSheet.Bar;
+            Assert.NotNull(bar);
+            Assert.True(bar!.IsVisible);
+            d.Emit();
+            Dispatcher.UIThread.RunJobs();
+            Assert.Contains(bar.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Recording… messages from the tablet so far: 1");
+
+            var stop = bar.GetVisualDescendants().OfType<Button>().First(b => b.Name == "RecordingBarStop");
+            Assert.Equal("Stop recording", stop.Content);
+            stop.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            for (int i = 0; i < 50 && (vm.IsRecording || InWindowSheet.Bar != null); i++) { System.Threading.Thread.Sleep(20); Dispatcher.UIThread.RunJobs(); }
+            Assert.False(vm.IsRecording);
+            Assert.True(sheet.IsVisible);
+            Assert.True(host.IsVisible);
+            Assert.Null(InWindowSheet.Bar);
+        }
+        finally
+        {
+            vm.CancelCommand.Execute(null);
+            Dispatcher.UIThread.RunJobs();
+            InWindowSheet.MainOverride = null;
+            mw.Close();
+        }
+    }
+
     [AvaloniaFact]
     public void Cancel_while_recording_turns_the_tablet_stream_off()
     {

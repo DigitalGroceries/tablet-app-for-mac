@@ -800,11 +800,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Transparencia del teclado",
-    "path": "Tableta › Lápiz › Lápiz",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Movimiento",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
@@ -831,6 +826,36 @@
   },
   {
     "text": "Desactivar sensibilidad a la presión",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Poner el teclado ahí",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Transparencia del teclado",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },

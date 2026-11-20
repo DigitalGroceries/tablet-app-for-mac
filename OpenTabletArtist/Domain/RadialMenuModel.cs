@@ -358,6 +358,14 @@ public static class FloatingKeyboardFiles
     /// <summary>How many recent keys the file keeps.</summary>
     public const int KeepLast = 20;
 
+    /// <summary>V29 #160 (Zak 20 Nov ~09:20: "what about long press instead of click?"): the driver writes a new number here each
+    /// time pen button 1 is held to show or hide the keyboard; the app watches it and toggles the keyboard by the pointer.</summary>
+    public static string ToggleRequest => System.IO.Path.Combine(Folder, "keyboard-toggle");
+
+    /// <summary>The request number in the toggle file's text, or 0. Never throws.</summary>
+    public static long ParseToggle(string? text) =>
+        long.TryParse(text?.Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : 0;
+
     /// <summary>The key commands in the file's text, oldest first; unreadable lines are skipped. Never throws.</summary>
     public static List<RadialMenuCommand> ParseLines(string? text)
     {

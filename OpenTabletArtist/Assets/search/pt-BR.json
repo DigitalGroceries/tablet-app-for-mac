@@ -805,11 +805,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Transparência do teclado",
-    "path": "Tablet › Caneta › Caneta",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Movimento",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
@@ -836,6 +831,36 @@
   },
   {
     "text": "Desativar sensibilidade à pressão",
+    "path": "Tablet › Caneta › Caneta",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "Tablet › Caneta › Caneta",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "Tablet › Caneta › Caneta",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "Tablet › Caneta › Caneta",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Colocar o teclado nessa fatia",
+    "path": "Tablet › Caneta › Caneta",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "Tablet › Caneta › Caneta",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Transparência do teclado",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },
