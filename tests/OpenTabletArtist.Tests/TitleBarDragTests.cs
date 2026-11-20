@@ -70,4 +70,53 @@ public class TitleBarDragTests
         Assert.Null(d.Move(new PixelPoint(100, 50), V(-100, 0), T0 + TitleBarDrag.TakeOverWithin + TimeSpan.FromMilliseconds(1)));
         Assert.False(d.Pressed);
     }
+
+    // ── V29 #176 (Zak 20 Nov, build 9): the window stuck at the edge between his screens. His layout: the MacBook's screen, the TV above it.
+    private static readonly TitleBarDrag.ScreenArea Mac = new(new PixelRect(0, 0, 1496, 967), new PixelRect(0, 37, 1496, 930));
+    private static readonly TitleBarDrag.ScreenArea Tv = new(new PixelRect(-200, -1080, 1920, 1080), new PixelRect(-200, -1055, 1920, 1055));
+    private static readonly TitleBarDrag.ScreenArea[] Both = { Mac, Tv };
+    private static readonly PixelSize Win = new(1100, 720);
+
+    [Fact]
+    public void OnTheSameScreen_TheWindowIsNotPushedAboveTheMenuBar()
+    {
+        // pointer still on the MacBook's screen, window asked to go 20 points above its top: macOS would push it back, so the app doesn't try
+        var at = TitleBarDrag.Place(new PixelPoint(200, -20), Win, new PixelPoint(400, 5), new PixelRect(200, 60, 1100, 720), Both);
+        Assert.Equal(new PixelPoint(200, 37), at);
+        // an ordinary move on that screen is left alone
+        Assert.Equal(new PixelPoint(250, 100), TitleBarDrag.Place(new PixelPoint(250, 100), Win, new PixelPoint(450, 110), new PixelRect(200, 60, 1100, 720), Both));
+    }
+
+    [Fact]
+    public void OnceThePointerIsOnTheOtherScreen_TheWindowGoesWhollyOntoIt()
+    {
+        // dragging up: the pointer has crossed onto the TV while the window is still mostly on the MacBook's screen
+        var at = TitleBarDrag.Place(new PixelPoint(200, -30), Win, new PixelPoint(400, -10), new PixelRect(200, 37, 1100, 720), Both);
+        Assert.Equal(new PixelPoint(200, -720), at);                   // wholly on the TV: its bottom at the TV's bottom edge
+        // dragging down: the pointer is on the MacBook's screen, the window still mostly on the TV
+        var down = TitleBarDrag.Place(new PixelPoint(300, -10), Win, new PixelPoint(500, 20), new PixelRect(300, -700, 1100, 720), Both);
+        Assert.Equal(new PixelPoint(300, 37), down);                    // wholly on the MacBook's screen, below its menu bar
+    }
+
+    [Fact]
+    public void AfterTheDrag_AWindowAcrossTwoScreens_GoesOntoThePointersScreen()
+    {
+        Assert.Equal(new PixelPoint(300, 37), TitleBarDrag.SnapAfterDrag(new PixelRect(300, -560, 1100, 720), new PixelPoint(500, 40), Both));
+        Assert.Equal(new PixelPoint(300, -720), TitleBarDrag.SnapAfterDrag(new PixelRect(300, -560, 1100, 720), new PixelPoint(500, -500), Both));
+        Assert.Null(TitleBarDrag.SnapAfterDrag(new PixelRect(300, 100, 1100, 720), new PixelPoint(500, 120), Both));     // wholly on one screen
+        Assert.Null(TitleBarDrag.SnapAfterDrag(new PixelRect(900, 100, 1100, 720), new PixelPoint(1000, 120), Both));    // hangs off the free right edge
+        Assert.Equal(new PixelPoint(300, 37), TitleBarDrag.SnapAfterDrag(new PixelRect(300, 10, 1100, 720), new PixelPoint(500, 20), new[] { Mac }));   // under the menu bar
+    }
+
+    [Fact]
+    public void APlaceTheAppChose_IsNotTakenForTheMacsDrag()
+    {
+        var d = new TitleBarDrag();
+        d.Press(new PixelPoint(200, 300), T0);
+        var to = d.Move(new PixelPoint(200, 300), V(0, -40), T0.AddMilliseconds(20));
+        Assert.Equal(new PixelPoint(200, 260), to);
+        d.PlacedAt(new PixelPoint(200, 37));                            // kept on the screen
+        Assert.NotNull(d.Move(new PixelPoint(200, 37), V(0, -10), T0.AddMilliseconds(40)));
+        Assert.True(d.ByApp);
+    }
 }

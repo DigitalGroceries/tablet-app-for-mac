@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Avalonia;
 
 namespace OpenTabletArtist.Helpers;
@@ -73,6 +74,74 @@ public sealed class TitleBarDrag
         _lastSet = new PixelPoint(window.X + fromGrab.X, window.Y + fromGrab.Y);
         return _lastSet;
     }
+
+    /// <summary>One screen: its whole area and the part windows may use (below the menu bar), in the same units as the window's
+    /// position (macOS global points).</summary>
+    public readonly record struct ScreenArea(PixelRect Bounds, PixelRect Work);
+
+    /// <summary>
+    /// V29 #176 (Zak 20 Nov, build 9: "sometimes the app window gets stuck at the end of the first screen and does not get dragged to
+    /// the next one", while a Finder window of the same size always crossed). A window the app moves with code still belongs to its
+    /// screen, and macOS pushes it back below that screen's menu bar, so it can't creep across an edge the way the Mac's own drag
+    /// does (Grok's review). So: on the same screen the window never goes above the usable area (no fight with macOS); once the
+    /// pointer is on another screen, the window goes wholly onto that screen in one step.
+    /// </summary>
+    public static PixelPoint Place(PixelPoint target, PixelSize size, PixelPoint pointer, PixelRect current, IReadOnlyList<ScreenArea> screens)
+    {
+        if (screens.Count == 0) return target;
+        int under = IndexOf(screens, pointer);
+        if (under < 0) return target;
+        var ps = screens[under];
+        int on = MostOf(screens, current);
+        if (on != under) return Inside(target, size, ps.Work);
+        return target.Y < ps.Work.Y ? new PixelPoint(target.X, ps.Work.Y) : target;
+    }
+
+    /// <summary>After the app's drag: a window left across two screens goes wholly onto the screen holding the pointer
+    /// (the Mac's own drag never leaves one straddling). Null when it is fine where it is.</summary>
+    public static PixelPoint? SnapAfterDrag(PixelRect window, PixelPoint pointer, IReadOnlyList<ScreenArea> screens)
+    {
+        int touched = 0;
+        foreach (var sc in screens) if (Area(sc.Bounds.Intersect(window)) > 0) touched++;
+        int under = IndexOf(screens, pointer);
+        if (under < 0 && touched >= 2) under = MostOf(screens, window);
+        if (under < 0) return null;
+        var work = screens[under].Work;
+        bool tooHigh = window.Y < work.Y && work.Contains(new PixelPoint(window.X + window.Width / 2, work.Y));
+        if (touched < 2 && !tooHigh) return null;
+        var to = Inside(window.Position, window.Size, work);
+        return to == window.Position ? null : to;
+    }
+
+    private static PixelPoint Inside(PixelPoint p, PixelSize size, PixelRect work)
+    {
+        int x = size.Width >= work.Width ? work.X : Math.Clamp(p.X, work.X, work.Right - size.Width);
+        int y = size.Height >= work.Height ? work.Y : Math.Clamp(p.Y, work.Y, work.Bottom - size.Height);
+        return new PixelPoint(x, y);
+    }
+
+    private static int IndexOf(IReadOnlyList<ScreenArea> screens, PixelPoint p)
+    {
+        for (int i = 0; i < screens.Count; i++) if (screens[i].Bounds.Contains(p)) return i;
+        return -1;
+    }
+
+    private static int MostOf(IReadOnlyList<ScreenArea> screens, PixelRect r)
+    {
+        int best = -1; long most = 0;
+        for (int i = 0; i < screens.Count; i++)
+        {
+            long a = Area(screens[i].Bounds.Intersect(r));
+            if (a > most) { most = a; best = i; }
+        }
+        return best;
+    }
+
+    private static long Area(PixelRect r) => r.Width <= 0 || r.Height <= 0 ? 0 : (long)r.Width * r.Height;
+
+    /// <summary>The app put the window somewhere else than <see cref="Move"/> asked (kept on a screen, #176): the hand-over
+    /// test compares with this place.</summary>
+    public void PlacedAt(PixelPoint window) => _lastSet = window;
 
     /// <summary>The button was let go (or the pointer lost, or a new press): true when the app had been moving the window.</summary>
     public bool Release()

@@ -39,6 +39,13 @@ public static class ObjCSelectors
     public const string SetOpaque = "setOpaque:";
     public const string SetBackgroundColor = "setBackgroundColor:";
     public const string ClearColor = "clearColor";
+    // V29 #176: the Mac's own window drag started with the press macOS is handling now; the window's real frame.
+    public const string CurrentEvent = "currentEvent";
+    public const string Type = "type";
+    public const string Timestamp = "timestamp";
+    public const string PerformWindowDragWithEvent = "performWindowDragWithEvent:";
+    public const string Screens = "screens";
+    public const string FirstObject = "firstObject";
 
     public static IReadOnlyList<string> All { get; } = new[]
     {
@@ -48,6 +55,7 @@ public static class ObjCSelectors
         SetPreventsActivation, SharedWorkspace, FrontmostApplication, ProcessIdentifier, RunningApplicationWithPid,
         ActivateWithOptions, IsActive,
         SetOpaque, SetBackgroundColor, ClearColor,
+        CurrentEvent, Type, Timestamp, PerformWindowDragWithEvent, Screens, FirstObject,
     };
 }
 

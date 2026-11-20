@@ -140,18 +140,53 @@ public partial class MainWindow : Window
         if (WindowState == WindowState.Normal)
         {
             _grab = e.GetPosition(this);
-            _titleDrag.Press(Position, DateTime.UtcNow);
+            _titleDrag.Press(RealPosition(), DateTime.UtcNow);
+            _moveNotes = 0; _lastPointer = null;
+        }
+        // V29 #176 (Grok's review): start the Mac's own drag with the press macOS is handling right now, as Finder's windows are
+        // dragged; Avalonia's BeginMoveDrag uses the last press it recorded, which can be an older one.
+        if (OperatingSystem.IsMacOS())
+        {
+            if (MacWindowDrag.TryStart(this, e.Timestamp, out var note))
+            {
+                AppLog.Info($"Window drag: the Mac's own drag was started with this press ({note}) (#176).");
+                return;
+            }
+            AppLog.Info($"Window drag: this press couldn't start the Mac's own drag ({note}); asking Avalonia (#176).");
         }
         BeginMoveDrag(e);
     }
+
+    /// <summary>V29 #176: where the window really is (the NSWindow's frame); Avalonia's Position follows the Mac's moves later.</summary>
+    private PixelPoint RealPosition() => MacWindowDrag.TopLeft(this) ?? Position;
+
+    private PixelSize FramePixels()
+    {
+        var fs = FrameSize ?? ClientSize;   // on macOS these are points, the same units as Position and the screens
+        return new PixelSize((int)Math.Round(fs.Width), (int)Math.Round(fs.Height));
+    }
+
+    private System.Collections.Generic.List<TitleBarDrag.ScreenArea> ScreenAreas() =>
+        Screens.All.Select(sc => new TitleBarDrag.ScreenArea(sc.Bounds, sc.WorkingArea)).ToList();
+
+    private int _moveNotes;
+    private PixelPoint? _lastPointer;
 
     private void OnTitleDragMoved(object? sender, PointerEventArgs e)
     {
         if (!_titleDrag.Pressed) return;
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) { EndTitleDrag(e.Pointer); return; }
         bool wasByApp = _titleDrag.ByApp;
-        var fromGrab = this.PointToScreen(e.GetPosition(this)) - this.PointToScreen(_grab);
-        var to = _titleDrag.Move(Position, fromGrab, DateTime.UtcNow);
+        var pointer = this.PointToScreen(e.GetPosition(this));
+        _lastPointer = pointer;
+        var fromGrab = pointer - this.PointToScreen(_grab);
+        var real = RealPosition();
+        if (wasByApp && real != Position && _moveNotes < 3)
+        {
+            _moveNotes++;   // #176 logs for build 10: where macOS really has the window against where the app put it
+            AppLog.Info($"Window drag: the window is at {real.X},{real.Y}; the app last put it at {Position.X},{Position.Y}.");
+        }
+        var to = _titleDrag.Move(real, fromGrab, DateTime.UtcNow);
         if (wasByApp && !_titleDrag.Pressed)
         {
             AppLog.Info("Window drag: the Mac's own drag started late; the app stopped moving the window.");
@@ -161,9 +196,25 @@ public partial class MainWindow : Window
         if (to is not { } target) return;
         if (!wasByApp)
         {
-            AppLog.Info($"Window drag: the Mac's drag didn't start ({e.Pointer.Type}, window {Position.X},{Position.Y}, scale "
+            AppLog.Info($"Window drag: the Mac's drag didn't start ({e.Pointer.Type}, window {real.X},{real.Y}, scale "
                         + $"{RenderScaling:0.##}); the app moves the window (#164).");
             e.Pointer.Capture(this);   // keep the moves while the window follows the pointer
+        }
+        if (OperatingSystem.IsMacOS())
+        {
+            // #176: never fight macOS at a screen edge; once the pointer is on another screen, the window goes wholly onto it.
+            var size = FramePixels();
+            var placed = TitleBarDrag.Place(target, size, pointer, new PixelRect(real, size), ScreenAreas());
+            if (placed != target)
+            {
+                _titleDrag.PlacedAt(placed);
+                if (_moveNotes < 3)
+                {
+                    _moveNotes++;
+                    AppLog.Info($"Window drag: placed at {placed.X},{placed.Y} instead of {target.X},{target.Y} (kept on the screen under the pointer, #176).");
+                }
+                target = placed;
+            }
         }
         Position = target;
     }
@@ -174,7 +225,17 @@ public partial class MainWindow : Window
     {
         bool byApp = _titleDrag.ByApp;
         if (_titleDrag.Release())
-            AppLog.Info($"Window drag by the app ended at {Position.X},{Position.Y} (scale {RenderScaling:0.##}).");
+        {
+            var real = RealPosition();
+            AppLog.Info($"Window drag by the app ended at {real.X},{real.Y} (Position {Position.X},{Position.Y}, scale {RenderScaling:0.##}).");
+            // #176: never left across two screens (the Mac's own drag doesn't leave one there either).
+            if (OperatingSystem.IsMacOS() && _lastPointer is { } at
+                && TitleBarDrag.SnapAfterDrag(new PixelRect(real, FramePixels()), at, ScreenAreas()) is { } snap)
+            {
+                AppLog.Info($"Window drag: the window was across two screens; moved wholly onto the screen under the pointer at {snap.X},{snap.Y} (#176).");
+                Position = snap;
+            }
+        }
         if (byApp) pointer?.Capture(null);
     }
 
