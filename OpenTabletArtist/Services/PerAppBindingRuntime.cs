@@ -239,6 +239,15 @@ public sealed class PerAppBindingRuntime : IDisposable
             }
             else penKey = null;
 
+            // V29 #170: the tablet has ONE radial menu; an application's or pen's table never brings its own.
+            if ((bundleId is not null || penKey is not null)
+                && RadialMenuShare.Current(tablet, StashedAllBindings(tablet)) is { } oneMenu
+                && RadialMenuShare.Differs(bindings, oneMenu))
+            {
+                bindings = PerAppBindingStore.CloneBindings(bindings);
+                RadialMenuShare.Unify(bindings, oneMenu);
+            }
+
             profile.BindingSettings = bindings;
             var outcome = await _settings.ApplySettingsAsync(clone).ConfigureAwait(true);
             if (!outcome.IsLive) return;

@@ -173,17 +173,3 @@ public class FloatingKeyboardSizeTests
         FloatingKeyboard.ResetToFactory();
     }
 }
-
-/// <summary>V29 #169 (Zak 20 Nov ~09:56): All's page names the applications that open their own radial menu and palette.</summary>
-public class OwnTablesNoteTests
-{
-    [Fact]
-    public void TheNote_NamesTheApps_OrIsEmpty()
-    {
-        Assert.Equal("", OpenTabletArtist.ViewModels.TabletDetailViewModel.OwnTablesNote(Array.Empty<string>()));
-        Assert.Equal("Adobe Photoshop 2025 uses its own radial menu and colour palette. To change them, choose it in the Application row.",
-            OpenTabletArtist.ViewModels.TabletDetailViewModel.OwnTablesNote(new[] { "Adobe Photoshop 2025" }));
-        Assert.Equal("Affinity, Krita and Adobe Photoshop 2025 use their own radial menu and colour palette. To change theirs, choose them in the Application row.",
-            OpenTabletArtist.ViewModels.TabletDetailViewModel.OwnTablesNote(new[] { "Affinity", "Krita", "Adobe Photoshop 2025" }));
-    }
-}

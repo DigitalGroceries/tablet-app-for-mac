@@ -78,6 +78,17 @@ public partial class TabletDetailViewModel
         // Keep All bindings stash fresh on first open, but never from a live app overlay (#74).
         if (PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared))
             PerAppBindingRuntime.SyncAllBindings(_profile.Tablet ?? "", _profile.BindingSettings);
+        ShareOneRadialMenu();
+    }
+
+    /// <summary>V29 #170: tables saved before the tablet had ONE radial menu (Zak's Photoshop and Affinity tables kept
+    /// their own copies) get All's menu, once and quietly; each replaced menu is kept aside (RadialMenuShare.ReplacedKey).
+    /// Idempotent: afterwards every table already holds it.</summary>
+    internal void ShareOneRadialMenu()
+    {
+        var tablet = _profile.Tablet ?? "";
+        if (RadialMenuShare.Current(tablet, EditorAllBindings()) is not { } one) return;
+        if (RadialMenuShare.ShareToStores(tablet, one) > 0) PerAppBindingRuntime.Shared?.Reapply();
     }
 
     /// <summary>Version 16 BETA 2: an app's table with ring modes written by Version 16 BETA 1 or earlier runs
@@ -196,8 +207,46 @@ public partial class TabletDetailViewModel
         PerAppBindingRuntime.Shared?.Kick();
     }
 
-    /// <summary>Write a binding change either to All (OTD profile) or to the selected app's store.</summary>
+    /// <summary>Write a binding change either to All (OTD profile) or to the selected app's store. V29 #170: a radial
+    /// menu the change gives the table becomes the tablet's one menu, in every table; a button that just became a
+    /// radial menu with the default menu gets the tablet's menu instead.</summary>
     internal async Task<bool> ApplyBindingMutationAsync(Action<BindingSettings> mutate)
+    {
+        var tablet = _profile.Tablet ?? "";
+        var sharedBefore = RadialMenuShare.Current(tablet, EditorAllBindings());
+        var before = RadialMenuShare.MenusByPosition(WorkingBindings());
+        string? edited = null;
+        var ok = await ApplyBindingMutationCoreAsync(b =>
+        {
+            mutate(b);
+            edited = RadialMenuShare.EditedMenu(before, b,
+                sharedBefore, RadialMenuJson.Serialize(RadialMenuDefaults.Create(Localizer.Te)));
+            if ((edited ?? sharedBefore) is { } one) RadialMenuShare.Unify(b, one);
+        });
+        if (ok && edited != null) await ShareRadialMenuAsync(edited, sharedBefore);
+        return ok;
+    }
+
+    /// <summary>V29 #170: make <paramref name="json"/> the tablet's one radial menu: the All stash, every application's
+    /// and pen's table, and the live All profile when it holds another menu; then the driver and an open menu follow.</summary>
+    internal async Task<bool> ShareRadialMenuAsync(string json, string? before)
+    {
+        var tablet = _profile.Tablet ?? "";
+        RadialMenuShare.ShareToStores(tablet, json);
+        bool ok = true;
+        if (RadialMenuShare.Differs(EditorAllBindings(), json) && _applyAction != null)
+            ok = await ApplySettingsChange(p =>
+            {
+                RadialMenuShare.Unify(p.BindingSettings, json);
+                PerAppBindingRuntime.SyncAllBindings(p.Tablet ?? "", p.BindingSettings);
+            });
+        PerAppBindingRuntime.Shared?.Reapply();
+        if (before != null && RadialMenuShare.Canonical(before) != RadialMenuShare.Canonical(json))
+            RadialMenuOverlay.ReplaceLive(AuxBinding.RadialMenu(before), AuxBinding.RadialMenu(json));
+        return ok;
+    }
+
+    private async Task<bool> ApplyBindingMutationCoreAsync(Action<BindingSettings> mutate)
     {
         // Version 14: editing an extra pen writes to that pen's own settings.
         if (!string.IsNullOrEmpty(SelectedPenKey))

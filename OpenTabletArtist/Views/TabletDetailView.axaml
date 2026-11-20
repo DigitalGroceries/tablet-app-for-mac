@@ -1652,10 +1652,6 @@
                                        HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
                             <Button x:Name="RadialUseButton" Content="{Binding RadialUseButtonLabel}" Command="{Binding UseRadialButtonCommand}"
                                     IsVisible="{Binding CanUseRadialButton}" HorizontalAlignment="Center" />
-                            <!-- V29 #169: which applications open their own menu (Application row). -->
-                            <TextBlock x:Name="RadialOwnTablesNote" Text="{Binding RadialOwnTablesNote}" FontSize="12" TextWrapping="Wrap"
-                                       TextAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
-                                       IsVisible="{Binding HasRadialOwnTablesNote}" />
                             <StackPanel x:Name="RadialSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}" Opacity="{Binding RadialSpotOpacity}">
                                 <TextBlock Text="{Binding RadialPreview.TransparencyCaption}" FontSize="12" />
                                 <!-- v27 (Zak 16:05): both rows use the same columns (box 52, unit 18) so the two boxes line up exactly; the
@@ -1859,8 +1855,6 @@
                                              AutomationProperties.Name="Palette size value" />
                                 </Grid>
                                 <TextBlock Text="{Binding RadialPreview.PaletteSolidNote}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
-                                <TextBlock x:Name="PaletteOwnTablesNote" Text="{Binding RadialOwnTablesNote}" FontSize="12" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HasRadialOwnTablesNote}" />
                             </StackPanel>
                         </StackPanel>
                     </Grid>

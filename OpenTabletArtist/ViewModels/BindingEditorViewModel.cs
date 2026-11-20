@@ -122,6 +122,8 @@ public partial class BindingEditorViewModel : ObservableObject
     {
         Title = title;
         BuildKeyboard();
+        if (!string.IsNullOrWhiteSpace(BindingEditorContext.SharedRadialMenu))   // V29 #170
+            RadialMenuText = Domain.RadialMenuJson.Serialize(Domain.RadialMenuJson.Parse(BindingEditorContext.SharedRadialMenu));
         switch (initial.Kind)
         {
             case AuxKind.Keyboard when initial.Combo.IsBound && MediaKeyValues.Contains(initial.Combo.Key):
@@ -442,6 +444,23 @@ public static class BindingEditorContext
     private sealed class RestoreTouch(bool before) : IDisposable
     {
         public void Dispose() => _touchTablet.Value = before;
+    }
+
+    private static readonly System.Threading.AsyncLocal<string?> _sharedMenu = new();
+    /// <summary>V29 #170: the tablet's one radial menu (JSON), so a button newly set to Radial menu shows that menu,
+    /// not the default one. Null: the default menu.</summary>
+    public static string? SharedRadialMenu => _sharedMenu.Value;
+
+    public static IDisposable SharedRadialMenuScope(string? menuJson)
+    {
+        var before = _sharedMenu.Value;
+        _sharedMenu.Value = menuJson;
+        return new RestoreMenu(before);
+    }
+
+    private sealed class RestoreMenu(string? before) : IDisposable
+    {
+        public void Dispose() => _sharedMenu.Value = before;
     }
 
     public static IDisposable KeysOnlyScope()

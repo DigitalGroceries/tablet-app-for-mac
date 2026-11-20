@@ -110,6 +110,10 @@ public class DialogService : IDialogService
                 var owner = Dialogs.GetMainWindow();
                 // V28 #77: the Touch tab (Touch on/off) only for a tablet whose finger touch the app drives.
                 using var touch = ViewModels.BindingEditorContext.TouchTabletScope(Domain.TouchTrackpad.Tablets.Contains(tabletName));
+                // V29 #170: a button newly set to Radial menu shows the tablet's one menu.
+                var allTable = PerAppBindingRuntime.StashedAllBindings(tabletName)
+                               ?? _session.CurrentSettings?.Profiles.FirstOrDefault(p => p.Tablet == tabletName)?.BindingSettings;
+                using var menu = ViewModels.BindingEditorContext.SharedRadialMenuScope(RadialMenuShare.Current(tabletName, allTable));
                 return owner != null
                     ? await Views.BindingEditorDialog.ShowAsync(owner, binding, title)
                     : null;

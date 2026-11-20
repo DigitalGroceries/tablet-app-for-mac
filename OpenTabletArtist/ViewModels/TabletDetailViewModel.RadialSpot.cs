@@ -130,45 +130,6 @@ public partial class TabletDetailViewModel
         }
     }
 
-    // ── V29 #169 (Zak 20 Nov ~09:56: the palette's size slider didn't change the palette on screen while Photoshop was in front):
-    // Photoshop's own table (Application row) had its own radial menu and palette, which is what the pen opened there, while the page
-    // showed All. The page now says which applications use their own menu, so the user knows where to change it. ──
-    [ObservableProperty] private string _radialOwnTablesNote = "";
-    public bool HasRadialOwnTablesNote => RadialOwnTablesNote.Length > 0;
-    partial void OnRadialOwnTablesNoteChanged(string value) => OnPropertyChanged(nameof(HasRadialOwnTablesNote));
-
-    /// <summary>"Adobe Photoshop 2025 and Affinity use their own radial menu and palette. …", shown on All's page only.</summary>
-    internal static string OwnTablesNote(IReadOnlyList<string> apps)
-    {
-        if (apps.Count == 0) return "";
-        string names = apps.Count == 1 ? apps[0]
-            : string.Join(", ", apps.Take(apps.Count - 1)) + " " + Localizer.Te("radial_spot.and", "and") + " " + apps[^1];
-        var t = apps.Count == 1
-            ? Localizer.Te("radial_spot.own_one", "{apps} uses its own radial menu and colour palette. To change them, choose it in the Application row.")
-            : Localizer.Te("radial_spot.own_many", "{apps} use their own radial menu and colour palette. To change theirs, choose them in the Application row.");
-        return t.Replace("{apps}", names, StringComparison.Ordinal);
-    }
-
-    private void RefreshOwnTablesNote()
-    {
-        try
-        {
-            if (!string.IsNullOrEmpty(SelectedAppBundleId) || !string.IsNullOrEmpty(SelectedPenKey)) { RadialOwnTablesNote = ""; return; }
-            var apps = PerAppBindingStore.List(_profile.Tablet ?? "")
-                .Where(a => a.Bindings?.PenButtons?.Any(RadialMenuBinding.Is) == true)
-                .Select(a => string.IsNullOrWhiteSpace(a.DisplayName) ? a.BundleId : a.DisplayName)
-                .Where(n => !string.IsNullOrWhiteSpace(n))
-                .Distinct()
-                .ToList();
-            RadialOwnTablesNote = OwnTablesNote(apps!);
-        }
-        catch (Exception ex)
-        {
-            RadialOwnTablesNote = "";
-            AppLog.Warn("Radial menu settings: couldn't list the applications with their own menu.", ex);
-        }
-    }
-
     /// <summary>The slice row works when a pen button opens the radial menu and the page can write settings.</summary>
     public bool CanPutKeyboard => CanEditRadial;
 
@@ -344,7 +305,6 @@ public partial class TabletDetailViewModel
             }
             OnPropertyChanged(nameof(CanEditRadialSliders));
             RefreshKeyboardSlots();   // V29 #163
-            RefreshOwnTablesNote();   // V29 #169
             // The picture: this menu, or the starting menu (dimmed by the page) when nothing opens one. A slider change that is still on its
             // way to the driver is never thrown away by a refresh: the sliders keep what the user set.
             if (_spotDirty && RadialPreview != null && openers.Count > 0) return;
