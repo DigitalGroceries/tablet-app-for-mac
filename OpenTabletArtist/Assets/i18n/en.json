@@ -713,7 +713,7 @@
   "radial.keyboard_put": "Put the keyboard there",
   "radial.slot_empty": "(empty)",
   "radial.keyboard_on": "The keyboard is on slice {n}.",
-  "radial.keyboard_tab_note": "The keyboard's size, transparency and Holding pen button 1 choice are on the Keyboard tab of the Pen page.",
+  "radial.keyboard_tab_note": "The keyboard's size, transparency and \"Holding pen button 1\" choice are on the Keyboard tab of the Pen page.",
   "palette.edit_hint": "Tap the colour to change",
   "palette.restore_prompt": "Put the palette's own colours back?",
   "palette.change_title": "Change this colour",
