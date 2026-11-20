@@ -60,7 +60,7 @@ public class ObjCSelectorTests
             "_setPreventsActivation:", "sharedWorkspace", "frontmostApplication", "processIdentifier",
             "runningApplicationWithProcessIdentifier:", "activateWithOptions:", "isActive",
             "setOpaque:", "setBackgroundColor:", "clearColor",
-            "currentEvent", "type", "timestamp", "performWindowDragWithEvent:", "screens", "firstObject",
+            "currentEvent", "type", "timestamp", "performWindowDragWithEvent:", "screens", "firstObject", "isKeyWindow",
         };
         Assert.Equal(expected, OpenTabletArtist.Services.ObjCSelectors.All);
         Assert.DoesNotContain("mainApp", OpenTabletArtist.Services.ObjCSelectors.All);

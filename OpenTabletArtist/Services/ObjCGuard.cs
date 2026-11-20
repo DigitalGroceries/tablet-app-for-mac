@@ -46,6 +46,7 @@ public static class ObjCSelectors
     public const string PerformWindowDragWithEvent = "performWindowDragWithEvent:";
     public const string Screens = "screens";
     public const string FirstObject = "firstObject";
+    public const string IsKeyWindow = "isKeyWindow";
 
     public static IReadOnlyList<string> All { get; } = new[]
     {
@@ -55,7 +56,7 @@ public static class ObjCSelectors
         SetPreventsActivation, SharedWorkspace, FrontmostApplication, ProcessIdentifier, RunningApplicationWithPid,
         ActivateWithOptions, IsActive,
         SetOpaque, SetBackgroundColor, ClearColor,
-        CurrentEvent, Type, Timestamp, PerformWindowDragWithEvent, Screens, FirstObject,
+        CurrentEvent, Type, Timestamp, PerformWindowDragWithEvent, Screens, FirstObject, IsKeyWindow,
     };
 }
 

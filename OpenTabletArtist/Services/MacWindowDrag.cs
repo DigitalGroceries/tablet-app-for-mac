@@ -22,6 +22,7 @@ internal static class MacWindowDrag
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern nuint SendNUInt(IntPtr obj, IntPtr sel);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern double SendDouble(IntPtr obj, IntPtr sel);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern void SendArg(IntPtr obj, IntPtr sel, IntPtr arg);
+    [DllImport(ObjC, EntryPoint = "objc_msgSend")] [return: MarshalAs(UnmanagedType.I1)] private static extern bool SendBool(IntPtr obj, IntPtr sel);
     [DllImport(ObjC, EntryPoint = "objc_msgSend")] private static extern NSRect SendRectArm(IntPtr obj, IntPtr sel);
     [DllImport(ObjC, EntryPoint = "objc_msgSend_stret")] private static extern void SendRectStret(out NSRect r, IntPtr obj, IntPtr sel);
 
@@ -67,7 +68,11 @@ internal static class MacWindowDrag
             double secs = SendDouble(ev, sel_registerName(ObjCSelectors.Timestamp));
             var evWin = Send(ev, sel_registerName(ObjCSelectors.Window));
             double diff = Math.Abs(secs * 1000 - pressMs);
-            note = $"current event type {type}, {(evWin == win ? "this window" : "another window")}, {diff:0.#} ms from the press";
+            // Grok (build 10 result): failures may follow the app being inactive at the press (activation during the drag's start).
+            bool active = ObjCGuard.RespondsTo(app, ObjCSelectors.IsActive) && SendBool(app, sel_registerName(ObjCSelectors.IsActive));
+            bool key = ObjCGuard.RespondsTo(win, ObjCSelectors.IsKeyWindow) && SendBool(win, sel_registerName(ObjCSelectors.IsKeyWindow));
+            note = $"current event type {type}, {(evWin == win ? "this window" : "another window")}, {diff:0.#} ms from the press, "
+                   + $"app {(active ? "active" : "NOT active")}, window {(key ? "key" : "NOT key")}";
             if (type != LeftMouseDown || evWin != win || diff > 3) return false;
             if (!ObjCGuard.RespondsTo(win, ObjCSelectors.PerformWindowDragWithEvent)) { note += ", no performWindowDragWithEvent:"; return false; }
             SendArg(win, sel_registerName(ObjCSelectors.PerformWindowDragWithEvent), ev);

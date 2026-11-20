@@ -140,7 +140,8 @@ public partial class MainWindow : Window
         if (WindowState == WindowState.Normal)
         {
             _grab = e.GetPosition(this);
-            _titleDrag.Press(RealPosition(), DateTime.UtcNow);
+            _pressedAt = RealPosition();
+            _titleDrag.Press(_pressedAt, DateTime.UtcNow);
             _moveNotes = 0; _lastPointer = null;
         }
         // V29 #176 (Grok's review): start the Mac's own drag with the press macOS is handling right now, as Finder's windows are
@@ -172,6 +173,7 @@ public partial class MainWindow : Window
     private System.Collections.Generic.List<TitleBarDrag.ScreenArea> ScreenAreas() =>
         Screens.All.Select(sc => new TitleBarDrag.ScreenArea(sc.Bounds, sc.WorkingArea)).ToList();
 
+    private PixelPoint _pressedAt;
     private int _moveNotes;
     private PixelPoint? _lastPointer;
 
@@ -180,7 +182,12 @@ public partial class MainWindow : Window
         if (!_titleDrag.Pressed) return;
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) { EndTitleDrag(e.Pointer); return; }
         // #176 (Grok's review): Avalonia may still think the button is down when the Mac's drag swallowed the release; ask macOS.
-        if (OperatingSystem.IsMacOS() && MacWindowDrag.LeftButtonUp()) { EndTitleDrag(e.Pointer); return; }
+        if (OperatingSystem.IsMacOS() && MacWindowDrag.LeftButtonUp())
+        {
+            AppLog.Info($"Window drag: macOS says the button is up while the app still had it pressed ({e.Pointer.Type}); the drag ends here (#176).");
+            EndTitleDrag(e.Pointer);
+            return;
+        }
         bool wasByApp = _titleDrag.ByApp;
         var pointer = this.PointToScreen(e.GetPosition(this));
         _lastPointer = pointer;
@@ -193,6 +200,8 @@ public partial class MainWindow : Window
         }
         int? workTop = OperatingSystem.IsMacOS() ? TitleBarDrag.WorkTopOf(new PixelRect(real, FramePixels()), ScreenAreas()) : null;
         var to = _titleDrag.Move(real, fromGrab, DateTime.UtcNow, workTop);
+        if (!wasByApp && !_titleDrag.Pressed && to is null && real != _pressedAt)
+            AppLog.Info($"Window drag: the Mac's own drag moved the window ({_pressedAt.X},{_pressedAt.Y} -> {real.X},{real.Y}) (#176).");
         if (wasByApp && !_titleDrag.Pressed)
         {
             AppLog.Info("Window drag: the Mac's own drag started late; the app stopped moving the window.");
