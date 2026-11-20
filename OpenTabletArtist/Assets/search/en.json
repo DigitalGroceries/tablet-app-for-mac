@@ -745,7 +745,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Press a pen button to test it.",
+    "text": "Pen tip",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Press a Pen button to test it",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -776,11 +781,6 @@
   },
   {
     "text": "Keyboard settings",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Pen tip",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },

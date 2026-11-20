@@ -86,7 +86,7 @@ public partial class TabletDetailViewModel
     public string HoldNote => Localizer.Te("keyboard.hold_note", "A quick press right-clicks. Holding it about half a second opens or closes the keyboard.");
     public string HoldOtherNote => Localizer.Te("keyboard.hold_other", "Pen button 1 does something else now (set with Change…). Pick one here to change it.");
     /// <summary>Under the pen tip's "Default setting" (Zak's words, with long press).</summary>
-    public string PenTipHoldLine => Localizer.Te("tablet.pen.hold_keyboard_note", "Long press of Pen button 1 opens the Keyboard");
+    public string PenTipHoldLine => Localizer.Te("tablet.pen.hold_keyboard_note", "Long press Button 1 to open Keyboard");
     public bool HoldIsOther => HasPenButton1 && HoldChoice < 0;
     public bool CanChooseHold => HasPenButton1 && _applyAction != null;
 

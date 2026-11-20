@@ -2430,7 +2430,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             var down = new[] { (PenButton1Pressed, 1), (PenButton2Pressed, 2), (PenButton3Pressed, 3) }
                 .Where(b => b.Item1).Select(b => b.Item2.ToString()).ToList();
             if (down.Count == 0)
-                return Localizer.Te("tablet.pen.test_buttons", "Press a pen button to test it.");
+                return Localizer.Te("tablet.pen.test_buttons", "Press a Pen button to test it");
             if (down.Count == 1)
             {
                 var t = Localizer.T("tablet.pen.button_pressed");

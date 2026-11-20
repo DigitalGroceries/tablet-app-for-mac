@@ -78,6 +78,11 @@
             <Border x:Name="ValueBox" Classes="penValueBox" IsVisible="{Binding ShowChooseAction}">
                 <TextBlock Classes="penValue" Text="{Binding CurrentPlainLabel}" HorizontalAlignment="Center" />
             </Border>
+            <!-- V29 #177 (Zak 20 Nov ~20:18: "It would read better if the text is on one line and not two ... 'Pen Tip Default
+                 Setting'"): the default status sits on the heading's line, as plain text (no tick, Zak ~20:08). -->
+            <TextBlock x:Name="LblDefaultSetting" Classes="working" Text="Default setting" IsVisible="{Binding IsRecommended}"
+                       AutomationProperties.Name="Default setting"
+                       ToolTip.Tip="This input uses its default action. This is not a hardware test." />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding ShowChooseAction}">
@@ -86,14 +91,6 @@
             <Button x:Name="BtnDefault" Classes="penAction" Content="Default" Command="{Binding SetAutoCommand}"
                     IsVisible="{Binding ShowUseAdaptive}"
                     ToolTip.Tip="Put this button back to its normal behaviour" />
-        </StackPanel>
-
-        <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsRecommended}"
-                    AutomationProperties.Name="Default setting"
-                    ToolTip.Tip="This input uses its default action. This is not a hardware test.">
-            <PathIcon Classes="working" Data="{StaticResource IconCheckCircle}"
-                      Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
-            <TextBlock x:Name="LblDefaultSetting" Classes="working" Text="Default setting" />
         </StackPanel>
 
         <StackPanel Spacing="8" IsVisible="{Binding IsNotRecommended}">

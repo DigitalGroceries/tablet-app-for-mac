@@ -567,12 +567,12 @@ public class RadialSpotTests
             Assert.True(In(Find<StackPanel>(view, "RadialSliders"), page).Bottom <= page.Viewport.Height + 0.5 + page.Extent.Height, "sliders unreachable");
 
             // the pen button test works as before: holding button 2 changes the line and lights the badge
-            Assert.Equal("Press a pen button to test it.", test.Text);
+            Assert.Equal("Press a Pen button to test it", test.Text);
             vm.PenButton2Pressed = true; Settle(window);
             Assert.Equal("Button 2 pressed.", test.Text);
             Assert.Equal("Button 2 pressed.", vm.PenButtonTestText);
             vm.PenButton2Pressed = false; Settle(window);
-            Assert.Equal("Press a pen button to test it.", test.Text);
+            Assert.Equal("Press a Pen button to test it", test.Text);
             await Pump();
         }
         finally { window.Close(); }

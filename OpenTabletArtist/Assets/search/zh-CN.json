@@ -815,7 +815,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "按笔上的按钮即可测试。",
+    "text": "笔尖",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "按笔上的按钮即可测试",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -846,11 +851,6 @@
   },
   {
     "text": "键盘设置",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "笔尖",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },

@@ -745,6 +745,16 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Pennspets",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Tryck på en pennknapp för att testa den",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Knapp 2",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
@@ -771,11 +781,6 @@
   },
   {
     "text": "Tangentbordsinställningar",
-    "path": "Ritplatta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Pennspets",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

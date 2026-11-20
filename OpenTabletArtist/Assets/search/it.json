@@ -745,6 +745,16 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Punta della penna",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Premi un pulsante della penna per provarlo",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Pulsante 2",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
@@ -771,11 +781,6 @@
   },
   {
     "text": "Impostazioni tastiera",
-    "path": "Tavoletta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Punta della penna",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

@@ -745,6 +745,16 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Pointe du stylet",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Appuie sur un bouton du stylet pour le tester",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Bouton 2",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
@@ -771,11 +781,6 @@
   },
   {
     "text": "Réglages du clavier",
-    "path": "Tablette › Stylet › Stylet",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Pointe du stylet",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
   },

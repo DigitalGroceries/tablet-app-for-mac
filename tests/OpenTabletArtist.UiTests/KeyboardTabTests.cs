@@ -108,4 +108,43 @@ public class KeyboardTabTests
         }
         finally { window.Close(); }
     }
+
+    /// <summary>Zak 20 Nov ~20:05 ("if 'Keyboard settings...' is clickable it needs to be a button") and ~20:07 (the tick
+    /// next to "Default setting" looks like a checkbox): a real button, and no tick on any pen card.</summary>
+    [AvaloniaFact]
+    public void KeyboardSettings_IsARealButton_AndNoPenCardHasATick()
+    {
+        var (_, view, w) = Open("PenTab");
+        try
+        {
+            var link = view.FindControl<Button>("KeyboardSettingsLink")!;
+            Assert.True(link.Width >= 200 && link.FontSize >= 17);
+            var cardXaml = System.IO.File.ReadAllText(System.IO.Path.Combine(RepoRoot(), "OpenTabletArtist/Views/PenSwitchCard.axaml"));
+            Assert.DoesNotContain("IconCheckCircle", cardXaml);
+        }
+        finally { w.Close(); }
+    }
+
+    /// <summary>Zak 20 Nov ~20:10: the radial menu editor says "Radial menu" once (its window title), not three times.</summary>
+    [AvaloniaFact]
+    public void MenuEditor_SaysRadialMenuOnce()
+    {
+        _ = new ThemeViewModel();
+        var vm = new RadialMenuEditorViewModel(null, "Radial menu");
+        var window = new RadialMenuEditorDialog(vm);
+        window.Show(); Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
+        try
+        {
+            var texts = window.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToList();
+            Assert.DoesNotContain(texts, t => t.Contains("Radial menu", System.StringComparison.OrdinalIgnoreCase));
+        }
+        finally { window.Close(); }
+    }
+
+    private static string RepoRoot()
+    {
+        var d = new System.IO.DirectoryInfo(System.AppContext.BaseDirectory);
+        while (d != null && !System.IO.File.Exists(System.IO.Path.Combine(d.FullName, "AGENTS.md"))) d = d.Parent;
+        return d!.FullName;
+    }
 }

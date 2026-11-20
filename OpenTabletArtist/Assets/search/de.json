@@ -745,6 +745,16 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Stiftspitze",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Drücke eine Stifttaste zum Testen",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Taste 2",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
@@ -771,11 +781,6 @@
   },
   {
     "text": "Tastatureinstellungen",
-    "path": "Tablet › Stift › Stift",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Stiftspitze",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },

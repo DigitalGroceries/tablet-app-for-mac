@@ -106,6 +106,8 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (MappingTab != null) MappingTab.Content = Localizer.T("tablet.tab.mapping");
         if (KeyboardTab != null) KeyboardTab.Content = Localizer.Te("tablet.tab.keyboard", "keyboard");
         if (KeyboardSettingsLink != null) KeyboardSettingsLink.Content = Localizer.Te("tablet.pen.keyboard_settings_link", "Keyboard settings…");
+        if (HoldDefaultHeading != null) HoldDefaultHeading.Text = Localizer.Te("tablet.pen.hold_default_heading", "Default setting:");
+        if (PenTipLabel != null) PenTipLabel.Text = Localizer.Te("tablet.pen.tip", "Pen tip");
         if (AboutTab != null) AboutTab.Content = Localizer.T("tablet.tab.about");
         if (CalibrationTab != null) CalibrationTab.Content = Localizer.T("tablet.tab.calibration");
         if (HoverTab != null) HoverTab.Content = Localizer.T("tablet.tab.hover");

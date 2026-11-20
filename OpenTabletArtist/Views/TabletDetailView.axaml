@@ -1605,28 +1605,42 @@
                             </StackPanel>
                         </HeaderedContentControl>
                     </StackPanel>
-                    <Grid Grid.Column="2" ColumnDefinitions="64,24,Auto,24,*">
-                        <views:PenDiagram VerticalAlignment="Center" />
+                    <!-- V29 #177 (Zak's own mockup, 20 Nov ~20:40, "Zak_Mockup.png"): "Press a Pen button to test it" larger on top; the
+                         Button cards; a line; "Default setting:" with "Long press Button 1 to open Keyboard"; the "Keyboard settings…"
+                         button; "Pen tip" is a label under the pen drawing. The pen tip's own card shows only when the tip is not on its
+                         default (then with its Fix button), under the Keyboard settings… button. -->
+                    <Grid Grid.Column="2" ColumnDefinitions="Auto,24,Auto,24,*">
+                        <StackPanel x:Name="PenDiagramColumn" MinWidth="64" Spacing="14" VerticalAlignment="Center">
+                            <views:PenDiagram HorizontalAlignment="Center" />
+                            <TextBlock x:Name="PenTipLabel" Text="Pen tip" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                       TextAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </StackPanel>
                         <StackPanel Grid.Column="2" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Left">
-                            <TextBlock x:Name="PenButtonTestLine" Text="{Binding PenButtonTestText}" FontSize="12"
-                                       Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HasPenButtons}" />
+                            <TextBlock x:Name="PenButtonTestLine" Text="{Binding PenButtonTestText}" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" IsVisible="{Binding HasPenButtons}" />
                             <views:PenSwitchCard DataContext="{Binding PenButton3Row}"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton3Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
                             <views:PenSwitchCard DataContext="{Binding PenButton2Row}"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton2Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
-                            <StackPanel Spacing="2" IsVisible="{Binding PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
-                                <views:PenSwitchCard DataContext="{Binding PenButton1Row}" />
-                                <!-- V29 #177 (Grok): the keyboard's settings moved to their own tab; pen button 1 opens the keyboard. -->
-                                <Button x:Name="KeyboardSettingsLink" Content="Keyboard settings…" Click="OnKeyboardSettingsLink"
-                                        Theme="{StaticResource LinkButton}" Padding="0" FontSize="12" HorizontalAlignment="Left"
-                                        AutomationProperties.Name="Keyboard settings" />
-                            </StackPanel>
-                            <StackPanel Spacing="6" Margin="0,8,0,0">
-                                <views:PenSwitchCard DataContext="{Binding PenTipRow}" />
-                                <!-- V29 #160 (Zak 20 Nov ~09:18: a line under the pen tip's "Default setting"). -->
-                                <TextBlock x:Name="PenTipHoldLine" Text="{Binding PenTipHoldLine}" FontSize="12" TextWrapping="Wrap" MaxWidth="240"
-                                           HorizontalAlignment="Left" Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HoldOpensKeyboard}" />
-                            </StackPanel>
+                            <views:PenSwitchCard DataContext="{Binding PenButton1Row}"
+                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                            <Border x:Name="KeyboardPenTipBlock" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
+                                    Padding="0,20,0,0" Width="240" HorizontalAlignment="Left">
+                                <StackPanel Spacing="28">
+                                    <StackPanel Spacing="4" IsVisible="{Binding HoldOpensKeyboard}">
+                                        <TextBlock x:Name="HoldDefaultHeading" Text="Default setting:" FontSize="18" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <TextBlock x:Name="PenTipHoldLine" Text="{Binding PenTipHoldLine}" FontSize="18" FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+                                    </StackPanel>
+                                    <Button x:Name="KeyboardSettingsLink" Content="Keyboard settings…" Click="OnKeyboardSettingsLink"
+                                            FontSize="17" FontWeight="SemiBold" Width="220" Height="40" HorizontalAlignment="Left"
+                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                            AutomationProperties.Name="Keyboard settings" />
+                                    <views:PenSwitchCard x:Name="PenTipCard" DataContext="{Binding PenTipRow}"
+                                                         IsVisible="{Binding $parent[UserControl].DataContext.PenTipRow.IsNotRecommended, FallbackValue=False}" />
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                         <!-- TASKS #63 (Zak 20:53 / 21:00 / 21:02): "Radial Menu Settings" on the right, where the Button cards were: only the
                              label above the picture; below it the line (Opens with... / No pen button...) with "Use pen button 2", then the

@@ -92,11 +92,8 @@ public sealed class RadialMenuEditorDialog : Window
 
         // Heading
         var heading = new StackPanel { Spacing = 3, Margin = new Thickness(0, 0, 0, 14) };
-        heading.Children.Add(new TextBlock
-        {
-            Text = vm.Heading + " · " + vm.Title, FontSize = 20, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap,
-            [!TextBlock.ForegroundProperty] = new DynamicResourceExtension("TextPrimaryBrush"),
-        });
+        // V29 #177 (Zak 20 Nov ~20:10: "there are 3 instances of the same text in this app page? It doesnt make any sense. Leave
+        // just one 'Radial Menu'"): the window title says it; the big "Radial menu · <title>" line is gone.
         heading.Children.Add(new TextBlock
         {
             Text = vm.HelpText, TextWrapping = TextWrapping.Wrap,

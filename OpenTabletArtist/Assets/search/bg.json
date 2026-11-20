@@ -730,6 +730,16 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Връх на писалката",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Натисни бутон на писалката, за да го тестваш",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Бутон 2",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
@@ -756,11 +766,6 @@
   },
   {
     "text": "Настройки на клавиатурата",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Връх на писалката",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },

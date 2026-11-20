@@ -31,10 +31,14 @@ public class BuildR5PenLayoutTests
         var tablet = new TabletDetailView { DataContext = new OpenTabletArtist.ViewModels.TabletDetailViewModel() };
         w = Show(tablet);
         var cards = tablet.GetVisualDescendants().OfType<PenSwitchCard>().Where(c => c.IsEffectivelyVisible).ToList();
-        Assert.NotEmpty(cards);
         Assert.All(cards, c => Assert.DoesNotContain("hero", c.Classes));   // R12: all headings one size
         var diagram = tablet.GetVisualDescendants().OfType<PenDiagram>().First(d => d.IsEffectivelyVisible);
-        Assert.Equal(Avalonia.Layout.VerticalAlignment.Center, diagram.VerticalAlignment);
+        // V29 #177 (Zak's mockup 20 Nov): the drawing and its "Pen tip" label are one centred column; the tip's card shows
+        // only when the tip is not on its default.
+        var column = tablet.FindControl<StackPanel>("PenDiagramColumn")!;
+        Assert.Same(column, diagram.Parent);
+        Assert.Equal(Avalonia.Layout.VerticalAlignment.Center, column.VerticalAlignment);
+        Assert.True(tablet.FindControl<TextBlock>("PenTipLabel")!.IsEffectivelyVisible);
         w.Close();
     }
 
