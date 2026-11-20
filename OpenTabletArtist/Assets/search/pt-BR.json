@@ -830,17 +830,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Floating keyboard",
+    "text": "Teclado flutuante",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Holding pen button 1",
+    "text": "Segurar o botão 1 da caneta",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Radial menu slice",
+    "text": "Fatia do menu radial",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -850,7 +850,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Keyboard size",
+    "text": "Tamanho do teclado",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },

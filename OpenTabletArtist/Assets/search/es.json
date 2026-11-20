@@ -825,17 +825,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Floating keyboard",
+    "text": "Teclado flotante",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Holding pen button 1",
+    "text": "Mantener pulsado el botón 1 del lápiz",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Radial menu slice",
+    "text": "Sector del menú radial",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -845,7 +845,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Keyboard size",
+    "text": "Tamaño del teclado",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },

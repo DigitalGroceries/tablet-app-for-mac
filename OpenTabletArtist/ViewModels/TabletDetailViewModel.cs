@@ -1396,7 +1396,12 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 try { restored = JsonConvert.DeserializeObject<PluginSettingStore>(backup); } catch { }
             }
             restored ??= PenSwitchBinding.MakeAdaptiveBinding(PenSwitchKind.Eraser);
-            await ApplySettingsChange(p => p.BindingSettings.EraserButton = restored);
+            var one = RadialMenuShare.Current(_profile.Tablet ?? "", EditorAllBindings());   // #170 review: the kept copy may hold an older menu
+            await ApplySettingsChange(p =>
+            {
+                p.BindingSettings.EraserButton = restored;
+                if (one != null) RadialMenuShare.Unify(p.BindingSettings, one);
+            });
             AppSettings.Set(EraserBackupKey, "");
         }
     }
@@ -1505,7 +1510,12 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 catch { /* corrupt stash — fall back to the default below */ }
             }
             restored ??= PenSwitchBinding.MakeAdaptiveBinding(PenSwitchKind.Tip);
-            await ApplySettingsChange(p => p.BindingSettings.TipButton = restored);
+            var one = RadialMenuShare.Current(_profile.Tablet ?? "", EditorAllBindings());   // #170 review: the kept copy may hold an older menu
+            await ApplySettingsChange(p =>
+            {
+                p.BindingSettings.TipButton = restored;
+                if (one != null) RadialMenuShare.Unify(p.BindingSettings, one);
+            });
             AppSettings.Set(TipBackupKey, "");
         }
     }

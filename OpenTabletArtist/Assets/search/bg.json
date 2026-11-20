@@ -815,17 +815,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Floating keyboard",
+    "text": "Плаваща клавиатура",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Holding pen button 1",
+    "text": "Задържане на бутон 1 на писалката",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Radial menu slice",
+    "text": "Сектор от радиалното меню",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -835,7 +835,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Keyboard size",
+    "text": "Размер на клавиатурата",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },

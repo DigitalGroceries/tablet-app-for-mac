@@ -830,17 +830,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Floating keyboard",
+    "text": "Schwebende Tastatur",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Holding pen button 1",
+    "text": "Stift-Taste 1 gedrückt halten",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Radial menu slice",
+    "text": "Feld im Radialmenü",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -850,7 +850,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Keyboard size",
+    "text": "Tastaturgröße",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },

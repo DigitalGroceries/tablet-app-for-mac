@@ -248,6 +248,9 @@ public partial class TabletDetailViewModel
             if (!ok) AppLog.Warn("Radial menu: the shared menu could not be written to All yet; it will be at the next chance.");
         }
         RadialMenuShare.SetAllBehind(tablet, !ok);
+        // Grok's second look (b): the menu IS saved (every application's and pen's table, and the remembered menu that wins
+        // while All is behind), so the page treats it as saved; only All's own copy follows later.
+        ok = true;
         PerAppBindingRuntime.Shared?.Reapply();
         if (before != null && RadialMenuShare.Canonical(before) != RadialMenuShare.Canonical(json))
             RadialMenuOverlay.ReplaceLive(AuxBinding.RadialMenu(before), AuxBinding.RadialMenu(json));
