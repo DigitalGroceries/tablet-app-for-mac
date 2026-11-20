@@ -704,9 +704,12 @@ public static class RadialMenuState
                     return;
                 case RadialMenuCommand.MoveEnd:
                     // The mouse let go of the window: its last position; on top now, and beside the other one if it covers it.
+                    // Always one state write (Grok's review of #174): it is the app's cue that the drag is over, so a window dragged
+                    // onto a screen of another scale is made again there now, not at the next hover or tap.
                     _cx = cmd.X; _cy = cmd.Y;
                     _parked = true;
-                    if (AfterDragLocked()) WriteStateLocked();
+                    AfterDragLocked();
+                    WriteStateLocked();
                     return;
                 case RadialMenuCommand.Tap:
                     _parked = true;

@@ -388,7 +388,9 @@ public sealed class RadialMenuOverlay : IDisposable
     {
         try
         {
-            if (!ReferenceEquals(w0, _window) || _shown == null || !w0.IsVisible || _press is { Dragging: true } || _shown.Moving) return;
+            if (!ReferenceEquals(w0, _window)) return;              // made again meanwhile: the new window has its own check
+            // Grok's review: closed, or a drag started, before this ran: check this screen again at the next show.
+            if (_shown == null || !w0.IsVisible || _press is { Dragging: true } || _shown.Moving) { _scaleCheckedFor = 0; return; }
             double drawn = RenderScaleOf(w0);
             if (!Differs(drawn, scale)) return;
             if (!mayRemake)
@@ -723,6 +725,7 @@ public sealed class RadialMenuOverlay : IDisposable
 
     /// <summary>Show a menu right now, on the UI thread (tests).</summary>
     internal void ShowNowForTest(MenuState st) => Show(st);
+    internal void HideNowForTest() => Hide();
 
     public void Dispose()
     {

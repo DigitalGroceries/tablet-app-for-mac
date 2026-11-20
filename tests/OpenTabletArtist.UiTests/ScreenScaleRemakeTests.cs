@@ -120,6 +120,33 @@ public class ScreenScaleRemakeTests
     }
 
     [AvaloniaFact]
+    public void AMenuClosedBeforeItsScaleCheckRuns_IsCheckedAgainNextTime()
+    {
+        // Grok's review (B): the check posted for a screen must not be lost when the menu closes before it runs.
+        _ = new ThemeViewModel();
+        var keep = RadialMenuOverlay.ScaleAt; var keepR = RadialMenuOverlay.RenderScaleOf;
+        RadialMenuOverlay.ScaleAt = (_, x, _) => FakeScale(x);
+        double drawn = 2;
+        RadialMenuOverlay.RenderScaleOf = _ => drawn;
+        var overlay = new RadialMenuOverlay(palette: false);
+        try
+        {
+            overlay.ShowNowForTest(At(1, 500)); Pump();
+            overlay.ShowNowForTest(At(2, 1500)); Pump();          // made for the TV (drawn follows below)
+            int afterMove = overlay.Remade;
+            overlay.ShowNowForTest(At(3, 300));                    // back on the Retina screen: made again, check posted...
+            overlay.HideNowForTest();                              // ...but the menu closes before it runs
+            Pump();
+            drawn = 1;                                             // this window wrongly draws at 1 on the Retina screen
+            int beforeReopen = overlay.Remade;
+            overlay.ShowNowForTest(At(4, 320)); Pump();            // opened again on the same screen: checked, made again
+            Assert.Equal(beforeReopen + 1, overlay.Remade);
+            Assert.True(afterMove >= 1);
+        }
+        finally { overlay.Dispose(); RadialMenuOverlay.ScaleAt = keep; RadialMenuOverlay.RenderScaleOf = keepR; }
+    }
+
+    [AvaloniaFact]
     public void TheDriversMovingFlag_IsRead()
     {
         var st = RadialMenuOverlay.Parse("{\"state\":\"open\",\"seq\":3,\"x\":10,\"y\":20,\"moving\":true}");

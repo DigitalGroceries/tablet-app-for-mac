@@ -788,6 +788,21 @@ public class RadialMenuStateTests : IDisposable
     }
 
     [Fact]
+    public void MouseDragEnd_AlwaysWritesTheState_SoTheAppCanRedrawForThatScreen()
+    {
+        // Grok's review of #174: a mouse drag onto the TV that covers nothing must still reach the app once more (moving=false).
+        Binding().Press(null!, null!);
+        long before = State().GetProperty("seq").GetInt64();
+        Mouse(RadialMenuCommand.Move, x: 1500, y: 400);
+        Assert.Equal(before, State().GetProperty("seq").GetInt64());   // a move mid-drag writes nothing
+        Mouse(RadialMenuCommand.MoveEnd, x: 1500, y: 400);
+        var st = State();
+        Assert.True(st.GetProperty("seq").GetInt64() > before);
+        Assert.Equal(1500, st.GetProperty("x").GetDouble());
+        Assert.False(st.GetProperty("moving").GetBoolean());
+    }
+
+    [Fact]
     public void MouseMove_ShiftsTheCentre_ForThePen_AndParksTheMenu()
     {
         Binding().Press(null!, null!);
