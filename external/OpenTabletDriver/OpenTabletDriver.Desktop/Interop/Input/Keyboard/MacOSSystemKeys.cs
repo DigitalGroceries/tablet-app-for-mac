@@ -16,10 +16,12 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
     ///     screen, else the main screen (<see cref="PickDisplay"/>);
     ///  2. without Control, sets that screen's brightness directly through macOS's DisplayServices, one of the Mac's
     ///     16 brightness steps, when that screen answers it (loaded at run time with dlopen/dlsym; any missing piece
-    ///     falls back to step 3, never a crash);
-    ///  3. otherwise (Control held, or a screen DisplayServices can't change) posts the key event as before, now with
-    ///     the Control flag when Control is held and the event placed on the chosen screen, so macOS handles it like
-    ///     its own key.
+    ///     falls back to step 3, never a crash; the rules for a screen that doesn't answer are in <see cref="DirectBrightness"/>);
+    ///  3. otherwise (Control held, or a screen DisplayServices can't change) posts the key event as before: with
+    ///     Control, the Control flag and no place of its own (macOS picks "the other screen", as with its own key);
+    ///     without, placed on the chosen screen.
+    /// The screen is looked up at most every 300 ms, so a fast turn doesn't make the pen stutter. Our own windows (radial
+    /// menu, floating keyboard, the app) never count as the front window.
     /// The driver log says which screen and which way, each time that changes, so an in-app report shows it.
     /// </summary>
     public static class MacOSSystemKeys
@@ -47,7 +49,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         private const int RtldLazy = 1;
         private const int HidSystemState = 1;
         private const uint OnScreenOnly = 1, ExcludeDesktopElements = 16, Utf8 = 0x08000100;
-        private const int CFNumberSInt32Type = 3;
+        private const int CFNumberSInt32Type = 3, CFNumberFloat64Type = 6;
 
         [StructLayout(LayoutKind.Sequential)] private struct CGPoint { public double X, Y; }
         [StructLayout(LayoutKind.Sequential)] private struct CGRect { public double X, Y, W, H; }
@@ -67,6 +69,14 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         [DllImport(CoreGraphics)] private static extern CGRect CGDisplayBounds(uint display);
         [DllImport(CoreGraphics)] private static extern uint CGMainDisplayID();
         [DllImport(CoreGraphics)] private static extern int CGDisplayIsBuiltin(uint display);
+        [DllImport(CoreGraphics)] private static extern uint CGDisplayMirrorsDisplay(uint display);
+        [DllImport(ObjC)] private static extern IntPtr objc_autoreleasePoolPush();
+        [DllImport(ObjC)] private static extern void objc_autoreleasePoolPop(IntPtr pool);
+        [DllImport(CoreFoundation)] [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool CFNumberGetValue(IntPtr number, int type, out double value);
+        [DllImport(CoreFoundation)] private static extern IntPtr CFStringGetCStringPtr(IntPtr s, uint encoding);
+        [DllImport(CoreFoundation)] [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool CFStringGetCString(IntPtr s, byte[] buffer, nint size, uint encoding);
         [DllImport(CoreGraphics)] private static extern IntPtr CGWindowListCopyWindowInfo(uint option, uint relativeToWindow);
         [DllImport(CoreGraphics)] [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool CGRectMakeWithDictionaryRepresentation(IntPtr dict, out CGRect rect);
@@ -89,7 +99,6 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         private static bool _appKitLoaded, _keyEventFailed, _dsTried;
         private static GetBrightnessFn? _getBrightness;
         private static SetBrightnessFn? _setBrightness;
-        private static readonly HashSet<uint> DisplaysDsCannotChange = new HashSet<uint>();
         private static readonly Dictionary<int, bool> DownWasDirect = new Dictionary<int, bool>();
         private static CGPoint? _lastTargetCentre;
         private static string? _lastLogged;
@@ -154,8 +163,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
                 bool control = ((heldFlags | PhysicalFlags()) & ControlFlag) != 0;
                 if (down)
                 {
-                    var (display, why, centre) = Target();
-                    _lastTargetCentre = centre;
+                    var (display, why, centre) = CachedTarget();
+                    // Control means "the other screen" on the Mac's own keyboard: leave the event's place alone then,
+                    // as the keyboard does, so macOS picks the screen itself.
+                    _lastTargetCentre = control ? null : centre;
                     if (!control && TrySetDirectly(display, why, up: type == 2))
                     {
                         DownWasDirect[type] = true;
@@ -175,8 +186,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         private static bool PostKeyEvent(string key, int type, bool down, bool control)
         {
             if (_keyEventFailed) return false;
+            var pool = IntPtr.Zero;
             try
             {
+                pool = objc_autoreleasePoolPush(); // the NSEvent is autoreleased; without a pool each press leaked one
                 if (!_appKitLoaded) { dlopen(AppKit, RtldLazy); _appKitLoaded = true; }
                 var cls = objc_getClass("NSEvent");
                 if (cls == IntPtr.Zero) throw new InvalidOperationException("NSEvent is not available");
@@ -196,48 +209,25 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
                 Log.Write("Keyboard", $"Couldn't send the {key} key: {e.Message}", LogLevel.Warning);
                 return false;
             }
+            finally
+            {
+                if (pool != IntPtr.Zero) objc_autoreleasePoolPop(pool);
+            }
         }
 
-        /// <summary>Step 2: change the chosen screen through DisplayServices. False (and the reason logged once) when the
-        /// framework or the screen can't do it, so the caller sends the key event instead.</summary>
+        /// <summary>Step 2 on the Mac: the chosen screen through DisplayServices (see <see cref="DirectBrightness"/>).</summary>
         private static bool TrySetDirectly(uint display, string why, bool up)
         {
-            if (display == 0 || DisplaysDsCannotChange.Contains(display) || !LoadDisplayServices()) return false;
-            try
-            {
-                if (_getBrightness!(display, out var before) != 0 || before < 0 || float.IsNaN(before))
-                {
-                    DisplaysDsCannotChange.Add(display);
-                    LogOnce($"Brightness: display {display} ({Kind(display)}) can't be changed directly; using the Mac's brightness key for it");
-                    return false;
-                }
-                var wanted = NextBrightness(before, up);
-                if (_setBrightness!(display, wanted) != 0)
-                {
-                    DisplaysDsCannotChange.Add(display);
-                    LogOnce($"Brightness: macOS refused to set display {display} ({Kind(display)}); using the Mac's brightness key for it", LogLevel.Warning);
-                    return false;
-                }
-                float after = wanted;
-                bool readBack = _getBrightness(display, out after) == 0;
-                if (readBack && Math.Abs(after - wanted) > 0.02f && Math.Abs(after - before) < 0.001f)
-                {
-                    // Said yes but nothing moved: don't trust it again for this screen (no second change now - the screen
-                    // didn't change, so the user just presses again and gets the key route).
-                    DisplaysDsCannotChange.Add(display);
-                    Log.Write("Keyboard", $"Brightness: display {display} ({Kind(display)}) stayed at {before:0.00} after a direct change to {wanted:0.00}; the next press uses the Mac's brightness key", LogLevel.Warning);
-                    return true;
-                }
-                LogOnce($"Brightness {(up ? "up" : "down")}: display {display} ({Kind(display)}, {why}) changed directly, {before:0.00} -> {(readBack ? after : wanted):0.00}");
-                return true;
-            }
-            catch (Exception e)
-            {
-                DisplaysDsCannotChange.Add(display);
-                Log.Write("Keyboard", $"Brightness: the direct change failed on display {display}: {e.Message}; using the Mac's brightness key", LogLevel.Warning);
-                return false;
-            }
+            if (display == 0 || !LoadDisplayServices()) return false;
+            Direct ??= new DirectBrightness(
+                d => _getBrightness!(d, out var b) == 0 ? (true, b) : (false, 0f),
+                (d, b) => _setBrightness!(d, b) == 0,
+                d => Kind(d) == "built-in",
+                (text, level) => { if (level >= LogLevel.Warning) Log.Write("Keyboard", text, level); else LogOnce(text, level); });
+            return Direct.Step(display, up, $"{Kind(display)}, {why}") != DirectBrightness.Outcome.NotPossible;
         }
+
+        private static DirectBrightness? Direct;
 
         private static bool LoadDisplayServices()
         {
@@ -262,6 +252,22 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
             }
         }
 
+        private static (uint Display, string Why, CGPoint? Centre) _cachedTarget;
+        private static long _cachedTargetAt = long.MinValue;
+
+        /// <summary>One ring turn sends many presses: the screen is looked up at most every 300 ms (Grok's review: reading
+        /// the window list on every detent could make the pen stutter on a fast turn).</summary>
+        private static (uint Display, string Why, CGPoint? Centre) CachedTarget()
+        {
+            long now = Environment.TickCount64;
+            if (now - _cachedTargetAt > 300 || _cachedTarget.Display == 0)
+            {
+                _cachedTarget = Target();
+                _cachedTargetAt = now;
+            }
+            return _cachedTarget;
+        }
+
         /// <summary>Step 1 on the Mac: gather the front window, the pointer and the screens, then <see cref="PickDisplay"/>.</summary>
         private static (uint Display, string Why, CGPoint? Centre) Target()
         {
@@ -274,6 +280,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
                 if (CGGetActiveDisplayList((uint)ids.Length, ids, out var n) == 0)
                     for (int i = 0; i < n; i++)
                     {
+                        if (CGDisplayMirrorsDisplay(ids[i]) != 0) continue; // a mirror has the same bounds as its main screen
                         var r = CGDisplayBounds(ids[i]);
                         displays.Add((ids[i], new Box(r.X, r.Y, r.W, r.H)));
                     }
@@ -293,19 +300,30 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         /// Window bounds need no Screen Recording permission (titles would).</summary>
         private static Box? FrontWindow()
         {
-            IntPtr list = IntPtr.Zero, kLayer = IntPtr.Zero, kBounds = IntPtr.Zero;
+            IntPtr list = IntPtr.Zero, kLayer = IntPtr.Zero, kBounds = IntPtr.Zero, kPid = IntPtr.Zero, kOwner = IntPtr.Zero, kAlpha = IntPtr.Zero;
             try
             {
                 list = CGWindowListCopyWindowInfo(OnScreenOnly | ExcludeDesktopElements, 0);
                 if (list == IntPtr.Zero) return null;
                 kLayer = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowLayer", Utf8);
                 kBounds = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowBounds", Utf8);
+                kPid = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowOwnerPID", Utf8);
+                kOwner = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowOwnerName", Utf8);
+                kAlpha = CFStringCreateWithCString(IntPtr.Zero, "kCGWindowAlpha", Utf8);
+                int me = Environment.ProcessId;
                 nint count = CFArrayGetCount(list);
                 for (nint i = 0; i < count; i++)
                 {
                     var d = CFArrayGetValueAtIndex(list, i);
                     var layer = CFDictionaryGetValue(d, kLayer);
-                    if (layer == IntPtr.Zero || !CFNumberGetValue(layer, CFNumberSInt32Type, out var l) || l != 0) continue;
+                    if (layer == IntPtr.Zero || !CFNumberGetValue(layer, CFNumberSInt32Type, out int l) || l != 0) continue;
+                    // Never our own windows (Grok's review): the radial menu, the floating keyboard and the app's pop-ups
+                    // are not where the user is working. Window owner names need no Screen Recording permission.
+                    var pid = CFDictionaryGetValue(d, kPid);
+                    if (pid != IntPtr.Zero && CFNumberGetValue(pid, CFNumberSInt32Type, out int p) && p == me) continue;
+                    if (IsOwnApp(CfString(CFDictionaryGetValue(d, kOwner)))) continue;
+                    var alpha = CFDictionaryGetValue(d, kAlpha);
+                    if (alpha != IntPtr.Zero && CFNumberGetValue(alpha, CFNumberFloat64Type, out double a) && a <= 0) continue;
                     var b = CFDictionaryGetValue(d, kBounds);
                     if (b == IntPtr.Zero || !CGRectMakeWithDictionaryRepresentation(b, out var r)) continue;
                     if (r.W < 50 || r.H < 50) continue;
@@ -320,9 +338,22 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
             }
             finally
             {
-                foreach (var cf in new[] { list, kLayer, kBounds })
+                foreach (var cf in new[] { list, kLayer, kBounds, kPid, kOwner, kAlpha })
                     if (cf != IntPtr.Zero) CFRelease(cf);
             }
+        }
+
+        /// <summary>True for the Tablet App's own process names (the executable keeps its old name, OpenTabletArtist).</summary>
+        public static bool IsOwnApp(string? ownerName) =>
+            ownerName is "OpenTabletArtist" or "Tablet App for Mac" or "OpenTabletDriver.Daemon";
+
+        private static string? CfString(IntPtr s)
+        {
+            if (s == IntPtr.Zero) return null;
+            var p = CFStringGetCStringPtr(s, Utf8);
+            if (p != IntPtr.Zero) return Marshal.PtrToStringUTF8(p);
+            var buf = new byte[256];
+            return CFStringGetCString(s, buf, buf.Length, Utf8) ? System.Text.Encoding.UTF8.GetString(buf).TrimEnd('\0') : null;
         }
 
         private static (double X, double Y)? Pointer()

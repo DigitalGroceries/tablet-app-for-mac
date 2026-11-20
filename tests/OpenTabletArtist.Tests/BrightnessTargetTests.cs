@@ -85,3 +85,109 @@ public class BrightnessTargetTests
         Assert.False(MacOSSystemKeys.Post("NotABrightnessKey", true));
     }
 }
+
+/// <summary>V29 #87, Grok's review: when a direct brightness change is trusted, and when a screen goes to the key route.</summary>
+public class DirectBrightnessTests
+{
+    private sealed class FakeScreen
+    {
+        public float Value = 0.5f;
+        public bool GetFails, SetFails, Lags;
+        public int Sets;
+    }
+
+    private static (DirectBrightness Direct, List<string> Log) Make(Dictionary<uint, FakeScreen> screens, uint builtIn = 1)
+    {
+        var log = new List<string>();
+        var direct = new DirectBrightness(
+            d => screens[d].GetFails ? (false, 0f) : (true, screens[d].Value),
+            (d, v) => { var s = screens[d]; if (s.SetFails) return false; s.Sets++; if (!s.Lags) s.Value = v; return true; },
+            d => d == builtIn,
+            (text, _) => log.Add(text));
+        return (direct, log);
+    }
+
+    [Fact]
+    public void AScreenThatAnswers_IsChangedOneStep()
+    {
+        var screens = new Dictionary<uint, FakeScreen> { [2] = new() };
+        var (direct, _) = Make(screens);
+        Assert.Equal(DirectBrightness.Outcome.Changed, direct.Step(2, up: true, "test"));
+        Assert.Equal(0.5625f, screens[2].Value, 4);
+    }
+
+    [Fact]
+    public void AScreenThatCantBeRead_GoesToTheKeyRoute_AndIsNeverSetDirectly()
+    {
+        var screens = new Dictionary<uint, FakeScreen> { [3] = new() { GetFails = true } };
+        var (direct, _) = Make(screens);
+        Assert.Equal(DirectBrightness.Outcome.NotPossible, direct.Step(3, true, "test"));
+        Assert.True(direct.UsesKeyRoute(3));
+        Assert.Equal(0, screens[3].Sets);
+    }
+
+    [Fact]
+    public void ASetThatIsRefused_GoesToTheKeyRoute()
+    {
+        var screens = new Dictionary<uint, FakeScreen> { [3] = new() { SetFails = true } };
+        var (direct, _) = Make(screens);
+        Assert.Equal(DirectBrightness.Outcome.NotPossible, direct.Step(3, true, "test"));
+        Assert.True(direct.UsesKeyRoute(3));
+    }
+
+    [Fact]
+    public void OneReadBackThatHasntMovedYet_IsNotAFailure_ThreeInARowAre()
+    {
+        var screens = new Dictionary<uint, FakeScreen> { [2] = new() { Lags = true } };
+        var (direct, _) = Make(screens);
+        Assert.Equal(DirectBrightness.Outcome.NotSeenYet, direct.Step(2, true, "test"));
+        Assert.Equal(DirectBrightness.Outcome.NotSeenYet, direct.Step(2, true, "test"));
+        Assert.False(direct.UsesKeyRoute(2));
+        Assert.Equal(DirectBrightness.Outcome.NotSeenYet, direct.Step(2, true, "test"));
+        Assert.True(direct.UsesKeyRoute(2));
+        Assert.Equal(DirectBrightness.Outcome.NotPossible, direct.Step(2, true, "test"));
+    }
+
+    [Fact]
+    public void ARealMove_ResetsTheCount()
+    {
+        var screens = new Dictionary<uint, FakeScreen> { [2] = new() { Lags = true } };
+        var (direct, _) = Make(screens);
+        direct.Step(2, true, "test");
+        direct.Step(2, true, "test");
+        screens[2].Lags = false;
+        Assert.Equal(DirectBrightness.Outcome.Changed, direct.Step(2, true, "test"));
+        screens[2].Lags = true;
+        direct.Step(2, true, "test");
+        direct.Step(2, true, "test");
+        Assert.False(direct.UsesKeyRoute(2));
+    }
+
+    [Fact]
+    public void TheBuiltInScreen_IsNeverMovedToTheKeyRoute_ByReadBacksAlone()
+    {
+        var screens = new Dictionary<uint, FakeScreen> { [1] = new() { Lags = true } };
+        var (direct, _) = Make(screens, builtIn: 1);
+        for (int i = 0; i < 6; i++) Assert.Equal(DirectBrightness.Outcome.NotSeenYet, direct.Step(1, false, "test"));
+        Assert.False(direct.UsesKeyRoute(1));
+    }
+
+    [Fact]
+    public void AtTheTop_AnotherUpStep_IsNotCountedAsAMiss()
+    {
+        var screens = new Dictionary<uint, FakeScreen> { [2] = new() { Value = 1f } };
+        var (direct, _) = Make(screens);
+        for (int i = 0; i < 5; i++) Assert.Equal(DirectBrightness.Outcome.Changed, direct.Step(2, true, "test"));
+        Assert.False(direct.UsesKeyRoute(2));
+    }
+
+    [Theory]
+    [InlineData("OpenTabletArtist", true)]
+    [InlineData("Tablet App for Mac", true)]
+    [InlineData("Adobe Photoshop 2026", false)]
+    [InlineData(null, false)]
+    public void OurOwnWindows_NeverCountAsTheFrontWindow(string? owner, bool own)
+    {
+        Assert.Equal(own, MacOSSystemKeys.IsOwnApp(owner));
+    }
+}
