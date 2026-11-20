@@ -134,4 +134,4 @@ Read this first. It is short on purpose.
 - Whether Wacom's own driver must be removed first.
 
 ## App icon (since 0.91.0-R)
-icon-Z3: `OpenTabletArtist/Assets/appicon.{svg,png,ico}`, `appicon-bw.svg` (single-colour), bundle `Contents/Resources/AppIcon.icns` (10 sizes, icnsutil from the SVG). The window and menu-bar icon come from `appicon.png` embedded in the main executable, so **the executable must be republished after any icon change** (`pack.sh` does this from a clean HEAD).
+icon-Z3: `OpenTabletArtist/Assets/appicon.{svg,png,ico}`, `appicon-bw.svg` (single-colour), bundle `Contents/Resources/AppIcon.icns` (10 sizes; since Version 29 rebuilt with `tools/make_icns.py`, small sizes as ic04/ic05 ARGB, see `Assets/ICON.md`). The window and menu-bar icon come from `appicon.png` embedded in the main executable, so **the executable must be republished after any icon change** (`pack.sh` does this from a clean HEAD).
