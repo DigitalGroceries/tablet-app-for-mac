@@ -327,6 +327,21 @@ public static class RadialMenuState
     private static double RadiusOf(Surface x, RadialMenuDef def) =>
         RadialMenuGeometry.OuterRadius(x.IsPalette ? def.PaletteSize : def.Size);
 
+    /// <summary>Zak 20 Nov (build 8): "the app had difficulty deciding am I clicking on the radial menu or on the palette when they were
+    /// covering some portions of each other". After the surface <see cref="_s"/> was dragged, it is the one on top (taps ask it first),
+    /// and if it now covers the other one it moves beside it, as opening does. Returns true when it moved.</summary>
+    private static bool AfterDragLocked()
+    {
+        var other = ReferenceEquals(_s, MenuSurface) ? PaletteSurface : MenuSurface;
+        _s.OpenedAt = ++_openedSeq;
+        if (_top == null || other.Top == null) return false;
+        var (bx, by) = Beside(_cx, _cy, RadiusOf(_s, _top), other.Cx, other.Cy, RadiusOf(other, other.Top));
+        if (Math.Abs(bx - _cx) < 0.5 && Math.Abs(by - _cy) < 0.5) return false;
+        Log.Write("Radial menu", $"{(_palette ? "The palette" : "The menu")} was dragged over the other one; it moves beside it.", LogLevel.Info);
+        _cx = bx; _cy = by;
+        return true;
+    }
+
     /// <summary>The screens (macOS global points, top-left origin); tests replace it. Empty when unknown.</summary>
     public static Func<IReadOnlyList<(double X, double Y, double W, double H)>> ScreensProvider { get; set; } = MacScreens.All;
 
@@ -554,7 +569,7 @@ public static class RadialMenuState
             _s = _tipSurface;
             if (!_penDrag) return;
             _penDrag = false;
-            if (_penDragMoved && _top != null) WriteStateLocked();
+            if (_penDragMoved && _top != null) { AfterDragLocked(); WriteStateLocked(); }
             _penDragMoved = false;
         }
     }
@@ -687,6 +702,12 @@ public static class RadialMenuState
                     _cx = cmd.X; _cy = cmd.Y;
                     _parked = true;
                     return;
+                case RadialMenuCommand.MoveEnd:
+                    // The mouse let go of the window: its last position; on top now, and beside the other one if it covers it.
+                    _cx = cmd.X; _cy = cmd.Y;
+                    _parked = true;
+                    if (AfterDragLocked()) WriteStateLocked();
+                    return;
                 case RadialMenuCommand.Tap:
                     _parked = true;
                     if (_palette)
@@ -791,9 +812,12 @@ public static class RadialMenuState
         }
         for (int i = 0; i < (dbl ? 2 : 1); i++)
         {
+            // 20 Nov (found with Zak's "No right click" report): the Mac pointer posts a button only when its state differs at Flush,
+            // so a down and an up before one flush cancel out. Each one is flushed on its own.
             pointer.MouseDown(b);
+            if (pointer is ISynchronousPointer s1) s1.Flush();
             pointer.MouseUp(b);
-            if (pointer is ISynchronousPointer sync) sync.Flush();
+            if (pointer is ISynchronousPointer s2) s2.Flush();
         }
         return true;
     }

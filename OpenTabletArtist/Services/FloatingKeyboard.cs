@@ -219,11 +219,36 @@ public sealed class FloatingKeyboard : IDisposable
         else Show(nearX, nearY);
     }
 
+    /// <summary>The scale of the screen the window was last shown for (0 = not yet). V29 #174.</summary>
+    private double _shownScale;
+    /// <summary>The screen scale at a global point; 0 when unknown. Tests replace it.</summary>
+    internal static Func<Window, double, double, double> ScaleAt { get; set; } = (w, x, y) =>
+        w.Screens?.ScreenFromPoint(new PixelPoint((int)Math.Round(x), (int)Math.Round(y)))?.Scaling ?? 0;
+    /// <summary>How many times the window was made again for another screen (tests).</summary>
+    internal int Remade { get; private set; }
+
+    /// <summary>V29 #174 (Zak 20 Nov): a window the app moves to a screen of another scale (Retina 2, his TV 1) can keep drawing for the
+    /// old one (twice too big or too small); so it is made again for the new screen.</summary>
+    private void RemakeWindow()
+    {
+        var old = _window;
+        _window = null; _panel = null; _scaler = null; _rowsPanel = null; _title = null;
+        try { old?.Close(); } catch (Exception e) { AppLog.Warn("Floating keyboard: closing the old window failed", e); }
+        EnsureWindow();
+        Remade++;
+    }
+
     public void Show(double nearX, double nearY)
     {
         try
         {
             EnsureWindow();
+            double target = ScaleAt(_window!, nearX, nearY);
+            if (_shownScale > 0 && target > 0 && Math.Abs(target - _shownScale) > 0.01)
+            {
+                AppLog.Info($"Floating keyboard: opens on a screen of scale {target:0.##} (it was drawn for {_shownScale:0.##}); its window is made again (#174).");
+                RemakeWindow();
+            }
             RefreshLayout();
             ApplySize();
             var (w, _) = Size();
@@ -242,19 +267,28 @@ public sealed class FloatingKeyboard : IDisposable
                 x = Math.Clamp(x, wa.X + 4, Math.Max(wa.X + 4, wa.Right - w - 4));
                 y = Math.Clamp(y, wa.Y + 4, Math.Max(wa.Y + 4, wa.Bottom - h - 4));
             }
-            _window.Position = new PixelPoint((int)Math.Round(x), (int)Math.Round(y));
+            PlaceAndShow(x, y, target);
+        }
+        catch (Exception e)
+        {
+            AppLog.Warn("Floating keyboard: couldn't show it", e);
+        }
+    }
+
+    private void PlaceAndShow(double x, double y, double scale)
+    {
+        {
+            _window!.Position = new PixelPoint((int)Math.Round(x), (int)Math.Round(y));
+            ApplySize();                                                    // size after the move (Avalonia #13917)
             ApplyLook();
             if (!_window.IsVisible) _window.Show();
+            if (scale > 0) _shownScale = scale;
             if (_window.TryGetPlatformHandle() is Avalonia.Platform.IMacOSTopLevelPlatformHandle mac && mac.NSWindow != IntPtr.Zero)
                 MacDesktop.MakeOverlay(mac.NSWindow, clickThrough: false);
             WriteOpenFlag(true);
             _layoutTimer ??= new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => RefreshLayout());
             _layoutTimer.Start();
-            AppLog.Info($"Floating keyboard shown at {x:0},{y:0} (transparency {Transparency}%, size {SizePercent}%).");
-        }
-        catch (Exception e)
-        {
-            AppLog.Warn("Floating keyboard: couldn't show it", e);
+            AppLog.Info($"Floating keyboard shown at {x:0},{y:0} (transparency {Transparency}%, size {SizePercent}%; screen scale {scale:0.##}, window drawn at {_window.RenderScaling:0.##}).");
         }
     }
 
@@ -545,6 +579,15 @@ public sealed class FloatingKeyboard : IDisposable
         var inv = System.Globalization.CultureInfo.InvariantCulture;
         AppSettings.Set(PositionKey, _window.Position.X.ToString(inv) + "," + _window.Position.Y.ToString(inv));
         e.Handled = true;
+        // V29 #174: dragged onto a screen of another scale: made again there, where it was let go.
+        var (w, h) = Size();
+        double px = _window.Position.X, py = _window.Position.Y, scale = ScaleAt(_window, px + w / 2, py + h / 2);
+        if (_shownScale > 0 && scale > 0 && Math.Abs(scale - _shownScale) > 0.01)
+        {
+            AppLog.Info($"Floating keyboard: dragged onto a screen of scale {scale:0.##} (it was drawn for {_shownScale:0.##}); its window is made again (#174).");
+            try { RemakeWindow(); RefreshLayout(); PlaceAndShow(px, py, scale); }
+            catch (Exception ex) { AppLog.Warn("Floating keyboard: making it again on the other screen failed", ex); }
+        }
     }
 
     private void OnCornerPressed(object? sender, PointerPressedEventArgs e)

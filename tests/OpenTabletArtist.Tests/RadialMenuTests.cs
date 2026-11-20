@@ -474,6 +474,31 @@ public class RadialMenuStateTests : IDisposable
     }
 
     [Fact]
+    public void ThePaletteDraggedOverTheMenu_MovesBesideIt_AndIsOnTopForTaps()
+    {
+        // Zak 20 Nov (build 8): "the app had difficulty deciding am I clicking on the radial menu or on the palette when they were
+        // covering some portions of each other".
+        RadialMenuState.DoublePressMs = 400;
+        var b = Binding();
+        b.Press(null!, null!); b.Release(null!, null!);
+        System.Threading.Thread.Sleep(450);
+        b.Press(null!, null!); b.Release(null!, null!);
+        b.Press(null!, null!); b.Release(null!, null!);
+        Assert.True(RadialMenuState.MenuOpen && RadialMenuState.PaletteOpen);
+        double mx = State().GetProperty("x").GetDouble(), my = State().GetProperty("y").GetDouble();
+        double px = PState().GetProperty("x").GetDouble(), py = PState().GetProperty("y").GetDouble();
+        // the pen takes the palette by its hand and drops it right on the menu
+        _cursor = (px + 30, py + 30);
+        Assert.True(RadialMenuState.TipDown());
+        _cursor = (mx + 30, my + 30);
+        RadialMenuState.PenMoved();
+        RadialMenuState.TipUp();
+        double nx = PState().GetProperty("x").GetDouble(), ny = PState().GetProperty("y").GetDouble();
+        double apart = Math.Sqrt((nx - mx) * (nx - mx) + (ny - my) * (ny - my));
+        Assert.True(apart >= 2 * RadialMenuGeometry.OuterRadius(50), $"the palette at {nx},{ny} still covers the menu at {mx},{my}");
+    }
+
+    [Fact]
     public void QuickPressesOfTwoDifferentButtons_AreTwoSinglePresses()
     {
         // Grok's review: Zak's double press is the SAME button pressed twice quickly.

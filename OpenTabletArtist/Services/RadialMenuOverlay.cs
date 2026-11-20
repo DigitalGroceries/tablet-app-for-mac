@@ -351,21 +351,62 @@ public sealed class RadialMenuOverlay : IDisposable
         });
     }
 
+    /// <summary>The scale of the screen the window was last shown for (0 = not shown yet). V29 #174.</summary>
+    private double _shownScale;
+    /// <summary>The scale the window really draws at (tests replace it: headless windows always draw at 1).</summary>
+    internal static Func<Window, double> RenderScaleOf { get; set; } = w => w.RenderScaling;
+    /// <summary>The screen scale at a global point (Retina 2, a TV 1); 0 when unknown. Tests replace it.</summary>
+    internal static Func<Window, double, double, double> ScaleAt { get; set; } = (w, x, y) =>
+        w.Screens?.ScreenFromPoint(new PixelPoint((int)Math.Round(x), (int)Math.Round(y)))?.Scaling ?? 0;
+    private bool _remadeForScale;
+    /// <summary>How many times the window was made again for another screen (tests).</summary>
+    internal int Remade { get; private set; }
+
+    /// <summary>V29 #174 (Zak 20 Nov, build 8 screenshots): moved by the app to a screen of another scale (his Retina screen is 2, the TV 1),
+    /// the menu's window kept the old screen's scale and drew twice too big (a quarter showing) or too small. Avalonia has the same kind of
+    /// bug for windows moved by code (issue #13917). So the window is made again whenever the menu goes to a screen of another scale.</summary>
+    private void RemakeWindow()
+    {
+        var old = _window;
+        _pointerTimer?.Stop();
+        _window = null; _pie = null; _paletteWheel = null;
+        try { old?.Close(); } catch (Exception e) { AppLog.Warn("Radial menu: closing the old window failed", e); }
+        EnsureWindow();
+        Remade++;
+    }
+
     private void Show(MenuState st)
     {
         try
         {
             EnsureWindow();
+            double scale = ScaleAt(_window!, st.X, st.Y);
+            if (_shownScale > 0 && scale > 0 && Math.Abs(scale - _shownScale) > 0.01 && _press is not { Dragging: true })
+            {
+                AppLog.Info($"Radial menu: {(_isPalette ? "the palette" : "the menu")} goes to a screen of scale {scale:0.##} (it was drawn for {_shownScale:0.##}); its window is made again for that screen (#174).");
+                RemakeWindow();
+            }
             bool wasVisible = _window!.IsVisible;
             _shown = st;
             _cx = st.X; _cy = st.Y; _size = st.Size;
             double r = RadialMenuGeometry.OuterRadius(st.Size);
             double d = 2 * r + 4;
-            _window!.Width = d;
-            _window.Height = d;
             // On macOS Avalonia's window coordinates are global points with a top-left origin, the same
             // space as CGEventGetLocation, which is where the plugin took the centre from (see RingModeHud).
+            // Position first, then the size (Avalonia #13917: a size set before a move to another screen can be changed by the move).
             _window.Position = new PixelPoint((int)Math.Round(st.X - d / 2), (int)Math.Round(st.Y - d / 2));
+            _window.Width = d;
+            _window.Height = d;
+            // Zak 20 Nov: on the other screen it "fixes itself as long as you continue clicking" - it only needed a fresh drawing. While a
+            // mouse drag carries it across (the window can't be made again mid-drag), it is redrawn now and once more after the Mac has
+            // told the window about its new screen.
+            if (_shownScale > 0 && scale > 0 && Math.Abs(scale - _shownScale) > 0.01)
+            {
+                (_window.Content as Control)?.InvalidateVisual();
+                var w0 = _window;
+                Dispatcher.UIThread.Post(() => { if (ReferenceEquals(w0, _window)) (w0.Content as Control)?.InvalidateVisual(); }, DispatcherPriority.Background);
+            }
+            if (scale > 0) _shownScale = scale;
             // V29 #142: the colour palette takes the menu's place in the same window (same size, same centre).
             // While its Yes / No question shows, the palette uses the menu's ring for the answer (right Yes, left No).
             if (st.IsPalette && !st.Confirm)
@@ -418,7 +459,16 @@ public sealed class RadialMenuOverlay : IDisposable
             if (!wasVisible)
             {
                 double opacity = RadialMenuDef.OpacityFor(st.Transparency);
-                AppLog.Info($"Radial menu shown at {st.X:0},{st.Y:0} (size {st.Size}, transparency {st.Transparency}%, opacity {opacity:0.00}, level {st.Depth}).");
+                AppLog.Info($"Radial menu shown at {st.X:0},{st.Y:0} (size {st.Size}, transparency {st.Transparency}%, opacity {opacity:0.00}, level {st.Depth}; " +
+                            $"screen scale {scale:0.##}, window drawn at {_window.RenderScaling:0.##}).");
+            }
+            // V29 #174: the window must draw at its screen's scale; if it doesn't, it is made again once on this screen.
+            if (scale > 0 && Math.Abs(RenderScaleOf(_window) - scale) > 0.01 && !_remadeForScale && _press is not { Dragging: true })
+            {
+                AppLog.Warn($"Radial menu: the window draws at {RenderScaleOf(_window):0.##} on a screen of scale {scale:0.##}; making it again (#174).");
+                _remadeForScale = true;
+                try { RemakeWindow(); Show(st); }
+                finally { _remadeForScale = false; }
             }
         }
         catch (Exception e)
@@ -605,7 +655,7 @@ public sealed class RadialMenuOverlay : IDisposable
         {
             var (cx, cy) = Centre();
             _cx = cx; _cy = cy;
-            Send(RadialMenuCommand.Move, x: cx, y: cy);   // the last position, whatever was throttled
+            Send(RadialMenuCommand.MoveEnd, x: cx, y: cy);   // the last position, whatever was throttled (and the driver keeps them apart)
             return;
         }
         switch (press.Target)

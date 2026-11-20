@@ -66,8 +66,15 @@ public class HoldForKeyboardBinding : IStateBinding
         }
         if (!click) return;
         if (!Enum.TryParse<MouseButton>(Button ?? "Right", true, out var b)) b = MouseButton.Right;
-        Pointer?.MouseDown(b);
-        Pointer?.MouseUp(b);
+        // Zak 20 Nov (build 8): "No right click when Button 1 set to open the keyboard". The Mac pointer only posts a button when its
+        // state differs at Flush (MacOSVirtualMouse.Flush compares the buttons with the last posted ones), so a down and an up in the
+        // same report cancelled out and no click was posted (the recording showed 0 right clicks from the driver). The down is flushed
+        // first, as RadialMenu.cs and PenScroll do; the up goes out with this report's own flush.
+        var p = Pointer;
+        if (p == null) { Log.Write(nameof(HoldForKeyboardBinding), "No pointer to click with.", LogLevel.Warning); return; }
+        p.MouseDown(b);
+        if (p is ISynchronousPointer sync) sync.Flush();
+        p.MouseUp(b);
     }
 
     private void OnHeld(long press)

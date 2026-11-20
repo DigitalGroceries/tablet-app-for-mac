@@ -19,11 +19,14 @@ namespace OpenTabletArtist.Tests;
 [Collection("FloatingKeyboardFiles")]
 public class HoldForKeyboardTests : IDisposable
 {
-    private sealed class FakeMouse : IMouseButtonHandler
+    /// <summary>Like the Mac pointer: it posts at Flush, so a down and an up need a flush between them (Zak 20 Nov: "No right click").</summary>
+    private sealed class FakeMouse : IMouseButtonHandler, ISynchronousPointer
     {
         public readonly List<string> Events = new();
         public void MouseDown(MouseButton button) { lock (Events) Events.Add("down " + button); }
         public void MouseUp(MouseButton button) { lock (Events) Events.Add("up " + button); }
+        public void Flush() { lock (Events) Events.Add("flush"); }
+        public void Reset() { }
     }
 
     private int _toggles;
@@ -55,7 +58,7 @@ public class HoldForKeyboardTests : IDisposable
         b.Press(null!, null!);
         Assert.Empty(mouse.Events);                 // nothing yet: it might become a hold
         b.Release(null!, null!);
-        Assert.Equal(new[] { "down Right", "up Right" }, mouse.Events);
+        Assert.Equal(new[] { "down Right", "flush", "up Right" }, mouse.Events);   // the down is posted before the up
         Thread.Sleep(600);
         Assert.Equal(0, _toggles);
     }

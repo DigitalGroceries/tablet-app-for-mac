@@ -315,6 +315,8 @@ public sealed class RadialMenuCommand
     public const string Close = "close";
     /// <summary>The menu was dragged: its centre is now (<see cref="X"/>, <see cref="Y"/>). It is then "parked": it stays until closed.</summary>
     public const string Move = "move";
+    /// <summary>The mouse let go of a dragged menu or palette (Zak 20 Nov: they must not cover each other).</summary>
+    public const string MoveEnd = "move-end";
     /// <summary>The pencil was clicked: the next slice tapped is edited instead of run.</summary>
     public const string Edit = "edit";
     /// <summary>The circular arrow was clicked: ask whether to restore the default slices.</summary>
