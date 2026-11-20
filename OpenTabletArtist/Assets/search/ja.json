@@ -850,6 +850,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "キーボードの設定",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "ペン先",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
@@ -906,36 +911,6 @@
   },
   {
     "text": "筆圧を無効",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "フローティングキーボード",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "ペンボタン 1 の長押し",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "ラジアルメニューの項目",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "ラジアルメニューを開くペンボタンがまだないため、キーボードを置く項目がありません。",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "キーボードのサイズ",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "キーボードの透明度",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -1183,6 +1158,36 @@
     "text": "Copy",
     "path": "タブレット › ペン › 消しゴム",
     "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "フローティングキーボード",
+    "path": "タブレット › ペン › キーボード",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "ペンボタン 1 の長押し",
+    "path": "タブレット › ペン › キーボード",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "ラジアルメニューの項目",
+    "path": "タブレット › ペン › キーボード",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "ラジアルメニューを開くペンボタンがまだないため、キーボードを置く項目がありません。",
+    "path": "タブレット › ペン › キーボード",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "キーボードのサイズ",
+    "path": "タブレット › ペン › キーボード",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "キーボードの透明度",
+    "path": "タブレット › ペン › キーボード",
+    "route": "tablet/ToolPenButton/KeyboardTab"
   },
   {
     "text": "サイズ",

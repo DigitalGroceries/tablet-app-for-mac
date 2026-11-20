@@ -217,7 +217,7 @@ internal static class SettingSearchIndexWalk
             var tools = new (string Tile, string Label, string[] Tabs)[]
             {
                 ("ToolFunctionsButton", "LblFunctions", new[] { "ButtonsTab", "WheelsTab" }),
-                ("ToolPenButton", "LblToolPen", new[] { "PenTab", "EraserTab", "MappingTab" }),
+                ("ToolPenButton", "LblToolPen", new[] { "PenTab", "EraserTab", "KeyboardTab", "MappingTab" }),
                 ("ToolMoreButton", "LblMore", new[] { "AboutTab", "CalibrationTab", "HoverTab", "FiltersTab", "JsonTab" }),
             };
             bool Chrome(Control c) => c.Name is "WacomHeader" or "TabRail";

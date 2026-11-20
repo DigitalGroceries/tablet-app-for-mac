@@ -770,6 +770,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Tastatur-Einstellungen",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Stiftspitze",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
@@ -826,31 +831,6 @@
   },
   {
     "text": "Druckempfindlichkeit deaktivieren",
-    "path": "Tablet › Stift › Stift",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Schwebende Tastatur",
-    "path": "Tablet › Stift › Stift",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Stift-Taste 1 gedrückt halten",
-    "path": "Tablet › Stift › Stift",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Feld im Radialmenü",
-    "path": "Tablet › Stift › Stift",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Tastaturgröße",
-    "path": "Tablet › Stift › Stift",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Transparenz der Tastatur",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -1078,6 +1058,31 @@
     "text": "Copy",
     "path": "Tablet › Stift › Radierer",
     "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Schwebende Tastatur",
+    "path": "Tablet › Stift › Tastatur",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Stift-Taste 1 gedrückt halten",
+    "path": "Tablet › Stift › Tastatur",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Feld im Radialmenü",
+    "path": "Tablet › Stift › Tastatur",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Tastaturgröße",
+    "path": "Tablet › Stift › Tastatur",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Transparenz der Tastatur",
+    "path": "Tablet › Stift › Tastatur",
+    "route": "tablet/ToolPenButton/KeyboardTab"
   },
   {
     "text": "Größe",

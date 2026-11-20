@@ -770,6 +770,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Réglages du clavier",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Pointe du stylet",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
@@ -826,31 +831,6 @@
   },
   {
     "text": "Désactiver la sensibilité à la pression",
-    "path": "Tablette › Stylet › Stylet",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Clavier flottant",
-    "path": "Tablette › Stylet › Stylet",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Maintenir le bouton 1 du stylet",
-    "path": "Tablette › Stylet › Stylet",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Part du menu radial",
-    "path": "Tablette › Stylet › Stylet",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Taille du clavier",
-    "path": "Tablette › Stylet › Stylet",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Transparence du clavier",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -1078,6 +1058,31 @@
     "text": "Copy",
     "path": "Tablette › Stylet › Gomme",
     "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Clavier flottant",
+    "path": "Tablette › Stylet › Clavier",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Maintenir le bouton 1 du stylet",
+    "path": "Tablette › Stylet › Clavier",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Part du menu radial",
+    "path": "Tablette › Stylet › Clavier",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Taille du clavier",
+    "path": "Tablette › Stylet › Clavier",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Transparence du clavier",
+    "path": "Tablette › Stylet › Clavier",
+    "route": "tablet/ToolPenButton/KeyboardTab"
   },
   {
     "text": "Taille",

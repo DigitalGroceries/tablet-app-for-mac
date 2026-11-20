@@ -145,6 +145,11 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     public bool IsClick => ActionIndex == ActClick;
     public bool IsSubmenu => ActionIndex == ActSubmenu;
     public bool IsOpen => ActionIndex == ActOpen;
+    /// <summary>V29 #177 (Zak 20 Nov "Do it"; Grok 18:54: the slice list should point to the Keyboard tab): a keyboard slice
+    /// says where the keyboard's own settings are.</summary>
+    public bool IsKeyboard => ActionIndex == ActKeyboard;
+    public string KeyboardTabNote => Localizer.Te("radial.keyboard_tab_note",
+        "The keyboard's size, transparency and pen button hold are on the Keyboard tab of the Pen page.");
     /// <summary>Submenus stop at <see cref="RadialMenuDef.MaxDepth"/> levels.</summary>
     public bool CanAddSubmenu => _path.Count + 1 < RadialMenuDef.MaxDepth;
 
@@ -388,6 +393,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(IsClick));
         OnPropertyChanged(nameof(IsSubmenu));
         OnPropertyChanged(nameof(IsOpen));
+        OnPropertyChanged(nameof(IsKeyboard));
     }
 
     private void Refresh()

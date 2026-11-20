@@ -775,6 +775,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Keyboard settings",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Pen tip",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
@@ -831,31 +836,6 @@
   },
   {
     "text": "Disable pressure sensitivity",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Floating keyboard",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Holding pen button 1",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Radial menu slice",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Keyboard size",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Keyboard transparency",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -1073,6 +1053,31 @@
     "text": "Copy",
     "path": "Tablet › Pen › Eraser",
     "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Floating keyboard",
+    "path": "Tablet › Pen › Keyboard",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Holding pen button 1",
+    "path": "Tablet › Pen › Keyboard",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Radial menu slice",
+    "path": "Tablet › Pen › Keyboard",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Keyboard size",
+    "path": "Tablet › Pen › Keyboard",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Keyboard transparency",
+    "path": "Tablet › Pen › Keyboard",
+    "route": "tablet/ToolPenButton/KeyboardTab"
   },
   {
     "text": "Size",

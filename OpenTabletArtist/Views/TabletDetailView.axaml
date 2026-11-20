@@ -502,6 +502,10 @@
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
                 <RadioButton Content="eraser" x:Name="EraserTab" IsVisible="{Binding PenToolActive}"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
+                <!-- V29 #177 (Zak 20 Nov ~18:52: "Should we move the Floating keyboard menu to its own tab / button in between the Eraser
+                     and Mapping buttons so all 4 tabs have menu of somewhat the same size?" ... "Do it"). -->
+                <RadioButton Content="keyboard" x:Name="KeyboardTab" IsVisible="{Binding PenToolActive}"
+                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
                 <RadioButton Content="mapping" x:Name="MappingTab"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3">
                     <RadioButton.IsVisible>
@@ -1610,8 +1614,13 @@
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton3Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
                             <views:PenSwitchCard DataContext="{Binding PenButton2Row}"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton2Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
-                            <views:PenSwitchCard DataContext="{Binding PenButton1Row}"
-                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+                            <StackPanel Spacing="2" IsVisible="{Binding PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                                <views:PenSwitchCard DataContext="{Binding PenButton1Row}" />
+                                <!-- V29 #177 (Grok): the keyboard's settings moved to their own tab; pen button 1 opens the keyboard. -->
+                                <Button x:Name="KeyboardSettingsLink" Content="Keyboard settings…" Click="OnKeyboardSettingsLink"
+                                        Theme="{StaticResource LinkButton}" Padding="0" FontSize="12" HorizontalAlignment="Left"
+                                        AutomationProperties.Name="Keyboard settings" />
+                            </StackPanel>
                             <StackPanel Spacing="6" Margin="0,8,0,0">
                                 <views:PenSwitchCard DataContext="{Binding PenTipRow}" />
                                 <!-- V29 #160 (Zak 20 Nov ~09:18: a line under the pen tip's "Default setting"). -->
@@ -1697,67 +1706,6 @@
                 <!-- R16 (the user's mock-up): a darker inset frame (#262626, sampled) with a subtle #4A4A4A border. -->
                 <Border x:Name="PenBasicsBox" Classes="penBasicsInset" Padding="16">
                     <views:PenBasicsPanel />
-                </Border>
-                <!-- V29 #163 (Zak 20 Nov ~09:10, screenshot "Put the keyboard settings menu and how it is triggered here"): the floating
-                     keyboard's own section under Movement / Pen input: what opens it on the left, how it looks on the right (the
-                     transparency row moved here from the radial menu's sliders; #162 adds its size). -->
-                <Border x:Name="FloatingKeyboardBox" Classes="penBasicsInset" Padding="16">
-                    <Grid ColumnDefinitions="*,32,*" RowDefinitions="Auto,Auto,Auto,Auto">
-                        <TextBlock x:Name="FloatingKeyboardHeading" Grid.ColumnSpan="3" Text="{Binding KeyboardLook.Heading}"
-                                   FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
-                        <TextBlock x:Name="FloatingKeyboardIntro" Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding KeyboardLook.Intro}"
-                                   TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,12" />
-                        <!-- Zak 20 Nov (build 7): "The keyboard should be shown in that menu the way the radial menu is shown on the top
-                             part of the app page": the keyboard itself, at its size and transparency, with the Mac's layout. -->
-                        <ctrl:KeyboardPreview x:Name="FloatingKeyboardPicture" Grid.Row="2" Grid.ColumnSpan="3" HorizontalAlignment="Center"
-                                              Margin="0,0,0,16" IsHitTestVisible="False"
-                                              SizePercent="{Binding KeyboardLook.Size}" Transparency="{Binding KeyboardLook.Transparency}"
-                                              AutomationProperties.Name="Floating keyboard picture" />
-                        <StackPanel x:Name="FloatingKeyboardOpens" Grid.Row="3" Spacing="6">
-                            <!-- V29 #160 (Zak 20 Nov ~09:18-09:24): pen button 1 held opens the keyboard (factory) or drags. -->
-                            <StackPanel x:Name="KeyboardHoldRow" Spacing="6" IsVisible="{Binding HasPenButton1}" Margin="0,0,0,10">
-                                <TextBlock Text="{Binding HoldCaption}" FontSize="12" />
-                                <ComboBox x:Name="KeyboardHoldBox" ItemsSource="{Binding HoldChoices}" SelectedIndex="{Binding HoldChoice, Mode=TwoWay}"
-                                          MinWidth="220" IsEnabled="{Binding CanChooseHold}" AutomationProperties.Name="Holding pen button 1" />
-                                <TextBlock x:Name="KeyboardHoldNote" Text="{Binding HoldNote}" FontSize="12" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HoldOpensKeyboard}" />
-                                <TextBlock x:Name="KeyboardHoldOther" Text="{Binding HoldOtherNote}" FontSize="12" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HoldIsOther}" />
-                            </StackPanel>
-                            <TextBlock Text="{Binding KeyboardLook.SliceCaption}" FontSize="12" />
-                            <!-- Zak 20 Nov (build 7): the 'Put the keyboard there' button was confusing; choosing a slice puts it there. -->
-                            <ComboBox x:Name="KeyboardSlotBox" ItemsSource="{Binding KeyboardSlots}" SelectedIndex="{Binding KeyboardSlot, Mode=TwoWay}"
-                                      MinWidth="220" IsEnabled="{Binding CanPutKeyboard}" AutomationProperties.Name="Slice for the keyboard" />
-                            <TextBlock x:Name="KeyboardSlotStatus" Text="{Binding KeyboardStatus}" FontSize="12" TextWrapping="Wrap"
-                                       Foreground="{DynamicResource TextMutedBrush}"
-                                       IsVisible="{Binding KeyboardStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                        </StackPanel>
-                        <StackPanel x:Name="FloatingKeyboardLook" Grid.Row="3" Grid.Column="2" Spacing="4">
-                            <TextBlock Text="{Binding KeyboardLook.SizeCaption}" FontSize="12" />
-                            <Grid x:Name="KeyboardSizeRow" ColumnDefinitions="*,8,52,4,18">
-                                <Slider x:Name="KeyboardSizeSlider" Minimum="60" Maximum="300"
-                                        TickFrequency="10" IsSnapToTickEnabled="False" SmallChange="5" LargeChange="20"
-                                        Value="{Binding KeyboardLook.Size, Mode=TwoWay}" VerticalAlignment="Center"
-                                        AutomationProperties.Name="Keyboard size" />
-                                <TextBox x:Name="KeyboardSizeBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
-                                         VerticalAlignment="Center" FontWeight="SemiBold" MaxLength="6"
-                                         Text="{Binding KeyboardLook.SizeInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                                         AutomationProperties.Name="Keyboard size value" />
-                                <TextBlock Grid.Column="4" Text="%" VerticalAlignment="Center" FontWeight="SemiBold" />
-                            </Grid>
-                            <TextBlock Text="{Binding KeyboardLook.TransparencyCaption}" FontSize="12" Margin="0,6,0,0" />
-                            <Grid x:Name="KeyboardTransparencyRow" ColumnDefinitions="*,8,52,4,18">
-                                <Slider x:Name="KeyboardTransparencySlider" Minimum="0" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True"
-                                        Value="{Binding KeyboardLook.Transparency, Mode=TwoWay}" VerticalAlignment="Center"
-                                        AutomationProperties.Name="Keyboard transparency" />
-                                <TextBox x:Name="KeyboardTransparencyBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
-                                         VerticalAlignment="Center" FontWeight="SemiBold" MaxLength="6"
-                                         Text="{Binding KeyboardLook.TransparencyInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                                         AutomationProperties.Name="Keyboard transparency value" />
-                                <TextBlock Grid.Column="4" Text="%" VerticalAlignment="Center" FontWeight="SemiBold" />
-                            </Grid>
-                        </StackPanel>
-                    </Grid>
                 </Border>
             </StackPanel>
             </Border>
@@ -1877,6 +1825,76 @@
                 </Border>
                 <Border x:Name="EraserBasicsBox" Classes="penBasicsInset" Padding="16">
                     <views:PenBasicsPanel ForEraser="True" />
+                </Border>
+            </StackPanel>
+            </Border>
+        </ScrollViewer>
+
+        <!-- ===== V29 #177: KEYBOARD tab (the floating keyboard, moved here from the Pen page). ===== -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
+                      IsVisible="{Binding #KeyboardTab.IsChecked}">
+            <Border Classes="wacomPane" HorizontalAlignment="Stretch">
+            <StackPanel Spacing="10">
+                <!-- V29 #163 (Zak 20 Nov ~09:10, screenshot "Put the keyboard settings menu and how it is triggered here"): the floating
+                     keyboard's own section under Movement / Pen input: what opens it on the left, how it looks on the right (the
+                     transparency row moved here from the radial menu's sliders; #162 adds its size). -->
+                <Border x:Name="FloatingKeyboardBox" Classes="penBasicsInset" Padding="16">
+                    <Grid ColumnDefinitions="*,32,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <TextBlock x:Name="FloatingKeyboardHeading" Grid.ColumnSpan="3" Text="{Binding KeyboardLook.Heading}"
+                                   FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
+                        <TextBlock x:Name="FloatingKeyboardIntro" Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding KeyboardLook.Intro}"
+                                   TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,12" />
+                        <!-- Zak 20 Nov (build 7): "The keyboard should be shown in that menu the way the radial menu is shown on the top
+                             part of the app page": the keyboard itself, at its size and transparency, with the Mac's layout. -->
+                        <ctrl:KeyboardPreview x:Name="FloatingKeyboardPicture" Grid.Row="2" Grid.ColumnSpan="3" HorizontalAlignment="Center"
+                                              Margin="0,0,0,16" IsHitTestVisible="False"
+                                              SizePercent="{Binding KeyboardLook.Size}" Transparency="{Binding KeyboardLook.Transparency}"
+                                              AutomationProperties.Name="Floating keyboard picture" />
+                        <StackPanel x:Name="FloatingKeyboardOpens" Grid.Row="3" Spacing="6">
+                            <!-- V29 #160 (Zak 20 Nov ~09:18-09:24): pen button 1 held opens the keyboard (factory) or drags. -->
+                            <StackPanel x:Name="KeyboardHoldRow" Spacing="6" IsVisible="{Binding HasPenButton1}" Margin="0,0,0,10">
+                                <TextBlock Text="{Binding HoldCaption}" FontSize="12" />
+                                <ComboBox x:Name="KeyboardHoldBox" ItemsSource="{Binding HoldChoices}" SelectedIndex="{Binding HoldChoice, Mode=TwoWay}"
+                                          MinWidth="220" IsEnabled="{Binding CanChooseHold}" AutomationProperties.Name="Holding pen button 1" />
+                                <TextBlock x:Name="KeyboardHoldNote" Text="{Binding HoldNote}" FontSize="12" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HoldOpensKeyboard}" />
+                                <TextBlock x:Name="KeyboardHoldOther" Text="{Binding HoldOtherNote}" FontSize="12" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HoldIsOther}" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding KeyboardLook.SliceCaption}" FontSize="12" />
+                            <!-- Zak 20 Nov (build 7): the 'Put the keyboard there' button was confusing; choosing a slice puts it there. -->
+                            <ComboBox x:Name="KeyboardSlotBox" ItemsSource="{Binding KeyboardSlots}" SelectedIndex="{Binding KeyboardSlot, Mode=TwoWay}"
+                                      MinWidth="220" IsEnabled="{Binding CanPutKeyboard}" AutomationProperties.Name="Slice for the keyboard" />
+                            <TextBlock x:Name="KeyboardSlotStatus" Text="{Binding KeyboardStatus}" FontSize="12" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       IsVisible="{Binding KeyboardStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+                        <StackPanel x:Name="FloatingKeyboardLook" Grid.Row="3" Grid.Column="2" Spacing="4">
+                            <TextBlock Text="{Binding KeyboardLook.SizeCaption}" FontSize="12" />
+                            <Grid x:Name="KeyboardSizeRow" ColumnDefinitions="*,8,52,4,18">
+                                <Slider x:Name="KeyboardSizeSlider" Minimum="60" Maximum="300"
+                                        TickFrequency="10" IsSnapToTickEnabled="False" SmallChange="5" LargeChange="20"
+                                        Value="{Binding KeyboardLook.Size, Mode=TwoWay}" VerticalAlignment="Center"
+                                        AutomationProperties.Name="Keyboard size" />
+                                <TextBox x:Name="KeyboardSizeBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
+                                         VerticalAlignment="Center" FontWeight="SemiBold" MaxLength="6"
+                                         Text="{Binding KeyboardLook.SizeInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                         AutomationProperties.Name="Keyboard size value" />
+                                <TextBlock Grid.Column="4" Text="%" VerticalAlignment="Center" FontWeight="SemiBold" />
+                            </Grid>
+                            <TextBlock Text="{Binding KeyboardLook.TransparencyCaption}" FontSize="12" Margin="0,6,0,0" />
+                            <Grid x:Name="KeyboardTransparencyRow" ColumnDefinitions="*,8,52,4,18">
+                                <Slider x:Name="KeyboardTransparencySlider" Minimum="0" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True"
+                                        Value="{Binding KeyboardLook.Transparency, Mode=TwoWay}" VerticalAlignment="Center"
+                                        AutomationProperties.Name="Keyboard transparency" />
+                                <TextBox x:Name="KeyboardTransparencyBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
+                                         VerticalAlignment="Center" FontWeight="SemiBold" MaxLength="6"
+                                         Text="{Binding KeyboardLook.TransparencyInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                         AutomationProperties.Name="Keyboard transparency value" />
+                                <TextBlock Grid.Column="4" Text="%" VerticalAlignment="Center" FontWeight="SemiBold" />
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
                 </Border>
             </StackPanel>
             </Border>

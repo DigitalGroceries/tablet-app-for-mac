@@ -845,6 +845,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "键盘设置",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "笔尖",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
@@ -901,41 +906,6 @@
   },
   {
     "text": "关闭压感",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "浮动键盘",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "一个浮在作品上方的小键盘，让你用笔打字。拖动顶部栏可移动它，拖动右下角可放大或缩小它。",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "按住笔按键 1",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "径向菜单扇区",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "还没有笔按键能打开径向菜单，所以没有扇区可放键盘。",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "键盘大小",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "键盘透明度",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -1178,6 +1148,41 @@
     "text": "Copy",
     "path": "数位板 › 笔 › 橡皮擦",
     "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "浮动键盘",
+    "path": "数位板 › 笔 › 键盘",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "一个浮在作品上方的小键盘，让你用笔打字。拖动顶部栏可移动它，拖动右下角可放大或缩小它。",
+    "path": "数位板 › 笔 › 键盘",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "按住笔按键 1",
+    "path": "数位板 › 笔 › 键盘",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "径向菜单扇区",
+    "path": "数位板 › 笔 › 键盘",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "还没有笔按键能打开径向菜单，所以没有扇区可放键盘。",
+    "path": "数位板 › 笔 › 键盘",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "键盘大小",
+    "path": "数位板 › 笔 › 键盘",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "键盘透明度",
+    "path": "数位板 › 笔 › 键盘",
+    "route": "tablet/ToolPenButton/KeyboardTab"
   },
   {
     "text": "大小",

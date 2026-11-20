@@ -755,6 +755,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Настройки на клавиатурата",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Връх на писалката",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
@@ -811,31 +816,6 @@
   },
   {
     "text": "Изключи чувствителността към натиск",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Плаваща клавиатура",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Задържане на бутон 1 на писалката",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Сектор от радиалното меню",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Размер на клавиатурата",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Прозрачност на клавиатурата",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -1063,6 +1043,31 @@
     "text": "Copy",
     "path": "Таблет › Писалка › Гума",
     "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Плаваща клавиатура",
+    "path": "Таблет › Писалка › Клавиатура",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Задържане на бутон 1 на писалката",
+    "path": "Таблет › Писалка › Клавиатура",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Сектор от радиалното меню",
+    "path": "Таблет › Писалка › Клавиатура",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Размер на клавиатурата",
+    "path": "Таблет › Писалка › Клавиатура",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Прозрачност на клавиатурата",
+    "path": "Таблет › Писалка › Клавиатура",
+    "route": "tablet/ToolPenButton/KeyboardTab"
   },
   {
     "text": "Размер",

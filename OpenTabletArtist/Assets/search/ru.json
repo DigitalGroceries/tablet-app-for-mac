@@ -770,6 +770,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Настройки клавиатуры",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Наконечник пера",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
@@ -826,31 +831,6 @@
   },
   {
     "text": "Отключить чувствительность к давлению",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Плавающая клавиатура",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Удержание кнопки пера 1",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Сектор радиального меню",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Размер клавиатуры",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Прозрачность клавиатуры",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -1078,6 +1058,31 @@
     "text": "Copy",
     "path": "Планшет › Перо › Ластик",
     "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Плавающая клавиатура",
+    "path": "Планшет › Перо › Клавиатура",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Удержание кнопки пера 1",
+    "path": "Планшет › Перо › Клавиатура",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Сектор радиального меню",
+    "path": "Планшет › Перо › Клавиатура",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Размер клавиатуры",
+    "path": "Планшет › Перо › Клавиатура",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Прозрачность клавиатуры",
+    "path": "Планшет › Перо › Клавиатура",
+    "route": "tablet/ToolPenButton/KeyboardTab"
   },
   {
     "text": "Размер",

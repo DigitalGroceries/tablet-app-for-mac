@@ -770,6 +770,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Inställningar för tangentbordet",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Pennspets",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
@@ -826,31 +831,6 @@
   },
   {
     "text": "Stäng av tryckkänslighet",
-    "path": "Ritplatta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Flytande tangentbord",
-    "path": "Ritplatta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Pennknapp 1 hålls in",
-    "path": "Ritplatta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Sektor i radialmenyn",
-    "path": "Ritplatta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Tangentbordets storlek",
-    "path": "Ritplatta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Tangentbordets genomskinlighet",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -1078,6 +1058,31 @@
     "text": "Copy",
     "path": "Ritplatta › Penna › Suddgummi",
     "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Flytande tangentbord",
+    "path": "Ritplatta › Penna › Tangentbord",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Pennknapp 1 hålls in",
+    "path": "Ritplatta › Penna › Tangentbord",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Sektor i radialmenyn",
+    "path": "Ritplatta › Penna › Tangentbord",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Tangentbordets storlek",
+    "path": "Ritplatta › Penna › Tangentbord",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Tangentbordets genomskinlighet",
+    "path": "Ritplatta › Penna › Tangentbord",
+    "route": "tablet/ToolPenButton/KeyboardTab"
   },
   {
     "text": "Storlek",

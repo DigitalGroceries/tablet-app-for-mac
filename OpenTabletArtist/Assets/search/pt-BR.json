@@ -770,6 +770,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Ajustes do teclado",
+    "path": "Tablet › Caneta › Caneta",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Ponta da caneta",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
@@ -826,31 +831,6 @@
   },
   {
     "text": "Desativar sensibilidade à pressão",
-    "path": "Tablet › Caneta › Caneta",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Teclado flutuante",
-    "path": "Tablet › Caneta › Caneta",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Segurar o botão 1 da caneta",
-    "path": "Tablet › Caneta › Caneta",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Fatia do menu radial",
-    "path": "Tablet › Caneta › Caneta",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Tamanho do teclado",
-    "path": "Tablet › Caneta › Caneta",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Transparência do teclado",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -1078,6 +1058,31 @@
     "text": "Copy",
     "path": "Tablet › Caneta › Borracha",
     "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+  },
+  {
+    "text": "Teclado flutuante",
+    "path": "Tablet › Caneta › Teclado",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Segurar o botão 1 da caneta",
+    "path": "Tablet › Caneta › Teclado",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Fatia do menu radial",
+    "path": "Tablet › Caneta › Teclado",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Tamanho do teclado",
+    "path": "Tablet › Caneta › Teclado",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Transparência do teclado",
+    "path": "Tablet › Caneta › Teclado",
+    "route": "tablet/ToolPenButton/KeyboardTab"
   },
   {
     "text": "Tamanho",

@@ -34,7 +34,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         // Not while a control that uses the arrows has focus (text box, slider, dropdown, list).
         AddHandler(KeyDownEvent, OnTabKeyDown, RoutingStrategies.Bubble, handledEventsToo: false);
         // Build O: the Tool tile follows the open tab (and picks the tab group), from load on.
-        foreach (var t in new[] { ButtonsTab, WheelsTab, PenTab, EraserTab, MappingTab, AboutTab, CalibrationTab, FiltersTab, JsonTab, HoverTab })
+        foreach (var t in new[] { ButtonsTab, WheelsTab, PenTab, EraserTab, KeyboardTab, MappingTab, AboutTab, CalibrationTab, FiltersTab, JsonTab, HoverTab })
             t.IsCheckedChanged += (_, _) => SyncToolChips();
         PenTab.IsCheckedChanged += OnLiveTabChanged;
         EraserTab.IsCheckedChanged += OnLiveTabChanged;
@@ -104,6 +104,8 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (PenTab != null) PenTab.Content = Localizer.T("tablet.tab.pen");
         if (EraserTab != null) EraserTab.Content = Localizer.T("tablet.tab.eraser");
         if (MappingTab != null) MappingTab.Content = Localizer.T("tablet.tab.mapping");
+        if (KeyboardTab != null) KeyboardTab.Content = Localizer.Te("tablet.tab.keyboard", "keyboard");
+        if (KeyboardSettingsLink != null) KeyboardSettingsLink.Content = Localizer.Te("tablet.pen.keyboard_settings_link", "Keyboard settings…");
         if (AboutTab != null) AboutTab.Content = Localizer.T("tablet.tab.about");
         if (CalibrationTab != null) CalibrationTab.Content = Localizer.T("tablet.tab.calibration");
         if (HoverTab != null) HoverTab.Content = Localizer.T("tablet.tab.hover");
@@ -208,7 +210,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     internal void SyncToolChips()
     {
         if (ButtonsTab.IsChecked == true || WheelsTab.IsChecked == true) SelectTool(ToolFunctionsButton);
-        else if (PenTab.IsChecked == true || EraserTab.IsChecked == true || MappingTab.IsChecked == true)
+        else if (PenTab.IsChecked == true || EraserTab.IsChecked == true || KeyboardTab.IsChecked == true || MappingTab.IsChecked == true)
         {
             // Version 14: an extra pen tile stays selected while you move between Pen, Eraser and Mapping.
             if (string.IsNullOrEmpty(Vm?.SelectedPenKey)) SelectTool(ToolPenButton);
@@ -237,7 +239,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (s is not Control { Tag: string key } || Vm is null) return;
         foreach (var t in new[] { ToolFunctionsButton, ToolPenButton, ToolMoreButton }) t.IsChecked = false;
         Vm.PenToolActive = true;
-        if (PenTab.IsChecked != true && EraserTab.IsChecked != true && MappingTab.IsChecked != true) PenTab.IsChecked = true;
+        if (PenTab.IsChecked != true && EraserTab.IsChecked != true && KeyboardTab.IsChecked != true && MappingTab.IsChecked != true) PenTab.IsChecked = true;
         Vm.SelectPenProfileCommand.Execute(key);
     }
 
@@ -268,6 +270,9 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     // Build O: Tool tiles choose the tab group, like Wacom's Tool row.
     private void OnToolFunctions(object? s, RoutedEventArgs e) { ButtonsTab.IsChecked = true; SelectTool(ToolFunctionsButton); }
     private void OnToolPen(object? s, RoutedEventArgs e) { PenTab.IsChecked = true; SelectTool(ToolPenButton); }
+
+    /// <summary>V29 #177: the Pen page's "Keyboard settings…" link (under pen button 1) opens the Keyboard tab.</summary>
+    private void OnKeyboardSettingsLink(object? s, RoutedEventArgs e) => KeyboardTab.IsChecked = true;
     private void OnToolMore(object? s, RoutedEventArgs e) { AboutTab.IsChecked = true; SelectTool(ToolMoreButton); }
 
     private void OnTileScrollLeft(object? s, RoutedEventArgs e) => ScrollTiles(s, -60);

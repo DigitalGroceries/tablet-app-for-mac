@@ -181,6 +181,16 @@ public sealed class RadialMenuEditorDialog : Window
         appRow[!Visual.IsVisibleProperty] = new Binding(nameof(vm.IsOpen));
         right.Children.Add(appRow);
 
+        // Show or hide the keyboard (V29 #177): its settings are on the Keyboard tab.
+        var kbNote = new TextBlock
+        {
+            Text = vm.KeyboardTabNote, TextWrapping = TextWrapping.Wrap, MaxWidth = 300, Margin = new Thickness(0, 6, 0, 0),
+            Name = "KeyboardTabNote",
+        };
+        kbNote[!TextBlock.ForegroundProperty] = new DynamicResourceExtension("TextMutedBrush");
+        kbNote[!Visual.IsVisibleProperty] = new Binding(nameof(vm.IsKeyboard));
+        right.Children.Add(kbNote);
+
         right.Children.Add(new Button
         {
             Content = vm.ClearSliceLabel, Command = vm.ClearSliceCommand, Padding = new Thickness(12, 6), Margin = new Thickness(0, 14, 0, 0),

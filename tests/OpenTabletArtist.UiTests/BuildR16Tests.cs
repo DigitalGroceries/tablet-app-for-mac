@@ -70,7 +70,7 @@ public class BuildR16Tests
     [AvaloniaFact]
     public void KeyboardTransparency_HasASliderAndABox_InLineWithTheMenuRows()
     {
-        var (vm, view, w) = Open("PenTab");
+        var (vm, view, w) = Open("KeyboardTab"); // #177 (Zak 20 Nov): the keyboard settings have their own tab now
         try
         {
             var slider = view.FindControl<Slider>("KeyboardTransparencySlider")!;
