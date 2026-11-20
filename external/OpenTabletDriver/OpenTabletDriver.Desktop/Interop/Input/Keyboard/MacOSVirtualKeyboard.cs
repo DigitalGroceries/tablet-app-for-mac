@@ -16,7 +16,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         private void KeyEvent(string key, bool isPress)
         {
             // Tablet App for Mac V29 (#87): the brightness keys are system-defined events, not key codes.
-            if (MacOSSystemKeys.Keys.ContainsKey(key)) { MacOSSystemKeys.Post(key, isPress); return; }
+            if (MacOSSystemKeys.Keys.ContainsKey(key)) { MacOSSystemKeys.Post(key, isPress, _currentFlags); return; }
             if (EtoKeysymToVK.TryGetValue(key, out var code))
             {
                 var keyEvent = CGEventCreateKeyboardEvent(IntPtr.Zero, code, isPress);
