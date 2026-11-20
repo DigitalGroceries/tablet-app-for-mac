@@ -770,7 +770,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Tastatur-Einstellungen",
+    "text": "Tastatureinstellungen",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },

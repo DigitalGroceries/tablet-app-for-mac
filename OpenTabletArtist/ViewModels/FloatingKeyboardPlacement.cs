@@ -80,7 +80,7 @@ public static class FloatingKeyboardPlacement
         var status = Status(menuJson);
         if (status.Length > 0) return status;
         return Choices(menuJson).Count <= 1
-            ? Localizer.Te("keyboard.no_free_slice", "Every slice of the radial menu is in use. To put the keyboard on one, first empty a slice: click the radial menu picture on the Pen page.")
+            ? Localizer.Te("keyboard.no_free_slice", "Every slice of the radial menu is in use. To put the keyboard on one, first empty a slice: click the radial menu picture on the Pen tab.")
             : "";
     }
 

@@ -149,7 +149,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     /// says where the keyboard's own settings are.</summary>
     public bool IsKeyboard => ActionIndex == ActKeyboard;
     public string KeyboardTabNote => Localizer.Te("radial.keyboard_tab_note",
-        "The keyboard's size, transparency and pen button hold are on the Keyboard tab of the Pen page.");
+        "The keyboard's size, transparency and Holding pen button 1 choice are on the Keyboard tab of the Pen page.");
     /// <summary>Submenus stop at <see cref="RadialMenuDef.MaxDepth"/> levels.</summary>
     public bool CanAddSubmenu => _path.Count + 1 < RadialMenuDef.MaxDepth;
 

@@ -770,7 +770,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Inställningar för tangentbordet",
+    "text": "Tangentbordsinställningar",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
