@@ -234,7 +234,7 @@
   "tablet.ring.note.scroll": "转动触控环即可像鼠标滚轮一样滚动：顺时针向下滚动，逆时针向上滚动。适用于所有应用。",
   "tablet.ring.note.keys": "触控环每转动 {degrees}°，就发送一次下方的按键。",
   "tablet.ring.setup.rotate": "设置：在 Affinity 的 Settings › Tools 中开启“Enable canvas rotation with ⌘+scroll wheel”。Photoshop 无需设置。",
-  "tablet.ring.setup.zoom": "设置：如果 Photoshop 上下移动画面而不是缩放，请在 Photoshop 的 Settings › Tools 中取消勾选“Zoom with Scroll Wheel”。或者选择 键盘快捷键…，使用 ⌘= 和 ⌘−。",
+  "tablet.ring.setup.zoom": "设置：如果 Photoshop 上下移动画面而不是缩放，请在 Photoshop 的 Settings › Tools 中取消勾选“Zoom with Scroll Wheel”。或者选择“键盘快捷键…”，使用 ⌘= 和 ⌘−。",
   "tablet.ring.setup.size": "设置：在 Photoshop 中选择画笔工具，并在 Settings › Performance 中开启“Use Graphics Processor”。",
   "tablet.ring.setup.hardness": "设置：在 Photoshop 的 Settings › Tools 中开启“Vary Round Brush Hardness based on HUD vertical movement”。未开启时，触控环会改变不透明度而不是硬度。",
   "tablet.ring.slow": "慢",

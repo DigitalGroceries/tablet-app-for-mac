@@ -58,6 +58,29 @@ public class BrightnessTargetTests
         Assert.Equal("the main screen", why);
     }
 
+    [Fact]
+    public void ControlFromTheMacScreen_ChangesTheExternalScreen_UnderThePointerFirst()
+    {
+        bool builtIn(uint d) => d == BuiltIn;
+        Assert.Equal(Side, MacOSSystemKeys.OtherDisplay(BuiltIn, ZaksScreens, (2000, 500), builtIn));
+        Assert.Equal(Sony, MacOSSystemKeys.OtherDisplay(BuiltIn, ZaksScreens, (300, 300), builtIn));   // pointer on the Mac: first external
+    }
+
+    [Fact]
+    public void ControlFromAnExternalScreen_ChangesTheMacScreen()
+    {
+        bool builtIn(uint d) => d == BuiltIn;
+        Assert.Equal(BuiltIn, MacOSSystemKeys.OtherDisplay(Sony, ZaksScreens, (0, -100), builtIn));
+        Assert.Equal(BuiltIn, MacOSSystemKeys.OtherDisplay(Side, ZaksScreens, null, builtIn));
+    }
+
+    [Fact]
+    public void ControlWithOneScreen_HasNoOtherScreen()
+    {
+        var one = new List<(uint, Box)> { (BuiltIn, new Box(0, 0, 1496, 967)) };
+        Assert.Equal(0u, MacOSSystemKeys.OtherDisplay(BuiltIn, one, null, d => d == BuiltIn));
+    }
+
     [Theory]
     [InlineData(0.5f, true, 0.5625f)]
     [InlineData(0.5f, false, 0.4375f)]

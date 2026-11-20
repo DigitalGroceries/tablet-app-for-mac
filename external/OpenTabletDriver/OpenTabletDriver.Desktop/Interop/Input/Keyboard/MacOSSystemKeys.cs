@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using OpenTabletDriver.Plugin;
 
@@ -17,9 +18,10 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
     ///  2. without Control, sets that screen's brightness directly through macOS's DisplayServices, one of the Mac's
     ///     16 brightness steps, when that screen answers it (loaded at run time with dlopen/dlsym; any missing piece
     ///     falls back to step 3, never a crash; the rules for a screen that doesn't answer are in <see cref="DirectBrightness"/>);
-    ///  3. otherwise (Control held, or a screen DisplayServices can't change) posts the key event as before: with
-    ///     Control, the Control flag and no place of its own (macOS picks "the other screen", as with its own key);
-    ///     without, placed on the chosen screen.
+    ///  3. with Control held, the other screen instead (<see cref="OtherDisplay"/>), the way the Mac's Control + brightness
+    ///     works (Zak's build 5 test: a posted key never follows the screen in front, so this is done directly too);
+    ///  4. when a screen can't be changed directly, posts the key event as before: with Control, the Control flag and no
+    ///     place of its own (macOS picks); without, placed on the chosen screen.
     /// The screen is looked up at most every 300 ms, so a fast turn doesn't make the pen stutter. Our own windows (radial
     /// menu, floating keyboard, the app) never count as the front window.
     /// The driver log says which screen and which way, each time that changes, so an in-app report shows it.
@@ -88,6 +90,17 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         private static extern bool CFNumberGetValue(IntPtr number, int type, out int value);
         [DllImport(CoreFoundation)] private static extern IntPtr CFStringCreateWithCString(IntPtr alloc, string s, uint encoding);
         [DllImport(LibSystem)] private static extern IntPtr dlopen(string path, int mode);
+        private const string AppServices = "/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices";
+        [DllImport(AppServices)] private static extern IntPtr AXUIElementCreateSystemWide();
+        [DllImport(AppServices)] private static extern int AXUIElementCopyAttributeValue(IntPtr element, IntPtr attribute, out IntPtr value);
+        [DllImport(AppServices)] private static extern int AXUIElementSetMessagingTimeout(IntPtr element, float seconds);
+        [DllImport(AppServices)] private static extern int AXUIElementGetPid(IntPtr element, out int pid);
+        [DllImport(AppServices)] [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool AXValueGetValue(IntPtr value, int type, out CGPoint point);
+        [DllImport(AppServices)] [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool AXValueGetValue(IntPtr value, int type, out CGSizeValue size);
+        [StructLayout(LayoutKind.Sequential)] private struct CGSizeValue { public double W, H; }
+        private const int AXValueCGPointType = 1, AXValueCGSizeType = 2;
         [DllImport(LibSystem)] private static extern IntPtr dlsym(IntPtr handle, string symbol);
 
         // DisplayServices (private framework; signatures as MonitorControl's Bridging-Header.h uses them):
@@ -101,7 +114,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         private static SetBrightnessFn? _setBrightness;
         private static readonly Dictionary<int, bool> DownWasDirect = new Dictionary<int, bool>();
         private static CGPoint? _lastTargetCentre;
-        private static string? _lastLogged;
+        private static string? _lastLogged, _lastScene;
 
         /// <summary>The NX_KEYTYPE_* data1 word for a key going down or up (shared with tests).</summary>
         public static long Data1(int keyType, bool down) => ((long)keyType << 16) | ((long)(down ? KeyDown : KeyUp) << 8);
@@ -146,6 +159,31 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
             return (mainDisplay, "the main screen");
         }
 
+        /// <summary>
+        /// V29 #87 (Zak 20 Nov: "Ctrl + brightness on my own keyboard dims the Sony TV if the Mac screen is on focus or dims
+        /// the [Mac] screen if the Sony is on focus"): the screen Control + brightness changes. From the built-in screen: the
+        /// external screen under the pointer, else the first external one. From an external screen: the built-in one, else
+        /// another screen (the pointer's first). 0 when there is no other screen.
+        /// </summary>
+        public static uint OtherDisplay(uint focused, IReadOnlyList<(uint Id, Box Bounds)> displays, (double X, double Y)? pointer,
+            Func<uint, bool> isBuiltIn)
+        {
+            uint underPointer = 0;
+            if (pointer is (double px, double py))
+                foreach (var (id, b) in displays)
+                    if (b.Contains(px, py)) { underPointer = id; break; }
+            if (isBuiltIn(focused))
+            {
+                if (underPointer != 0 && underPointer != focused && !isBuiltIn(underPointer)) return underPointer;
+                foreach (var (id, _) in displays) if (id != focused && !isBuiltIn(id)) return id;
+                return 0;
+            }
+            foreach (var (id, _) in displays) if (id != focused && isBuiltIn(id)) return id;
+            if (underPointer != 0 && underPointer != focused) return underPointer;
+            foreach (var (id, _) in displays) if (id != focused) return id;
+            return 0;
+        }
+
         /// <summary>One brightness step from <paramref name="current"/> (0..1), snapped to the Mac's 16 steps.</summary>
         public static float NextBrightness(float current, bool up)
         {
@@ -164,10 +202,17 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
                 if (down)
                 {
                     var (display, why, centre) = CachedTarget();
-                    // Control means "the other screen" on the Mac's own keyboard: leave the event's place alone then,
-                    // as the keyboard does, so macOS picks the screen itself.
+                    // Control means "the other screen", as on the Mac's own keyboard (Zak's test of build 5: a posted key
+                    // can't follow the screen in front, so the other screen is changed directly too). If that can't be
+                    // done, the key goes with the Control flag and no place of its own, so macOS picks the screen itself.
                     _lastTargetCentre = control ? null : centre;
-                    if (!control && TrySetDirectly(display, why, up: type == 2))
+                    if (control)
+                    {
+                        uint other = OtherDisplay(display, _cachedDisplays, _cachedPointer, d => Kind(d) == "built-in");
+                        if (other != 0) { display = other; why = "the other screen, Control held"; }
+                        else display = 0;
+                    }
+                    if (display != 0 && TrySetDirectly(display, why, up: type == 2))
                     {
                         DownWasDirect[type] = true;
                         return true;
@@ -253,6 +298,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         }
 
         private static (uint Display, string Why, CGPoint? Centre) _cachedTarget;
+        private static IReadOnlyList<(uint Id, Box Bounds)> _cachedDisplays = Array.Empty<(uint, Box)>();
+        private static (double X, double Y)? _cachedPointer;
         private static long _cachedTargetAt = long.MinValue;
 
         /// <summary>One ring turn sends many presses: the screen is looked up at most every 300 ms (Grok's review: reading
@@ -289,17 +336,87 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
             {
                 LogOnce($"Brightness: couldn't list the screens ({e.Message})", LogLevel.Warning);
             }
-            var (display, why) = PickDisplay(FrontWindow(), Pointer(), displays, main);
+            // V29 #87, build 5 (Zak: always the Sony; the report showed the window-list guess picking it every time): ask macOS
+            // which window has the keyboard focus, as accessibility tools do; the window list is only the fallback.
+            var front = FocusedWindow(out var owner);
+            if (front == null) { front = FrontWindow(out owner); if (front != null) owner += " (window list)"; }
+            else owner += " (focus)";
+            var pointer = Pointer();
+            var (display, why) = PickDisplay(front, pointer, displays, main);
             CGPoint? centre = null;
             foreach (var (id, b) in displays)
                 if (id == display) { var c = b.Centre; centre = new CGPoint { X = c.X, Y = c.Y }; }
+            _cachedDisplays = displays;
+            _cachedPointer = pointer;
+            // V29 #87, build 5 (Zak: always the Sony): say everything the choice was made from, so a report shows it.
+            static string B(Box b) => $"{b.X:0},{b.Y:0} {b.W:0}x{b.H:0}";
+            var scene = "Brightness: screens " + string.Join("; ", displays.Select(d => $"{d.Item1} {Kind(d.Item1)} at {B(d.Item2)}"))
+                + $"; main {main}; front window " + (front is Box f ? $"'{owner}' at {B(f)}" : "none")
+                + $"; picked {display} ({why})";
+            if (scene != _lastScene)   // once per change of screens / front window / choice; the pointer alone doesn't count
+            {
+                _lastScene = scene;
+                Log.Write("Keyboard", scene + "; pointer " + (pointer is (double px, double py) ? $"{px:0},{py:0}" : "unknown"), LogLevel.Info);
+            }
             return (display, why, centre);
+        }
+
+        private static bool _axFailedLogged;
+
+        /// <summary>The window that has the keyboard focus (the one the user last clicked), from the Accessibility API: the
+        /// focused app's focused window, its position and size in global points (top-left origin, as the screens). Null when
+        /// there is none (the desktop) or macOS doesn't answer within 0.15 s, so a hung app can't stall the pen.</summary>
+        private static Box? FocusedWindow(out string? owner)
+        {
+            owner = null;
+            IntPtr sys = IntPtr.Zero, app = IntPtr.Zero, win = IntPtr.Zero, pos = IntPtr.Zero, size = IntPtr.Zero;
+            IntPtr kApp = IntPtr.Zero, kWin = IntPtr.Zero, kPos = IntPtr.Zero, kSize = IntPtr.Zero;
+            try
+            {
+                sys = AXUIElementCreateSystemWide();
+                if (sys == IntPtr.Zero) return null;
+                AXUIElementSetMessagingTimeout(sys, 0.15f);
+                kApp = CFStringCreateWithCString(IntPtr.Zero, "AXFocusedApplication", Utf8);
+                kWin = CFStringCreateWithCString(IntPtr.Zero, "AXFocusedWindow", Utf8);
+                kPos = CFStringCreateWithCString(IntPtr.Zero, "AXPosition", Utf8);
+                kSize = CFStringCreateWithCString(IntPtr.Zero, "AXSize", Utf8);
+                int err = AXUIElementCopyAttributeValue(sys, kApp, out app);
+                if (err != 0 || app == IntPtr.Zero) { NoteAx($"no focused app (AX error {err})"); return null; }
+                AXUIElementSetMessagingTimeout(app, 0.15f);
+                err = AXUIElementCopyAttributeValue(app, kWin, out win);
+                if (err != 0 || win == IntPtr.Zero) { NoteAx($"the focused app has no focused window (AX error {err})"); return null; }
+                if (AXUIElementCopyAttributeValue(win, kPos, out pos) != 0 || pos == IntPtr.Zero
+                    || !AXValueGetValue(pos, AXValueCGPointType, out CGPoint p)) { NoteAx("no window position"); return null; }
+                if (AXUIElementCopyAttributeValue(win, kSize, out size) != 0 || size == IntPtr.Zero
+                    || !AXValueGetValue(size, AXValueCGSizeType, out CGSizeValue z)) { NoteAx("no window size"); return null; }
+                if (z.W < 1 || z.H < 1) return null;
+                owner = AXUIElementGetPid(app, out int pid) == 0 ? $"pid {pid}" : "?";
+                return new Box(p.X, p.Y, z.W, z.H);
+            }
+            catch (Exception e)
+            {
+                NoteAx(e.Message);
+                return null;
+            }
+            finally
+            {
+                foreach (var cf in new[] { sys, app, win, pos, size, kApp, kWin, kPos, kSize })
+                    if (cf != IntPtr.Zero) CFRelease(cf);
+            }
+        }
+
+        private static void NoteAx(string why)
+        {
+            if (_axFailedLogged) return;
+            _axFailedLogged = true;   // once per driver run: the window list is used instead
+            Log.Write("Keyboard", $"Brightness: macOS didn't say which window has the focus ({why}); using the window list", LogLevel.Info);
         }
 
         /// <summary>The frontmost normal window (layer 0, at least 50 x 50) of any app, front-to-back order, or null.
         /// Window bounds need no Screen Recording permission (titles would).</summary>
-        private static Box? FrontWindow()
+        private static Box? FrontWindow(out string? owner)
         {
+            owner = null;
             IntPtr list = IntPtr.Zero, kLayer = IntPtr.Zero, kBounds = IntPtr.Zero, kPid = IntPtr.Zero, kOwner = IntPtr.Zero, kAlpha = IntPtr.Zero;
             try
             {
@@ -321,12 +438,14 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
                     // are not where the user is working. Window owner names need no Screen Recording permission.
                     var pid = CFDictionaryGetValue(d, kPid);
                     if (pid != IntPtr.Zero && CFNumberGetValue(pid, CFNumberSInt32Type, out int p) && p == me) continue;
-                    if (IsOwnApp(CfString(CFDictionaryGetValue(d, kOwner)))) continue;
+                    var name = CfString(CFDictionaryGetValue(d, kOwner));
+                    if (IsOwnApp(name)) continue;
                     var alpha = CFDictionaryGetValue(d, kAlpha);
                     if (alpha != IntPtr.Zero && CFNumberGetValue(alpha, CFNumberFloat64Type, out double a) && a <= 0) continue;
                     var b = CFDictionaryGetValue(d, kBounds);
                     if (b == IntPtr.Zero || !CGRectMakeWithDictionaryRepresentation(b, out var r)) continue;
                     if (r.W < 50 || r.H < 50) continue;
+                    owner = name;
                     return new Box(r.X, r.Y, r.W, r.H);
                 }
                 return null;
