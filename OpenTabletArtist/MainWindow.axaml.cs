@@ -144,6 +144,16 @@ public partial class MainWindow : Window
             _titleDrag.Press(_pressedAt, DateTime.UtcNow);
             _moveNotes = 0; _lastPointer = null;
         }
+        // V29 #176 build 12: on macOS 27.2 and later the Mac's own drag of a custom title bar is broken (fails or starts seconds late;
+        // warpdotdev/warp#16508, Apple FB25207761); like the other affected apps, the window is moved by hand and macOS is never asked.
+        if (ManualDragOs && WindowState == WindowState.Normal && MacDesktop.CursorLocation() is { } c)
+        {
+            _titleDrag.Release();
+            _manualDrag.Press(RealPosition(), new PixelPoint((int)Math.Round(c.X), (int)Math.Round(c.Y)));
+            _manualNotes = 0;
+            e.Pointer.Capture(this);
+            return;
+        }
         // V29 #176 (Grok's review): start the Mac's own drag with the press macOS is handling right now, as Finder's windows are
         // dragged; Avalonia's BeginMoveDrag uses the last press it recorded, which can be an older one.
         if (OperatingSystem.IsMacOS())
@@ -173,12 +183,51 @@ public partial class MainWindow : Window
     private System.Collections.Generic.List<TitleBarDrag.ScreenArea> ScreenAreas() =>
         Screens.All.Select(sc => new TitleBarDrag.ScreenArea(sc.Bounds, sc.WorkingArea)).ToList();
 
+    private static readonly bool ManualDragOs = OperatingSystem.IsMacOSVersionAtLeast(27, 2);
+    private readonly ManualWindowDrag _manualDrag = new();
+    private int _manualNotes;
+
+    /// <summary>#176 build 12: one move of the hand-made drag (macOS 27.2+).</summary>
+    private void ManualDragMoved(PointerEventArgs e)
+    {
+        if (MacWindowDrag.LeftButtonUp() || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) { EndManualDrag(e.Pointer); return; }
+        if (MacDesktop.CursorLocation() is not { } c) return;
+        bool wasMoving = _manualDrag.Moving;
+        var real = RealPosition();
+        if (_manualDrag.LastSet is { } last && (Math.Abs(real.X - last.X) > 2 || Math.Abs(real.Y - last.Y) > 2) && _manualNotes < 3)
+        {
+            _manualNotes++;   // the logs for the next report: does macOS put the window elsewhere than the app asked?
+            AppLog.Info($"Window drag: the window is at {real.X},{real.Y}; the app put it at {last.X},{last.Y} (#176).");
+        }
+        if (_manualDrag.Move(new PixelPoint((int)Math.Round(c.X), (int)Math.Round(c.Y))) is not { } to) return;
+        if (!wasMoving)
+            AppLog.Info($"Window drag: the app moves the window itself ({e.Pointer.Type}, from {real.X},{real.Y}, scale {RenderScaling:0.##}; "
+                        + $"macOS {Environment.OSVersion.Version}: its own drag of custom title bars is unreliable from 27.2) (#176).");
+        Position = to;
+    }
+
+    private void EndManualDrag(IPointer? pointer)
+    {
+        if (!_manualDrag.Pressed) return;
+        bool moved = _manualDrag.Release();
+        pointer?.Capture(null);
+        if (!moved) return;
+        var real = RealPosition();
+        AppLog.Info($"Window drag by the app ended at {real.X},{real.Y} (scale {RenderScaling:0.##}) (#176).");
+        if (TitleBarDrag.BelowMenuBar(new PixelRect(real, FramePixels()), ScreenAreas()) is { } down)
+        {
+            AppLog.Info($"Window drag: its top was under the menu bar; moved down to {down.X},{down.Y} (#176).");
+            Position = down;
+        }
+    }
+
     private PixelPoint _pressedAt;
     private int _moveNotes;
     private PixelPoint? _lastPointer;
 
     private void OnTitleDragMoved(object? sender, PointerEventArgs e)
     {
+        if (_manualDrag.Pressed) { ManualDragMoved(e); return; }
         if (!_titleDrag.Pressed) return;
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) { EndTitleDrag(e.Pointer); return; }
         // #176 (Grok's review): Avalonia may still think the button is down when the Mac's drag swallowed the release; ask macOS.
@@ -215,22 +264,6 @@ public partial class MainWindow : Window
                         + $"{RenderScaling:0.##}); the app moves the window (#164).");
             e.Pointer.Capture(this);   // keep the moves while the window follows the pointer
         }
-        if (OperatingSystem.IsMacOS())
-        {
-            // #176: never fight macOS at a screen edge; once the pointer is on another screen, the window goes wholly onto it.
-            var size = FramePixels();
-            var placed = TitleBarDrag.Place(target, size, pointer, new PixelRect(real, size), ScreenAreas());
-            if (placed != target)
-            {
-                _titleDrag.PlacedAt(placed);
-                if (_moveNotes < 3)
-                {
-                    _moveNotes++;
-                    AppLog.Info($"Window drag: placed at {placed.X},{placed.Y} instead of {target.X},{target.Y} (kept on the screen under the pointer, #176).");
-                }
-                target = placed;
-            }
-        }
         Position = target;
     }
 
@@ -238,18 +271,13 @@ public partial class MainWindow : Window
 
     private void EndTitleDrag(IPointer? pointer)
     {
+        EndManualDrag(pointer);
         bool byApp = _titleDrag.ByApp;
         if (_titleDrag.Release())
         {
             var real = RealPosition();
             AppLog.Info($"Window drag by the app ended at {real.X},{real.Y} (Position {Position.X},{Position.Y}, scale {RenderScaling:0.##}).");
-            // #176: never left across two screens (the Mac's own drag doesn't leave one there either).
-            if (OperatingSystem.IsMacOS() && _lastPointer is { } at
-                && TitleBarDrag.SnapAfterDrag(new PixelRect(real, FramePixels()), at, ScreenAreas()) is { } snap)
-            {
-                AppLog.Info($"Window drag: the window was across two screens; moved wholly onto the screen under the pointer at {snap.X},{snap.Y} (#176).");
-                Position = snap;
-            }
+            // #176 build 12: no snapping across screens any more (it made the window jump; Zak, build 11: "jittery").
         }
         if (byApp) pointer?.Capture(null);
     }

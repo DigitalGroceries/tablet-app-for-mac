@@ -139,6 +139,16 @@ public sealed class TitleBarDrag
         return best;
     }
 
+    /// <summary>V29 #176 build 12: after a drag the app made, a window whose top is above the usable area (under the menu bar) of
+    /// the screen holding most of it goes down to that usable top, as macOS itself places windows. Null when it is fine.</summary>
+    public static PixelPoint? BelowMenuBar(PixelRect window, IReadOnlyList<ScreenArea> screens)
+    {
+        int i = MostOf(screens, window);
+        if (i < 0) return null;
+        var work = screens[i].Work;
+        return window.Y < work.Y ? new PixelPoint(window.X, work.Y) : null;
+    }
+
     /// <summary>The usable top of the screen holding most of <paramref name="window"/> (null when it is on none).</summary>
     public static int? WorkTopOf(PixelRect window, IReadOnlyList<ScreenArea> screens)
     {
