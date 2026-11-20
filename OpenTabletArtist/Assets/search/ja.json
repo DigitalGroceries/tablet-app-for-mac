@@ -925,11 +925,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "選んだ項目にキーボードを配置",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "ラジアルメニューを開くペンボタンがまだないため、キーボードを置く項目がありません。",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"

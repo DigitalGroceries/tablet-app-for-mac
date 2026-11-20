@@ -694,6 +694,8 @@
   "keyboard.hold_opens": "Abrir el teclado",
   "keyboard.hold_other": "El botón 1 del lápiz hace ahora otra cosa (elegida con Cambiar…). Elige una opción aquí para cambiarla.",
   "keyboard.no_menu": "Ningún botón del lápiz abre todavía el menú radial, así que no hay sector donde poner el teclado.",
+  "keyboard.not_on_menu": "No está en el menú radial",
+  "keyboard.no_free_slice": "Todos los sectores del menú radial están en uso. Para poner el teclado en uno, primero vacía un sector: haz clic en la imagen del menú radial, arriba en la página.",
   "keyboard.resize_tip": "Arrastra para hacer el teclado más grande o más pequeño",
   "keyboard.section": "Teclado flotante",
   "keyboard.section_intro": "Un teclado pequeño que flota sobre tu trabajo para que puedas escribir con el lápiz. Arrastra su barra superior para moverlo y su esquina inferior derecha para hacerlo más grande o más pequeño.",

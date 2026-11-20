@@ -694,6 +694,8 @@
   "keyboard.hold_opens": "Apri la tastiera",
   "keyboard.hold_other": "Il pulsante 1 della penna ora fa altro (impostato con Cambia…). Scegli qui un'opzione per cambiarlo.",
   "keyboard.no_menu": "Nessun pulsante della penna apre ancora il menu radiale, quindi non c'è uno spicchio per la tastiera.",
+  "keyboard.not_on_menu": "Non nel menu radiale",
+  "keyboard.no_free_slice": "Tutti gli spicchi del menu radiale sono occupati. Per mettervi la tastiera, svuota prima uno spicchio: fai clic sull'immagine del menu radiale in cima alla pagina.",
   "keyboard.resize_tip": "Trascina per ingrandire o rimpicciolire la tastiera",
   "keyboard.section": "Tastiera fluttuante",
   "keyboard.section_intro": "Una piccola tastiera che fluttua sopra il tuo lavoro, così puoi scrivere con la penna. Trascina la barra in alto per spostarla e l'angolo in basso a destra per ingrandirla o rimpicciolirla.",

@@ -694,6 +694,8 @@
   "keyboard.hold_opens": "Ouvrir le clavier",
   "keyboard.hold_other": "Le bouton 1 du stylet fait autre chose pour l'instant (réglé avec Modifier…). Choisissez une option ici pour changer cela.",
   "keyboard.no_menu": "Aucun bouton du stylet n'ouvre encore le menu radial, il n'y a donc pas de part où placer le clavier.",
+  "keyboard.not_on_menu": "Pas dans le menu radial",
+  "keyboard.no_free_slice": "Toutes les parts du menu radial sont utilisées. Pour y placer le clavier, videz d'abord une part : cliquez sur l'image du menu radial en haut de la page.",
   "keyboard.resize_tip": "Faites glisser pour agrandir ou réduire le clavier",
   "keyboard.section": "Clavier flottant",
   "keyboard.section_intro": "Un petit clavier qui flotte au-dessus de votre travail, pour taper avec le stylet. Faites glisser sa barre du haut pour le déplacer, et son coin inférieur droit pour l'agrandir ou le réduire.",

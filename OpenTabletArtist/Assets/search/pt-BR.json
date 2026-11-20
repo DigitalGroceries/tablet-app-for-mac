@@ -845,11 +845,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Colocar o teclado nessa fatia",
-    "path": "Tablet › Caneta › Caneta",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Tamanho do teclado",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"

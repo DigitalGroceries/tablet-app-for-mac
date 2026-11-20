@@ -830,11 +830,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Сложи клавиатурата там",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Размер на клавиатурата",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"

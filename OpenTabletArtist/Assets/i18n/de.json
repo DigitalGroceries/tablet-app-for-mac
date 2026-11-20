@@ -694,6 +694,8 @@
   "keyboard.hold_opens": "Tastatur öffnen",
   "keyboard.hold_other": "Stift-Taste 1 tut gerade etwas anderes (mit Ändern… festgelegt). Wähle hier etwas aus, um das zu ändern.",
   "keyboard.no_menu": "Noch keine Stift-Taste öffnet das Radialmenü, daher gibt es kein Feld für die Tastatur.",
+  "keyboard.not_on_menu": "Nicht im Radialmenü",
+  "keyboard.no_free_slice": "Jedes Feld des Radialmenüs ist belegt. Um die Tastatur auf eines zu legen, leere zuerst ein Feld: Klicke oben auf der Seite auf das Bild des Radialmenüs.",
   "keyboard.resize_tip": "Ziehen, um die Tastatur größer oder kleiner zu machen",
   "keyboard.section": "Schwebende Tastatur",
   "keyboard.section_intro": "Eine kleine Tastatur, die über deiner Arbeit schwebt, damit du mit dem Stift tippen kannst. Ziehe an ihrer oberen Leiste, um sie zu verschieben, und an der Ecke unten rechts, um sie größer oder kleiner zu machen.",

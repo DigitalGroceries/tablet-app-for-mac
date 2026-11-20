@@ -840,11 +840,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Poner el teclado ahí",
-    "path": "Tableta › Lápiz › Lápiz",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Tamaño del teclado",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"

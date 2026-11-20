@@ -845,11 +845,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Lägg tangentbordet där",
-    "path": "Ritplatta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "Tangentbordets storlek",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
