@@ -131,7 +131,7 @@ public class PressureCurveProfileTests
     // ── EnsureEnabled: the "always on internally" invariant ──────────────────────
 
     [Fact]
-    public void EnsureEnabled_AddsAnEnabledInertStore_WhenMissing()
+    public void EnsureEnabled_AddsAnEnabledStoreAtTheFactoryTipFeel_WhenMissing()
     {
         var settings = SettingsFor("Tab");
 
@@ -139,7 +139,11 @@ public class PressureCurveProfileTests
         var read = PressureCurveProfile.Read(settings, "Tab");
         Assert.NotNull(read);
         Assert.True(read!.Value.Enabled);
-        Assert.True(read.Value.Dynamics.IsNoOp);                    // inert until customized
+        // V29 #159 (Zak 20 Nov: factory Tip Feel 80): a new tablet starts at Tip Feel 80, no smoothing (was inert, 50).
+        Assert.Equal(80, FeelScale.ToDisplay(-read.Value.Dynamics.Curve.Softness));
+        Assert.Equal(PressureCurveSettings.Factory.Softness, read.Value.Dynamics.Curve.Softness, 5);   // stored as a float
+        Assert.Equal(0, read.Value.Dynamics.PressureSmoothing);
+        Assert.Equal(0, read.Value.Dynamics.PositionSmoothing);
     }
 
     [Fact]

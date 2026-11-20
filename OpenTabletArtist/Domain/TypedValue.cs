@@ -37,6 +37,10 @@ public static class FeelScale
     public const int Min = 1, Middle = 50, Max = 100;
     public const double SliderEnd = 0.9;
 
+    /// <summary>V29 #159 (Zak 20 Nov ~09:03: "make the default factory value for the Tip Feel to be 80"): the Tip Feel
+    /// Restore factory settings gives. A saved Tip Feel is never changed by an update.</summary>
+    public const int FactoryTipFeel = 80;
+
     /// <summary>The 1-100 number for a Tip Feel slider value (-0.9 to 0.9).</summary>
     public static int ToDisplay(double feel)
     {

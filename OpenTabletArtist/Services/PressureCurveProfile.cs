@@ -81,7 +81,12 @@ public static class PressureCurveProfile
     {
         var profile = settings?.Profiles?.FirstOrDefault(p => p.Tablet == tabletName);
         if (profile == null) return;
+        WriteProfile(profile, dynamics, enable, manual);
+    }
 
+    /// <summary>Same as <see cref="Write"/> for a profile the caller already has (V29 #159: the factory Tip Feel).</summary>
+    public static void WriteProfile(Profile profile, PenDynamicsSettings dynamics, bool enable, ManualPressure? manual = null)
+    {
         var store = profile.Filters?.FirstOrDefault(f => f.Path == FilterTypeName);
         if (store == null)
         {
@@ -110,9 +115,8 @@ public static class PressureCurveProfile
     }
 
     /// <summary>Ensure every profile carries the Pen Dynamics filter, present and enabled — the app's
-    /// "always on internally" invariant (#dynamics-always-on). A newly added store has empty settings, so
-    /// the daemon uses the filter's identity defaults (a no-op) until the user edits the curve/smoothing;
-    /// an existing store's settings are left untouched. Returns true if anything changed (so the caller
+    /// "always on internally" invariant (#dynamics-always-on). A newly added store gets the factory curve (V29 #159:
+    /// Tip Feel 80, no smoothing); an existing store's settings are left untouched. Returns true if anything changed (so the caller
     /// can persist once).</summary>
     public static bool EnsureEnabled(Settings? settings)
     {
@@ -124,9 +128,10 @@ public static class PressureCurveProfile
             var store = profile.Filters.FirstOrDefault(f => f.Path == FilterTypeName);
             if (store == null)
             {
-                store = NewStore();
-                store.Enable = true;
-                profile.Filters.Add(store);
+                // V29 #159: a profile without the filter (a new install or a tablet seen for the first time) starts
+                // at the factory Tip Feel, 80, like Restore factory settings. A profile that has the filter keeps its curve.
+                WriteProfile(profile, new PenDynamicsSettings(PressureCurveSettings.Factory, 0, 0, SmoothAfterCurve: true),
+                    enable: true, ManualPressure.Off);
                 changed = true;
             }
             else if (!store.Enable)

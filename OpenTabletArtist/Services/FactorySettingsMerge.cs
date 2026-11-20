@@ -45,6 +45,7 @@ public static class FactorySettingsMerge
             ApplyFactoryDoubleClickFix(profile.BindingSettings);
             ApplyFactoryRadialButton(profile);
             ApplyFactoryRingModes(profile);
+            ApplyFactoryTipFeel(profile);
         }
 
         SyncAllStashes(merged);
@@ -97,6 +98,16 @@ public static class FactorySettingsMerge
             changed |= Domain.RingModeBinding.Apply(w, Domain.RingModeBinding.Defaults);
         }
         return changed;
+    }
+
+    /// <summary>V29 #159 (Zak 20 Nov ~09:03: "make the default factory value for the Tip Feel to be 80"): after a factory
+    /// restore the pen curve is the plain one at Tip Feel 80, no smoothing, pressure on. Only the reset paths call this.</summary>
+    public static void ApplyFactoryTipFeel(Profile profile)
+    {
+        if (profile.Filters == null) return;
+        PressureCurveProfile.WriteProfile(profile,
+            new Domain.PenDynamicsSettings(Domain.PressureCurveSettings.Factory, 0, 0, SmoothAfterCurve: true),
+            enable: true, PressureCurveProfile.ManualPressure.Off);
     }
 
     private static Profile CloneProfile(Profile profile) =>

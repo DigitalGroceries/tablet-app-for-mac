@@ -94,7 +94,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 | Control | Default | Function |
 |---|---|---|
 | Tilt › Turn tilt off | Off | Stops sending tilt. Shared with the eraser. |
-| Tip Feel | Middle (linear) | Soft to Firm pressure curve. |
+| Tip Feel | 80 (Version 29: a new tablet and Restore factory settings); 50 is the straight curve | Soft to Firm pressure curve. A Tip Feel you set yourself is kept when you update. |
 | Double Click Fix | 50 | How far the pen tip may wobble during a click before it counts as a drag. Off (0) turns this off for drawing apps that need every movement; Default (50) is 1 mm; 100 is 2 mm. Two tip taps close together still send a double-click. |
 | Customise… | Closed | Shows the curve, presets **Soft**, **Linear (no curve)**, **Hard**, the input range sliders and **Cut below input minimum (dead zone)** (off). |
 | Current pressure | Live | Pressure after the curve; tooltip shows the raw value. |

@@ -53,7 +53,8 @@ public class FactoryRadialButtonTests
         Assert.Equal(Adaptive, merged.Profiles[0].BindingSettings.PenButtons[2]!.Path);
         Assert.Equal(Adaptive, merged.Profiles[1].BindingSettings.PenButtons[0]!.Path);
         Assert.False(RadialMenuBinding.IsUsed(merged.Profiles[1]));
-        Assert.Empty(merged.Profiles[1].Filters);
+        // V29 #159: the factory restore now writes the pen curve (Tip Feel 80); no radial menu filter is added.
+        Assert.All(merged.Profiles[1].Filters, f => Assert.Equal(PressureCurveProfile.FilterTypeName, f.Path));
     }
 
     [Fact]

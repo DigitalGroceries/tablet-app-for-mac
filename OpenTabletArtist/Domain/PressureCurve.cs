@@ -27,6 +27,12 @@ public readonly record struct PressureCurveSettings(
 {
     public static PressureCurveSettings Default { get; } =
         new(Softness: 0, InputMinimum: 0, InputMaximum: 1, Minimum: 0, Maximum: 1, MinApproach: PressureMinApproach.Clamp);
+
+    /// <summary>V29 #159: the curve after Restore factory settings - <see cref="Default"/> at Tip Feel 80 (a little firm).
+    /// Tip Feel is the mirror of Softness, so Firm is a negative Softness: 80 on the 1-100 scale is (80 - 50) / 50 of the
+    /// way to Firm's 0.9 = 0.54 (FeelScale.FromDisplay; written out because the pen plugin shares this file but not
+    /// FeelScale; FactoryTipFeelTests keeps the two in step).</summary>
+    public static PressureCurveSettings Factory { get; } = Default with { Softness = -0.54 };
 }
 
 /// <summary>The Extended pressure curve: maps a normalized pressure in [0,1] to [0,1].</summary>
