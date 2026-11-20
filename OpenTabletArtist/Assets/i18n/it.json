@@ -689,7 +689,7 @@
   "keyboard.title": "Tastiera",
   "keyboard.transparency": "Trasparenza tastiera",
   "keyboard.hold_caption": "Tenere premuto il pulsante 1 della penna",
-  "keyboard.hold_drags": "Trascina con il tasto destro",
+  "keyboard.hold_drags": "Solo clic destro",
   "keyboard.hold_note": "Una pressione breve fa clic destro. Se lo tieni premuto per circa mezzo secondo, la tastiera si apre o si chiude.",
   "keyboard.hold_opens": "Apri la tastiera",
   "keyboard.hold_other": "Il pulsante 1 della penna ora fa altro (impostato con Cambia…). Scegli qui un'opzione per cambiarlo.",

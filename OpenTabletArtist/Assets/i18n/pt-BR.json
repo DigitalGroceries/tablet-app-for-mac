@@ -689,7 +689,7 @@
   "keyboard.title": "Teclado",
   "keyboard.transparency": "Transparência do teclado",
   "keyboard.hold_caption": "Segurar o botão 1 da caneta",
-  "keyboard.hold_drags": "Arrastar com o botão direito",
+  "keyboard.hold_drags": "Somente clique direito",
   "keyboard.hold_note": "Um toque rápido faz um clique direito. Se você segurar por cerca de meio segundo, o teclado abre ou fecha.",
   "keyboard.hold_opens": "Abrir o teclado",
   "keyboard.hold_other": "O botão 1 da caneta agora faz outra coisa (definida em Alterar…). Escolha uma opção aqui para mudar.",

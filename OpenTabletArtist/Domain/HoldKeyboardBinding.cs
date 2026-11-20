@@ -4,7 +4,7 @@ namespace OpenTabletArtist.Domain;
 
 /// <summary>
 /// V29 #160 (Zak 20 Nov ~09:05-09:24): pen button 1 right-clicks on a quick press and shows or hides the floating keyboard when
-/// held (~0.5 s). Factory setting for pen button 1. The other choice, "Drag with the right button", is the plain right click
+/// held (~0.5 s). Factory setting for pen button 1. The other choice, "Right-click only" (named "Drag with the right button" in test build 7; Zak 20 Nov: "Very confusing name"), is the plain right click
 /// (the button's Default), which can be held down to drag. Plugin type <c>OpenTabletArtist.Dynamics.HoldForKeyboardBinding</c>.
 /// </summary>
 public static class HoldKeyboardBinding

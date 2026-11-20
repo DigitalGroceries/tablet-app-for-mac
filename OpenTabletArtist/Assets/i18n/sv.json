@@ -689,7 +689,7 @@
   "keyboard.title": "Tangentbord",
   "keyboard.transparency": "Tangentbordets genomskinlighet",
   "keyboard.hold_caption": "Pennknapp 1 hålls in",
-  "keyboard.hold_drags": "Dra med höger knapp",
+  "keyboard.hold_drags": "Endast högerklick",
   "keyboard.hold_note": "Ett kort tryck högerklickar. Håller du in den ungefär en halv sekund öppnas eller stängs tangentbordet.",
   "keyboard.hold_opens": "Öppna tangentbordet",
   "keyboard.hold_other": "Pennknapp 1 gör något annat just nu (valt med Ändra…). Välj något här för att ändra det.",

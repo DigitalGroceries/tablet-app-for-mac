@@ -689,7 +689,7 @@
   "keyboard.title": "Teclado",
   "keyboard.transparency": "Transparencia del teclado",
   "keyboard.hold_caption": "Mantener pulsado el botón 1 del lápiz",
-  "keyboard.hold_drags": "Arrastrar con el botón derecho",
+  "keyboard.hold_drags": "Solo clic derecho",
   "keyboard.hold_note": "Una pulsación corta hace clic derecho. Si lo mantienes pulsado medio segundo, más o menos, el teclado se abre o se cierra.",
   "keyboard.hold_opens": "Abrir el teclado",
   "keyboard.hold_other": "El botón 1 del lápiz hace ahora otra cosa (elegida con Cambiar…). Elige una opción aquí para cambiarla.",

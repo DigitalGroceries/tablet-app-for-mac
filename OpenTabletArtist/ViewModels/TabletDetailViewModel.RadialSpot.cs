@@ -69,7 +69,7 @@ public partial class TabletDetailViewModel
     [ObservableProperty] private string _keyboardStatus = "";
 
     // ── V29 #160 (Zak 20 Nov ~09:18-09:24): what holding pen button 1 does, in the Floating keyboard section. ──
-    /// <summary>"Open the keyboard" (0, factory: a quick press right-clicks when let go) or "Drag with the right button" (1: the
+    /// <summary>"Open the keyboard" (0, factory: a quick press right-clicks when let go) or "Right-click only" (1: the
     /// button's Default, held down like a mouse button). -1 while pen button 1 does something else (set with Change…).</summary>
     [ObservableProperty] private int _holdChoice = -1;
     /// <summary>Pen button 1 opens the keyboard when held: the line under the pen tip says so.</summary>
@@ -80,7 +80,7 @@ public partial class TabletDetailViewModel
     public IReadOnlyList<string> HoldChoices => new[]
     {
         Localizer.Te("keyboard.hold_opens", "Open the keyboard"),
-        Localizer.Te("keyboard.hold_drags", "Drag with the right button"),
+        Localizer.Te("keyboard.hold_drags", "Right-click only"),
     };
     public string HoldCaption => Localizer.Te("keyboard.hold_caption", "Holding pen button 1");
     public string HoldNote => Localizer.Te("keyboard.hold_note", "A quick press right-clicks. Holding it about half a second opens or closes the keyboard.");

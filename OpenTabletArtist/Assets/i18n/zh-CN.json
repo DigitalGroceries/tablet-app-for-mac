@@ -689,7 +689,7 @@
   "keyboard.title": "键盘",
   "keyboard.transparency": "键盘透明度",
   "keyboard.hold_caption": "按住笔按键 1",
-  "keyboard.hold_drags": "用右键拖动",
+  "keyboard.hold_drags": "仅右键单击",
   "keyboard.hold_note": "短按为右键单击。按住约半秒，键盘就会打开或关闭。",
   "keyboard.hold_opens": "打开键盘",
   "keyboard.hold_other": "笔按键 1 目前执行其他操作（通过“更改…”设置）。在这里选择一项即可更改。",

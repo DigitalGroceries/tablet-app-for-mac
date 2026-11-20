@@ -689,7 +689,7 @@
   "keyboard.title": "Clavier",
   "keyboard.transparency": "Transparence du clavier",
   "keyboard.hold_caption": "Maintenir le bouton 1 du stylet",
-  "keyboard.hold_drags": "Glisser avec le bouton droit",
+  "keyboard.hold_drags": "Clic droit uniquement",
   "keyboard.hold_note": "Un appui bref fait un clic droit. Si vous le maintenez environ une demi-seconde, le clavier s'ouvre ou se ferme.",
   "keyboard.hold_opens": "Ouvrir le clavier",
   "keyboard.hold_other": "Le bouton 1 du stylet fait autre chose pour l'instant (réglé avec Modifier…). Choisissez une option ici pour changer cela.",

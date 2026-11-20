@@ -50,7 +50,10 @@ public class FloatingKeyboardTests : IDisposable
         foreach (var letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ") Assert.Contains(all, k => k.Value == letter.ToString());
         foreach (var v in new[] { "Space", "Enter", "Backspace", "Escape", "Tab", "Up", "Down", "Left", "Right", "D0", "D9" })
             Assert.Contains(all, k => k.Value == v);
-        Assert.Equal(new[] { "Shift", "Ctrl", "Alt", "Cmd" }, all.Where(k => k.IsModifier).Select(k => k.Value));
+        // Zak 20 Nov (build 7): Caps Lock where a Mac has it, and a right Shift where Del was.
+        Assert.Equal(new[] { "Caps", "Shift", "Shift", "Ctrl", "Alt", "Cmd" }, all.Where(k => k.IsModifier).Select(k => k.Value));
+        Assert.Equal("Caps", FloatingKeyboardLayout.Rows[2][0].Value);
+        Assert.Equal("Shift", FloatingKeyboardLayout.Rows[3][^1].Value);
         // Same key names as the Pen button window's keyboard (no new names the driver doesn't know).
         var known = AuxKeyBinding.Options.Select(o => o.Value).ToHashSet();
         foreach (var k in all.Where(k => !k.IsModifier)) Assert.Contains(k.Value, known);
@@ -70,6 +73,24 @@ public class FloatingKeyboardTests : IDisposable
         Assert.False(kb.IsOn("Shift"));
         Assert.Equal("Z", kb.Tap(key("Z")));
         kb.Tap(key("Ctrl")); kb.Tap(key("Ctrl"));      // tapped twice: off again
+        Assert.Equal("A", kb.Tap(key("A")));
+    }
+
+    /// <summary>Zak 20 Nov (build 7): "doesnt have upper case but shows as upper case letters only" and no Caps Lock.</summary>
+    [Fact]
+    public void LettersShowLowerCase_ShiftAndCapsLockMakeCapitals_CapsStaysOn()
+    {
+        var kb = new FloatingKeyboard();
+        var key = (string v) => FloatingKeyboardLayout.Rows.SelectMany(r => r).First(k => k.Value == v);
+        Assert.Equal("a", FloatingKeyboardLayout.LabelFor(key("A"), upper: false));
+        Assert.Equal("A", FloatingKeyboardLayout.LabelFor(key("A"), upper: true));
+        Assert.Equal("1", FloatingKeyboardLayout.LabelFor(key("D1"), upper: true));
+        Assert.Null(kb.Tap(key("Caps")));
+        Assert.True(kb.IsOn("Caps"));
+        Assert.Equal("Shift+A", kb.Tap(key("A")));
+        Assert.Equal("Shift+B", kb.Tap(key("B")));       // still on after a key
+        Assert.Equal("D1", kb.Tap(key("D1")));           // Caps Lock leaves numbers alone, like a real one
+        Assert.Null(kb.Tap(key("Caps")));
         Assert.Equal("A", kb.Tap(key("A")));
     }
 

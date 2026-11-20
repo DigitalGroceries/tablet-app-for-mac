@@ -156,6 +156,8 @@ public sealed class FloatingKeyboard : IDisposable
     public bool Shift { get; private set; }
     public bool Alt { get; private set; }
     public bool Cmd { get; private set; }
+    /// <summary>The keyboard's Caps Lock: letters go as capitals until it is tapped again.</summary>
+    public bool CapsLock { get; private set; }
     public bool IsShown => _window?.IsVisible == true;
     /// <summary>The window (tests).</summary>
     internal Window? Window => _window;
@@ -194,6 +196,7 @@ public sealed class FloatingKeyboard : IDisposable
 
     public void Hide()
     {
+        CapsLock = false;
         ClearModifiers();
         WriteOpenFlag(false);
         if (_window?.IsVisible == true)
@@ -215,11 +218,13 @@ public sealed class FloatingKeyboard : IDisposable
                 case FloatingKeyboardLayout.Shift: Shift = !Shift; break;
                 case FloatingKeyboardLayout.Alt: Alt = !Alt; break;
                 case FloatingKeyboardLayout.Cmd: Cmd = !Cmd; break;
+                case FloatingKeyboardLayout.CapsLock: CapsLock = !CapsLock; break;
             }
             RefreshCaps();
             return null;
         }
-        var keys = FloatingKeyboardLayout.KeysFor(key.Value, Ctrl, Shift, Alt, Cmd);
+        bool shift = Shift || (CapsLock && FloatingKeyboardLayout.IsLetter(key));
+        var keys = FloatingKeyboardLayout.KeysFor(key.Value, Ctrl, shift, Alt, Cmd);
         SendKeys(keys);
         ClearModifiers();
         return keys;
@@ -409,7 +414,7 @@ public sealed class FloatingKeyboard : IDisposable
             CornerRadius = new CornerRadius(5), Cursor = new Cursor(StandardCursorType.Hand),
             Child = new TextBlock
             {
-                Text = key.Display, FontSize = key.Display.Length > 2 ? 11 : 13, Foreground = KeyText,
+                Text = FloatingKeyboardLayout.LabelFor(key, upper: false), FontSize = key.Display.Length > 2 ? 11 : 13, Foreground = KeyText,
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             },
         };
@@ -430,8 +435,13 @@ public sealed class FloatingKeyboard : IDisposable
 
     private void RefreshCaps()
     {
+        bool upper = Shift || CapsLock;
         foreach (var (key, cap) in _caps)
+        {
             cap.Background = key.IsModifier && IsOn(key.Value) ? OnBrush : KeyBrush;
+            if (FloatingKeyboardLayout.IsLetter(key) && cap.Child is TextBlock label)
+                label.Text = FloatingKeyboardLayout.LabelFor(key, upper);
+        }
     }
 
     /// <summary>Is this modifier on (tests and the key colours)?</summary>
@@ -441,6 +451,7 @@ public sealed class FloatingKeyboard : IDisposable
         FloatingKeyboardLayout.Shift => Shift,
         FloatingKeyboardLayout.Alt => Alt,
         FloatingKeyboardLayout.Cmd => Cmd,
+        FloatingKeyboardLayout.CapsLock => CapsLock,
         _ => false,
     };
 

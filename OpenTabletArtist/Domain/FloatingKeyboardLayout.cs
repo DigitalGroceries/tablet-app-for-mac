@@ -21,6 +21,19 @@ public static class FloatingKeyboardLayout
 
     public const string Ctrl = "Ctrl", Shift = "Shift", Alt = "Alt", Cmd = "Cmd";
 
+    /// <summary>V29 (Zak 20 Nov, build 7: "it doesnt have a Caps Lock button and instead have a comma button"): Caps Lock, where a
+    /// Mac keyboard has it. It stays on until tapped again and makes letters capitals (the keyboard's own lock: it never changes the
+    /// Mac's Caps Lock light).</summary>
+    public const string CapsLock = "Caps";
+
+    /// <summary>A letter key (its label follows Shift and Caps Lock: lower case unless one of them is on).</summary>
+    public static bool IsLetter(FloatingKey key) => !key.IsModifier && key.Value.Length == 1 && key.Value[0] is >= 'A' and <= 'Z';
+
+    /// <summary>What the key shows: letters in lower case unless Shift or Caps Lock is on (Zak 20 Nov: "doesnt have upper case but
+    /// shows as upper case letters only").</summary>
+    public static string LabelFor(FloatingKey key, bool upper) =>
+        IsLetter(key) ? (upper ? key.Display.ToUpperInvariant() : key.Display.ToLowerInvariant()) : key.Display;
+
     public static IReadOnlyList<IReadOnlyList<FloatingKey>> Rows { get; } = Build();
 
     private static IReadOnlyList<IReadOnlyList<FloatingKey>> Build()
@@ -33,12 +46,14 @@ public static class FloatingKeyboardLayout
                     K("7", "D7"), K("8", "D8"), K("9", "D9"), K("0", "D0"), K("-", "Minus"), K("=", "Equal"), K("⌫", "Backspace", 2) },
             new[] { K("Tab", "Tab", 1.5), K("Q", "Q"), K("W", "W"), K("E", "E"), K("R", "R"), K("T", "T"), K("Y", "Y"), K("U", "U"),
                     K("I", "I"), K("O", "O"), K("P", "P"), K("[", "LeftBracket"), K("]", "RightBracket"), K("\\", "Backslash", 1.5) },
-            new[] { K("`", "Grave", 1.75), K("A", "A"), K("S", "S"), K("D", "D"), K("F", "F"), K("G", "G"), K("H", "H"), K("J", "J"),
+            new[] { M("Caps", CapsLock, 1.75), K("A", "A"), K("S", "S"), K("D", "D"), K("F", "F"), K("G", "G"), K("H", "H"), K("J", "J"),
                     K("K", "K"), K("L", "L"), K(";", "Semicolon"), K("'", "Quote"), K("Enter", "Enter", 2.25) },
             new[] { M("Shift", Shift, 2.25), K("Z", "Z"), K("X", "X"), K("C", "C"), K("V", "V"), K("B", "B"), K("N", "N"), K("M", "M"),
-                    K(",", "Comma"), K(".", "Period"), K("/", "Slash"), K("↑", "Up"), K("Del", "Delete", 1.75) },
-            new[] { M("Ctrl", Ctrl, 1.25), M("Option", Alt, 1.5), M("Cmd", Cmd, 1.25), K("Space", "Space", 8), K("←", "Left"),
-                    K("↓", "Down"), K("→", "Right") },
+                    K(",", "Comma"), K(".", "Period"), K("/", "Slash"), M("Shift", Shift, 2.75) },
+            // Zak 20 Nov (build 7): "it has Del button instead of Shift": a right Shift as on a Mac keyboard; the arrows sit together
+            // at the bottom right, as on a Mac (⌫ in the top row is the Mac's delete key).
+            new[] { M("Ctrl", Ctrl, 1.25), M("Option", Alt, 1.5), M("Cmd", Cmd, 1.25), K("`", "Grave"), K("Space", "Space", 6), K("←", "Left"),
+                    K("↑", "Up"), K("↓", "Down"), K("→", "Right") },
         };
     }
 

@@ -689,7 +689,7 @@
   "keyboard.title": "キーボード",
   "keyboard.transparency": "キーボードの透明度",
   "keyboard.hold_caption": "ペンボタン 1 の長押し",
-  "keyboard.hold_drags": "右ボタンでドラッグ",
+  "keyboard.hold_drags": "右クリックのみ",
   "keyboard.hold_note": "短く押すと右クリックになります。約 0.5 秒押し続けると、キーボードが開くか閉じます。",
   "keyboard.hold_opens": "キーボードを開く",
   "keyboard.hold_other": "ペンボタン 1 は現在、別の動作になっています（「変更…」で設定）。変えるにはここで選んでください。",

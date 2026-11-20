@@ -689,7 +689,7 @@
   "keyboard.title": "Tastatur",
   "keyboard.transparency": "Transparenz der Tastatur",
   "keyboard.hold_caption": "Stift-Taste 1 gedrückt halten",
-  "keyboard.hold_drags": "Mit der rechten Taste ziehen",
+  "keyboard.hold_drags": "Nur Rechtsklick",
   "keyboard.hold_note": "Ein kurzer Druck ist ein Rechtsklick. Hältst du sie etwa eine halbe Sekunde, öffnet oder schließt sich die Tastatur.",
   "keyboard.hold_opens": "Tastatur öffnen",
   "keyboard.hold_other": "Stift-Taste 1 tut gerade etwas anderes (mit Ändern… festgelegt). Wähle hier etwas aus, um das zu ändern.",

@@ -689,7 +689,7 @@
   "keyboard.title": "Keyboard",
   "keyboard.transparency": "Keyboard transparency",
   "keyboard.hold_caption": "Holding pen button 1",
-  "keyboard.hold_drags": "Drag with the right button",
+  "keyboard.hold_drags": "Right-click only",
   "keyboard.hold_note": "A quick press right-clicks. Holding it about half a second opens or closes the keyboard.",
   "keyboard.hold_opens": "Open the keyboard",
   "keyboard.hold_other": "Pen button 1 does something else now (set with Change…). Pick one here to change it.",
