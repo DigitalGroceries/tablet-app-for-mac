@@ -18,6 +18,35 @@ public static class RadialMenuShare
     /// <summary>The tablet's menu, remembered for when All has no radial-menu button.</summary>
     public static string Key(string tablet) => $"RadialMenuShared:{tablet}";
 
+    /// <summary>Grok's review of #170 (finding 2): set while the live All table still holds an older menu than <see cref="Key"/> (the
+    /// driver wasn't there, or the change wasn't adopted); the remembered menu then wins until All has it too.</summary>
+    public static string BehindKey(string tablet) => $"RadialMenuShared:AllBehind:{tablet}";
+
+    public static bool AllIsBehind(string tablet) => AppSettings.Get(BehindKey(tablet)) == "true";
+
+    public static void SetAllBehind(string tablet, bool behind)
+    {
+        if (AllIsBehind(tablet) != behind) AppSettings.Set(BehindKey(tablet), behind ? "true" : "");
+    }
+
+    private static readonly System.Threading.AsyncLocal<bool> _restoring = new();
+
+    /// <summary>Grok's review of #170 (finding 1): while open, a binding put back from a kept copy (a key's or ring's own On, All
+    /// buttons / Touch Ring On again) is not a menu edit: a radial menu in it gets the tablet's menu, not the other way round.</summary>
+    public static bool IsRestoring => _restoring.Value;
+
+    public static System.IDisposable Restoring()
+    {
+        var before = _restoring.Value;
+        _restoring.Value = true;
+        return new RestoreFlag(before);
+    }
+
+    private sealed class RestoreFlag(bool before) : System.IDisposable
+    {
+        public void Dispose() => _restoring.Value = before;
+    }
+
     /// <summary>A menu an application's or pen's table held before it was given the shared one (kept once, for undo).</summary>
     public static string ReplacedKey(string tablet, string table) => $"RadialMenuShared:Replaced:{tablet}:{table}";
 
@@ -56,8 +85,9 @@ public static class RadialMenuShare
     /// application's or pen's. Null when no table of this tablet has a radial-menu button.</summary>
     public static string? Current(string tablet, BindingSettings? all)
     {
-        if (FirstMenuJson(all) is { } fromAll) return Canonical(fromAll);
         var saved = AppSettings.Get(Key(tablet));
+        if (AllIsBehind(tablet) && !string.IsNullOrWhiteSpace(saved)) return Canonical(saved);
+        if (FirstMenuJson(all) is { } fromAll) return Canonical(fromAll);
         if (!string.IsNullOrWhiteSpace(saved)) return Canonical(saved);
         foreach (var app in PerAppBindingStore.List(tablet))
             if (FirstMenuJson(app.Bindings) is { } j) return Canonical(j);
@@ -131,10 +161,19 @@ public static class RadialMenuShare
         var plain = Canonical(defaultMenu);
         var now = MenusByPosition(after);
         string? fresh = null;
+        if (now.Count != before.Count)
+        {
+            // Grok's review of #170 (finding 3): a binding was added or removed, so positions shifted. Compare what the table holds:
+            // a menu it didn't hold before, other than the default menu on a new button.
+            var had = new HashSet<string?>(before);
+            foreach (var json in now)
+                if (json != null && json != shared && !had.Contains(json) && (shared == null || json != plain)) return json;
+            return null;
+        }
         for (int i = 0; i < now.Count; i++)
         {
             if (now[i] is not { } json || json == shared) continue;
-            var was = i < before.Count ? before[i] : null;
+            var was = before[i];
             if (was == json) continue;
             if (was != null) return json;                  // an existing radial menu was changed
             if (shared == null || json != plain) fresh ??= json;   // a new radial button with a menu of its own

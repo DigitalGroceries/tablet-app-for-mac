@@ -111,8 +111,12 @@ public class DialogService : IDialogService
                 // V28 #77: the Touch tab (Touch on/off) only for a tablet whose finger touch the app drives.
                 using var touch = ViewModels.BindingEditorContext.TouchTabletScope(Domain.TouchTrackpad.Tablets.Contains(tabletName));
                 // V29 #170: a button newly set to Radial menu shows the tablet's one menu.
-                var allTable = PerAppBindingRuntime.StashedAllBindings(tabletName)
-                               ?? _session.CurrentSettings?.Profiles.FirstOrDefault(p => p.Tablet == tabletName)?.BindingSettings;
+                // Grok's review (finding 4): All's table the way the page reads it: the live profile, or the stash while an
+                // application's or pen's overlay is on the driver.
+                var liveAll = _session.CurrentSettings?.Profiles.FirstOrDefault(p => p.Tablet == tabletName)?.BindingSettings;
+                var allTable = PerAppBindingRuntime.EditorProfileIsAll(PerAppBindingRuntime.Shared)
+                    ? liveAll ?? PerAppBindingRuntime.StashedAllBindings(tabletName)
+                    : PerAppBindingRuntime.StashedAllBindings(tabletName) ?? liveAll;
                 using var menu = ViewModels.BindingEditorContext.SharedRadialMenuScope(RadialMenuShare.Current(tabletName, allTable));
                 return owner != null
                     ? await Views.BindingEditorDialog.ShowAsync(owner, binding, title)

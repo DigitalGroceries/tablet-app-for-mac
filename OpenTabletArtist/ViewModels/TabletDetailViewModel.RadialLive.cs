@@ -15,9 +15,8 @@ public partial class TabletDetailViewModel
         var tablet = _profile.Tablet ?? "";
         bool here = RadialMenuBinding.AnyUses(WorkingBindings(), oldJson);
         if (!here && !RadialMenuShare.AnyTableUses(tablet, EditorAllBindings(), oldJson)) return false;
-        var ok = here
-            ? await ApplyBindingMutationAsync(b => RadialMenuBinding.ReplaceMenu(b, oldJson, newJson))   // shares it too
-            : await ShareRadialMenuAsync(newJson, oldJson);
+        if (!here) return await ShareRadialMenuAsync(newJson, oldJson);   // it updates an open menu too
+        var ok = await ApplyBindingMutationAsync(b => RadialMenuBinding.ReplaceMenu(b, oldJson, newJson));   // shares it too
         // V29 #161: a menu open on screen that still shows the old slices gets the new ones at once.
         if (ok) RadialMenuOverlay.ReplaceLive(AuxBinding.RadialMenu(oldJson), AuxBinding.RadialMenu(newJson));
         return ok;

@@ -1886,6 +1886,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (!AuxButtonsEnabled) return; // greyed in the menu; Turn on All buttons first
         var scope = AuxKeyOffScope();
         var off = AuxKeyOffStore.Load(scope);
+        using var restoring = RadialMenuShare.Restoring();   // #170 review: a key's kept radial menu gets the tablet's menu
         await ApplyBindingMutationAsync(b =>
         {
             if (on) AuxKeyOffStore.TurnOn(b.AuxButtons, off, buttonIndex);
@@ -2160,7 +2161,12 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             if (!off.TryGetValue(n, out var kept)) return;
             off.Remove(n);
             WheelOffStore.Save(tablet, off);
-            await ApplySettingsChange(p => WheelOffStore.Restore(p.BindingSettings.WheelBindings, n, kept));
+            var one = RadialMenuShare.Current(tablet, EditorAllBindings());   // #170 review: the kept copy may hold an older menu
+            await ApplySettingsChange(p =>
+            {
+                WheelOffStore.Restore(p.BindingSettings.WheelBindings, n, kept);
+                if (one != null) RadialMenuShare.Unify(p.BindingSettings, one);
+            });
         }
         RefreshWheels();
     }
@@ -2335,29 +2341,37 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         {
             // Resume: restore the stashed rotation/button bindings (if any), then drop the stash.
             var backup = AppSettings.Get(WheelBackupKey);
+            var one = RadialMenuShare.Current(_profile.Tablet ?? "", EditorAllBindings());   // #170 review: the stash may hold an older menu
             await ApplySettingsChange(p =>
             {
-                if (string.IsNullOrEmpty(backup)) return;
-                try
-                {
-                    var restored = JsonConvert.DeserializeObject<List<WheelBindingSettings>>(backup);
-                    if (restored == null) return;
-                    var wheels = p.BindingSettings.WheelBindings;
-                    for (int i = 0; i < wheels.Count && i < restored.Count; i++)
-                    {
-                        wheels[i].ClockwiseRotation = restored[i].ClockwiseRotation;
-                        wheels[i].CounterClockwiseRotation = restored[i].CounterClockwiseRotation;
-                        var live = wheels[i].WheelButtons;
-                        var saved = restored[i].WheelButtons;
-                        for (int b = 0; b < live.Count && b < saved.Count; b++) live[b] = saved[b];
-                    }
-                }
-                catch { /* corrupt stash — leave the (cleared) profile as-is */ }
+                RestoreWheels(p, backup);
+                if (one != null) RadialMenuShare.Unify(p.BindingSettings, one);
             });
             AppSettings.Set(WheelBackupKey, "");
         }
         // TASKS #29: each ring's own switch is greyed while this one is Off, so rebuild the cards.
         RefreshWheels();
+    }
+
+    /// <summary>The Touch Ring switch On again: put the stashed rotation and button bindings back.</summary>
+    private static void RestoreWheels(Profile p, string? backup)
+    {
+        if (string.IsNullOrEmpty(backup)) return;
+        try
+        {
+            var restored = JsonConvert.DeserializeObject<List<WheelBindingSettings>>(backup);
+            if (restored == null) return;
+            var wheels = p.BindingSettings.WheelBindings;
+            for (int i = 0; i < wheels.Count && i < restored.Count; i++)
+            {
+                wheels[i].ClockwiseRotation = restored[i].ClockwiseRotation;
+                wheels[i].CounterClockwiseRotation = restored[i].CounterClockwiseRotation;
+                var live = wheels[i].WheelButtons;
+                var saved = restored[i].WheelButtons;
+                for (int b = 0; b < live.Count && b < saved.Count; b++) live[b] = saved[b];
+            }
+        }
+        catch { /* corrupt stash — leave the (cleared) profile as-is */ }
     }
 
     // The "Clear all" button and its command are gone (#wheel-row-actions): every row clears itself now,
@@ -2469,24 +2483,30 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         {
             // Resume: restore the stash (if any), then drop it.
             var backup = AppSettings.Get(AuxBackupKey);
+            var one = RadialMenuShare.Current(_profile.Tablet ?? "", EditorAllBindings());   // #170 review: the stash may hold an older menu
             await ApplySettingsChange(p =>
             {
                 if (string.IsNullOrEmpty(backup)) return;
-                try
-                {
-                    var restored = JsonConvert.DeserializeObject<PluginSettingStoreCollection>(backup);
-                    if (restored != null)
-                    {
-                        var aux = p.BindingSettings.AuxButtons;
-                        for (int i = 0; i < aux.Count && i < restored.Count; i++) aux[i] = restored[i];
-                    }
-                }
-                catch { /* corrupt stash — leave the (empty) profile as-is */ }
+                RestoreAux(p, backup);
+                if (one != null) RadialMenuShare.Unify(p.BindingSettings, one);
             });
             AppSettings.Set(AuxBackupKey, "");
         }
         // The cards' On/Off items and edit buttons follow All buttons.
         RebuildAuxButtonsFromWorking();
+    }
+
+    /// <summary>All buttons On again: put the stashed ExpressKey bindings back.</summary>
+    private static void RestoreAux(Profile p, string backup)
+    {
+        try
+        {
+            var restored = JsonConvert.DeserializeObject<PluginSettingStoreCollection>(backup);
+            if (restored == null) return;
+            var aux = p.BindingSettings.AuxButtons;
+            for (int i = 0; i < aux.Count && i < restored.Count; i++) aux[i] = restored[i];
+        }
+        catch { /* corrupt stash — leave the (empty) profile as-is */ }
     }
 
     // A "Clear all" command lived here, wiping every express-key binding and dropping the suspend stash

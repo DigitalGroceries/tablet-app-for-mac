@@ -122,4 +122,37 @@ public class RadialMenuShareTests
         Assert.True(RadialMenuShare.AnyTableUses(tablet, Table(null, null), Menu("Ps")));
         Assert.False(RadialMenuShare.AnyTableUses(tablet, Table(null, null), Menu("Other")));
     }
+
+    // ── Grok's review of #170 ──────────────────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void WhenAButtonIsAddedOrRemoved_AnUntouchedMenuIsNotAnEdit()   // finding 3: positions shift
+    {
+        var before = RadialMenuShare.MenusByPosition(Table(null, RadialMenuBinding.Make(Menu("A"))));
+        var after = Table(AuxKeyBinding.MakeKeyBinding("E"), null, RadialMenuBinding.Make(Menu("A")));   // one more pen button, menu moved
+        Assert.Null(RadialMenuShare.EditedMenu(before, after, Menu("A"), Default));
+        var edited = Table(AuxKeyBinding.MakeKeyBinding("E"), null, RadialMenuBinding.Make(Menu("A", size: 9)));
+        Assert.Equal(RadialMenuShare.Canonical(Menu("A", size: 9)), RadialMenuShare.EditedMenu(before, edited, Menu("A"), Default));
+    }
+
+    [Fact]
+    public void WhileAllIsBehind_TheRememberedMenuWins()   // finding 2
+    {
+        var tablet = Tablet;
+        AppSettings.Set(RadialMenuShare.Key(tablet), Menu("Newer"));
+        var all = Table(null, RadialMenuBinding.Make(Menu("Older")));
+        Assert.Equal("Older", RadialMenuJson.Parse(RadialMenuShare.Current(tablet, all)).Slices[0].Label);
+        RadialMenuShare.SetAllBehind(tablet, true);
+        Assert.Equal("Newer", RadialMenuJson.Parse(RadialMenuShare.Current(tablet, all)).Slices[0].Label);
+        RadialMenuShare.SetAllBehind(tablet, false);
+        Assert.False(RadialMenuShare.AllIsBehind(tablet));
+    }
+
+    [Fact]
+    public void ABindingPutBack_IsNotAnEdit()   // finding 1
+    {
+        Assert.False(RadialMenuShare.IsRestoring);
+        using (RadialMenuShare.Restoring()) Assert.True(RadialMenuShare.IsRestoring);
+        Assert.False(RadialMenuShare.IsRestoring);
+    }
 }

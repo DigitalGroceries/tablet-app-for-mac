@@ -89,6 +89,9 @@ public partial class TabletDetailViewModel
         var tablet = _profile.Tablet ?? "";
         if (RadialMenuShare.Current(tablet, EditorAllBindings()) is not { } one) return;
         if (RadialMenuShare.ShareToStores(tablet, one) > 0) PerAppBindingRuntime.Shared?.Reapply();
+        // Grok's review (finding 2): All missed the last change; give it the tablet's menu once the page is up.
+        if (RadialMenuShare.AllIsBehind(tablet) && _applyAction != null)
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = ShareRadialMenuAsync(one, null));
     }
 
     /// <summary>Version 16 BETA 2: an app's table with ring modes written by Version 16 BETA 1 or earlier runs
@@ -219,7 +222,7 @@ public partial class TabletDetailViewModel
         var ok = await ApplyBindingMutationCoreAsync(b =>
         {
             mutate(b);
-            edited = RadialMenuShare.EditedMenu(before, b,
+            edited = RadialMenuShare.IsRestoring ? null : RadialMenuShare.EditedMenu(before, b,
                 sharedBefore, RadialMenuJson.Serialize(RadialMenuDefaults.Create(Localizer.Te)));
             if ((edited ?? sharedBefore) is { } one) RadialMenuShare.Unify(b, one);
         });
@@ -234,12 +237,17 @@ public partial class TabletDetailViewModel
         var tablet = _profile.Tablet ?? "";
         RadialMenuShare.ShareToStores(tablet, json);
         bool ok = true;
-        if (RadialMenuShare.Differs(EditorAllBindings(), json) && _applyAction != null)
-            ok = await ApplySettingsChange(p =>
+        if (RadialMenuShare.Differs(EditorAllBindings(), json))
+        {
+            ok = _applyAction != null && await ApplySettingsChange(p =>
             {
                 RadialMenuShare.Unify(p.BindingSettings, json);
                 PerAppBindingRuntime.SyncAllBindings(p.Tablet ?? "", p.BindingSettings);
             });
+            // Grok's review (finding 2): All couldn't take it now, so the remembered menu wins until it can.
+            if (!ok) AppLog.Warn("Radial menu: the shared menu could not be written to All yet; it will be at the next chance.");
+        }
+        RadialMenuShare.SetAllBehind(tablet, !ok);
         PerAppBindingRuntime.Shared?.Reapply();
         if (before != null && RadialMenuShare.Canonical(before) != RadialMenuShare.Canonical(json))
             RadialMenuOverlay.ReplaceLive(AuxBinding.RadialMenu(before), AuxBinding.RadialMenu(json));
