@@ -149,9 +149,10 @@ public partial class MainWindow : Window
         {
             if (MacWindowDrag.TryStart(this, e.Timestamp, out var note))
             {
-                // Grok's review: the window server now owns this drag and its release, so the app's fallback must not stay pressed.
-                _titleDrag.Release();
-                AppLog.Info($"Window drag: the Mac's own drag was started with this press ({note}) (#176).");
+                // Build 10 (Zak 16:54: "Now it doesnt work half the time"): macOS took every request but moved the window only about half
+                // the time, and the app's backup had been switched off for these presses. The backup stays on: it takes over when the real
+                // window hasn't moved after a few pixels. A release the Mac's drag swallows is caught by the real button state on each move.
+                AppLog.Info($"Window drag: the Mac's own drag was asked for with this press ({note}) (#176).");
                 return;
             }
             AppLog.Info($"Window drag: this press couldn't start the Mac's own drag ({note}); asking Avalonia (#176).");
@@ -178,6 +179,8 @@ public partial class MainWindow : Window
     {
         if (!_titleDrag.Pressed) return;
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) { EndTitleDrag(e.Pointer); return; }
+        // #176 (Grok's review): Avalonia may still think the button is down when the Mac's drag swallowed the release; ask macOS.
+        if (OperatingSystem.IsMacOS() && MacWindowDrag.LeftButtonUp()) { EndTitleDrag(e.Pointer); return; }
         bool wasByApp = _titleDrag.ByApp;
         var pointer = this.PointToScreen(e.GetPosition(this));
         _lastPointer = pointer;

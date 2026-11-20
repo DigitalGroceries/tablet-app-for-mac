@@ -35,6 +35,17 @@ internal static class MacWindowDrag
     [StructLayout(LayoutKind.Sequential)]
     private struct NSRect { public double X, Y, Width, Height; }
 
+    [DllImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")] [return: MarshalAs(UnmanagedType.I1)]
+    private static extern bool CGEventSourceButtonState(int stateId, uint button);
+
+    /// <summary>True when macOS says the left button is up (combined session state: the mouse and the clicks the pen driver
+    /// posts). False when it is down or can't be read.</summary>
+    public static bool LeftButtonUp()
+    {
+        try { return !CGEventSourceButtonState(0 /* combined session state */, 0 /* left */); }
+        catch { return false; }
+    }
+
     public static IntPtr NSWindowOf(Window w) =>
         w.TryGetPlatformHandle() is Avalonia.Platform.IMacOSTopLevelPlatformHandle mac ? mac.NSWindow : IntPtr.Zero;
 
