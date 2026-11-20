@@ -25,7 +25,6 @@ public partial class FloatingKeyboardLookViewModel : ObservableObject
     public string Intro => Localizer.Te("keyboard.section_intro",
         "A small keyboard that floats over your work, so you can type with the pen. Drag its top bar to move it, and its bottom-right corner to make it bigger or smaller.");
     public string SliceCaption => Localizer.Te("keyboard.slice", "Radial menu slice");
-    public string PutLabel => Localizer.Te("radial.keyboard_put", "Put the keyboard there");
     public string SizeCaption => Localizer.Te("keyboard.size", "Keyboard size");
     public double MinSize => FloatingKeyboard.MinSize;
     public double MaxSize => FloatingKeyboard.MaxSize;

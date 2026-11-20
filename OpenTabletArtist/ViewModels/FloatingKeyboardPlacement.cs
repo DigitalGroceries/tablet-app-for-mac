@@ -44,6 +44,54 @@ public static class FloatingKeyboardPlacement
             : "";
     }
 
+    /// <summary>
+    /// V29 (Zak 20 Nov, build 7: "The button 'Put the keyboard there' doesnt do anything and is confusing"): the slice menu is the
+    /// control itself. Its choices: "Not on the radial menu", the slice the keyboard is on, and the empty slices (a slice that does
+    /// something else is never overwritten from here). Each choice's slice, 0-based, or -1 for "Not on the radial menu".
+    /// </summary>
+    public static IReadOnlyList<(string Label, int Slot)> Choices(string? menuJson)
+    {
+        var m = RadialMenuJson.Parse(menuJson);
+        var list = new List<(string, int)> { (Localizer.Te("keyboard.not_on_menu", "Not on the radial menu"), -1) };
+        var empty = Localizer.Te("radial.slot_empty", "(empty)");
+        for (int i = 0; i < m.Slices.Count; i++)
+        {
+            var s = m.Slices[i];
+            if (s.Action == RadialActions.Keyboard)
+                list.Add(($"{i + 1} · {(string.IsNullOrWhiteSpace(s.Label) ? Localizer.Te("keyboard.title", "Keyboard") : s.Label)}", i));
+            else if (!s.IsSet) list.Add(($"{i + 1} · {empty}", i));
+        }
+        return list;
+    }
+
+    /// <summary>The choice that shows where the keyboard is now (0 = not on the menu).</summary>
+    public static int ChoiceNow(string? menuJson)
+    {
+        int on = OnSlice(menuJson);
+        if (on < 0) return 0;
+        var choices = Choices(menuJson);
+        for (int i = 0; i < choices.Count; i++) if (choices[i].Slot == on) return i;
+        return 0;
+    }
+
+    /// <summary>The line under the menu: where the keyboard is, or that every slice is taken.</summary>
+    public static string Note(string? menuJson)
+    {
+        var status = Status(menuJson);
+        if (status.Length > 0) return status;
+        return Choices(menuJson).Count <= 1
+            ? Localizer.Te("keyboard.no_free_slice", "Every slice of the radial menu does something. Empty one in the radial menu editor to put the keyboard on it.")
+            : "";
+    }
+
+    /// <summary>The menu with the keyboard on no slice (its slice is emptied).</summary>
+    public static string Remove(string? menuJson)
+    {
+        var m = RadialMenuJson.Parse(menuJson);
+        foreach (var s in m.Slices.Where(s => s.Action == RadialActions.Keyboard)) { s.Action = RadialActions.None; s.Label = ""; }
+        return RadialMenuJson.Serialize(m);
+    }
+
     /// <summary>The menu with the keyboard on <paramref name="slot"/> (0-based) and on no other slice.</summary>
     public static string Put(string? menuJson, int slot, out string replaced)
     {

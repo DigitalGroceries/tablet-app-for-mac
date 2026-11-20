@@ -1,0 +1,26 @@
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/Keyboard/MacOSVirtualKeyboard.cs b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/Keyboard/MacOSVirtualKeyboard.cs
+index 1c9b7d6..373340b 100644
+--- a/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/Keyboard/MacOSVirtualKeyboard.cs
++++ b/external/OpenTabletDriver/OpenTabletDriver.Desktop/Interop/Input/Keyboard/MacOSVirtualKeyboard.cs
+@@ -121,6 +121,8 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
+             { "D9", CGKeyCode.kVK_ANSI_9 },
+             { "Minus", CGKeyCode.kVK_ANSI_Minus },
+             { "Grave", CGKeyCode.kVK_ANSI_Grave },
++            // Tablet App for Mac V29 (#171): the floating keyboard's § key on ISO Mac keyboards.
++            { "Section", CGKeyCode.kVK_ISO_Section },
+             //{ "Insert", CGKeyCode.kVK_ANSI_INSERT },
+             { "Home", CGKeyCode.kVK_Home },
+             { "PageUp", CGKeyCode.kVK_PageUp },
+diff --git a/external/OpenTabletDriver/OpenTabletDriver.Native/OSX/Input/CGKeyCode.cs b/external/OpenTabletDriver/OpenTabletDriver.Native/OSX/Input/CGKeyCode.cs
+index 9b35de1..4d439e2 100644
+--- a/external/OpenTabletDriver/OpenTabletDriver.Native/OSX/Input/CGKeyCode.cs
++++ b/external/OpenTabletDriver/OpenTabletDriver.Native/OSX/Input/CGKeyCode.cs
+@@ -12,6 +12,8 @@ namespace OpenTabletDriver.Native.OSX.Input
+         kVK_ANSI_X = 0x07,
+         kVK_ANSI_C = 0x08,
+         kVK_ANSI_V = 0x09,
++        // Tablet App for Mac V29 (#171): the § key left of 1 on ISO (British, European) Mac keyboards.
++        kVK_ISO_Section = 0x0A,
+         kVK_ANSI_B = 0x0B,
+         kVK_ANSI_Q = 0x0C,
+         kVK_ANSI_W = 0x0D,

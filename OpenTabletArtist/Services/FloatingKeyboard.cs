@@ -159,13 +159,60 @@ public sealed class FloatingKeyboard : IDisposable
     /// <summary>The keyboard's Caps Lock: letters go as capitals until it is tapped again.</summary>
     public bool CapsLock { get; private set; }
     public bool IsShown => _window?.IsVisible == true;
+
+    // ── V29 #171: the keys follow the Mac's selected keyboard layout and shape (read when shown, then every second while shown) ──
+    /// <summary>Reads the Mac's selected layout; tests replace it.</summary>
+    public static Func<IKeyLabels?> LayoutReader { get; set; } = MacKeyboardLayout.Current;
+    private IKeyLabels? _labels;
+    private (string? Id, KeyboardShape Shape)? _layoutShown;
+    private KeyboardShape _shape = KeyboardShape.Ansi;
+    private StackPanel? _rowsPanel;
+    private TextBlock? _title;
+    private DispatcherTimer? _layoutTimer;
+
+    /// <summary>The layout the keys show now (null: the US labels).</summary>
+    public IKeyLabels? Layout => _labels;
+    public KeyboardShape Shape => _shape;
+
+    /// <summary>Read the Mac's layout; when it changed (another input source, or a keyboard of the other shape), redraw the keys.</summary>
+    internal void RefreshLayout()
+    {
+        IKeyLabels? labels;
+        try { labels = LayoutReader(); }
+        catch (Exception e) { AppLog.Warn("Floating keyboard: reading the keyboard layout failed", e); labels = null; }
+        var shape = labels?.Shape ?? KeyboardShape.Ansi;
+        if (_layoutShown == (labels?.Id, shape)) return;
+        bool reshape = shape != _shape || _rowsPanel?.Children.Count == 0;
+        _layoutShown = (labels?.Id, shape);
+        _labels = labels;
+        _shape = shape;
+        if (reshape) BuildRows();
+        if (_title != null) _title.Text = labels == null ? KeyboardTitle : $"{KeyboardTitle} · {labels.Name}";
+        RefreshCaps();
+        AppLog.Info($"Floating keyboard: keys follow the Mac's layout '{labels?.Name ?? "US (not read)"}' ({shape}).");
+    }
+
+    private static string KeyboardTitle => Localizer.Te("keyboard.title", "Keyboard");
+
+    private void BuildRows()
+    {
+        if (_rowsPanel == null) return;
+        _rowsPanel.Children.Clear();
+        _caps.Clear();
+        foreach (var row in FloatingKeyboardLayout.RowsFor(_shape))
+        {
+            var line = new StackPanel { Orientation = Orientation.Horizontal, Height = KeyHeight };
+            foreach (var key in row) line.Children.Add(MakeCap(key));
+            _rowsPanel.Children.Add(line);
+        }
+    }
     /// <summary>The window (tests).</summary>
     internal Window? Window => _window;
     /// <summary>The keyboard's panel, the part that fades with the transparency (tests).</summary>
     internal Border? Panel => _panel;
 
     /// <summary>Show it if hidden, hide it if shown. <paramref name="nearX"/>/<paramref name="nearY"/>: where to put it the first time
-    /// (global points, top centre of the keyboard); after a drag it opens where it was left.</summary>
+    /// (global points, top centre of the keyboard): it always opens there, under the pen (Zak 20 Nov).</summary>
     public void Toggle(double nearX, double nearY)
     {
         if (IsShown) Hide();
@@ -177,15 +224,29 @@ public sealed class FloatingKeyboard : IDisposable
         try
         {
             EnsureWindow();
+            RefreshLayout();
             ApplySize();
             var (w, _) = Size();
-            var (x, y) = SavedPosition() ?? (nearX - w / 2, nearY);
+            // V29 (Zak 20 Nov, build 7: "the keyboard doesnt know where to show"; chose "Under the pen"): every time just under the
+            // pen, on the pen's screen; above it when there is no room below; kept inside the screen (as the palette hint is placed).
+            var (_, h) = Size();
+            double x = nearX - w / 2, y = nearY;
+            var screen = _window.Screens?.ScreenFromPoint(new PixelPoint((int)nearX, (int)nearY));
+            if (screen != null)
+            {
+                var wa = screen.WorkingArea;
+                if (y + h > wa.Bottom) y = nearY - 48 - h;                 // no room under the pen: above it
+                x = Math.Clamp(x, wa.X + 4, Math.Max(wa.X + 4, wa.Right - w - 4));
+                y = Math.Clamp(y, wa.Y + 4, Math.Max(wa.Y + 4, wa.Bottom - h - 4));
+            }
             _window.Position = new PixelPoint((int)Math.Round(x), (int)Math.Round(y));
             ApplyLook();
             if (!_window.IsVisible) _window.Show();
             if (_window.TryGetPlatformHandle() is Avalonia.Platform.IMacOSTopLevelPlatformHandle mac && mac.NSWindow != IntPtr.Zero)
                 MacDesktop.MakeOverlay(mac.NSWindow, clickThrough: false);
             WriteOpenFlag(true);
+            _layoutTimer ??= new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => RefreshLayout());
+            _layoutTimer.Start();
             AppLog.Info($"Floating keyboard shown at {x:0},{y:0} (transparency {Transparency}%, size {SizePercent}%).");
         }
         catch (Exception e)
@@ -196,6 +257,7 @@ public sealed class FloatingKeyboard : IDisposable
 
     public void Hide()
     {
+        _layoutTimer?.Stop();
         CapsLock = false;
         ClearModifiers();
         WriteOpenFlag(false);
@@ -223,7 +285,7 @@ public sealed class FloatingKeyboard : IDisposable
             RefreshCaps();
             return null;
         }
-        bool shift = Shift || (CapsLock && FloatingKeyboardLayout.IsLetter(key));
+        bool shift = Shift || (CapsLock && FloatingKeyboardLayout.IsLetter(key, _labels));
         var keys = FloatingKeyboardLayout.KeysFor(key.Value, Ctrl, shift, Alt, Cmd);
         SendKeys(keys);
         ClearModifiers();
@@ -321,29 +383,14 @@ public sealed class FloatingKeyboard : IDisposable
         if (_panel != null) _panel.Opacity = RadialMenuDef.OpacityFor(Transparency);
     }
 
-    private static (double X, double Y)? SavedPosition()
-    {
-        var s = AppSettings.Get(PositionKey);
-        if (string.IsNullOrWhiteSpace(s)) return null;
-        var p = s.Split(',');
-        var inv = System.Globalization.CultureInfo.InvariantCulture;
-        return p.Length == 2 && double.TryParse(p[0], System.Globalization.NumberStyles.Float, inv, out var x)
-               && double.TryParse(p[1], System.Globalization.NumberStyles.Float, inv, out var y) ? (x, y) : null;
-    }
-
     private void EnsureWindow()
     {
         if (_window != null) return;
-        var rows = new StackPanel { Spacing = 0 };
-        foreach (var row in FloatingKeyboardLayout.Rows)
+        var rows = _rowsPanel = new StackPanel { Spacing = 0 };
+        BuildRows();
+        var title = _title = new TextBlock
         {
-            var line = new StackPanel { Orientation = Orientation.Horizontal, Height = KeyHeight };
-            foreach (var key in row) line.Children.Add(MakeCap(key));
-            rows.Children.Add(line);
-        }
-        var title = new TextBlock
-        {
-            Text = Localizer.Te("keyboard.title", "Keyboard"), FontSize = 12, Foreground = Brushes.Gainsboro,
+            Text = KeyboardTitle, FontSize = 12, Foreground = Brushes.Gainsboro,
             VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 0, 0),
         };
         var close = new Border
@@ -414,7 +461,7 @@ public sealed class FloatingKeyboard : IDisposable
             CornerRadius = new CornerRadius(5), Cursor = new Cursor(StandardCursorType.Hand),
             Child = new TextBlock
             {
-                Text = FloatingKeyboardLayout.LabelFor(key, upper: false), FontSize = key.Display.Length > 2 ? 11 : 13, Foreground = KeyText,
+                Text = FloatingKeyboardLayout.LabelFor(key, Shift, CapsLock, _labels), FontSize = key.Display.Length > 2 ? 11 : 13, Foreground = KeyText,
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             },
         };
@@ -435,12 +482,14 @@ public sealed class FloatingKeyboard : IDisposable
 
     private void RefreshCaps()
     {
-        bool upper = Shift || CapsLock;
         foreach (var (key, cap) in _caps)
         {
             cap.Background = key.IsModifier && IsOn(key.Value) ? OnBrush : KeyBrush;
-            if (FloatingKeyboardLayout.IsLetter(key) && cap.Child is TextBlock label)
-                label.Text = FloatingKeyboardLayout.LabelFor(key, upper);
+            if (!key.IsModifier && cap.Child is TextBlock label)
+            {
+                label.Text = FloatingKeyboardLayout.LabelFor(key, Shift, CapsLock, _labels);
+                label.FontSize = label.Text.Length > 2 ? 11 : 13;
+            }
         }
     }
 
