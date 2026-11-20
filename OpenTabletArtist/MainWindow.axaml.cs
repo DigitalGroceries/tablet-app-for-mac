@@ -120,10 +120,36 @@ public partial class MainWindow : Window
 
     // The client area is extended under the title bar (#titlebar), so the top strip is our own drag
     // handle: left-drag moves the window; double-click toggles maximize (standard title-bar behaviour).
+    // V29 #164: when the Mac's drag doesn't start (pen presses, and about half the mouse presses on Zak's Mac), the app moves the
+    // window itself (see Helpers.TitleBarDrag).
+    private readonly TitleBarDrag _titleDrag = new();
+
     private void OnTitleBarPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        _titleDrag.Press(Position, this.PointToScreen(e.GetPosition(this)), DateTime.UtcNow);
+        if (sender is IInputElement strip) e.Pointer.Capture(strip);
+        BeginMoveDrag(e);
+    }
+
+    private void OnTitleBarMoved(object? sender, PointerEventArgs e)
+    {
+        if (!_titleDrag.Pressed || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        bool wasByApp = _titleDrag.ByApp;
+        if (_titleDrag.Move(Position, this.PointToScreen(e.GetPosition(this)), DateTime.UtcNow) is not { } to) return;
+        if (!wasByApp)
+            AppLog.Info($"Window drag: the Mac's drag didn't start ({e.Pointer.Type}); the app moves the window (#164).");
+        Position = to;
+    }
+
+    private void OnTitleBarReleased(object? sender, PointerReleasedEventArgs e) => EndTitleDrag(e.Pointer);
+
+    private void OnTitleBarCaptureLost(object? sender, PointerCaptureLostEventArgs e) => EndTitleDrag(null);
+
+    private void EndTitleDrag(IPointer? pointer)
+    {
+        if (_titleDrag.Release()) AppLog.Info($"Window drag by the app ended at {Position.X},{Position.Y}.");
+        pointer?.Capture(null);
     }
 
     private void OnTitleBarDoubleTapped(object? sender, TappedEventArgs e) =>
