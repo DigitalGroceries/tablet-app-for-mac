@@ -512,10 +512,10 @@ public sealed class FloatingKeyboard : IDisposable
         return cap;
     }
 
-    private static readonly IBrush KeyText = new SolidColorBrush(Color.Parse("#E4E4E4"));   // the app's lightest text grey (R6)
-    private static readonly IBrush KeyBrush = new SolidColorBrush(Color.Parse("#3A3A3A"));
-    private static readonly IBrush OnBrush = new SolidColorBrush(Color.Parse("#2F6FD6"));
-    private static readonly IBrush FlashBrush = new SolidColorBrush(Color.Parse("#6A6A6A"));
+    private static readonly IBrush KeyText = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.Parse("#E4E4E4"));   // the app's lightest text grey (R6)
+    private static readonly IBrush KeyBrush = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.Parse("#3A3A3A"));
+    private static readonly IBrush OnBrush = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.Parse("#2F6FD6"));
+    private static readonly IBrush FlashBrush = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.Parse("#6A6A6A"));
 
     private void RefreshCaps()
     {

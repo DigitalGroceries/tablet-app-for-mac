@@ -82,10 +82,10 @@ public sealed class KeyboardPreview : Control
         return new Size(Math.Round(w * _k), Math.Round(h * _k));
     }
 
-    private static readonly IBrush PanelBrush = new SolidColorBrush(Color.Parse("#1E1E1E"));
-    private static readonly IPen PanelPen = new Pen(new SolidColorBrush(Color.Parse("#4A4A4A")), 1);
-    private static readonly IBrush KeyBrush = new SolidColorBrush(Color.Parse("#3A3A3A"));
-    private static readonly IBrush KeyText = new SolidColorBrush(Color.Parse("#E4E4E4"));
+    private static readonly IBrush PanelBrush = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.Parse("#1E1E1E"));
+    private static readonly IPen PanelPen = new Avalonia.Media.Immutable.ImmutablePen(new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.Parse("#4A4A4A")), 1);
+    private static readonly IBrush KeyBrush = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.Parse("#3A3A3A"));
+    private static readonly IBrush KeyText = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.Parse("#E4E4E4"));
 
     public override void Render(DrawingContext context)
     {
