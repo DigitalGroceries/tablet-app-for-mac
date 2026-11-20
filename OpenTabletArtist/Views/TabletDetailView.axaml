@@ -1702,12 +1702,18 @@
                      keyboard's own section under Movement / Pen input: what opens it on the left, how it looks on the right (the
                      transparency row moved here from the radial menu's sliders; #162 adds its size). -->
                 <Border x:Name="FloatingKeyboardBox" Classes="penBasicsInset" Padding="16">
-                    <Grid ColumnDefinitions="*,32,*" RowDefinitions="Auto,Auto,Auto">
+                    <Grid ColumnDefinitions="*,32,*" RowDefinitions="Auto,Auto,Auto,Auto">
                         <TextBlock x:Name="FloatingKeyboardHeading" Grid.ColumnSpan="3" Text="{Binding KeyboardLook.Heading}"
                                    FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
                         <TextBlock x:Name="FloatingKeyboardIntro" Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding KeyboardLook.Intro}"
                                    TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,12" />
-                        <StackPanel x:Name="FloatingKeyboardOpens" Grid.Row="2" Spacing="6">
+                        <!-- Zak 20 Nov (build 7): "The keyboard should be shown in that menu the way the radial menu is shown on the top
+                             part of the app page": the keyboard itself, at its size and transparency, with the Mac's layout. -->
+                        <ctrl:KeyboardPreview x:Name="FloatingKeyboardPicture" Grid.Row="2" Grid.ColumnSpan="3" HorizontalAlignment="Center"
+                                              Margin="0,0,0,16" IsHitTestVisible="False"
+                                              SizePercent="{Binding KeyboardLook.Size}" Transparency="{Binding KeyboardLook.Transparency}"
+                                              AutomationProperties.Name="Floating keyboard picture" />
+                        <StackPanel x:Name="FloatingKeyboardOpens" Grid.Row="3" Spacing="6">
                             <!-- V29 #160 (Zak 20 Nov ~09:18-09:24): pen button 1 held opens the keyboard (factory) or drags. -->
                             <StackPanel x:Name="KeyboardHoldRow" Spacing="6" IsVisible="{Binding HasPenButton1}" Margin="0,0,0,10">
                                 <TextBlock Text="{Binding HoldCaption}" FontSize="12" />
@@ -1726,7 +1732,7 @@
                                        Foreground="{DynamicResource TextMutedBrush}"
                                        IsVisible="{Binding KeyboardStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                         </StackPanel>
-                        <StackPanel x:Name="FloatingKeyboardLook" Grid.Row="2" Grid.Column="2" Spacing="4">
+                        <StackPanel x:Name="FloatingKeyboardLook" Grid.Row="3" Grid.Column="2" Spacing="4">
                             <TextBlock Text="{Binding KeyboardLook.SizeCaption}" FontSize="12" />
                             <Grid x:Name="KeyboardSizeRow" ColumnDefinitions="*,8,52,4,18">
                                 <Slider x:Name="KeyboardSizeSlider" Minimum="60" Maximum="300"
