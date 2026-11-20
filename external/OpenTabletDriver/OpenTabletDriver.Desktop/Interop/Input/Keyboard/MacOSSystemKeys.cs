@@ -142,10 +142,20 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         /// <summary>
         /// Which screen a brightness press should change, the way the Mac's own key does: the screen that holds most of
         /// the frontmost normal window (the window last clicked), else the screen under the pointer, else the main screen.
+        /// A "window" that covers two or more whole screens is Finder's desktop (Zak's build 6 report, 20 Nov 08:50: he
+        /// clicked the desktop on the built-in screen, macOS called the desktop the focused window, 0,-2160 3992x3160, and
+        /// the TV changed): then the pointer's screen counts, since that is where the desktop was clicked.
         /// </summary>
         public static (uint Display, string Why) PickDisplay(Box? frontWindow, (double X, double Y)? pointer,
             IReadOnlyList<(uint Id, Box Bounds)> displays, uint mainDisplay)
         {
+            if (frontWindow is Box desk && CoversWholeScreens(desk, displays) >= 2)
+            {
+                if (pointer is (double dx, double dy))
+                    foreach (var (id, b) in displays)
+                        if (b.Contains(dx, dy)) return (id, "the pointer's screen; the desktop is in front");
+                frontWindow = null;
+            }
             if (frontWindow is Box w)
             {
                 uint best = 0; double bestArea = 0;
@@ -160,6 +170,17 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
                 foreach (var (id, b) in displays)
                     if (b.Contains(px, py)) return (id, "the pointer's screen");
             return (mainDisplay, "the main screen");
+        }
+
+        /// <summary>How many screens lie wholly inside the window (1 point of slack for rounding).</summary>
+        public static int CoversWholeScreens(Box window, IReadOnlyList<(uint Id, Box Bounds)> displays)
+        {
+            int n = 0;
+            foreach (var (_, b) in displays)
+                if (b.X >= window.X - 1 && b.Y >= window.Y - 1
+                    && b.X + b.W <= window.X + window.W + 1 && b.Y + b.H <= window.Y + window.H + 1)
+                    n++;
+            return n;
         }
 
         /// <summary>

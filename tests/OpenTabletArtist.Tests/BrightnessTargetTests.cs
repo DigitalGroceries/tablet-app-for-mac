@@ -27,6 +27,52 @@ public class BrightnessTargetTests
         Assert.Equal("the front window's screen", why);
     }
 
+    /// <summary>Build 6 report (20 Nov 08:50:46): Zak clicked the desktop on the built-in screen; macOS named Finder's
+    /// desktop, 0,-2160 3992x3160 (all three screens), as the focused window and the TV changed. These are the screens
+    /// from that report.</summary>
+    private static readonly List<(uint, Box)> Build6Screens = new()
+    {
+        (1, new Box(0, 0, 1496, 967)),
+        (2, new Box(1496, 0, 1600, 1000)),
+        (3, new Box(152, -2160, 3840, 2160)),
+    };
+
+    [Fact]
+    public void TheDesktopInFront_UsesThePointersScreen_NotTheMiddleOfAllScreens()
+    {
+        var desktop = new Box(0, -2160, 3992, 3160);
+        Assert.Equal(3, MacOSSystemKeys.CoversWholeScreens(desktop, Build6Screens));
+        var (display, why) = MacOSSystemKeys.PickDisplay(desktop, (915, 365), Build6Screens, 1);
+        Assert.Equal(1u, display);
+        Assert.Equal("the pointer's screen; the desktop is in front", why);
+        Assert.Equal(2u, MacOSSystemKeys.PickDisplay(desktop, (2000, 500), Build6Screens, 1).Display);
+        Assert.Equal(3u, MacOSSystemKeys.PickDisplay(desktop, (849, -1476), Build6Screens, 1).Display);
+    }
+
+    [Fact]
+    public void TheDesktopInFront_WithNoPointer_UsesTheMainScreen()
+    {
+        var (display, why) = MacOSSystemKeys.PickDisplay(new Box(0, -2160, 3992, 3160), null, Build6Screens, 1);
+        Assert.Equal(1u, display);
+        Assert.Equal("the main screen", why);
+    }
+
+    [Fact]
+    public void AFinderWindowOnTheMac_StillPicksTheMac_WhereverThePointerIs()
+    {
+        // 08:51:11 in the same report: a Finder window on the built-in screen, the pointer up on the TV
+        var (display, why) = MacOSSystemKeys.PickDisplay(new Box(222, 133, 1054, 933), (1094, -891), Build6Screens, 1);
+        Assert.Equal(1u, display);
+        Assert.Equal("the front window's screen", why);
+    }
+
+    [Fact]
+    public void AFullScreenWindowOnOneScreen_IsStillThatScreensWindow()
+    {
+        Assert.Equal(1, MacOSSystemKeys.CoversWholeScreens(new Box(152, -2160, 3840, 2160), Build6Screens));
+        Assert.Equal(3u, MacOSSystemKeys.PickDisplay(new Box(152, -2160, 3840, 2160), (300, 300), Build6Screens, 1).Display);
+    }
+
     [Fact]
     public void AWindowAcrossTwoScreens_PicksTheScreenWithMostOfIt()
     {
