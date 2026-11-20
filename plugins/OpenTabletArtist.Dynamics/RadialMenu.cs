@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
@@ -126,6 +127,13 @@ public static class RadialMenuState
     public static string CommandFilePath { get; set; } =
         Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-menu-cmd");
 
+    /// <summary>V29 #154: the colour palette is its own surface (Zak 20 Nov: the radial menu and the palette can be open at the same
+    /// time), with its own state and command files, read by the app's second overlay window.</summary>
+    public static string PaletteStateFilePath { get; set; } =
+        Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-palette");
+    public static string PaletteCommandFilePath { get; set; } =
+        Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-palette-cmd");
+
     /// <summary>How often the command file is looked at while the menu is open.</summary>
     public static int CommandPollMs { get; set; } = 40;
 
@@ -136,21 +144,71 @@ public static class RadialMenuState
     public static Action<RadialMenuBinding, RadialSlice>? ActionRunner { get; set; }
 
     private static readonly object Gate = new();
-    private static RadialMenuBinding? _owner;
-    private static RadialMenuDef? _top;
-    private static readonly List<int> _path = new();
-    private static double _cx, _cy;
-    private static bool _held;
-    private static bool _stepAside;   // V29 #131: the app lets clicks through the menu while a Click slice clicks
-    // V29 #142 (Zak 19:35): a quick double press on the same pen button opens the colour palette, or swaps between the two.
-    private static bool _palette;
+
+    /// <summary>V29 #154: one open thing on screen, the radial menu or the colour palette. Both can be open at once; every call
+    /// works on one of them (<see cref="_s"/>, set under <see cref="Gate"/>).</summary>
+    private sealed class Surface
+    {
+        public Surface(bool palette) => IsPalette = palette;
+        public readonly bool IsPalette;
+        public RadialMenuBinding? Owner;
+        public RadialMenuDef? Top;
+        public readonly List<int> Path = new();
+        public double Cx, Cy;
+        public bool Held, StepAside, Parked, Editing, Confirm, Busy;
+        public long BusySince;
+        public (long Seq, string Label, string Keys, string Action, bool Ok)? Used;
+        public (long Seq, string Kind, int Slice, int[] Path)? Request;
+        public bool PenDrag, PenDragMoved;
+        public double DragPx, DragPy, DragCx, DragCy;
+        public long LastDragWrite;
+        public Timer? CommandTimer;
+        public long CommandSeqSeen;
+        public long OpenedAt;
+        public string StateFile => IsPalette ? PaletteStateFilePath : StateFilePath;
+        public string CommandFile => IsPalette ? PaletteCommandFilePath : CommandFilePath;
+    }
+
+    private static readonly Surface MenuSurface = new(false), PaletteSurface = new(true);
+    private static Surface _s = MenuSurface;
+    private static Surface? _tipSurface;   // the one the pen tip went down on (a drag stays on it)
+
+    // The fields the menu code always used; they now belong to the surface a call works on.
+    private static RadialMenuBinding? _owner { get => _s.Owner; set => _s.Owner = value; }
+    private static RadialMenuDef? _top { get => _s.Top; set => _s.Top = value; }
+    private static List<int> _path => _s.Path;
+    private static double _cx { get => _s.Cx; set => _s.Cx = value; }
+    private static double _cy { get => _s.Cy; set => _s.Cy = value; }
+    private static bool _held { get => _s.Held; set => _s.Held = value; }
+    private static bool _stepAside { get => _s.StepAside; set => _s.StepAside = value; }   // V29 #131
+    private static bool _palette => _s.IsPalette;
+    private static bool _parked { get => _s.Parked; set => _s.Parked = value; }   // the mouse used or moved it: it stays until closed
+    private static bool _editing { get => _s.Editing; set => _s.Editing = value; }   // the pencil was tapped
+    private static bool _confirm { get => _s.Confirm; set => _s.Confirm = value; }   // the Yes / No question is showing
+    private static bool _busy { get => _s.Busy; set => _s.Busy = value; }   // the app is editing: the pen goes through to the app
+    private static long _busySince { get => _s.BusySince; set => _s.BusySince = value; }
+    private static (long Seq, string Label, string Keys, string Action, bool Ok)? _used { get => _s.Used; set => _s.Used = value; }
+    private static (long Seq, string Kind, int Slice, int[] Path)? _request { get => _s.Request; set => _s.Request = value; }
+    private static bool _penDrag { get => _s.PenDrag; set => _s.PenDrag = value; }
+    private static bool _penDragMoved { get => _s.PenDragMoved; set => _s.PenDragMoved = value; }
+    private static double _dragPx { get => _s.DragPx; set => _s.DragPx = value; }
+    private static double _dragPy { get => _s.DragPy; set => _s.DragPy = value; }
+    private static double _dragCx { get => _s.DragCx; set => _s.DragCx = value; }
+    private static double _dragCy { get => _s.DragCy; set => _s.DragCy = value; }
+    private static long _lastDragWrite { get => _s.LastDragWrite; set => _s.LastDragWrite = value; }
+
+    // V29 #142 / #154: one press opens or closes the menu; a quick second press undoes that and opens or closes the palette.
     private static long _lastPressAt = long.MinValue / 2;
-    private static bool _lastClosedPalette;
+    private static (RadialMenuBinding Pressed, bool Open, RadialMenuBinding? Owner, RadialMenuDef? Top, int[] Path, double X, double Y,
+        bool Parked)? _menuBeforePress;
+    private static long _openedSeq;
 
     /// <summary>Two presses closer than this count as a double press.</summary>
     public static int DoublePressMs { get; set; } = 400;
     /// <summary>Tests: is the colour palette showing (rather than the menu)?</summary>
-    public static bool PaletteOpen { get { lock (Gate) return _top != null && _palette; } }
+    public static bool PaletteOpen { get { lock (Gate) return PaletteSurface.Top != null; } }
+    /// <summary>Tests: is the radial menu open (the palette may be open too)?</summary>
+    public static bool MenuOpen { get { lock (Gate) return MenuSurface.Top != null; } }
 
     /// <summary>A Click slice waits this long for the app to let clicks through the menu, and keeps it so this long after.</summary>
     public static int StepAsideMs { get; set; } = 150;
@@ -158,27 +216,14 @@ public static class RadialMenuState
     private static long _lastActivity;
     private static long _seq;
     private static readonly KeyPulse Pulse = new() { HoldMs = 30 };
-    private static Timer? _commandTimer;
-    private static long _commandSeqSeen;
-    private static bool _parked;   // the mouse used or moved the menu: it stays until closed (no idle close)
-    private static bool _editing;  // the pencil was tapped: the next slice tapped is edited, not run
-    private static bool _confirm;  // "Restore the 8 default slices?" is showing: Yes (right) / No (left)
-    private static bool _busy;     // the app is editing a slice: the menu stays shown but the pen goes through to the app
-    private static long _busySince;
     private static long _reqSeq;
     // TASKS #65: the slice that ran last (for the app's short "Selection copied" text) and whether it worked. Sent in the next state write.
     private static long _usedSeq;
-    private static (long Seq, string Label, string Keys, string Action, bool Ok)? _used;
-    private static (long Seq, string Kind, int Slice, int[] Path)? _request;   // written once, with the next state
-    // A drag by the hand with the pen tip: where the pen and the menu were when it started.
-    private static bool _penDrag, _penDragMoved;
-    private static double _dragPx, _dragPy, _dragCx, _dragCy;
-    private static long _lastDragWrite;
     /// <summary>The app edits a slice for at most this long before the pen is taken over by the menu again.</summary>
     public static int BusyMaxMs { get; set; } = 300_000;
     public const double DragThreshold = 4;
 
-    public static bool IsOpen { get { lock (Gate) return _top != null; } }
+    public static bool IsOpen { get { lock (Gate) return MenuSurface.Top != null || PaletteSurface.Top != null; } }
 
     /// <summary>The menu is open and takes the pen tip (it doesn't while the app is editing a slice, so the pen can click there).</summary>
     public static bool SwallowsPen
@@ -187,67 +232,131 @@ public static class RadialMenuState
         {
             lock (Gate)
             {
-                if (_top == null) return false;
-                if (_busy && Environment.TickCount64 - _busySince > BusyMaxMs) _busy = false;
-                return !_busy;
+                bool any = false;
+                foreach (var x in new[] { MenuSurface, PaletteSurface })
+                {
+                    if (x.Top == null) continue;
+                    if (x.Busy && Environment.TickCount64 - x.BusySince > BusyMaxMs) x.Busy = false;
+                    any |= !x.Busy;
+                }
+                return any;
             }
         }
     }
 
-    public static bool Editing { get { lock (Gate) return _editing; } }
-    public static bool Confirming { get { lock (Gate) return _confirm; } }
-    public static bool Busy { get { lock (Gate) return _busy; } }
+    // V29 #154: true when either surface is in that state (both can be open).
+    public static bool Editing { get { lock (Gate) return MenuSurface.Editing || PaletteSurface.Editing; } }
+    public static bool Confirming { get { lock (Gate) return MenuSurface.Confirm || PaletteSurface.Confirm; } }
+    public static bool Busy { get { lock (Gate) return MenuSurface.Busy || PaletteSurface.Busy; } }
 
     /// <summary>Slice numbers of the open submenus, from the top (tests).</summary>
-    public static IReadOnlyList<int> OpenPath { get { lock (Gate) return _path.ToArray(); } }
+    public static IReadOnlyList<int> OpenPath { get { lock (Gate) return MenuSurface.Path.ToArray(); } }
 
     internal static void ButtonDown(RadialMenuBinding binding)
     {
         lock (Gate)
         {
             var now = Environment.TickCount64;
-            bool quick = now - _lastPressAt <= DoublePressMs;
-            _lastPressAt = now;
-            if (_top != null)
+            // Zak 19 Nov: a double press of the SAME button (Grok's review: another button pressed quickly is two single presses).
+            bool quick = now - _lastPressAt <= DoublePressMs && _menuBeforePress is { } first && ReferenceEquals(first.Pressed, binding);
+            if (quick)
             {
-                if (quick)
+                // V29 #154 (Zak 20 Nov): the second press of a double press: the first press's menu change is undone and the
+                // palette opens or closes instead; the menu stays as it was.
+                _lastPressAt = long.MinValue / 2;
+                var before = _menuBeforePress!.Value;
+                _menuBeforePress = null;
+                _s = MenuSurface;
+                if (before.Open)
                 {
-                    // V29 #142: the second press of a double press swaps the menu and the colour palette instead of closing.
-                    _palette = !_palette;
-                    _editing = false; _confirm = false; _path.Clear(); _lastPressAt = long.MinValue / 2;
-                    Touch();
+                    if (MenuSurface.Top == null) OpenLocked(before.Owner ?? binding, before.Top, before.X, before.Y, beside: false);
+                    // Back exactly as it was (Grok's review): not held by this press, parked as before, same submenu.
+                    MenuSurface.Held = false;
+                    MenuSurface.Parked = before.Parked;
+                    MenuSurface.Path.Clear(); MenuSurface.Path.AddRange(before.Path);
                     WriteStateLocked();
-                    Log.Write("Radial menu", _palette ? "Double press: colour palette." : "Double press: radial menu.", LogLevel.Debug);
-                    return;
                 }
-                // Pressing the button again closes it (Wacom), whichever button opened it.
-                _lastClosedPalette = _palette;
+                else if (MenuSurface.Top != null) CloseLocked("double press: the palette instead");
+                _s = PaletteSurface;
+                if (PaletteSurface.Top != null) { CloseLocked("double press again"); return; }
+                if (File.Exists(OffFlagPath) || CursorProvider() is not { } p) return;
+                OpenLocked(binding, null, p.X, p.Y, beside: true);
+                Log.Write("Radial menu", "Double press: colour palette.", LogLevel.Debug);
+                return;
+            }
+            _lastPressAt = now;
+            _s = MenuSurface;
+            _menuBeforePress = (binding, MenuSurface.Top != null, MenuSurface.Owner, MenuSurface.Top, MenuSurface.Path.ToArray(),
+                MenuSurface.Cx, MenuSurface.Cy, MenuSurface.Parked);
+            if (MenuSurface.Top != null)
+            {
+                // Pressing the button again closes the menu (Wacom), whichever button opened it. The palette stays.
                 CloseLocked("button pressed again");
                 return;
             }
-            // A quick press right after a press that closed one of the two opens the other one (a double press while it was open).
-            bool openPalette = quick && !_lastClosedPalette;
-            if (quick) _lastPressAt = long.MinValue / 2;
             if (File.Exists(OffFlagPath)) return;
             var at = CursorProvider();
             if (at is not { } c) return;   // not macOS, or no pointer: do nothing
-            _owner = binding;
-            _palette = openPalette;
-            _top = RadialMenuJson.Parse(binding.Menu);
-            _path.Clear();
-            _cx = c.X; _cy = c.Y;
-            _held = true;
-            _parked = false;
-            _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null; _used = null;
-            Touch();
-            WriteStateLocked();
-            StartCommandPollingLocked();
+            OpenLocked(binding, null, c.X, c.Y, beside: true);
         }
+    }
+
+    /// <summary>Open the surface <see cref="_s"/> at (x, y) with <paramref name="binding"/>'s menu (or <paramref name="menu"/>).
+    /// With <paramref name="beside"/>, it moves beside the other surface when the two circles would overlap (Zak 20 Nov).</summary>
+    private static void OpenLocked(RadialMenuBinding binding, RadialMenuDef? menu, double x, double y, bool beside)
+    {
+        var other = ReferenceEquals(_s, MenuSurface) ? PaletteSurface : MenuSurface;
+        _owner = binding;
+        _top = menu ?? RadialMenuJson.Parse(binding.Menu);
+        if (other.Top != null && beside)
+        {
+            var (bx, by) = Beside(x, y, RadiusOf(_s, _top), other.Cx, other.Cy, RadiusOf(other, other.Top));
+            x = bx; y = by;
+        }
+        _path.Clear();
+        _cx = x; _cy = y;
+        _held = true;
+        _parked = false;
+        _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null; _used = null;
+        _s.OpenedAt = ++_openedSeq;
+        Touch();
+        WriteStateLocked();
+        StartCommandPollingLocked();
+    }
+
+    private static double RadiusOf(Surface x, RadialMenuDef def) =>
+        RadialMenuGeometry.OuterRadius(x.IsPalette ? def.PaletteSize : def.Size);
+
+    /// <summary>The screens (macOS global points, top-left origin); tests replace it. Empty when unknown.</summary>
+    public static Func<IReadOnlyList<(double X, double Y, double W, double H)>> ScreensProvider { get; set; } = MacScreens.All;
+
+    /// <summary>Where a circle of radius <paramref name="r"/> wanted at (x, y) goes so it doesn't cover the circle at (ox, oy)
+    /// of radius <paramref name="or"/> (Zak 20 Nov: "If the palette would cover the menu, it opens beside it"): unchanged when
+    /// they don't touch; else beside it on the pointer's side, then the other side, then below, then above - the first
+    /// place that is wholly on one screen (Grok's review); if none is, where it was asked for.</summary>
+    public static (double X, double Y) Beside(double x, double y, double r, double ox, double oy, double or)
+    {
+        const double Gap = 12;
+        double dx = x - ox, dy = y - oy;
+        if (Math.Sqrt(dx * dx + dy * dy) >= r + or + Gap) return (x, y);
+        double side = dx >= 0 ? 1 : -1, d = r + or + Gap;
+        var tries = new[] { (ox + side * d, oy), (ox - side * d, oy), (ox, oy + d), (ox, oy - d) };
+        IReadOnlyList<(double X, double Y, double W, double H)> screens;
+        try { screens = ScreensProvider(); } catch (Exception) { screens = Array.Empty<(double, double, double, double)>(); }
+        if (screens.Count == 0) return tries[0];
+        // The screen the pen is on first (Grok's review: don't let the palette jump to another screen when it fits here).
+        var ordered = screens.OrderBy(sc => x >= sc.X && x < sc.X + sc.W && y >= sc.Y && y < sc.Y + sc.H ? 0 : 1).ToList();
+        foreach (var sc in ordered)
+            foreach (var (tx, ty) in tries)
+                if (tx - r >= sc.X && ty - r >= sc.Y && tx + r <= sc.X + sc.W && ty + r <= sc.Y + sc.H) return (tx, ty);
+        return (x, y);
     }
 
     internal static void ButtonUp(RadialMenuBinding binding)
     {
-        lock (Gate) if (ReferenceEquals(binding, _owner)) _held = false;
+        lock (Gate)
+            foreach (var x in new[] { MenuSurface, PaletteSurface })
+                if (ReferenceEquals(binding, x.Owner)) x.Held = false;
     }
 
     /// <summary>The pen tip went down while the menu is open: act on whatever is under the pointer. Returns false when the
@@ -256,19 +365,31 @@ public static class RadialMenuState
     {
         RadialSlice? run = null;
         RadialMenuBinding? owner;
+        Surface surface;
         lock (Gate)
         {
-            if (_top == null) return false;
-            owner = _owner;
             var at = CursorProvider();
             if (at is not { } c) return false;
-            int slice = _palette ? ColourPalette.SwatchAt(c.X - _cx, c.Y - _cy, _top.PaletteSize)
-                                 : RadialMenuGeometry.SliceAt(c.X - _cx, c.Y - _cy, _top.Size);
+            // V29 #154: the radial menu and the palette can both be open; the one opened last is on top, so it is asked first.
+            var order = MenuSurface.OpenedAt > PaletteSurface.OpenedAt
+                ? new[] { MenuSurface, PaletteSurface } : new[] { PaletteSurface, MenuSurface };
+            int slice = RadialMenuGeometry.Outside;
+            surface = MenuSurface;
+            foreach (var x in order)
+            {
+                if (x.Top == null || x.Busy) continue;
+                int hit = x.IsPalette ? ColourPalette.SwatchAt(c.X - x.Cx, c.Y - x.Cy, x.Top.PaletteSize)
+                                      : RadialMenuGeometry.SliceAt(c.X - x.Cx, c.Y - x.Cy, x.Top.Size);
+                if (hit != RadialMenuGeometry.Outside) { surface = x; slice = hit; break; }
+            }
             if (slice == RadialMenuGeometry.Outside)
             {
                 Log.Write("Radial menu", "Pen tap outside the menu: it goes to the app, the menu stays open.", LogLevel.Debug);
                 return false;
             }
+            _s = surface;
+            _tipSurface = surface;
+            owner = _owner;
             Touch();
             if (slice == RadialMenuGeometry.Hand)
             {
@@ -302,8 +423,8 @@ public static class RadialMenuState
         }
         if (run != null && owner != null)
         {
-            if (run.Action == RadialActions.Click) ClickSteppingAside(owner, run);
-            else RunAndReport(owner, run);
+            if (run.Action == RadialActions.Click) ClickSteppingAside(owner, run, surface);
+            else RunAndReport(owner, run, surface);
         }
         return true;
     }
@@ -406,6 +527,8 @@ public static class RadialMenuState
     {
         lock (Gate)
         {
+            if (_tipSurface == null) return;
+            _s = _tipSurface;
             if (_top == null || !_penDrag) return;
             if (CursorProvider() is not { } c) return;
             double dx = c.X - _dragPx, dy = c.Y - _dragPy;
@@ -427,6 +550,8 @@ public static class RadialMenuState
     {
         lock (Gate)
         {
+            if (_tipSurface == null) return;
+            _s = _tipSurface;
             if (!_penDrag) return;
             _penDrag = false;
             if (_penDragMoved && _top != null) WriteStateLocked();
@@ -435,7 +560,11 @@ public static class RadialMenuState
     }
 
 
-    public static void Close(string why) { lock (Gate) CloseLocked(why); }
+    public static void Close(string why)
+    {
+        lock (Gate)
+            foreach (var x in new[] { MenuSurface, PaletteSurface }) { _s = x; CloseLocked(why); }
+    }
 
     private static void CloseLocked(string why)
     {
@@ -446,11 +575,11 @@ public static class RadialMenuState
         _held = false;
         _parked = false;
         _stepAside = false;
-        _palette = false;
         _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null;
+        if (ReferenceEquals(_tipSurface, _s)) _tipSurface = null;
         StopCommandPollingLocked();
         WriteStateLocked();
-        Log.Write("Radial menu", "Closed: " + why, LogLevel.Debug);
+        Log.Write("Radial menu", (_palette ? "Palette closed: " : "Closed: ") + why, LogLevel.Debug);
     }
 
     private static void Touch() => Interlocked.Exchange(ref _lastActivity, Environment.TickCount64);
@@ -462,45 +591,58 @@ public static class RadialMenuState
     private static void StartCommandPollingLocked()
     {
         StopCommandPollingLocked();
-        _commandSeqSeen = ReadCommandFile()?.Seq ?? 0;   // whatever is there now is old news
-        _commandTimer = new Timer(_ => PollCommands(), null, CommandPollMs, CommandPollMs);
+        var x = _s;
+        x.CommandSeqSeen = ReadCommandFile(x)?.Seq ?? 0;   // whatever is there now is old news
+        x.CommandTimer = new Timer(_ => PollCommands(x), null, CommandPollMs, CommandPollMs);
     }
 
     private static void StopCommandPollingLocked()
     {
-        _commandTimer?.Dispose();
-        _commandTimer = null;
+        _s.CommandTimer?.Dispose();
+        _s.CommandTimer = null;
     }
 
-    private static RadialMenuCommand? ReadCommandFile()
+    private static RadialMenuCommand? ReadCommandFile(Surface x)
     {
-        try { return File.Exists(CommandFilePath) ? RadialMenuCommand.Parse(File.ReadAllText(CommandFilePath)) : null; }
+        try { return File.Exists(x.CommandFile) ? RadialMenuCommand.Parse(File.ReadAllText(x.CommandFile)) : null; }
         catch (IOException) { return null; }
         catch (UnauthorizedAccessException) { return null; }
     }
 
-    /// <summary>Look at the command file once (the timer does this while the menu is open; tests call it).</summary>
+    /// <summary>Look at both command files once (the timers do this while a surface is open; tests call it).</summary>
     public static void PollCommands()
     {
-        var cmd = ReadCommandFile();
+        PollCommands(MenuSurface);
+        PollCommands(PaletteSurface);
+    }
+
+    private static void PollCommands(Surface x)
+    {
+        var cmd = ReadCommandFile(x);
         if (cmd == null) return;
         lock (Gate)
         {
-            if (_top == null || cmd.Seq <= _commandSeqSeen) return;
-            _commandSeqSeen = cmd.Seq;
+            if (x.Top == null || cmd.Seq <= x.CommandSeqSeen) return;
+            x.CommandSeqSeen = cmd.Seq;
         }
-        HandleCommand(cmd);
+        HandleCommand(cmd, x);
     }
 
     /// <summary>The mouse used the menu (or the app finished an edit). A slice runs and the menu STAYS open (so the 8
     /// commands can be used one after another); the X and Esc close it; a drag moves it; the pencil, the circular arrow and
     /// the app's answer are handled as for the pen. Nothing happens when no menu is open.</summary>
-    public static void HandleCommand(RadialMenuCommand cmd)
+    public static void HandleCommand(RadialMenuCommand cmd) => HandleCommand(cmd, MenuSurface);
+
+    /// <summary>V29 #154: a command for the colour palette (the app's palette window writes its own command file).</summary>
+    public static void HandlePaletteCommand(RadialMenuCommand cmd) => HandleCommand(cmd, PaletteSurface);
+
+    private static void HandleCommand(RadialMenuCommand cmd, Surface surface)
     {
         RadialSlice? run = null;
         RadialMenuBinding? owner;
         lock (Gate)
         {
+            _s = surface;
             if (_top == null) return;
             owner = _owner;
             Touch();
@@ -523,7 +665,18 @@ public static class RadialMenuState
                     _busy = false;
                     if (!string.IsNullOrWhiteSpace(cmd.Menu))
                     {
-                        _top = RadialMenuJson.Parse(cmd.Menu);
+                        // V29 #154: the menu and the palette share one menu (the palette's colours and size live in it).
+                        var changed = RadialMenuJson.Parse(cmd.Menu);
+                        var other = ReferenceEquals(surface, MenuSurface) ? PaletteSurface : MenuSurface;
+                        if (other.Top != null && ReferenceEquals(other.Owner, surface.Owner))
+                        {
+                            _s = other;
+                            _top = RadialMenuJson.Parse(cmd.Menu);
+                            if (RadialMenuJson.Level(_top, _path) == null) _path.Clear();
+                            WriteStateLocked();
+                            _s = surface;
+                        }
+                        _top = changed;
                         if (RadialMenuJson.Level(_top, _path) == null) _path.Clear();
                     }
                     WriteStateLocked();
@@ -550,27 +703,28 @@ public static class RadialMenuState
                     return;
             }
         }
-        if (run != null && owner != null) RunAndReport(owner, run);
+        if (run != null && owner != null) RunAndReport(owner, run, surface);
     }
 
     /// <summary>V29 #131: run a Click slice once the app has let clicks through the menu, then make the menu take clicks again.</summary>
-    private static void ClickSteppingAside(RadialMenuBinding owner, RadialSlice run)
+    private static void ClickSteppingAside(RadialMenuBinding owner, RadialSlice run, Surface surface)
     {
         void Back()
         {
             lock (Gate)
             {
+                _s = surface;
                 _stepAside = false;
                 if (_top != null) WriteStateLocked();
             }
         }
-        if (StepAsideMs <= 0) { RunAndReport(owner, run); Back(); return; }
+        if (StepAsideMs <= 0) { RunAndReport(owner, run, surface); Back(); return; }
         System.Threading.Tasks.Task.Run(async () =>
         {
             try
             {
                 await System.Threading.Tasks.Task.Delay(StepAsideMs);
-                RunAndReport(owner, run);
+                RunAndReport(owner, run, surface);
                 await System.Threading.Tasks.Task.Delay(AfterClickMs);
             }
             finally { Back(); }
@@ -579,11 +733,12 @@ public static class RadialMenuState
 
     /// <summary>Run a slice, then tell the app which one ran and whether it worked (TASKS #65: its short confirmation text, or the
     /// failure). Written with the next state, which is the closed state when this slice closed the menu.</summary>
-    private static void RunAndReport(RadialMenuBinding owner, RadialSlice s)
+    private static void RunAndReport(RadialMenuBinding owner, RadialSlice s, Surface surface)
     {
         bool ok = Run(owner, s);
         lock (Gate)
         {
+            _s = surface;
             _used = (++_usedSeq, s.Label ?? "", s.Keys ?? "", s.Action ?? "", ok);
             WriteStateLocked();
         }
@@ -700,11 +855,12 @@ public static class RadialMenuState
                 };
             }
             var json = JsonSerializer.Serialize(payload);
-            var dir = Path.GetDirectoryName(StateFilePath)!;
+            var file = _s.StateFile;
+            var dir = Path.GetDirectoryName(file)!;
             Directory.CreateDirectory(dir);
-            var tmp = StateFilePath + ".tmp";
+            var tmp = file + ".tmp";
             File.WriteAllText(tmp, json);
-            File.Move(tmp, StateFilePath, overwrite: true);
+            File.Move(tmp, file, overwrite: true);
         }
         catch (Exception e)
         {
@@ -717,22 +873,51 @@ public static class RadialMenuState
     {
         lock (Gate)
         {
-            _top = null; _owner = null; _path.Clear(); _held = false; _seq = 0; _parked = false; _stepAside = false;
-            _palette = false; _lastPressAt = long.MinValue / 2; _lastClosedPalette = false;
-            _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null; _used = null; _usedSeq = 0;
-            StopCommandPollingLocked();
+            foreach (var x in new[] { MenuSurface, PaletteSurface })
+            {
+                _s = x;
+                _top = null; _owner = null; _path.Clear(); _held = false; _parked = false; _stepAside = false;
+                _editing = false; _confirm = false; _busy = false; _penDrag = false; _request = null; _used = null;
+                x.OpenedAt = 0;
+                StopCommandPollingLocked();
+            }
+            _s = MenuSurface; _tipSurface = null; _seq = 0; _usedSeq = 0; _openedSeq = 0;
+            _lastPressAt = long.MinValue / 2; _menuBeforePress = null;
             Interlocked.Exchange(ref _lastActivity, Environment.TickCount64);
         }
     }
 
     /// <summary>Tests: let go of the button as if by hand.</summary>
-    public static bool Held { get { lock (Gate) return _held; } }
+    public static bool Held { get { lock (Gate) return MenuSurface.Held || PaletteSurface.Held; } }
 }
 
 /// <summary>Same key parsing as the touch ring (only keys this Mac's keyboard supports).</summary>
 internal static class RingModeBindingsKeys
 {
     public static string[] Parse(string? keys, IVirtualKeyboard? keyboard) => RingModeTurnBinding.ParseKeys(keys, keyboard);
+}
+
+/// <summary>V29 #154: the screens' bounds in macOS global points (top-left origin); empty elsewhere.</summary>
+internal static class MacScreens
+{
+    private const string CG = "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics";
+    [StructLayout(LayoutKind.Sequential)] private struct CGRect { public double X, Y, W, H; }
+    [DllImport(CG)] private static extern int CGGetActiveDisplayList(uint max, [In, Out] uint[] displays, out uint count);
+    [DllImport(CG)] private static extern CGRect CGDisplayBounds(uint display);
+
+    public static IReadOnlyList<(double X, double Y, double W, double H)> All()
+    {
+        var list = new List<(double, double, double, double)>();
+        if (!OperatingSystem.IsMacOS()) return list;
+        try
+        {
+            var ids = new uint[16];
+            if (CGGetActiveDisplayList((uint)ids.Length, ids, out var n) != 0) return list;
+            for (int i = 0; i < n; i++) { var b = CGDisplayBounds(ids[i]); list.Add((b.X, b.Y, b.W, b.H)); }
+        }
+        catch (Exception) { }
+        return list;
+    }
 }
 
 /// <summary>The pointer position in macOS global points (top-left origin), or null elsewhere.</summary>

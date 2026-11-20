@@ -32,6 +32,15 @@ public sealed class RadialMenuOverlay : IDisposable
 
     /// <summary>Same files the plugin uses (RadialMenuState.StateFilePath / OffFlagPath).</summary>
     public static string StateFilePath { get; } = Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-menu");
+    /// <summary>V29 #154 (Zak 20 Nov: the radial menu and the colour palette can be open at the same time): the palette has its
+    /// own window, fed by its own state file and answering through its own command file (RadialMenuState.Palette*FilePath).</summary>
+    public static string PaletteStateFilePath { get; set; } = Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-palette");
+    public static string PaletteCommandFilePath { get; set; } = Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-palette-cmd");
+
+    private readonly bool _isPalette;
+    /// <summary>The overlay for the radial menu (false) or for the colour palette (true).</summary>
+    public RadialMenuOverlay(bool palette = false) => _isPalette = palette;
+    private string MyStateFile => _isPalette ? PaletteStateFilePath : StateFilePath;
     public static string OffFlagPath { get; } = Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-menu-off");
 
     /// <summary>The Radial menu switch. On by default: nothing happens until a button is set to Radial menu.</summary>
@@ -67,7 +76,11 @@ public sealed class RadialMenuOverlay : IDisposable
     private static readonly object CommandGate = new();
 
     /// <summary>Hand a mouse command to the driver plugin. The sequence number only grows, so each is acted on once.</summary>
-    public static void SendCommand(string op, int slice = -1, double x = 0, double y = 0, string? menu = null)
+    public static void SendCommand(string op, int slice = -1, double x = 0, double y = 0, string? menu = null) =>
+        SendCommandTo(false, op, slice, x, y, menu);
+
+    /// <summary>V29 #154: the same, to the radial menu (false) or the colour palette (true).</summary>
+    public static void SendCommandTo(bool palette, string op, int slice = -1, double x = 0, double y = 0, string? menu = null)
     {
         try
         {
@@ -75,10 +88,11 @@ public sealed class RadialMenuOverlay : IDisposable
             {
                 _commandSeq = Math.Max(_commandSeq + 1, DateTime.UtcNow.Ticks);
                 var cmd = new RadialMenuCommand { Seq = _commandSeq, Op = op, Slice = slice, X = x, Y = y, Menu = menu };
-                Directory.CreateDirectory(Path.GetDirectoryName(CommandFilePath)!);
-                var tmp = CommandFilePath + ".tmp";
+                var file = palette ? PaletteCommandFilePath : CommandFilePath;
+                Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+                var tmp = file + ".tmp";
                 File.WriteAllText(tmp, cmd.ToJson());
-                File.Move(tmp, CommandFilePath, overwrite: true);
+                File.Move(tmp, file, overwrite: true);
             }
         }
         catch (Exception e)
@@ -106,6 +120,10 @@ public sealed class RadialMenuOverlay : IDisposable
 
     /// <summary>The overlay the app started (null in tests that don't start one).</summary>
     internal static RadialMenuOverlay? Current { get; private set; }
+    /// <summary>V29 #154: the colour palette's overlay (null in tests that don't start one).</summary>
+    internal static RadialMenuOverlay? CurrentPalette { get; private set; }
+
+    private void Send(string op, int slice = -1, double x = 0, double y = 0, string? menu = null) => SendCommandTo(_isPalette, op, slice, x, y, menu);
 
     private MenuState? _shown;
     private long _lastLiveLog;
@@ -115,7 +133,12 @@ public sealed class RadialMenuOverlay : IDisposable
     /// slices) as <paramref name="previewMenuJson"/>, the driver is told to use it now; the driver writes its state and the
     /// window follows, so the pen measures taps on the same size as the picture shows. Nothing happens when no menu is
     /// open, when another menu is open, or while a slice is being edited or a Yes / No question shows. UI thread.</summary>
-    public static bool ShowLookLive(string previewMenuJson) => Current?.TryLook(previewMenuJson) ?? false;
+    public static bool ShowLookLive(string previewMenuJson)
+    {
+        bool menu = Current?.TryLook(previewMenuJson) ?? false;
+        bool palette = CurrentPalette?.TryLook(previewMenuJson) ?? false;   // V29 #154/#155: the palette's own window
+        return menu || palette;
+    }
 
     internal bool TryLook(string previewMenuJson)
     {
@@ -128,7 +151,7 @@ public sealed class RadialMenuOverlay : IDisposable
             // V29 #155 (Zak 20 Nov): an open colour palette follows its own size slider live too (its transparency is fixed).
             if (st.IsPalette ? preview.PaletteSize == st.Size
                              : preview.Size == st.Size && preview.Transparency == st.Transparency) return true;
-            SendCommand(RadialMenuCommand.MenuChanged, menu: previewMenuJson);
+            Send(RadialMenuCommand.MenuChanged, menu: previewMenuJson);
             if (Environment.TickCount64 - _lastLiveLog > 2000)
             {
                 _lastLiveLog = Environment.TickCount64;
@@ -156,13 +179,13 @@ public sealed class RadialMenuOverlay : IDisposable
 
     public void Start()
     {
-        Current = this;
+        if (_isPalette) CurrentPalette = this; else Current = this;
         SyncOffFlag();
         try
         {
-            var dir = Path.GetDirectoryName(StateFilePath)!;
+            var dir = Path.GetDirectoryName(MyStateFile)!;
             Directory.CreateDirectory(dir);
-            _watcher = new FileSystemWatcher(dir, Path.GetFileName(StateFilePath))
+            _watcher = new FileSystemWatcher(dir, Path.GetFileName(MyStateFile))
             {
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size,
             };
@@ -204,13 +227,13 @@ public sealed class RadialMenuOverlay : IDisposable
     private long _lastUsedSeq = -1;
     private readonly RadialMenuToast _toast = new();
 
-    private static async System.Threading.Tasks.Task RunRequestAsync(Func<RadialRequest, string, System.Threading.Tasks.Task> handler, RadialRequest req, string menuJson)
+    private async System.Threading.Tasks.Task RunRequestAsync(Func<RadialRequest, string, System.Threading.Tasks.Task> handler, RadialRequest req, string menuJson)
     {
         try { await handler(req, menuJson); }
         catch (Exception e)
         {
             AppLog.Warn("Radial menu: couldn't carry out the " + req.Kind + " request", e);
-            SendCommand(RadialMenuCommand.MenuChanged, menu: menuJson);   // let the pen back in
+            Send(RadialMenuCommand.MenuChanged, menu: menuJson);   // let the pen back in
         }
     }
 
@@ -272,7 +295,7 @@ public sealed class RadialMenuOverlay : IDisposable
     private void OnFileChanged()
     {
         string content;
-        try { content = File.ReadAllText(StateFilePath); }
+        try { content = File.ReadAllText(MyStateFile); }
         catch (IOException) { return; }
         catch (UnauthorizedAccessException) { return; }
         var st = Parse(content);
@@ -466,7 +489,8 @@ public sealed class RadialMenuOverlay : IDisposable
         else if (h != _pie.Highlight) _pie.Highlight = h;
         // Esc closes the menu. The driver closes it (it owns the state); the window is hidden when it says so.
         bool esc = EscapeProbe();
-        if (esc && !_escWasDown) SendCommand(RadialMenuCommand.Close);
+        // V29 #154: the menu's and the palette's windows each watch Esc, so one Esc closes both (the X closes only its own).
+        if (esc && !_escWasDown) Send(RadialMenuCommand.Close);
         _escWasDown = esc;
     }
 
@@ -528,7 +552,7 @@ public sealed class RadialMenuOverlay : IDisposable
         if (Environment.TickCount64 - _lastMoveSent > 50)
         {
             _lastMoveSent = Environment.TickCount64;
-            SendCommand(RadialMenuCommand.Move, x: cx, y: cy);
+            Send(RadialMenuCommand.Move, x: cx, y: cy);
         }
         e.Handled = true;
     }
@@ -544,26 +568,26 @@ public sealed class RadialMenuOverlay : IDisposable
         {
             var (cx, cy) = Centre();
             _cx = cx; _cy = cy;
-            SendCommand(RadialMenuCommand.Move, x: cx, y: cy);   // the last position, whatever was throttled
+            Send(RadialMenuCommand.Move, x: cx, y: cy);   // the last position, whatever was throttled
             return;
         }
         switch (press.Target)
         {
             case RadialTarget.Close:
-                SendCommand(RadialMenuCommand.Centre);
+                Send(RadialMenuCommand.Centre);
                 break;
             case RadialTarget.Edit:
                 AppLog.Info("Radial menu: mouse click on the pencil.");
-                SendCommand(RadialMenuCommand.Edit);
+                Send(RadialMenuCommand.Edit);
                 break;
             case RadialTarget.Restore:
-                SendCommand(RadialMenuCommand.Restore);
+                Send(RadialMenuCommand.Restore);
                 break;
             case RadialTarget.Slice:
                 if (_pie?.Editing == true) AppLog.Info($"Radial menu: mouse click on slice {press.Slice + 1} while the pencil is on: asking the driver to edit it.");
                 // macOS shouldn't activate this app for the click; if it did, the keyboard goes back first.
-                if (MacDesktop.GiveFocusBack()) Task.Delay(150).ContinueWith(_ => SendCommand(RadialMenuCommand.Tap, press.Slice));
-                else SendCommand(RadialMenuCommand.Tap, press.Slice);
+                if (MacDesktop.GiveFocusBack()) Task.Delay(150).ContinueWith(_ => Send(RadialMenuCommand.Tap, press.Slice));
+                else Send(RadialMenuCommand.Tap, press.Slice);
                 break;
         }
     }
@@ -584,6 +608,7 @@ public sealed class RadialMenuOverlay : IDisposable
     public void Dispose()
     {
         if (ReferenceEquals(Current, this)) Current = null;
+        if (ReferenceEquals(CurrentPalette, this)) CurrentPalette = null;
         _pointerTimer?.Stop();
         _watcher?.Dispose();
         _toast.Dispose();

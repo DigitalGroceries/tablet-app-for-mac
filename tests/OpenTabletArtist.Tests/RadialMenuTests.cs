@@ -237,6 +237,9 @@ public class RadialMenuStateTests : IDisposable
         RadialMenuState.CursorProvider = () => _cursor;
         RadialMenuState.ActionRunner = (_, s) => _ran.Add(s.Label);
         RadialMenuState.CommandFilePath = Path.Combine(_dir, "radial-menu-cmd");
+        RadialMenuState.PaletteStateFilePath = Path.Combine(_dir, "radial-palette");      // V29 #154
+        RadialMenuState.PaletteCommandFilePath = Path.Combine(_dir, "radial-palette-cmd");
+        RadialMenuState.ScreensProvider = () => new List<(double, double, double, double)> { (0, 0, 3000, 2000) };
         RadialMenuState.CommandPollMs = 40;
         RadialMenuState.DoublePressMs = -1;   // presses in a test come fast: only the palette tests count double presses
     }
@@ -253,6 +256,8 @@ public class RadialMenuStateTests : IDisposable
         new() { Menu = RadialMenuJson.Serialize(menu ?? RadialMenuDefaults.Create()) };
 
     private JsonElement State() => JsonDocument.Parse(File.ReadAllText(RadialMenuState.StateFilePath)).RootElement;
+    /// <summary>V29 #154: the colour palette's own state file.</summary>
+    private JsonElement PState() => JsonDocument.Parse(File.ReadAllText(RadialMenuState.PaletteStateFilePath)).RootElement;
 
     private void TapAt(double dx, double dy)
     {
@@ -416,33 +421,87 @@ public class RadialMenuStateTests : IDisposable
     // ── V29 #142 (Zak 19 Nov 19:35): a double press on the same pen button opens the colour palette or swaps ──
 
     [Fact]
-    public void DoublePress_OpensTheColourPalette_AndAnotherDoublePressSwapsBack()
+    public void DoublePress_OpensTheColourPalette_AndAnotherDoublePressClosesIt()
     {
+        // V29 #154 (Zak 20 Nov, Y): two quick presses open or close the palette; the menu is left as it was.
         RadialMenuState.DoublePressMs = 400;
         var b = Binding();
         b.Press(null!, null!); b.Release(null!, null!);
-        b.Press(null!, null!); b.Release(null!, null!);          // quick second press: swap, not close
-        Assert.True(RadialMenuState.IsOpen);
+        b.Press(null!, null!); b.Release(null!, null!);          // quick second press: the palette, not the menu
         Assert.True(RadialMenuState.PaletteOpen);
-        Assert.Equal("palette", State().GetProperty("kind").GetString());
+        Assert.False(RadialMenuState.MenuOpen);
+        Assert.Equal("palette", PState().GetProperty("kind").GetString());
+        Assert.Equal("closed", State().GetProperty("state").GetString());
         b.Press(null!, null!); b.Release(null!, null!);          // a new double press while it is open...
-        b.Press(null!, null!); b.Release(null!, null!);          // ...swaps back to the menu
-        Assert.True(RadialMenuState.IsOpen);
+        b.Press(null!, null!); b.Release(null!, null!);          // ...closes the palette
         Assert.False(RadialMenuState.PaletteOpen);
-        Assert.Equal("menu", State().GetProperty("kind").GetString());
+        Assert.False(RadialMenuState.MenuOpen);
     }
 
     [Fact]
-    public void SinglePress_WhileThePaletteIsOpen_ClosesIt()
+    public void OnePress_OpensTheMenu_WhileThePaletteStaysOpen_BesideIt()
     {
+        // V29 #154: both can be open; the one opened second goes beside the other when they would overlap.
         RadialMenuState.DoublePressMs = 400;
         var b = Binding();
         b.Press(null!, null!); b.Release(null!, null!);
         b.Press(null!, null!); b.Release(null!, null!);
         Assert.True(RadialMenuState.PaletteOpen);
         System.Threading.Thread.Sleep(450);
-        b.Press(null!, null!);
-        Assert.False(RadialMenuState.IsOpen);
+        b.Press(null!, null!); b.Release(null!, null!);          // a single press: the menu opens, the palette stays
+        Assert.True(RadialMenuState.MenuOpen);
+        Assert.True(RadialMenuState.PaletteOpen);
+        double r = RadialMenuGeometry.OuterRadius(RadialMenuDef.DefaultSize);
+        double mx = State().GetProperty("x").GetDouble(), px = PState().GetProperty("x").GetDouble();
+        Assert.True(Math.Abs(mx - px) >= 2 * r, $"menu at {mx}, palette at {px}");
+        System.Threading.Thread.Sleep(450);
+        b.Press(null!, null!);                                   // another single press closes the menu only
+        Assert.False(RadialMenuState.MenuOpen);
+        Assert.True(RadialMenuState.PaletteOpen);
+    }
+
+    [Fact]
+    public void ADoublePressWhileTheMenuIsOpen_KeepsTheMenu_AndAddsThePalette()
+    {
+        RadialMenuState.DoublePressMs = 400;
+        var b = Binding();
+        b.Press(null!, null!); b.Release(null!, null!);          // the menu
+        System.Threading.Thread.Sleep(450);
+        b.Press(null!, null!); b.Release(null!, null!);          // first press closes it for a moment...
+        b.Press(null!, null!); b.Release(null!, null!);          // ...the second puts it back and opens the palette
+        Assert.True(RadialMenuState.MenuOpen);
+        Assert.True(RadialMenuState.PaletteOpen);
+    }
+
+    [Fact]
+    public void QuickPressesOfTwoDifferentButtons_AreTwoSinglePresses()
+    {
+        // Grok's review: Zak's double press is the SAME button pressed twice quickly.
+        RadialMenuState.DoublePressMs = 400;
+        var a = Binding(); var b = Binding();
+        a.Press(null!, null!); a.Release(null!, null!);
+        b.Press(null!, null!); b.Release(null!, null!);
+        Assert.False(RadialMenuState.PaletteOpen);
+        Assert.False(RadialMenuState.MenuOpen);   // the second button closed the menu the first one opened
+    }
+
+    [Fact]
+    public void Beside_StaysOnThePensScreen_WhenItFits()
+    {
+        RadialMenuState.ScreensProvider = () => new List<(double, double, double, double)> { (1000, 0, 3000, 2000), (0, 0, 1000, 1000) };
+        Assert.Equal((678.0, 500.0), RadialMenuState.Beside(890, 500, 100, 890, 500, 100));   // not onto the big screen on the right
+    }
+
+    [Fact]
+    public void Beside_GoesToTheOtherSide_OrBelow_WhenThePointersSideIsOffTheScreen()
+    {
+        RadialMenuState.ScreensProvider = () => new List<(double, double, double, double)> { (0, 0, 1000, 1000) };
+        Assert.Equal((500.0, 500.0), RadialMenuState.Beside(500, 500, 100, 100, 100, 100));          // far apart: unchanged
+        Assert.Equal((382.0, 170.0), RadialMenuState.Beside(200, 170, 100, 170, 170, 100));         // pointer side (right) fits
+        var (x, y) = RadialMenuState.Beside(890, 500, 100, 890, 500, 100);                            // right side is off the screen
+        Assert.Equal((678.0, 500.0), (x, y));
+        RadialMenuState.ScreensProvider = () => new List<(double, double, double, double)> { (0, 0, 300, 1000) };
+        Assert.Equal((150.0, 362.0), RadialMenuState.Beside(150, 150, 100, 150, 150, 100));          // neither side: below
     }
 
     [Fact]
@@ -456,7 +515,7 @@ public class RadialMenuStateTests : IDisposable
         double greyEdge = outer - (outer - inner) * ColourPalette.GreyBand;
         _cursor = (500, 400 - (greyEdge - 3));                      // just inside the greys ring at the top: yellow, the pure ring
         Assert.True(RadialMenuState.TipDown());
-        var used = State().GetProperty("used");
+        var used = PState().GetProperty("used");
         Assert.Equal(ColourPalette.Action, used.GetProperty("action").GetString());
         Assert.Equal(ColourPalette.Hex(0, 0), used.GetProperty("keys").GetString());
         Assert.Equal("Yellow, pure", used.GetProperty("label").GetString());
@@ -513,7 +572,7 @@ public class RadialMenuStateTests : IDisposable
         Assert.True(RadialMenuState.PaletteOpen);
         Assert.False(RadialMenuState.Editing);
         Assert.False(RadialMenuState.Confirming);
-        Assert.False(State().TryGetProperty("used", out var used) && used.ValueKind == System.Text.Json.JsonValueKind.Object);
+        Assert.False(PState().TryGetProperty("used", out var used) && used.ValueKind == System.Text.Json.JsonValueKind.Object);
         Assert.Empty(_ran);
     }
 
@@ -527,19 +586,19 @@ public class RadialMenuStateTests : IDisposable
         b.Press(null!, null!); b.Release(null!, null!);
         b.Press(null!, null!); b.Release(null!, null!);
         Assert.True(RadialMenuState.PaletteOpen);
-        var menu = RadialMenuJson.Parse(State().GetProperty("menu").GetString());
+        var menu = RadialMenuJson.Parse(PState().GetProperty("menu").GetString());
         Assert.Equal(new Dictionary<string, string> { ["0"] = "#123456" }, menu.PaletteColours);   // bad entries dropped
         double outer = RadialMenuGeometry.OuterRadius(RadialMenuDef.DefaultSize), inner = RadialMenuGeometry.InnerRadius(RadialMenuDef.DefaultSize);
         double greyEdge = outer - (outer - inner) * ColourPalette.GreyBand;
         _cursor = (500, 400 - (greyEdge - 3));
         RadialMenuState.TipDown();
-        Assert.Equal("#123456", State().GetProperty("used").GetProperty("keys").GetString());   // the user's own colour
+        Assert.Equal("#123456", PState().GetProperty("used").GetProperty("keys").GetString());   // the user's own colour
         _cursor = (520, 380);                                       // the pencil
         RadialMenuState.TipDown();
         Assert.True(RadialMenuState.Editing);
         _cursor = (500, 400 - (greyEdge - 3));
         RadialMenuState.TipDown();
-        var req = State().GetProperty("request");
+        var req = PState().GetProperty("request");
         Assert.Equal("palette-edit", req.GetProperty("kind").GetString());
         Assert.Equal(0, req.GetProperty("slice").GetInt32());
         Assert.True(RadialMenuState.PaletteOpen);
@@ -555,10 +614,10 @@ public class RadialMenuStateTests : IDisposable
         _cursor = (480, 420);                                       // the circular arrow
         RadialMenuState.TipDown();
         Assert.True(RadialMenuState.Confirming);
-        Assert.True(State().GetProperty("confirm").GetBoolean());
+        Assert.True(PState().GetProperty("confirm").GetBoolean());
         _cursor = (600, 400);                                       // right half: Yes
         RadialMenuState.TipDown();
-        Assert.Equal("palette-restore", State().GetProperty("request").GetProperty("kind").GetString());
+        Assert.Equal("palette-restore", PState().GetProperty("request").GetProperty("kind").GetString());
         Assert.False(RadialMenuState.Confirming);
         Assert.True(RadialMenuState.PaletteOpen);
     }

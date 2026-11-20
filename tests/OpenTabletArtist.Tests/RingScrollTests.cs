@@ -125,8 +125,9 @@ public class RingScrollTests : IDisposable
     [Fact]
     public void FunctionList_HasScroll_LastSoOldIndicesKeepTheirMeaning()
     {
-        Assert.Equal("Scroll", RingModeRow.ActionNames[^1]);
-        Assert.Equal((int)RingAction.Scroll, RingModeRow.ActionNames.Count - 1);
+        // V29 #153: Volume, Brightness and Previous / next track come after Scroll; the RingAction indices keep their meaning.
+        Assert.Equal("Scroll", RingModeRow.ActionNames[(int)RingAction.Scroll]);
+        Assert.Equal((int)RingAction.Scroll + 1 + RingModeRow.Presets.Count, RingModeRow.ActionNames.Count);
         Assert.Equal("Smooth zoom", RingModeRow.ActionNames[(int)RingAction.SmoothZoom]);
     }
 

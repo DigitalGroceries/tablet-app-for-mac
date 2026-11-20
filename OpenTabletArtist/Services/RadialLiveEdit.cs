@@ -87,7 +87,8 @@ public static class RadialLiveEdit
         finally
         {
             if (wentForward) MacDesktop.GiveFocusBack();   // back to the drawing app; the menu is still up
-            RadialMenuOverlay.SendCommand(RadialMenuCommand.MenuChanged, menu: result ?? current);
+            // V29 #154: the palette has its own window and command file; its requests are answered there.
+            RadialMenuOverlay.SendCommandTo(request.Kind.StartsWith("palette", StringComparison.Ordinal), RadialMenuCommand.MenuChanged, menu: result ?? current);
         }
     }
 }

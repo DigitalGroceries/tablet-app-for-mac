@@ -11,7 +11,7 @@ public partial class App : Application
     private AppTray? _tray;
     // Wacom-like on-screen display when the Touch Ring mode changes.
     private RingModeHud? _ringHud;
-    private RadialMenuOverlay? _radialMenu;
+    private RadialMenuOverlay? _radialMenu, _radialPalette;
     private RingGestureWatchdog? _ringWatchdog;
 
     public override void Initialize()
@@ -122,8 +122,10 @@ public partial class App : Application
             Services.FloatingKeyboard.WriteOpenFlag(false);   // V29 #141: a keyboard left over from last time never types
             RadialMenuOverlay.RequestHandler = RadialLiveEdit.HandleAsync;   // TASKS #54: the pencil and the circular arrow
             _radialMenu.Start();
+            _radialPalette = new RadialMenuOverlay(palette: true);   // V29 #154: the colour palette's own window (both can be open)
+            _radialPalette.Start();
             Services.AppSwitchFix.Sync();   // V29 #85: the driver's flag file matches the App window switching fix switch
-            desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); _radialMenu?.Dispose(); Services.FloatingKeyboard.Current?.Dispose(); };
+            desktop.Exit += (_, _) => { Services.ActionConfirmation.Attach(null); _ringHud?.Dispose(); _radialMenu?.Dispose(); _radialPalette?.Dispose(); Services.FloatingKeyboard.Current?.Dispose(); };
 
             // Build J: safety net for the experimental smooth-rotate gesture (releases stuck R / mouse button
             // if the driver dies or hangs mid-gesture, then starts the driver again).
