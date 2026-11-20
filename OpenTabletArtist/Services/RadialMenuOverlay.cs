@@ -167,6 +167,39 @@ public sealed class RadialMenuOverlay : IDisposable
         }
     }
 
+    /// <summary>V29 #161 (Zak 20 Nov ~09:10: "The update to keyboard did not update on the already opened radial menu"): a
+    /// button's radial menu was changed in its Change… window (e.g. Put the keyboard there). An open menu (or palette) that
+    /// shows the menu as it was before gets the new one at once, so it doesn't need closing and opening again. A menu opened
+    /// from another button (other slices) is left alone. UI thread.</summary>
+    public static bool ReplaceLive(AuxBinding before, AuxBinding after)
+    {
+        if (before.Kind != AuxKind.RadialMenu || after.Kind != AuxKind.RadialMenu) return false;
+        if (string.IsNullOrWhiteSpace(before.Menu) || string.IsNullOrWhiteSpace(after.Menu) || before.Menu == after.Menu) return false;
+        bool menu = Current?.TryReplace(before.Menu, after.Menu) ?? false;
+        // One MenuChanged updates both when the palette is open from the same button (the driver shares the menu).
+        bool palette = !menu && (CurrentPalette?.TryReplace(before.Menu, after.Menu) ?? false);
+        return menu || palette;
+    }
+
+    internal bool TryReplace(string beforeJson, string afterJson)
+    {
+        try
+        {
+            if (_window?.IsVisible != true || _shown is not { State: "open" } st) return false;
+            if (st.Editing || st.Confirm || st.Busy) return false;
+            if (!SameSlices(st.Menu, beforeJson)) return false;
+            Send(RadialMenuCommand.MenuChanged, menu: afterJson);
+            AppLog.Info(st.IsPalette ? "Colour palette: the open palette now has the menu just saved."
+                : "Radial menu: the open menu now shows the slices just saved.");
+            return true;
+        }
+        catch (Exception e)
+        {
+            AppLog.Warn("Radial menu: couldn't show the saved menu on the open menu", e);
+            return false;
+        }
+    }
+
     /// <summary>Same slices (labels, actions, submenus), whatever the size and transparency of the menu and the palette.</summary>
     internal static bool SameSlices(string? openMenuJson, string previewMenuJson)
     {

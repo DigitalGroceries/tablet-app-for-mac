@@ -120,10 +120,12 @@ public partial class ButtonBinding : ObservableObject
         var result = await _editBinding(_applied, Label);
         if (result is not { } binding) return; // cancelled
         if (binding == _applied) return;        // no change
+        var before = _applied;
         _applied = binding;
         OnPropertyChanged(nameof(Summary));
         ClearCommand.NotifyCanExecuteChanged();
         if (_applyBinding != null) await _applyBinding(Index, binding);
+        Services.RadialMenuOverlay.ReplaceLive(before, binding);   // V29 #161: an ExpressKey's open menu follows too
     }
 
     /// <summary>V29 #153: show <paramref name="binding"/> (set by its owner, e.g. a ring mode's Function menu) without

@@ -1771,6 +1771,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         PluginSettingStore? store = result.IsBound ? AuxKeyBinding.MakeBinding(result) : null;
         AppLog.Info($"{name}: applying {(store == null ? "nothing (cleared)" : store.Path)} to the {table} table.");
         await ApplyPenSwitchBindingAsync(row.Kind, row.PenButtonIndex, store);
+        RadialMenuOverlay.ReplaceLive(initial, result);   // V29 #161: an open menu shows the new slices at once
     }
 
     private async Task ApplyPenSwitchBindingAsync(PenSwitchKind kind, int penButtonIndex, PluginSettingStore? store)
