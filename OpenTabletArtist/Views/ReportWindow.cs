@@ -157,18 +157,28 @@ public sealed class ReportWindow : Window
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right, Children = { askAdd, askSend } },
             },
         };
-        body.Children.Add(ask);
+        // V29 #156 (Zak 20 Nov, build 5: "Send with file report does not work if the email ... is not written"): the question
+        // was added above the buttons, often out of sight in a long report, so pressing Send with file looked like it did
+        // nothing. It now takes the buttons' place, framed, and is scrolled into view.
+        var askFrame = new Border
+        {
+            Name = "ReportEmailAskFrame", Child = ask, IsVisible = vm.AskingEmail, Padding = new Thickness(12),
+            CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(2),
+        };
+        askFrame.Use(Border.BorderBrushProperty, "AccentBrush");
+        body.Children.Add(askFrame);
         vm.FocusEmailRequested += () => email.Focus();
 
         var cancel = new Button { Name = "ReportCancel", Content = vm.CancelLabel, Padding = new Thickness(16, 8), Command = vm.CancelCommand };
         // Owner's request: feedback with or without a GitHub account. The file needs no account, so it comes first.
         var file = new Button { Name = "ReportSendFile", Content = vm.SendFileLabel, Padding = new Thickness(16, 8), Command = vm.SendFileCommand };
         var send = new Button { Name = "ReportSend", Content = vm.SendGitHubLabel, Padding = new Thickness(16, 8), Command = vm.SendCommand };
-        body.Children.Add(new StackPanel
+        var buttons = new StackPanel
         {
-            Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(0, 4, 0, 0), Children = { cancel, file, send },
-        });
+            Name = "ReportButtons", Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(0, 4, 0, 0), Children = { cancel, file, send }, IsVisible = !vm.AskingEmail,
+        };
+        body.Children.Add(buttons);
 
         // Version 24 (Zak, 5 Nov 2026): after "Send with file" the sheet says where the file is and offers
         // Open upload page. The text can be selected, so the path can be copied.
@@ -209,7 +219,14 @@ public sealed class ReportWindow : Window
             if (e.PropertyName == nameof(ReportViewModel.RecordStatus)) recordStatus.Text = vm.RecordStatus;
             if (e.PropertyName == nameof(ReportViewModel.Status)) { status.Text = vm.Status; status.IsVisible = vm.Status.Length > 0; }
             if (e.PropertyName == nameof(ReportViewModel.SavedPath)) ShowSaved();
-            if (e.PropertyName == nameof(ReportViewModel.AskingEmail)) { ask.IsVisible = vm.AskingEmail; if (vm.AskingEmail) askAdd.Focus(); }
+            if (e.PropertyName == nameof(ReportViewModel.AskingEmail))
+            {
+                ask.IsVisible = askFrame.IsVisible = vm.AskingEmail;
+                buttons.IsVisible = !vm.AskingEmail;
+                if (vm.AskingEmail)
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => { askFrame.BringIntoView(); askAdd.Focus(); },
+                        Avalonia.Threading.DispatcherPriority.Loaded);
+            }
         };
         vm.Finished += _ => Close();
         Opened += (_, _) => text.Focus();

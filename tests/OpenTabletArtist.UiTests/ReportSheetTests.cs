@@ -93,6 +93,9 @@ public class ReportSheetTests
             // Version 29 (Zak, 17 Nov 2026): the email box is empty, so the sheet asks first and saves nothing yet.
             var sheet0 = mw.GetVisualDescendants().OfType<Border>().First(b => b.Name == "Sheet");
             Assert.True(sheet0.GetVisualDescendants().OfType<StackPanel>().First(p => p.Name == "ReportEmailAsk").IsVisible);
+            // V29 #156 (Zak 20 Nov): the question takes the buttons' place, framed, so it can't be missed.
+            Assert.True(sheet0.GetVisualDescendants().OfType<Border>().First(b => b.Name == "ReportEmailAskFrame").IsVisible);
+            Assert.False(sheet0.GetVisualDescendants().OfType<StackPanel>().First(p => p.Name == "ReportButtons").IsVisible);
             Assert.False(File.Exists(target));
             await vm.SendWithoutEmailCommand.ExecuteAsync(null);
             Dispatcher.UIThread.RunJobs();
