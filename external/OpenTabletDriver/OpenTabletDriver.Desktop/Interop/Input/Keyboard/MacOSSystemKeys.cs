@@ -95,6 +95,9 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         [DllImport(AppServices)] private static extern int AXUIElementCopyAttributeValue(IntPtr element, IntPtr attribute, out IntPtr value);
         [DllImport(AppServices)] private static extern int AXUIElementSetMessagingTimeout(IntPtr element, float seconds);
         [DllImport(AppServices)] private static extern int AXUIElementGetPid(IntPtr element, out int pid);
+        [DllImport(AppServices)] [return: MarshalAs(UnmanagedType.I1)] private static extern bool AXIsProcessTrusted();
+        [DllImport(LibSystem)] private static extern int proc_name(int pid, byte[] buffer, uint size);
+        private const int AXErrorCannotComplete = -25204;
         [DllImport(AppServices)] [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool AXValueGetValue(IntPtr value, int type, out CGPoint point);
         [DllImport(AppServices)] [return: MarshalAs(UnmanagedType.I1)]
@@ -361,14 +364,25 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
             return (display, why, centre);
         }
 
-        private static bool _axFailedLogged;
+        private static long _axPausedUntil;
+        private static bool _axTrustLogged;
 
         /// <summary>The window that has the keyboard focus (the one the user last clicked), from the Accessibility API: the
         /// focused app's focused window, its position and size in global points (top-left origin, as the screens). Null when
-        /// there is none (the desktop) or macOS doesn't answer within 0.15 s, so a hung app can't stall the pen.</summary>
+        /// there is none (the desktop), when it is the Tablet App's own (the window list then finds the user's window), or
+        /// macOS doesn't answer within 0.15 s; after a "cannot complete" answer (a hung app) the Accessibility check rests 2 s,
+        /// so the pen never waits on it. (Grok's review of 35f6948.)</summary>
         private static Box? FocusedWindow(out string? owner)
         {
             owner = null;
+            if (Environment.TickCount64 < _axPausedUntil) return null;
+            if (!_axTrustLogged)
+            {
+                _axTrustLogged = true;
+                bool trusted = false;
+                try { trusted = AXIsProcessTrusted(); } catch (Exception) { }
+                Log.Write("Keyboard", $"Brightness: Accessibility trusted for the driver: {(trusted ? "yes" : "NO - the window list is used")}", LogLevel.Info);
+            }
             IntPtr sys = IntPtr.Zero, app = IntPtr.Zero, win = IntPtr.Zero, pos = IntPtr.Zero, size = IntPtr.Zero;
             IntPtr kApp = IntPtr.Zero, kWin = IntPtr.Zero, kPos = IntPtr.Zero, kSize = IntPtr.Zero;
             try
@@ -381,21 +395,23 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
                 kPos = CFStringCreateWithCString(IntPtr.Zero, "AXPosition", Utf8);
                 kSize = CFStringCreateWithCString(IntPtr.Zero, "AXSize", Utf8);
                 int err = AXUIElementCopyAttributeValue(sys, kApp, out app);
-                if (err != 0 || app == IntPtr.Zero) { NoteAx($"no focused app (AX error {err})"); return null; }
+                if (err != 0 || app == IntPtr.Zero) { NoteAx("no focused app", err); return null; }
                 AXUIElementSetMessagingTimeout(app, 0.15f);
+                string name = AXUIElementGetPid(app, out int pid) == 0 ? ProcessName(pid) : "?";
+                if (pid == Environment.ProcessId || IsOwnApp(name)) return null;   // our own settings window: use the window list
                 err = AXUIElementCopyAttributeValue(app, kWin, out win);
-                if (err != 0 || win == IntPtr.Zero) { NoteAx($"the focused app has no focused window (AX error {err})"); return null; }
-                if (AXUIElementCopyAttributeValue(win, kPos, out pos) != 0 || pos == IntPtr.Zero
-                    || !AXValueGetValue(pos, AXValueCGPointType, out CGPoint p)) { NoteAx("no window position"); return null; }
-                if (AXUIElementCopyAttributeValue(win, kSize, out size) != 0 || size == IntPtr.Zero
-                    || !AXValueGetValue(size, AXValueCGSizeType, out CGSizeValue z)) { NoteAx("no window size"); return null; }
-                if (z.W < 1 || z.H < 1) return null;
-                owner = AXUIElementGetPid(app, out int pid) == 0 ? $"pid {pid}" : "?";
+                if (err != 0 || win == IntPtr.Zero) { NoteAx($"'{name}' has no focused window", err); return null; }
+                if ((err = AXUIElementCopyAttributeValue(win, kPos, out pos)) != 0 || pos == IntPtr.Zero
+                    || !AXValueGetValue(pos, AXValueCGPointType, out CGPoint p)) { NoteAx($"no position for '{name}'", err); return null; }
+                if ((err = AXUIElementCopyAttributeValue(win, kSize, out size)) != 0 || size == IntPtr.Zero
+                    || !AXValueGetValue(size, AXValueCGSizeType, out CGSizeValue z)) { NoteAx($"no size for '{name}'", err); return null; }
+                if (z.W < 50 || z.H < 50) return null;   // a small focused popup: the window list finds the real window
+                owner = name;
                 return new Box(p.X, p.Y, z.W, z.H);
             }
             catch (Exception e)
             {
-                NoteAx(e.Message);
+                NoteAx(e.Message, 0);
                 return null;
             }
             finally
@@ -405,11 +421,22 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
             }
         }
 
-        private static void NoteAx(string why)
+        private static void NoteAx(string why, int err)
         {
-            if (_axFailedLogged) return;
-            _axFailedLogged = true;   // once per driver run: the window list is used instead
-            Log.Write("Keyboard", $"Brightness: macOS didn't say which window has the focus ({why}); using the window list", LogLevel.Info);
+            if (err == AXErrorCannotComplete) _axPausedUntil = Environment.TickCount64 + 2000;
+            LogOnce($"Brightness: macOS didn't say which window has the focus ({why}{(err != 0 ? $", AX error {err}" : "")}); using the window list");
+        }
+
+        /// <summary>A process's name from its pid (libproc; no permission needed), for the log.</summary>
+        private static string ProcessName(int pid)
+        {
+            try
+            {
+                var buf = new byte[256];
+                int n = proc_name(pid, buf, (uint)buf.Length);
+                return n > 0 ? System.Text.Encoding.UTF8.GetString(buf, 0, n) : $"pid {pid}";
+            }
+            catch (Exception) { return $"pid {pid}"; }
         }
 
         /// <summary>The frontmost normal window (layer 0, at least 50 x 50) of any app, front-to-back order, or null.
