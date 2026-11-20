@@ -105,6 +105,7 @@ Read this first. It is short on purpose.
 - **One Speed scale everywhere:** 1–100, higher = faster, typed box + slider, for keys and smooth actions alike.
 - **Nav labels are title case** (first letter only) via `Converters/TitleCaseConverter.cs`, with an **exceptions list** (ExpressKeys, JSON, OTD, OTA). Add new acronyms there.
 - **Match Wacom's layout and wording; never copy Wacom artwork.**
+- **macOS 27.2 broke the Mac's own window drag for custom title bars** (V29 #176, Zak 20 Nov 2026; warpdotdev/warp#16508, Apple FB25207761): `performWindowDragWithEvent:` / Avalonia's `BeginMoveDrag` is accepted but often moves nothing or starts seconds late; Finder is fine. The main window is therefore dragged by hand on macOS (`Helpers/ManualWindowDrag.cs`: place at the press + pointer movement read from macOS) and made not movable by macOS (`Services/MacWindowDrag.MakeNotMovableByMac`). Don't go back to the Mac's drag, and don't snap or throw the window between screens while dragging (it jittered). The team's permanent record: `AI/Team/TEAM-FACTS.md` on the T7.
 
 ## Text casing rule (the maintainer's, since 0.89.1-P)
 
