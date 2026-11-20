@@ -699,5 +699,16 @@
   "palette.restore_prompt": "Rétablir les couleurs d'origine de la palette ?",
   "palette.change_title": "Modifier cette couleur",
   "palette.saved": "Couleur enregistrée",
-  "palette.restored": "Couleurs de la palette rétablies"
+  "palette.restored": "Couleurs de la palette rétablies",
+  "tablet.ring.modes_optional": "Facultatif. Désactivé : l'anneau utilise les lignes ci-dessus. Activé : le bouton central passe d'un mode à l'autre (jusqu'à 4) et affiche chacun à l'écran.",
+  "binding.media.mute": "Muet",
+  "binding.media.volume_down": "Baisser le volume",
+  "binding.media.volume_up": "Augmenter le volume",
+  "binding.media.play_pause": "Lecture / Pause",
+  "binding.media.previous": "Piste précédente",
+  "binding.media.next": "Piste suivante",
+  "binding.media.stop": "Arrêt",
+  "binding.media.brightness_down": "Baisser la luminosité",
+  "binding.media.brightness_up": "Augmenter la luminosité",
+  "binding.media.brightness_tip": "Comme la touche de luminosité du Mac : modifie l'écran sur lequel vous avez cliqué en dernier."
 }

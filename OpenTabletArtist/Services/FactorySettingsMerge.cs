@@ -44,6 +44,7 @@ public static class FactorySettingsMerge
         {
             ApplyFactoryDoubleClickFix(profile.BindingSettings);
             ApplyFactoryRadialButton(profile);
+            ApplyFactoryRingModes(profile);
         }
 
         SyncAllStashes(merged);
@@ -77,6 +78,25 @@ public static class FactorySettingsMerge
         buttons[1] = Domain.RadialMenuBinding.Make();
         Domain.RadialMenuBinding.SyncFilter(profile);
         return true;
+    }
+
+    /// <summary>V29 #149 (Zak 20 Nov: "the Factory Settings restores the app to touch ring being Off ... Is this a good
+    /// idea?", then: "Factory settings: Touch Ring On with its 4 modes (Rotate, Zoom, Brush size, Brush hardness); the
+    /// centre button switches between them and the pop-up shows the mode"): after a factory restore every Touch Ring with a
+    /// centre button works in Wacom's four modes at once. Modes can still be turned Off for plain Clockwise / Anticlockwise /
+    /// Centre button rows (Zak: artists customise everything). Touch strips have no centre button and are left as the
+    /// driver made them. Only the reset paths call this.</summary>
+    public static bool ApplyFactoryRingModes(Profile profile)
+    {
+        var wheels = profile.BindingSettings?.WheelBindings;
+        if (wheels == null) return false;
+        bool changed = false;
+        foreach (var w in wheels)
+        {
+            if (w == null || w.WheelButtons.Count == 0 || Domain.RingModeBinding.IsActive(w)) continue;
+            changed |= Domain.RingModeBinding.Apply(w, Domain.RingModeBinding.Defaults);
+        }
+        return changed;
     }
 
     private static Profile CloneProfile(Profile profile) =>

@@ -699,5 +699,16 @@
   "palette.restore_prompt": "パレットを元の色に戻しますか？",
   "palette.change_title": "この色を変更",
   "palette.saved": "色を保存しました",
-  "palette.restored": "パレットの色を元に戻しました"
+  "palette.restored": "パレットの色を元に戻しました",
+  "tablet.ring.modes_optional": "任意。オフ：リングは上の行の設定を使います。オン：中央ボタンで最大4つのモードを切り替え、各モードを画面に表示します。",
+  "binding.media.mute": "消音",
+  "binding.media.volume_down": "音量を下げる",
+  "binding.media.volume_up": "音量を上げる",
+  "binding.media.play_pause": "再生 / 一時停止",
+  "binding.media.previous": "前のトラック",
+  "binding.media.next": "次のトラック",
+  "binding.media.stop": "停止",
+  "binding.media.brightness_down": "明るさを下げる",
+  "binding.media.brightness_up": "明るさを上げる",
+  "binding.media.brightness_tip": "Macの明るさキーと同じ：最後にクリックした画面の明るさを変えます。"
 }

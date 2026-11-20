@@ -650,6 +650,11 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
+    "text": "Rör vid ringen",
+    "path": "Ritplatta › Funktioner › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
     "text": "Medurs",
     "path": "Ritplatta › Funktioner › Touch Ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

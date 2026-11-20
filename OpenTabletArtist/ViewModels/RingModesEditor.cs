@@ -96,6 +96,9 @@ public partial class RingModesEditor : ObservableObject
         {
             int n = Modes.Count(m => m.Enabled && m.IsMapped);
             if (!HasRingButton) return "This tablet's ring has no button to switch modes.";
+            // V29 #149 (Zak 20 Nov, design 1): the plain rows are the Touch Ring; the modes are an optional extra.
+            if (!IsOn) return Services.Localizer.Te("tablet.ring.modes_optional",
+                "Optional. Off: the ring uses the rows above. On: the centre button switches between up to 4 modes and shows each one on screen.");
             if (n == 0) return "No mode has a key set yet.";
             return n == 1 ? "1 mode. The centre button has nothing to switch." : $"{n} modes. Press the ring's centre button to switch.";
         }

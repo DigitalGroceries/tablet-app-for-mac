@@ -1180,11 +1180,23 @@
                                                     <Binding Path="!RingModes.IsOn" FallbackValue="True" />
                                                 </MultiBinding>
                                             </StackPanel.IsVisible>
-                                            <ctrl:WheelGauge Position="{Binding LivePosition}"
-                                                             TurningClockwise="{Binding TurningClockwise}"
-                                                             TurningCounterClockwise="{Binding TurningCounterClockwise}"
-                                                             AccentBrush="{DynamicResource AccentBrush}"
-                                                             Width="104" Height="104" HorizontalAlignment="Center" />
+                                            <!-- V29 #150 (Zak 20 Nov: "the touch ring shouldnt look like that when its On"): the same bright
+                                                 ring picture as the modes page (ring, centre button, live position, readout under it); here
+                                                 the centre button is only drawn, its action is the Centre button row. -->
+                                            <Panel x:Name="PlainRingPicture" Width="150" Height="150" HorizontalAlignment="Center">
+                                                <Ellipse Fill="{DynamicResource PenDiagramFillBrush}" />
+                                                <Ellipse Margin="16" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="14" Opacity="0.6" />
+                                                <ctrl:WheelGauge ShowIdleDash="False" ShowReadout="False" IsHitTestVisible="False" Position="{Binding LivePosition}"
+                                                                 TurningClockwise="{Binding TurningClockwise}"
+                                                                 TurningCounterClockwise="{Binding TurningCounterClockwise}"
+                                                                 AccentBrush="{DynamicResource AccentBrush}" Margin="2" />
+                                                <Button Classes="ringCentre" Width="44" Height="44" IsHitTestVisible="False" Focusable="False"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                        AutomationProperties.Name="Ring centre button" />
+                                            </Panel>
+                                            <TextBlock x:Name="PlainRingReadout" Text="{Binding LiveReadout}" HorizontalAlignment="Center"
+                                                       FontSize="15" FontWeight="SemiBold" Foreground="#E4E4E4" MinHeight="20" TextAlignment="Center"
+                                                       Margin="0,8,0,0" />
                                         </StackPanel>
 
                                         <!-- All mappings for this wheel, as flat rows in the one card. -->

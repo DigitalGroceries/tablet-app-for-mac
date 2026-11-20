@@ -139,7 +139,7 @@ When you turn the pen over, the app tells macOS that the pen tip has left before
 - **All buttons** (Off / On switch) turns every ExpressKey off or on; actions and each key's own On/Off are kept. A key works only when **All buttons** and the key are both On. While **All buttons** is Off, the per-key item is greyed ("Turn on All buttons first").
 - **Default**: clears every ExpressKey action, after asking.
 
-Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left click, Right click, Middle click, Back button, Forward button, or **Double Click**), **Scroll** (up, down, left, right, or a pen gesture), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop, and since Version 29 **Brightness down** and **Brightness up**, which work like the Mac's own brightness keys: the built-in display and Apple displays change, most other monitors ignore them; set them on the Touch Ring's Clockwise and Anticlockwise to turn the brightness with the ring). **Radial menu** is on its own tab (see Radial menu). **Save**, **Cancel**, **Clear**.
+Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left click, Right click, Middle click, Back button, Forward button, or **Double Click**), **Scroll** (up, down, left, right, or a pen gesture), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop, and since Version 29 **Brightness down** and **Brightness up**, which work like the Mac's own brightness keys: they change the screen of the window you last clicked in, and with Control held the other screen, as the Mac's keyboard does; a screen the Mac's own keys can't dim won't change either; set them on the Touch Ring's Clockwise and Anticlockwise to turn the brightness with the ring). **Radial menu** is on its own tab (see Radial menu). **Save**, **Cancel**, **Clear**.
 
 Pen gestures under **Scroll**, each with a **Speed** slider (Slow to Fast, 1–100, default 50):
 
@@ -172,8 +172,9 @@ A pen button or an ExpressKey can open a radial menu, like the one in Wacom's dr
 ## Tablet › Functions › Touch ring
 
 - **Touch Ring** (a tablet with one ring), **Touch Rings** (two rings, for example Cintiq 24HD), or **Touch Strip** / **Touch Strips** (tablets with touch strips, for example Intuos3 or Cintiq 22HD): an Off / On switch, On. Off pauses the ring or strip actions without deleting them. With two rings or strips, each one also has its own Off / On switch next to its name; it works only while the main switch is On, and the main switch never changes it.
-- **Touch Ring modes**: On. "4 modes. Press the ring's centre button to switch."
-- **Show touch ring setting (on-screen mode display)**: On. Shows the mode name when you switch.
+- **Touch Ring modes**: On after **Restore factory settings** (new in Version 29): Wacom's four modes, Rotate, Zoom, Brush size and Brush hardness (see **Default** below). The ring's centre button switches between them and the on-screen display shows each one.
+- Turn **Touch Ring modes** Off to give the ring one plain set of actions instead: three rows next to the ring picture, **Clockwise**, **Anticlockwise** and **Centre button**. Click **…** on a row to give it any action: a shortcut, a mouse click, scrolling, or a **Media** key such as Volume or Brightness. The line under the switch says which is in use.
+- **Show touch ring setting (on-screen mode display)**: shown while Touch Ring modes is On. Shows the mode name when you switch.
 - The dial follows the ring live: the dot sits under your finger. The angle and turn direction show under the ring, for example "0° · Clockwise". 12 o'clock is 0° and 3 o'clock is 90°.
 - The active mode is highlighted; its number is lit, centred, and also shows on the centre button.
 

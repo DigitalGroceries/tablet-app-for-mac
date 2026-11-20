@@ -650,6 +650,11 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
+    "text": "Коснитесь кольца",
+    "path": "Планшет › Функции › Тач-ринг",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
     "text": "По часовой стрелке",
     "path": "Планшет › Функции › Тач-ринг",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

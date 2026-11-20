@@ -635,6 +635,11 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
+    "text": "Докоснете пръстена",
+    "path": "Таблет › Функции › Сензорен пръстен",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
     "text": "По часовниковата стрелка",
     "path": "Таблет › Функции › Сензорен пръстен",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

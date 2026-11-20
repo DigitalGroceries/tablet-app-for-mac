@@ -699,5 +699,16 @@
   "palette.restore_prompt": "Восстановить исходные цвета палитры?",
   "palette.change_title": "Изменить этот цвет",
   "palette.saved": "Цвет сохранён",
-  "palette.restored": "Цвета палитры восстановлены"
+  "palette.restored": "Цвета палитры восстановлены",
+  "tablet.ring.modes_optional": "Необязательно. Выкл.: кольцо использует строки выше. Вкл.: центральная кнопка переключает до 4 режимов и показывает каждый на экране.",
+  "binding.media.mute": "Без звука",
+  "binding.media.volume_down": "Тише",
+  "binding.media.volume_up": "Громче",
+  "binding.media.play_pause": "Воспроизведение / Пауза",
+  "binding.media.previous": "Предыдущий трек",
+  "binding.media.next": "Следующий трек",
+  "binding.media.stop": "Стоп",
+  "binding.media.brightness_down": "Уменьшить яркость",
+  "binding.media.brightness_up": "Увеличить яркость",
+  "binding.media.brightness_tip": "Как клавиша яркости Mac: меняет яркость экрана, на котором вы щёлкнули в последний раз."
 }

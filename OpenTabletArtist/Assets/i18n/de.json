@@ -699,5 +699,16 @@
   "palette.restore_prompt": "Die ursprünglichen Farben der Palette wiederherstellen?",
   "palette.change_title": "Diese Farbe ändern",
   "palette.saved": "Farbe gespeichert",
-  "palette.restored": "Palettenfarben wiederhergestellt"
+  "palette.restored": "Palettenfarben wiederhergestellt",
+  "tablet.ring.modes_optional": "Optional. Aus: Der Ring nutzt die Zeilen oben. Ein: Die Mitteltaste wechselt zwischen bis zu 4 Modi und zeigt jeden auf dem Bildschirm an.",
+  "binding.media.mute": "Stumm",
+  "binding.media.volume_down": "Lautstärke verringern",
+  "binding.media.volume_up": "Lautstärke erhöhen",
+  "binding.media.play_pause": "Wiedergabe / Pause",
+  "binding.media.previous": "Vorheriger Titel",
+  "binding.media.next": "Nächster Titel",
+  "binding.media.stop": "Stopp",
+  "binding.media.brightness_down": "Helligkeit verringern",
+  "binding.media.brightness_up": "Helligkeit erhöhen",
+  "binding.media.brightness_tip": "Wie die Helligkeitstaste des Mac: ändert den Bildschirm, auf den du zuletzt geklickt hast."
 }

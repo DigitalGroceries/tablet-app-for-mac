@@ -699,5 +699,16 @@
   "palette.restore_prompt": "Ripristinare i colori originali della tavolozza?",
   "palette.change_title": "Cambia questo colore",
   "palette.saved": "Colore salvato",
-  "palette.restored": "Colori della tavolozza ripristinati"
+  "palette.restored": "Colori della tavolozza ripristinati",
+  "tablet.ring.modes_optional": "Facoltativo. No: l'anello usa le righe sopra. Sì: il pulsante centrale alterna fino a 4 modalità e mostra ciascuna sullo schermo.",
+  "binding.media.mute": "Muto",
+  "binding.media.volume_down": "Abbassa volume",
+  "binding.media.volume_up": "Alza volume",
+  "binding.media.play_pause": "Riproduci / Pausa",
+  "binding.media.previous": "Brano precedente",
+  "binding.media.next": "Brano successivo",
+  "binding.media.stop": "Stop",
+  "binding.media.brightness_down": "Riduci luminosità",
+  "binding.media.brightness_up": "Aumenta luminosità",
+  "binding.media.brightness_tip": "Come il tasto luminosità del Mac: cambia lo schermo su cui hai fatto clic per ultimo."
 }

@@ -23,6 +23,7 @@ public partial class BindingEditorDialog : Window
     {
         InitializeComponent();
         ShellPenFeedback.DisableOnOpen(this);
+        NameMediaKeys();
         DataContext = vm;
         vm.CloseRequested += OnCloseRequested;
         KeyDown += (_, e) =>
@@ -33,6 +34,21 @@ public partial class BindingEditorDialog : Window
                 e.Handled = true;
             }
         };
+    }
+
+    /// <summary>V29 #150: the Media keys by the same names, in the app's language, as the Touch Ring and ExpressKey rows show.</summary>
+    private void NameMediaKeys()
+    {
+        foreach (var (radio, key) in new (RadioButton? Radio, string Key)[]
+                 {
+                     (MediaMute, "Mute"), (MediaVolumeDown, "VolumeDown"), (MediaVolumeUp, "VolumeUp"),
+                     (MediaBrightnessDown, "BrightnessDown"), (MediaBrightnessUp, "BrightnessUp"),
+                     (MediaPlayPause, "PlayPause"), (MediaPrevious, "PreviousSong"), (MediaNext, "NextSong"), (MediaStop, "StopSong"),
+                 })
+            if (radio != null && AuxKeyBinding.MediaKeyName(key) is { } name) radio.Content = name;
+        var brightnessTip = Localizer.Te("binding.media.brightness_tip", "Like the Mac's brightness key: changes the screen you last clicked in.");
+        if (MediaBrightnessDown != null) ToolTip.SetTip(MediaBrightnessDown, brightnessTip);
+        if (MediaBrightnessUp != null) ToolTip.SetTip(MediaBrightnessUp, brightnessTip);
     }
 
     private void OnCloseRequested()

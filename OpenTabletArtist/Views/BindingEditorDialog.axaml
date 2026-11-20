@@ -221,29 +221,34 @@
             <!-- Media (consumer keys — stored as keyboard bindings, no modifiers). -->
             <StackPanel Spacing="7" IsVisible="{Binding IsMediaTab}">
                 <TextBlock Text="Media key" Classes="caption" />
-                <StackPanel Spacing="6">
-                    <RadioButton Content="Mute" GroupName="md"
+                <!-- V29 #150 (Zak 20 Nov): two columns, so the last key no longer sits on the dialog's footer line. -->
+                <Grid x:Name="MediaKeysGrid" ColumnDefinitions="Auto,Auto" ColumnSpacing="48">
+                    <StackPanel Grid.Column="0" Spacing="6">
+                        <RadioButton x:Name="MediaMute" Content="Mute" GroupName="md"
                                  IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=Mute}" />
-                    <RadioButton Content="Volume down" GroupName="md"
+                        <RadioButton x:Name="MediaVolumeDown" Content="Volume down" GroupName="md"
                                  IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=VolumeDown}" />
-                    <RadioButton Content="Volume up" GroupName="md"
+                        <RadioButton x:Name="MediaVolumeUp" Content="Volume up" GroupName="md"
                                  IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=VolumeUp}" />
-                    <RadioButton Content="Play / Pause" GroupName="md"
-                                 IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=PlayPause}" />
-                    <RadioButton Content="Previous track" GroupName="md"
-                                 IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=PreviousSong}" />
-                    <RadioButton Content="Next track" GroupName="md"
-                                 IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=NextSong}" />
-                    <RadioButton Content="Stop" GroupName="md"
-                                 IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=StopSong}" />
-                    <!-- V29 #87: the Mac's brightness keys (the built-in display and Apple displays; most other monitors ignore them). -->
-                    <RadioButton x:Name="MediaBrightnessDown" Content="Brightness down" GroupName="md" IsVisible="{Binding ShowBrightnessKeys}"
-                                 ToolTip.Tip="Like the Mac's brightness key: the built-in display and Apple displays. Most other monitors ignore it."
+                        <!-- V29 #87: the Mac's brightness keys; they change the screen of the window last clicked, like the Mac's own keys. -->
+                        <RadioButton x:Name="MediaBrightnessDown" Content="Brightness down" GroupName="md" IsVisible="{Binding ShowBrightnessKeys}"
+                                 ToolTip.Tip="Like the Mac's brightness key: changes the screen you last clicked in."
                                  IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=BrightnessDown}" />
-                    <RadioButton x:Name="MediaBrightnessUp" Content="Brightness up" GroupName="md" IsVisible="{Binding ShowBrightnessKeys}"
-                                 ToolTip.Tip="Like the Mac's brightness key: the built-in display and Apple displays. Most other monitors ignore it."
+                        <RadioButton x:Name="MediaBrightnessUp" Content="Brightness up" GroupName="md" IsVisible="{Binding ShowBrightnessKeys}"
+                                 ToolTip.Tip="Like the Mac's brightness key: changes the screen you last clicked in."
                                  IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=BrightnessUp}" />
-                </StackPanel>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="6">
+                        <RadioButton x:Name="MediaPlayPause" Content="Play / Pause" GroupName="md"
+                                 IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=PlayPause}" />
+                        <RadioButton x:Name="MediaPrevious" Content="Previous track" GroupName="md"
+                                 IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=PreviousSong}" />
+                        <RadioButton x:Name="MediaNext" Content="Next track" GroupName="md"
+                                 IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=NextSong}" />
+                        <RadioButton x:Name="MediaStop" Content="Stop" GroupName="md"
+                                 IsChecked="{Binding SelectedMediaKey, Mode=TwoWay, Converter={x:Static conv:EqualityConverter.Instance}, ConverterParameter=StopSong}" />
+                    </StackPanel>
+                </Grid>
             </StackPanel>
 
             <!-- Radial menu (TASKS #42): the menu lives in this binding; the editor opens as its own sheet. -->

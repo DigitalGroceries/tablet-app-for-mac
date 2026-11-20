@@ -710,6 +710,11 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
+    "text": "触摸触控环",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
     "text": "顺时针",
     "path": "数位板 › 功能 › 触控环",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

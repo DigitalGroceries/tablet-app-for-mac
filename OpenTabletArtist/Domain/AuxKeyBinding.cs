@@ -318,8 +318,25 @@ public static class AuxKeyBinding
         return string.Join(" + ", parts);
     }
 
-    /// <summary>The friendly display name for a stored key value (e.g. "D0" → "0"), from the picker list.</summary>
-    private static string KeyDisplay(string value) => Options.FirstOrDefault(o => o.Value == value)?.Display ?? value;
+    /// <summary>The friendly display name for a stored key value (e.g. "D0" → "0"), from the picker list; a media key
+    /// by its name in the app's language (V29 #150: the Touch Ring rows showed "BrightnessUp").</summary>
+    private static string KeyDisplay(string value) =>
+        MediaKeyName(value) ?? Options.FirstOrDefault(o => o.Value == value)?.Display ?? value;
+
+    /// <summary>The Media tab's keys by name, in the app's language, or null for any other key.</summary>
+    public static string? MediaKeyName(string? value) => value switch
+    {
+        "Mute" => Localizer.Te("binding.media.mute", "Mute"),
+        "VolumeDown" => Localizer.Te("binding.media.volume_down", "Volume down"),
+        "VolumeUp" => Localizer.Te("binding.media.volume_up", "Volume up"),
+        "PlayPause" => Localizer.Te("binding.media.play_pause", "Play / Pause"),
+        "PreviousSong" => Localizer.Te("binding.media.previous", "Previous track"),
+        "NextSong" => Localizer.Te("binding.media.next", "Next track"),
+        "StopSong" => Localizer.Te("binding.media.stop", "Stop"),
+        "BrightnessDown" => Localizer.Te("binding.media.brightness_down", "Brightness down"),
+        "BrightnessUp" => Localizer.Te("binding.media.brightness_up", "Brightness up"),
+        _ => null,
+    };
 
     private static string DescribeMouse(string button) => button switch
     {

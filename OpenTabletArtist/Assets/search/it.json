@@ -650,6 +650,11 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
+    "text": "Tocca l'anello",
+    "path": "Tavoletta › Funzioni › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
     "text": "Senso orario",
     "path": "Tavoletta › Funzioni › Touch Ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

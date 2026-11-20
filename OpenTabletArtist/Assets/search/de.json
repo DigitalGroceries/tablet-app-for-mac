@@ -650,6 +650,11 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
+    "text": "Berühre den Ring",
+    "path": "Tablet › Funktionen › Touch-ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
     "text": "Im Uhrzeigersinn",
     "path": "Tablet › Funktionen › Touch-ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

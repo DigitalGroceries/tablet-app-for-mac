@@ -699,5 +699,16 @@
   "palette.restore_prompt": "恢复调色板自带的颜色吗？",
   "palette.change_title": "更改此颜色",
   "palette.saved": "颜色已保存",
-  "palette.restored": "调色板颜色已恢复"
+  "palette.restored": "调色板颜色已恢复",
+  "tablet.ring.modes_optional": "可选。关：触控环使用上方各行的设置。开：中心按钮在最多 4 种模式之间切换，并在屏幕上显示当前模式。",
+  "binding.media.mute": "静音",
+  "binding.media.volume_down": "降低音量",
+  "binding.media.volume_up": "提高音量",
+  "binding.media.play_pause": "播放 / 暂停",
+  "binding.media.previous": "上一首",
+  "binding.media.next": "下一首",
+  "binding.media.stop": "停止",
+  "binding.media.brightness_down": "降低亮度",
+  "binding.media.brightness_up": "提高亮度",
+  "binding.media.brightness_tip": "与 Mac 的亮度键相同：调节你最后点按的屏幕的亮度。"
 }

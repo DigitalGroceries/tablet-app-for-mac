@@ -650,6 +650,11 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
+    "text": "Touch the ring",
+    "path": "Tablet › Functions › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
     "text": "Clockwise",
     "path": "Tablet › Functions › Touch Ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

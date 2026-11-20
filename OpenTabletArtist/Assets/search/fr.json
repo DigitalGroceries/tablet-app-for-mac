@@ -650,6 +650,11 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
+    "text": "Touchez l'anneau",
+    "path": "Tablette › Fonctions › Anneau tactile",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
     "text": "Sens horaire",
     "path": "Tablette › Fonctions › Anneau tactile",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

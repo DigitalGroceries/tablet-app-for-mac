@@ -699,5 +699,16 @@
   "palette.restore_prompt": "Restaurar as cores originais da paleta?",
   "palette.change_title": "Mudar esta cor",
   "palette.saved": "Cor salva",
-  "palette.restored": "Cores da paleta restauradas"
+  "palette.restored": "Cores da paleta restauradas",
+  "tablet.ring.modes_optional": "Opcional. Desativado: o anel usa as linhas acima. Ativado: o botão central alterna entre até 4 modos e mostra cada um na tela.",
+  "binding.media.mute": "Sem som",
+  "binding.media.volume_down": "Diminuir volume",
+  "binding.media.volume_up": "Aumentar volume",
+  "binding.media.play_pause": "Reproduzir / Pausar",
+  "binding.media.previous": "Faixa anterior",
+  "binding.media.next": "Próxima faixa",
+  "binding.media.stop": "Parar",
+  "binding.media.brightness_down": "Diminuir brilho",
+  "binding.media.brightness_up": "Aumentar brilho",
+  "binding.media.brightness_tip": "Como a tecla de brilho do Mac: muda a tela em que você clicou por último."
 }

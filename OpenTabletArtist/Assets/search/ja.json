@@ -705,6 +705,11 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
+    "text": "リングに触れてください",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
     "text": "時計回り",
     "path": "タブレット › ファンクション › タッチリング",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

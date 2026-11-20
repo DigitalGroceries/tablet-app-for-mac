@@ -699,5 +699,16 @@
   "palette.restore_prompt": "Put the palette's own colours back?",
   "palette.change_title": "Change this colour",
   "palette.saved": "Colour saved",
-  "palette.restored": "Palette colours restored"
+  "palette.restored": "Palette colours restored",
+  "tablet.ring.modes_optional": "Optional. Off: the ring uses the rows above. On: the centre button switches between up to 4 modes and shows each one on screen.",
+  "binding.media.mute": "Mute",
+  "binding.media.volume_down": "Volume down",
+  "binding.media.volume_up": "Volume up",
+  "binding.media.play_pause": "Play / Pause",
+  "binding.media.previous": "Previous track",
+  "binding.media.next": "Next track",
+  "binding.media.stop": "Stop",
+  "binding.media.brightness_down": "Brightness down",
+  "binding.media.brightness_up": "Brightness up",
+  "binding.media.brightness_tip": "Like the Mac's brightness key: changes the screen you last clicked in."
 }

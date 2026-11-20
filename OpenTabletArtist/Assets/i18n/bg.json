@@ -699,5 +699,16 @@
   "palette.restore_prompt": "Да се възстановят ли първоначалните цветове на палитрата?",
   "palette.change_title": "Промени този цвят",
   "palette.saved": "Цветът е запазен",
-  "palette.restored": "Цветовете на палитрата са възстановени"
+  "palette.restored": "Цветовете на палитрата са възстановени",
+  "tablet.ring.modes_optional": "По избор. Изкл.: пръстенът използва редовете по-горе. Вкл.: централният бутон превключва между най-много 4 режима и показва всеки от тях на екрана.",
+  "binding.media.mute": "Без звук",
+  "binding.media.volume_down": "Намаляване на звука",
+  "binding.media.volume_up": "Увеличаване на звука",
+  "binding.media.play_pause": "Пускане / Пауза",
+  "binding.media.previous": "Предишна песен",
+  "binding.media.next": "Следваща песен",
+  "binding.media.stop": "Стоп",
+  "binding.media.brightness_down": "Намаляване на яркостта",
+  "binding.media.brightness_up": "Увеличаване на яркостта",
+  "binding.media.brightness_tip": "Като клавиша за яркост на Mac: променя екрана, на който си щракнал последно."
 }

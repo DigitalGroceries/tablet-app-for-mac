@@ -650,6 +650,11 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
+    "text": "Toca el anillo",
+    "path": "Tableta › Funciones › Anillo táctil",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
     "text": "Sentido horario",
     "path": "Tableta › Funciones › Anillo táctil",
     "route": "tablet/ToolFunctionsButton/WheelsTab"

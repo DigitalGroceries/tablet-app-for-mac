@@ -699,5 +699,16 @@
   "palette.restore_prompt": "Återställ palettens ursprungliga färger?",
   "palette.change_title": "Ändra den här färgen",
   "palette.saved": "Färg sparad",
-  "palette.restored": "Palettens färger återställda"
+  "palette.restored": "Palettens färger återställda",
+  "tablet.ring.modes_optional": "Valfritt. Av: ringen använder raderna ovan. På: mittknappen växlar mellan upp till 4 lägen och visar varje läge på skärmen.",
+  "binding.media.mute": "Ljud av",
+  "binding.media.volume_down": "Sänk volymen",
+  "binding.media.volume_up": "Höj volymen",
+  "binding.media.play_pause": "Spela / Paus",
+  "binding.media.previous": "Föregående spår",
+  "binding.media.next": "Nästa spår",
+  "binding.media.stop": "Stopp",
+  "binding.media.brightness_down": "Sänk ljusstyrkan",
+  "binding.media.brightness_up": "Höj ljusstyrkan",
+  "binding.media.brightness_tip": "Som Macens ljusstyrkeknapp: ändrar skärmen du senast klickade på."
 }
