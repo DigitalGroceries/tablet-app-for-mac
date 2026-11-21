@@ -1044,6 +1044,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         RefreshAbout();
         OnPropertyChanged(nameof(PenButtonTestText));
+        OnPropertyChanged(nameof(PenButtonTestAllTexts));
         OnPropertyChanged(nameof(WheelEnableLabel));
         OnPropertyChanged(nameof(WheelAboutEnableText));
         RefreshRadialSpot();   // TASKS #63: the radial picture's texts follow the language
@@ -1326,7 +1327,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         AppSettings.Set($"ManualTipPressure:{_profile.Tablet}", ManualTipPressure.ToString(System.Globalization.CultureInfo.InvariantCulture));
         AppSettings.Set($"ManualEraserPressure:{_profile.Tablet}", ManualEraserPressure.ToString(System.Globalization.CultureInfo.InvariantCulture));
         _ = ApplySettingsChange(p =>
-            PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", WrittenDynamics(), enable: true, CurrentManual));
+            PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", WrittenDynamics(), enable: true, CurrentManual, eraser: EraserCurve));
     }
     private bool _skipPenInputPersist;
 
@@ -1350,7 +1351,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _ = ApplySettingsChange(p =>
         {
             p.BindingSettings.DisablePressure = false;
-            PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", WrittenDynamics(), enable: true, CurrentManual);
+            PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", WrittenDynamics(), enable: true, CurrentManual, eraser: EraserCurve);
         });
         AppSettings.Set(CurveBackupKey, "");
     }
@@ -1600,6 +1601,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         PositionSmoothing = Math.Min(dynamics.PositionSmoothing, PenSmoothing.MaxPositionSmoothingAmount);
         // Order is no longer user-configurable (#558): pressure smoothing always runs after the curve.
         SmoothAfterCurve = true;
+        LoadEraserCurve();   // V29 #180: the eraser's own feel (the tip's until the profile has one)
         _skipCurvePersist = false;
         // Version 1: a profile saved by R18 still holds the flat 30% curve; rewrite it once as the user's curve
         // plus the manual pressure.
@@ -1607,7 +1609,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         {
             _legacyFlatPending = false;
             _ = ApplySettingsChange(p =>
-                PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", WrittenDynamics(), enable: true, CurrentManual));
+                PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", WrittenDynamics(), enable: true, CurrentManual, eraser: EraserCurve));
         }
         CanEditPressure = _applyAction != null;
         NotifyDynamicsStatus();
@@ -2423,28 +2425,34 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     private DispatcherTimer? _penButtonIdle;
 
     /// <summary>Under the pen picture: which barrel button the tablet reports as held.</summary>
-    public string PenButtonTestText
+    public string PenButtonTestText => TestTextFor(new[] { (PenButton1Pressed, 1), (PenButton2Pressed, 2), (PenButton3Pressed, 3) }
+        .Where(b => b.Item1).Select(b => b.Item2.ToString()).ToList());
+
+    /// <summary>V29 #180 (Grok 21 Nov): every text the test line can show, so the page keeps the height of the tallest one and the
+    /// drawing and cards under it never move when a button is pressed (in French and Russian the line wraps to two lines).</summary>
+    public IReadOnlyList<string> PenButtonTestAllTexts => new[]
     {
-        get
+        TestTextFor(new List<string>()), TestTextFor(new List<string> { "2" }), TestTextFor(new List<string> { "1", "2" }),
+        TestTextFor(new List<string> { "1", "2", "3" }),
+    };
+
+    private static string TestTextFor(List<string> down)
+    {
+        if (down.Count == 0)
+            return Localizer.Te("tablet.pen.test_buttons", "Press a button to test it");
+        if (down.Count == 1)
         {
-            var down = new[] { (PenButton1Pressed, 1), (PenButton2Pressed, 2), (PenButton3Pressed, 3) }
-                .Where(b => b.Item1).Select(b => b.Item2.ToString()).ToList();
-            if (down.Count == 0)
-                return Localizer.Te("tablet.pen.test_buttons", "Press a Pen button to test it");
-            if (down.Count == 1)
-            {
-                var t = Localizer.T("tablet.pen.button_pressed");
-                return t == "tablet.pen.button_pressed"
-                    ? $"Button {down[0]} pressed."
-                    : t.Replace("{number}", down[0], StringComparison.Ordinal);
-            }
-            {
-                var list = string.Join(" and ", down);
-                var t = Localizer.T("tablet.pen.buttons_pressed");
-                return t == "tablet.pen.buttons_pressed"
-                    ? $"Buttons {list} pressed."
-                    : t.Replace("{list}", list, StringComparison.Ordinal);
-            }
+            var t = Localizer.T("tablet.pen.button_pressed");
+            return t == "tablet.pen.button_pressed"
+                ? $"Button {down[0]} pressed."
+                : t.Replace("{number}", down[0], StringComparison.Ordinal);
+        }
+        {
+            var list = string.Join(" and ", down);
+            var t = Localizer.T("tablet.pen.buttons_pressed");
+            return t == "tablet.pen.buttons_pressed"
+                ? $"Buttons {list} pressed."
+                : t.Replace("{list}", list, StringComparison.Ordinal);
         }
     }
 
@@ -2761,6 +2769,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(TipFeel));
         OnPropertyChanged(nameof(TipFeelInput));
         OnPropertyChanged(nameof(DeadzoneText));
+        NotifyActiveCurve();   // V29 #180: the curve editor shows the tip's curve while the tip's settings are shown
         NotifyDynamicsStatus();
         SchedulePersist();
     }
@@ -2850,6 +2859,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _liveEraserRaw = s.IsDown && s.IsEraser ? Clamp01(s.Pressure) : null;
         LiveTipPressure = Effective(_liveTipRaw, DisablePenTip, false);
         LiveEraserPressure = Effective(_liveEraserRaw, DisableEraser, true);
+        UpdatePressedEnds(s);   // V29 #180: the round Tip / Eraser labels light while that end touches the tablet
         LivePenX = s.X;
         LivePenY = s.Y;
         if (s.IsDown)
@@ -2858,7 +2868,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             LivePressure = raw;
             // Run the raw sample through the same curve+smoothing pipeline (#559) so the processed dot
             // reflects smoothing's lag. Settings are refreshed each sample to track live edits.
-            _liveProcessor.Settings = CurrentDynamics;
+            _liveProcessor.Settings = s.IsEraser ? CurrentDynamics with { Curve = EraserCurve } : CurrentDynamics;   // V29 #180
             // Same rule as the daemon's filter: a sample the curve maps to nothing (hover, the dead zone) is
             // zero pressure and resets the smoothing. Without it, smoothing's tail from the last stroke kept
             // the processed value above zero for hundreds of samples under a pen that reports hover pressure.
@@ -2927,6 +2937,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         LiveEndText = "";
         LiveTipPressure = null;
         LiveEraserPressure = null;
+        TipPressed = false;
+        EraserPressed = false;
         _liveProcessor.ResetPressure();
         LivePenX = null;
         LivePenY = null;
@@ -3202,7 +3214,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var draft = _draftGeneration;
         var dynamics = WrittenDynamics();
         // The filter is always enabled internally; users neutralize it with linear/zero settings, not a toggle.
-        PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", dynamics, enable: true);
+        PressureCurveProfile.Write(_settings, _profile.Tablet ?? "", dynamics, enable: true, eraser: EraserCurve);   // V29 #180: and the eraser's own curve
         // The write mutated _profile.Filters (added/enabled/disabled the DynamicsFilter); reflect that
         // in the Filters tab and JSON view immediately rather than waiting for a manual Refresh.
         UpdateFiltersDisplay();

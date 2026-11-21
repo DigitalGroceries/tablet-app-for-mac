@@ -690,6 +690,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Sensibilità gomma",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Morbida",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
@@ -740,22 +745,32 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Pressione manuale della punta",
+    "text": "Pressione manuale",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Punta della penna",
+    "text": "PREMI UN PULSANTE PER PROVARLO",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Premi un pulsante della penna per provarlo",
+    "text": "Gomma",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Pulsante 2",
+    "text": "Punta",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Predefinita (cancella)",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "PULSANTE 2",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -770,7 +785,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Pulsante 1",
+    "text": "PULSANTE 1",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -781,31 +796,6 @@
   },
   {
     "text": "Impostazioni tastiera",
-    "path": "Tavoletta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Impostazioni menu radiale",
-    "path": "Tavoletta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Nessun pulsante della penna apre ancora il menu radiale",
-    "path": "Tavoletta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Usa il pulsante 2 della penna",
-    "path": "Tavoletta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Trasparenza menu",
-    "path": "Tavoletta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Dimensioni menu",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -840,7 +830,37 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Feel Details (shared by tip and eraser)",
+    "text": "Nessun pulsante della penna apre il menu radiale",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Usa il pulsante 2 della penna",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Trasparenza menu radiale",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Dimensioni menu radiale",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Dimensioni tavolozza colori",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Nessun pulsante della penna apre la tavolozza colori",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Sensibilità punta: dettagli",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
@@ -890,179 +910,19 @@
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
   {
-    "text": "Inclinazione",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Disattiva inclinazione",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "In comune con Penna.",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Sensibilità gomma",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Morbida",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Rigida",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Personalizza",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Pressione attuale",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Clic",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Massima",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Pressione manuale della gomma",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Pulsante 1",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Impostazione predefinita",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Pulsante 2",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Modified to Adaptive Binding (Button 1)",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Fix",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Gomma",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Impostazioni tavolozza colori",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Dimensioni tavolozza",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Movimento",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Smussatura posizione",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Curve veloci più morbide",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
     "text": "Input gomma",
-    "path": "Tavoletta › Penna › Gomma",
+    "path": "Tavoletta › Penna › Penna › Sensibilità gomma",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
     "text": "Disattiva gomma",
-    "path": "Tavoletta › Penna › Gomma",
+    "path": "Tavoletta › Penna › Penna › Sensibilità gomma",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
-    "text": "Disattiva sensibilità alla pressione",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Feel details (shared with Pen)",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Soft",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Hard",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Softness",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Pressure smoothing",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "raw —",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with raw pressure",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with processed pressure",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Clear",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Copy",
-    "path": "Tavoletta › Penna › Gomma",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+    "text": "Sensibilità gomma: dettagli",
+    "path": "Tavoletta › Penna › Penna › Sensibilità gomma",
+    "route": "tablet/ToolPenButton/EraserTab/FeelDetails"
   },
   {
     "text": "Tastiera fluttuante",

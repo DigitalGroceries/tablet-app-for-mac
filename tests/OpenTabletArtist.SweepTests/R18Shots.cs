@@ -40,9 +40,9 @@ public class R18Shots
         var view = new TabletDetailView { DataContext = vm };
         var w = new Window { Content = view, Width = width, Height = height }; w.Show();
         Dispatcher.UIThread.RunJobs();
-        var t = view.FindControl<RadioButton>(tab)!;
+        var t = view.FindControl<RadioButton>(tab == "EraserTab" ? "PenTab" : tab)!;   // V29 #180
         if (!t.IsVisible) { var f = view.FindControl<RadioButton>("ToolFunctionsButton")!; f.IsChecked = true; f.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); }
-        t.IsChecked = true;
+        t.IsChecked = true; if (tab == "EraserTab") PenPageTabs.Select(view, tab);
         Dispatcher.UIThread.RunJobs(); w.UpdateLayout(); Dispatcher.UIThread.RunJobs();
         return (vm, view, w);
     }

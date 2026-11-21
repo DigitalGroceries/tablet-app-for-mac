@@ -67,7 +67,7 @@ public class BuildRTests
         Assert.False(pen.IsChecked);
         Assert.False(more.IsChecked);
         foreach (var t in new[] { "ButtonsTab", "WheelsTab" }) Assert.True(view.FindControl<RadioButton>(t)!.IsVisible, t);
-        foreach (var t in new[] { "PenTab", "EraserTab", "MappingTab" }) Assert.False(view.FindControl<RadioButton>(t)!.IsVisible, t);
+        foreach (var t in new[] { "PenTab", "KeyboardTab", "MappingTab" }) Assert.False(view.FindControl<RadioButton>(t)!.IsVisible, t);   // V29 #180: no Eraser tab
         pt = pen.TranslatePoint(new Avalonia.Point(pen.Bounds.Width / 2, pen.Bounds.Height / 2), w)!.Value;
         w.MouseDown(pt, Avalonia.Input.MouseButton.Left, Avalonia.Input.RawInputModifiers.None);
         w.MouseUp(pt, Avalonia.Input.MouseButton.Left, Avalonia.Input.RawInputModifiers.None);

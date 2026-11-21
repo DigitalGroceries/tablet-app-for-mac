@@ -52,6 +52,80 @@
                 </ControlTemplate>
             </Setter>
         </Style>
+        <!-- V29 #180 (Zak's Pen page mockup, 21 Nov): the pieces of the merged Pen page. -->
+        <Style Selector="Border.wacomBox">
+            <Setter Property="Background" Value="{DynamicResource WacomPaneBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="4" /><Setter Property="Padding" Value="12,8" />
+        </Style>
+        <!-- Kept in its place but hidden (Double Click Fix while the eraser's settings are shown): the page doesn't jump. -->
+        <Style Selector="HeaderedContentControl.keepSpace">
+            <Setter Property="Opacity" Value="0" /><Setter Property="IsHitTestVisible" Value="False" /><Setter Property="IsEnabled" Value="False" />
+        </Style>
+        <Style Selector="RadioButton.penEndChip">
+            <Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
+                            CornerRadius="4" Padding="10,3">
+                        <ContentPresenter Content="{TemplateBinding Content}" FontSize="12" FontWeight="SemiBold"
+                                          Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="RadioButton.penEndChip:checked">
+            <Setter Property="Background" Value="#E4E4E4" />
+            <Setter Property="Foreground" Value="#000000" />
+        </Style>
+        <!-- Round Eraser / Tip labels on the pen drawing; they light like the 1 / 2 badges while that end touches the tablet. -->
+        <Style Selector="Border.penEndLabel">
+            <!-- A circle; a longer word in another language (Наконечник, Radierer) makes it a pill rather than cutting it. -->
+            <Setter Property="MinWidth" Value="72" /><Setter Property="Height" Value="72" /><Setter Property="CornerRadius" Value="36" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Background" Value="{DynamicResource WacomPaneBrush}" />
+            <Setter Property="BorderBrush" Value="#C8C8C8" /><Setter Property="BorderThickness" Value="2" />
+        </Style>
+        <Style Selector="Border.penEndLabel > TextBlock">
+            <Setter Property="FontSize" Value="17" /><Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.penEndLabel.pressed">
+            <Setter Property="Background" Value="#E4E4E4" /><Setter Property="BorderBrush" Value="#E4E4E4" />
+            <Setter Property="BoxShadow" Value="0 0 12 4 #9A9A9A" />
+        </Style>
+        <Style Selector="Border.penEndLabel.pressed > TextBlock">
+            <Setter Property="Foreground" Value="#000000" />
+        </Style>
+        <!-- The eraser's Change… and its action, sized like the Button cards' (PenSwitchCard penAction / penValueBox). -->
+        <Style Selector="Button.penEndAction">
+            <Setter Property="MinWidth" Value="104" /><Setter Property="Height" Value="34" /><Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.penEndValue">
+            <Setter Property="Background" Value="#1A1A1A" /><Setter Property="CornerRadius" Value="6" />
+            <Setter Property="MinWidth" Value="126" /><Setter Property="MinHeight" Value="34" /><Setter Property="Padding" Value="10,6" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.penEndValue > TextBlock">
+            <Setter Property="FontSize" Value="15" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="#E4E4E4" />
+            <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" /><Setter Property="TextAlignment" Value="Center" />
+        </Style>
+        <!-- The radial menu's / palette's lines and slider titles (bold, Zak's mockup). -->
+        <Style Selector="TextBlock.spotLine">
+            <Setter Property="FontSize" Value="12" /><Setter Property="FontWeight" Value="Bold" /><Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="TextAlignment" Value="Center" /><Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        </Style>
+        <Style Selector="TextBlock.spotTitle">
+            <Setter Property="FontSize" Value="13" /><Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        </Style>
         <!-- Build R5: larger About / Options… / ? buttons (the user's mock-up), one height, centred text. -->
         <Style Selector="Button.bottomBar">
             <Setter Property="MinWidth" Value="120" /><Setter Property="Height" Value="34" /><Setter Property="FontSize" Value="15" />
@@ -499,8 +573,6 @@
                     </RadioButton.IsVisible>
                 </RadioButton>
                 <RadioButton Content="pen" x:Name="PenTab" IsChecked="True" IsVisible="{Binding PenToolActive}"
-                             Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
-                <RadioButton Content="eraser" x:Name="EraserTab" IsVisible="{Binding PenToolActive}"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
                 <!-- V29 #177 (Zak 20 Nov ~18:52: "Should we move the Floating keyboard menu to its own tab / button in between the Eraser
                      and Mapping buttons so all 4 tabs have menu of somewhat the same size?" ... "Do it"). -->
@@ -1512,6 +1584,13 @@
              drawn pen on the right, Default bottom right). Tip Feel is OTA's pressure curve (Softness, mirrored);
              Customise… opens the full curve editor. Double Click Fix is Version 25 (0 = off, 50 = 1 mm, 100 = 2 mm).
              OTD still has no tilt-sensitivity curve, so tilt is on/off only. ===== -->
+        <!-- ===== V29 #180 (Zak's Pen page mockup, 21 Nov 2026: "Zak_Mockup_Pen_App_Page.png", T7 AI/Team/v29 Gui/PS.psd) =====
+             The Eraser tab is merged into this page. "Tip Feel | Eraser Feel" swaps the left column and the input box between the
+             two pen ends ("Clicking Pen button brings the user to the pen settings and clicking the eraser button brings the user in
+             eraser settings menu"); the middle (the eraser's Change…, BUTTON 2, BUTTON 1, Default setting, Keyboard settings…) is
+             shared ("the 'Tip Feel' and the 'Eraser Feel' buttons share the same pen buttons setting"). Round "Eraser" and "Tip"
+             labels on the drawing light like the 1 / 2 badges, so "PRESS A BUTTON TO TEST IT" covers all four. The right column has
+             the radial menu and the colour palette (from the old Eraser tab), each with its "By default ..." line. -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
                       IsVisible="{Binding #PenTab.IsChecked}">
             <!-- Shared right margin with WacomHeader (+/−): fill the content column, no fixed 720 left strip. -->
@@ -1519,39 +1598,75 @@
             <StackPanel Spacing="10">
                 <!-- Version 14: an extra pen is selected: say what is per pen and what is shared. -->
                 <TextBlock Text="{Binding PerPenNote}" IsVisible="{Binding ShowPerPenNote}" TextWrapping="Wrap" Opacity="0.85" />
-                <Grid ColumnDefinitions="250,24,*">
-                    <StackPanel Spacing="12">
+                <!-- The right column sits beside the whole left part, so its height never stretches the rows on the left. -->
+                <Grid x:Name="PenPageOuter" ColumnDefinitions="Auto,24,*">
+                <Grid x:Name="PenPageGrid" ColumnDefinitions="250,24,Auto" RowDefinitions="Auto,Auto,Auto">
+                    <StackPanel x:Name="PenLeftColumn" Spacing="12">
                         <HeaderedContentControl x:Name="PenTiltGroup" Classes="wacomGroup" Header="Tilt">
                             <CheckBox x:Name="PenTiltOff" Content="Turn tilt off" IsChecked="{Binding DisableTilt}"
                                       ToolTip.Tip="OTD has no tilt-sensitivity curve; tilt can only be on or off." />
                         </HeaderedContentControl>
-                        <HeaderedContentControl x:Name="PenTipFeelGroup" Classes="wacomGroup" Header="Tip Feel">
-                            <StackPanel Spacing="4">
-                                <!-- V29 #130/#140 (Zak): a typed value 1 (Soft) to 100 (Firm) beside the slider, like Double Click Fix. -->
-                                <Grid x:Name="TipFeelRow" ColumnDefinitions="*,6,48" RowDefinitions="Auto,Auto">
-                                    <Slider x:Name="TipFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
-                                            TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
-                                            VerticalAlignment="Center" AutomationProperties.Name="Tip Feel" />
-                                    <TextBox x:Name="TipFeelBox" Grid.Column="2" Width="48" MinWidth="0" VerticalAlignment="Center"
-                                             HorizontalContentAlignment="Right" FontWeight="SemiBold" MaxLength="6" IsEnabled="{Binding CanEditPressure}"
-                                             Text="{Binding TipFeelInput, UpdateSourceTrigger=LostFocus}"
-                                             ToolTip.Tip="1 is the softest, 100 the firmest, 50 the middle."
-                                             AutomationProperties.Name="Tip Feel value" />
-                                    <Grid Grid.Row="1" ColumnDefinitions="*,*"><TextBlock x:Name="PenSoft" Text="Soft" FontSize="12" />
+                        <StackPanel x:Name="PenFeelGroup" Spacing="4">
+                            <WrapPanel x:Name="PenEndSwitch" ItemSpacing="6" LineSpacing="4">
+                                <RadioButton x:Name="TipFeelChip" GroupName="PenEndSwitch" Classes="penEndChip" Content="{Binding TipFeelSwitchLabel}"
+                                             IsChecked="{Binding TipSettingsShown, Mode=TwoWay}" AutomationProperties.Name="Tip Feel" />
+                                <RadioButton x:Name="EraserFeelChip" GroupName="PenEndSwitch" Classes="penEndChip" Content="{Binding EraserFeelSwitchLabel}"
+                                             IsChecked="{Binding EraserSettingsShown, Mode=TwoWay}" AutomationProperties.Name="Eraser Feel" />
+                            </WrapPanel>
+                            <Border x:Name="PenFeelBox" Classes="wacomBox">
+                                <Panel>
+                                    <StackPanel x:Name="TipFeelPanel" Spacing="4" IsVisible="{Binding TipSettingsShown}">
+                                        <!-- V29 #130/#140 (Zak): a typed value 1 (Soft) to 100 (Firm) beside the slider, like Double Click Fix. -->
+                                        <Grid x:Name="TipFeelRow" ColumnDefinitions="*,6,48" RowDefinitions="Auto,Auto">
+                                        <Slider x:Name="TipFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
+                                        TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
+                                        VerticalAlignment="Center" AutomationProperties.Name="Tip Feel" />
+                                        <TextBox x:Name="TipFeelBox" Grid.Column="2" Width="48" MinWidth="0" VerticalAlignment="Center"
+                                        HorizontalContentAlignment="Right" FontWeight="SemiBold" MaxLength="6" IsEnabled="{Binding CanEditPressure}"
+                                        Text="{Binding TipFeelInput, UpdateSourceTrigger=LostFocus}"
+                                        ToolTip.Tip="1 is the softest, 100 the firmest, 50 the middle."
+                                        AutomationProperties.Name="Tip Feel value" />
+                                        <Grid Grid.Row="1" ColumnDefinitions="*,*"><TextBlock x:Name="PenSoft" Text="Soft" FontSize="12" />
                                         <TextBlock x:Name="PenFirm" Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
-                                </Grid>
-                                <Button x:Name="PenCustomise" Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeFeel"
-                                        ToolTip.Tip="Open the full pressure curve (shared by tip and eraser)." />
-                                <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock x:Name="LblPenCurrentPressure" Text="Current pressure" FontSize="12" />
-                                    <TextBlock Grid.Column="1" x:Name="LivePressurePercent" Text="{Binding LiveTipPercentText}" FontSize="12" FontWeight="SemiBold"
-                                               ToolTip.Tip="{Binding LiveTipInputText}" /></Grid>
-                                <ProgressBar Minimum="0" Maximum="1" Value="{Binding LiveTipPressure, FallbackValue=0, TargetNullValue=0}" Height="10" MinWidth="0" />
-                                <Grid ColumnDefinitions="*,*"><TextBlock x:Name="LblPenClick" Text="Click" FontSize="12" />
-                                    <TextBlock x:Name="LblPenFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
-                            </StackPanel>
-                        </HeaderedContentControl>
-                        <!-- Version 25: Double Click Fix UI 0..100 (0 = off, 50 = 1.0 mm, 100 = 2.0 mm). -->
-                        <HeaderedContentControl x:Name="PenDoubleClickDistanceGroup" Classes="wacomGroup" Header="Double Click Fix">
+                                        </Grid>
+                                        <Button x:Name="PenCustomise" Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeFeel"
+                                        ToolTip.Tip="Open the pen tip's full pressure curve." />
+                                        <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock x:Name="LblPenCurrentPressure" Text="Current pressure" FontSize="12" />
+                                        <TextBlock Grid.Column="1" x:Name="LivePressurePercent" Text="{Binding LiveTipPercentText}" FontSize="12" FontWeight="SemiBold"
+                                        ToolTip.Tip="{Binding LiveTipInputText}" /></Grid>
+                                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding LiveTipPressure, FallbackValue=0, TargetNullValue=0}" Height="10" MinWidth="0" />
+                                        <Grid ColumnDefinitions="*,*"><TextBlock x:Name="LblPenClick" Text="Click" FontSize="12" />
+                                        <TextBlock x:Name="LblPenFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                    </StackPanel>
+                                    <StackPanel x:Name="EraserFeelPanel" Spacing="4" IsVisible="{Binding EraserSettingsShown}">
+                                        <!-- V29 #180: the eraser's own curve (Zak 21 Nov: "1 Can you make them two different setting values?"). -->
+                                        <Grid x:Name="EraserFeelRow" ColumnDefinitions="*,6,48" RowDefinitions="Auto,Auto">
+                                        <Slider x:Name="EraserFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding EraserFeel}"
+                                        TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
+                                        VerticalAlignment="Center" AutomationProperties.Name="Eraser Feel" />
+                                        <TextBox x:Name="EraserFeelBox" Grid.Column="2" Width="48" MinWidth="0" VerticalAlignment="Center"
+                                        HorizontalContentAlignment="Right" FontWeight="SemiBold" MaxLength="6" IsEnabled="{Binding CanEditPressure}"
+                                        Text="{Binding EraserFeelInput, UpdateSourceTrigger=LostFocus}"
+                                        ToolTip.Tip="1 is the softest, 100 the firmest, 50 the middle."
+                                        AutomationProperties.Name="Eraser Feel value" />
+                                        <Grid Grid.Row="1" ColumnDefinitions="*,*"><TextBlock x:Name="EraserSoft" Text="Soft" FontSize="12" />
+                                        <TextBlock x:Name="EraserFirm" Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                        </Grid>
+                                        <Button x:Name="EraserCustomizeButton" Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeFeel"
+                                        ToolTip.Tip="Open the eraser's full pressure curve." />
+                                        <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock x:Name="LblEraserCurrentPressure" Text="Current pressure" FontSize="12" />
+                                        <TextBlock Grid.Column="1" x:Name="EraserPressurePercent" Text="{Binding LiveEraserPercentText}" FontSize="12" FontWeight="SemiBold"
+                                        ToolTip.Tip="{Binding LiveEraserInputText}" /></Grid>
+                                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding LiveEraserPressure, FallbackValue=0, TargetNullValue=0}" Height="10" MinWidth="0" />
+                                        <Grid ColumnDefinitions="*,*"><TextBlock x:Name="LblEraserClick" Text="Click" FontSize="12" />
+                                        <TextBlock x:Name="LblEraserFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                    </StackPanel>
+                                </Panel>
+                            </Border>
+                        </StackPanel>
+                        <!-- Version 25: Double Click Fix (the tip only). -->
+                        <HeaderedContentControl x:Name="PenDoubleClickDistanceGroup" Classes="wacomGroup" Header="Double Click Fix"
+                                                Classes.keepSpace="{Binding EraserSettingsShown}">
                             <StackPanel Spacing="4">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
                                     <Slider x:Name="TipDoubleClickDistanceSlider" Minimum="0" Maximum="100"
@@ -1586,8 +1701,8 @@
                                            Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>
                         </HeaderedContentControl>
-                        <!-- Version 1: the pressure used while pressure sensitivity is off. -->
-                        <HeaderedContentControl x:Name="ManualTipPressureFrame" Classes="wacomGroup" Header="Manual Pen Tip Pressure">
+                        <!-- Version 1: the pressure used while pressure sensitivity is off ("Manual Pressure", Zak's mockup), one per pen end. -->
+                        <HeaderedContentControl x:Name="ManualTipPressureFrame" Classes="wacomGroup" Header="Manual Pressure" IsVisible="{Binding TipSettingsShown}">
                             <StackPanel Spacing="4">
                                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
                                     <Slider x:Name="ManualTipPressureSlider" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1"
@@ -1604,25 +1719,76 @@
                                            Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>
                         </HeaderedContentControl>
+                        <HeaderedContentControl x:Name="ManualEraserPressureFrame" Classes="wacomGroup" Header="Manual Pressure" IsVisible="{Binding EraserSettingsShown}">
+                            <StackPanel Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                                    <Slider x:Name="ManualEraserPressureSlider" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1"
+                                            TickFrequency="0.25" TickPlacement="BottomRight" VerticalAlignment="Center"
+                                            Value="{Binding ManualEraserPressure}" AutomationProperties.Name="Manual Eraser Pressure" />
+                                    <TextBox x:Name="ManualEraserPressureBox" Grid.Column="1" Width="48" MinWidth="0" VerticalAlignment="Center"
+                                             HorizontalContentAlignment="Right" Text="{Binding ManualEraserPercent, UpdateSourceTrigger=LostFocus}"
+                                             AutomationProperties.Name="Manual Eraser Pressure (%)" />
+                                    <TextBlock Grid.Column="2" Text="%" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*"><TextBlock Text="0%" FontSize="12" />
+                                    <TextBlock Grid.Column="1" Text="100%" FontSize="12" HorizontalAlignment="Right" /></Grid>
+                                <TextBlock x:Name="LblEraserManualNote" Text="Used for every eraser stroke while pressure sensitivity is off." FontSize="11" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                            </StackPanel>
+                        </HeaderedContentControl>
                     </StackPanel>
-                    <!-- V29 #177 (Zak's own mockup, 20 Nov ~20:40, "Zak_Mockup.png"): "Press a Pen button to test it" larger on top; the
-                         Button cards; a line; "Default setting:" with "Long press Button 1 to open Keyboard"; the "Keyboard settings…"
-                         button; "Pen tip" is a label under the pen drawing. The pen tip's own card shows only when the tip is not on its
-                         default (then with its Fix button), under the Keyboard settings… button. -->
-                    <Grid Grid.Column="2" ColumnDefinitions="Auto,24,Auto,24,*">
-                        <StackPanel x:Name="PenDiagramColumn" MinWidth="64" Spacing="14" VerticalAlignment="Center">
-                            <views:PenDiagram HorizontalAlignment="Center" />
-                            <TextBlock x:Name="PenTipLabel" Text="Pen tip" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center"
-                                       TextAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                    <!-- Middle: the pen drawing with its round Eraser / Tip labels, and the shared pen buttons. -->
+                    <Grid x:Name="PenMiddle" Grid.Column="2" RowDefinitions="Auto,Auto" VerticalAlignment="Top">
+                        <Grid x:Name="PenButtonTestRow" Margin="0,0,0,12" HorizontalAlignment="Left" Width="{Binding #PenMiddleBody.Bounds.Width}"
+                              IsVisible="{Binding HasPenButtons}">
+                            <!-- V29 #180 (Grok 21 Nov): every text the line can show, unseen, so the row keeps the height of the tallest
+                                 one and the drawing and cards never move when a button is pressed (French and Russian wrap). -->
+                            <ItemsControl x:Name="PenButtonTestSizer" ItemsSource="{Binding PenButtonTestAllTexts}" Opacity="0"
+                                          IsHitTestVisible="False" Focusable="False" AutomationProperties.AccessibilityView="Raw">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><Grid /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <TextBlock Text="{Binding Converter={x:Static otac:UpperCaseConverter.Instance}}" TextWrapping="Wrap"
+                                                   FontSize="20" FontWeight="Black" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock x:Name="PenButtonTestLine" TextWrapping="Wrap" VerticalAlignment="Top"
+                                       Text="{Binding PenButtonTestText, Converter={x:Static otac:UpperCaseConverter.Instance}}"
+                                       FontSize="20" FontWeight="Black" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        </Grid>
+                        <!-- V29 #180: the drawing and the cards; the test line above takes this width and wraps (Grok 21 Nov:
+                             the capitals in fr, bg, ru, sv and pt-BR were wider than the column and moved the right column). -->
+                        <Grid x:Name="PenMiddleBody" Grid.Row="1" ColumnDefinitions="Auto,20,Auto" HorizontalAlignment="Left">
+                        <StackPanel x:Name="PenDiagramColumn" MinWidth="76" HorizontalAlignment="Center">
+                            <Border x:Name="EraserEndLabel" Classes="penEndLabel" Classes.pressed="{Binding EraserPressed}" HorizontalAlignment="Center"
+                                    AutomationProperties.Name="Eraser">
+                                <TextBlock Text="{Binding EraserLabel}" />
+                            </Border>
+                            <views:PenDiagram HorizontalAlignment="Center" Margin="0,-6,0,-6" />
+                            <Border x:Name="TipEndLabel" Classes="penEndLabel" Classes.pressed="{Binding TipPressed}" HorizontalAlignment="Center"
+                                    AutomationProperties.Name="Tip">
+                                <TextBlock Text="{Binding TipLabel}" />
+                            </Border>
                         </StackPanel>
-                        <StackPanel Grid.Column="2" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Left">
-                            <TextBlock x:Name="PenButtonTestLine" Text="{Binding PenButtonTestText}" FontSize="18" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}" IsVisible="{Binding HasPenButtons}" />
-                            <views:PenSwitchCard DataContext="{Binding PenButton3Row}"
+                        <StackPanel x:Name="PenCardsColumn" Grid.Column="2" Spacing="24" HorizontalAlignment="Left">
+                            <!-- The eraser end's action beside the Eraser label: Change… and its current action (Zak's mockup). -->
+                            <StackPanel x:Name="EraserActionRow" Orientation="Horizontal" Spacing="12" Margin="0,18,0,10">
+                                <Button x:Name="EraserChangeButton" Classes="penEndAction" Content="Change…"
+                                        Command="{Binding PenEraserRow.ChooseActionCommand}" IsVisible="{Binding PenEraserRow.ShowChooseAction, FallbackValue=False}"
+                                        ToolTip.Tip="Choose what the eraser end does" />
+                                <Border x:Name="EraserValueBox" Classes="penEndValue">
+                                    <TextBlock Text="{Binding PenEraserRow.CurrentPlainLabel}" />
+                                </Border>
+                            </StackPanel>
+                            <views:PenSwitchCard DataContext="{Binding PenButton3Row}" Shout="True"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton3Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
-                            <views:PenSwitchCard DataContext="{Binding PenButton2Row}"
+                            <views:PenSwitchCard DataContext="{Binding PenButton2Row}" Shout="True"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton2Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
-                            <views:PenSwitchCard DataContext="{Binding PenButton1Row}"
+                            <views:PenSwitchCard DataContext="{Binding PenButton1Row}" Shout="True"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
                             <Border x:Name="KeyboardPenTipBlock" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
                                     Padding="0,20,0,0" Width="240" HorizontalAlignment="Left">
@@ -1642,20 +1808,25 @@
                                 </StackPanel>
                             </Border>
                         </StackPanel>
-                        <!-- TASKS #63 (Zak 20:53 / 21:00 / 21:02): "Radial Menu Settings" on the right, where the Button cards were: only the
-                             label above the picture; below it the line (Opens with... / No pen button...) with "Use pen button 2", then the
-                             Menu transparency slider + box and the Menu size slider + box. The picture is always shown (dimmed when no pen
-                             button opens the menu); clicking it opens the radial menu editor for the selected application and the pen button
-                             that has the Radial menu. The pen buttons (cards, "Press a pen button to test it", lit badges) are in the middle
-                             column next to the pen drawing, so nothing overlaps. The picture is never larger than the biggest menu (320 pt).
-                             v27 (Zak 16:35 / 16:39): the picture is the menu at its REAL size (the same 2 x radius + 4 points as the menu window), so
-                             what the page shows is what the pen opens. It sits in a fixed square kept for the largest menu (324 pt, the button has
-                             no padding), where the open menu was in Zak's screenshot; the heading is above it, the line and the sliders below,
-                             so nothing moves while the size slider is dragged and the window never changes size. Only a window too narrow for the
-                             square shrinks the whole square to fit (RadialSpotFit, DownOnly). -->
-                        <StackPanel x:Name="RadialSpot" Grid.Column="4" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="324">
-                            <TextBlock x:Name="RadialSpotHeading" Text="{Binding RadialSpotHeading}" FontWeight="SemiBold" TextWrapping="Wrap"
-                                       HorizontalAlignment="Center" TextAlignment="Center" />
+                        </Grid>
+                    </Grid>
+
+                    <!-- Customise…: the curve of the pen end whose settings are shown. -->
+                    <Border x:Name="FeelDetails" Grid.Row="1" Grid.ColumnSpan="3" IsVisible="False" Classes="wacomPane" Margin="0,10,0,0">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{Binding ActiveCurveTitle}" FontWeight="SemiBold" />
+                            <views:DynamicsView />
+                        </StackPanel>
+                    </Border>
+                    <!-- R14/R16 (the user's mock-ups): movement and pen input in a darker inset frame; Eraser input while the eraser is shown. -->
+                    <Border x:Name="PenBasicsBox" Grid.Row="2" Grid.ColumnSpan="3" Classes="penBasicsInset" Padding="16" Margin="0,10,0,0">
+                        <views:PenBasicsPanel ForEraser="{Binding EraserSettingsShown}" />
+                    </Border>
+                </Grid>
+                    <!-- Right: the radial menu and, under it, the colour palette (Zak's mockup), each with its size and its line. The pictures
+                         keep the v27 rule: the menu at its real size in a fixed square, so nothing moves while a slider is dragged. -->
+                    <StackPanel x:Name="PenRightColumn" Grid.Column="2" Spacing="6" VerticalAlignment="Top" HorizontalAlignment="Center" MaxWidth="324">
+                        <StackPanel x:Name="RadialSpot" Spacing="6">
                             <Viewbox x:Name="RadialSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center">
                             <Grid x:Name="RadialSpotArea" Width="324" Height="324">
                                 <Button x:Name="RadialSpotButton" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
@@ -1678,14 +1849,11 @@
                             <TextBlock x:Name="RadialCentreHint" Text="{Binding RadialPreview.CentreHint}" FontSize="12" TextWrapping="Wrap"
                                        TextAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
                                        IsVisible="{Binding RadialPreview.HasCentreHint}" />
-                            <TextBlock x:Name="RadialSpotLine" Text="{Binding RadialSpotLine}" FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
-                                       HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                            <TextBlock x:Name="RadialSpotLine" Text="{Binding RadialSpotLine}" Classes="spotLine" />
                             <Button x:Name="RadialUseButton" Content="{Binding RadialUseButtonLabel}" Command="{Binding UseRadialButtonCommand}"
                                     IsVisible="{Binding CanUseRadialButton}" HorizontalAlignment="Center" />
                             <StackPanel x:Name="RadialSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}" Opacity="{Binding RadialSpotOpacity}">
-                                <TextBlock Text="{Binding RadialPreview.TransparencyCaption}" FontSize="12" />
-                                <!-- v27 (Zak 16:05): both rows use the same columns (box 52, unit 18) so the two boxes line up exactly; the
-                                     size has no unit (it is a step from 1 to 50, not a percentage), its unit column stays empty. -->
+                                <TextBlock x:Name="RadialTransparencyTitle" Text="{Binding RadialTransparencyTitle}" Classes="spotTitle" />
                                 <Grid x:Name="RadialTransparencyRow" ColumnDefinitions="*,8,52,4,18">
                                     <Slider x:Name="RadialTransparencySlider" Minimum="0" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True"
                                             Value="{Binding RadialPreview.Transparency, Mode=TwoWay}" VerticalAlignment="Center"
@@ -1696,7 +1864,7 @@
                                              AutomationProperties.Name="Menu transparency value" />
                                     <TextBlock Grid.Column="4" Text="%" VerticalAlignment="Center" FontWeight="SemiBold" />
                                 </Grid>
-                                <TextBlock Text="{Binding RadialPreview.SizeCaption}" FontSize="12" Margin="0,6,0,0" />
+                                <TextBlock x:Name="RadialSizeTitle" Text="{Binding RadialSizeTitle}" Classes="spotTitle" Margin="0,6,0,0" />
                                 <Grid x:Name="RadialSizeRow" ColumnDefinitions="*,8,52,4,18">
                                     <Slider x:Name="RadialSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
                                             Value="{Binding RadialPreview.SizeStep, Mode=TwoWay}" VerticalAlignment="Center"
@@ -1708,115 +1876,15 @@
                                 </Grid>
                             </StackPanel>
                         </StackPanel>
-                    </Grid>
-                </Grid>
-                <Border x:Name="FeelDetails" IsVisible="False" Classes="wacomPane">
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Feel Details (shared by tip and eraser)" FontWeight="SemiBold" />
-                        <views:DynamicsView />
-                    </StackPanel>
-                </Border>
-                <!-- R14 (the user's mock-up): movement and pen input, formerly the top-level Pen page, in one panel. -->
-                <!-- R16 (the user's mock-up): a darker inset frame (#262626, sampled) with a subtle #4A4A4A border. -->
-                <Border x:Name="PenBasicsBox" Classes="penBasicsInset" Padding="16">
-                    <views:PenBasicsPanel />
-                </Border>
-            </StackPanel>
-            </Border>
-        </ScrollViewer>
-
-        <!-- ===== Build O: ERASER tab (Eraser Feel + the eraser's function beside the drawn pen). ===== -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
-                      IsVisible="{Binding #EraserTab.IsChecked}">
-            <!-- Shared right margin with WacomHeader (+/−): fill the content column, no fixed 720 left strip. -->
-            <Border Classes="wacomPane" HorizontalAlignment="Stretch">
-            <StackPanel Spacing="10">
-                <Grid ColumnDefinitions="250,24,*">
-                    <!-- R18: every Pen-frame control has its Eraser counterpart. OTD has one tilt flag and one
-                         pressure curve for both ends, so those are the same settings, marked "Shared with Pen". -->
-                    <StackPanel x:Name="EraserLeftColumn" Spacing="12">
-                        <HeaderedContentControl x:Name="EraserTiltGroup" Classes="wacomGroup" Header="Tilt">
-                            <StackPanel Spacing="4">
-                                <CheckBox x:Name="EraserTiltBox" Content="Turn tilt off" IsChecked="{Binding DisableTilt}" />
-                                <TextBlock x:Name="LblEraserTiltShared" Text="Shared with Pen." FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
-                            </StackPanel>
-                        </HeaderedContentControl>
-                        <HeaderedContentControl x:Name="EraserFeelGroup" Classes="wacomGroup" Header="Eraser Feel">
-                            <StackPanel Spacing="4">
-                                <!-- V29 #130/#140 (Zak): a typed value 1 (Soft) to 100 (Firm) beside the slider, like Double Click Fix. -->
-                                <Grid x:Name="EraserFeelRow" ColumnDefinitions="*,6,48" RowDefinitions="Auto,Auto">
-                                    <Slider x:Name="EraserFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
-                                            TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
-                                            VerticalAlignment="Center" AutomationProperties.Name="Eraser Feel" />
-                                    <TextBox x:Name="EraserFeelBox" Grid.Column="2" Width="48" MinWidth="0" VerticalAlignment="Center"
-                                             HorizontalContentAlignment="Right" FontWeight="SemiBold" MaxLength="6" IsEnabled="{Binding CanEditPressure}"
-                                             Text="{Binding TipFeelInput, UpdateSourceTrigger=LostFocus}"
-                                             ToolTip.Tip="1 is the softest, 100 the firmest, 50 the middle."
-                                             AutomationProperties.Name="Eraser Feel value" />
-                                    <Grid Grid.Row="1" ColumnDefinitions="*,*"><TextBlock x:Name="EraserSoft" Text="Soft" FontSize="12" />
-                                        <TextBlock x:Name="EraserFirm" Grid.Column="1" Text="Firm" FontSize="12" HorizontalAlignment="Right" /></Grid>
-                                </Grid>
-                                <Button x:Name="EraserCustomizeButton" Content="Customise…" HorizontalAlignment="Center" MinWidth="110" Click="OnCustomizeEraserFeel"
-                                        ToolTip.Tip="Open the full pressure curve." />
-                                <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0"><TextBlock x:Name="LblEraserCurrentPressure" Text="Current pressure" FontSize="12" />
-                                    <TextBlock Grid.Column="1" x:Name="EraserPressurePercent" Text="{Binding LiveEraserPercentText}" FontSize="12" FontWeight="SemiBold"
-                                               ToolTip.Tip="{Binding LiveEraserInputText}" /></Grid>
-                                <ProgressBar Minimum="0" Maximum="1" Value="{Binding LiveEraserPressure, FallbackValue=0, TargetNullValue=0}" Height="10" MinWidth="0" />
-                                <Grid ColumnDefinitions="*,*"><TextBlock x:Name="LblEraserClick" Text="Click" FontSize="12" />
-                                    <TextBlock x:Name="LblEraserFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
-                                <TextBlock x:Name="LblEraserSharedCurve" Text="Shared with Pen (one curve for tip and eraser)." FontSize="11" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource TextMutedBrush}" />
-                            </StackPanel>
-                        </HeaderedContentControl>
-                        <!-- Version 1: the pressure used while pressure sensitivity is off. -->
-                        <HeaderedContentControl x:Name="ManualEraserPressureFrame" Classes="wacomGroup" Header="Manual Eraser Pressure">
-                            <StackPanel Spacing="4">
-                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
-                                    <Slider x:Name="ManualEraserPressureSlider" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1"
-                                            TickFrequency="0.25" TickPlacement="BottomRight" VerticalAlignment="Center"
-                                            Value="{Binding ManualEraserPressure}" AutomationProperties.Name="Manual Eraser Pressure" />
-                                    <TextBox x:Name="ManualEraserPressureBox" Grid.Column="1" Width="48" MinWidth="0" VerticalAlignment="Center"
-                                             HorizontalContentAlignment="Right" Text="{Binding ManualEraserPercent, UpdateSourceTrigger=LostFocus}"
-                                             AutomationProperties.Name="Manual Eraser Pressure (%)" />
-                                    <TextBlock Grid.Column="2" Text="%" VerticalAlignment="Center" />
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*"><TextBlock Text="0%" FontSize="12" />
-                                    <TextBlock Grid.Column="1" Text="100%" FontSize="12" HorizontalAlignment="Right" /></Grid>
-                                <TextBlock x:Name="LblEraserManualNote" Text="Used for every eraser stroke while pressure sensitivity is off." FontSize="11" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource TextMutedBrush}" />
-                            </StackPanel>
-                        </HeaderedContentControl>
-                    </StackPanel>
-                    <Grid Grid.Column="2" ColumnDefinitions="64,24,Auto,24,*">
-                        <!-- R16: the drawing turned 180° (badges stay upright on their buttons), so the cards run in the
-                             flipped pen's order: button 1 (now nearest the top) first, the eraser card by the eraser end.
-                             They are the same pen-button rows as the Pen tab: OTD has one set of barrel buttons. -->
-                        <views:PenDiagram x:Name="EraserPenDiagram" Flipped="True" VerticalAlignment="Center" />
-                        <!-- V29 (Zak 16 Nov 16:11: 'Move the column right next to the pen'): left-aligned, like the Pen page. -->
-                        <StackPanel x:Name="EraserCards" Grid.Column="2" Spacing="24" VerticalAlignment="Center" HorizontalAlignment="Left">
-                            <views:PenSwitchCard DataContext="{Binding PenButton1Row}"
-                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton1Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
-                            <views:PenSwitchCard DataContext="{Binding PenButton2Row}"
-                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton2Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
-                            <views:PenSwitchCard DataContext="{Binding PenButton3Row}"
-                                                 IsVisible="{Binding $parent[UserControl].DataContext.PenButton3Row, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
-                            <views:PenSwitchCard DataContext="{Binding PenEraserRow}" Margin="0,8,0,0" />
-                        </StackPanel>
-                        <!-- V29 #142 (Zak 19 Nov ~19:07: "use the emptied space for the colour pallet new radial menu settings just like the
-                             default radial menu is positioned on the pen page"): the colour palette's picture and its size, in the free
-                             space right of the Buttons column, laid out like Radial Menu Settings on the Pen page. -->
-                        <StackPanel x:Name="PaletteSpot" Grid.Column="4" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="324"
+                        <!-- V29 #142, moved here from the old Eraser tab (V29 #180). -->
+                        <StackPanel x:Name="PaletteSpot" Spacing="6" Margin="0,24,0,0"
                                     IsVisible="{Binding RadialPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
-                            <TextBlock x:Name="PaletteSpotHeading" Text="{Binding RadialPreview.PaletteHeading}" FontWeight="SemiBold" TextWrapping="Wrap"
-                                       HorizontalAlignment="Center" TextAlignment="Center" />
                             <Viewbox x:Name="PaletteSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" MaxWidth="324" MaxHeight="324">
                                 <ctrl:ColourPaletteWheel x:Name="PaletteSpotWheel" Width="324" Height="324" MenuSize="{Binding RadialPreview.PaletteSize}" Menu="{Binding RadialPreview.PaletteMenu}"
                                                          Opacity="{Binding RadialSpotOpacity}" />
                             </Viewbox>
-                            <TextBlock x:Name="PaletteSpotHelp" Text="{Binding RadialPreview.PaletteHelp}" FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
-                                       HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
                             <StackPanel x:Name="PaletteSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}" Opacity="{Binding RadialSpotOpacity}">
-                                <TextBlock Text="{Binding RadialPreview.PaletteSizeCaption}" FontSize="12" />
+                                <TextBlock x:Name="PaletteSizeTitle" Text="{Binding PaletteSizeTitle}" Classes="spotTitle" />
                                 <Grid x:Name="PaletteSizeRow" ColumnDefinitions="*,8,52,4,18">
                                     <Slider x:Name="PaletteSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
                                             Value="{Binding RadialPreview.PaletteSizeStep, Mode=TwoWay}" VerticalAlignment="Center"
@@ -1826,20 +1894,11 @@
                                              Text="{Binding RadialPreview.PaletteSizeInput, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                              AutomationProperties.Name="Palette size value" />
                                 </Grid>
-                                <TextBlock Text="{Binding RadialPreview.PaletteSolidNote}" FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>
+                            <TextBlock x:Name="PaletteSpotLine" Text="{Binding PaletteSpotLine}" Classes="spotLine" Margin="0,8,0,0" />
                         </StackPanel>
-                    </Grid>
-                </Grid>
-                <Border x:Name="EraserFeelDetails" IsVisible="False" Classes="wacomPane">
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Feel details (shared with Pen)" FontWeight="SemiBold" />
-                        <views:DynamicsView />
                     </StackPanel>
-                </Border>
-                <Border x:Name="EraserBasicsBox" Classes="penBasicsInset" Padding="16">
-                    <views:PenBasicsPanel ForEraser="True" />
-                </Border>
+                </Grid>
             </StackPanel>
             </Border>
         </ScrollViewer>

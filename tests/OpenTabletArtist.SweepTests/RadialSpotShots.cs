@@ -39,14 +39,14 @@ public class RadialSpotShots
         // The app hosts the page under the nav row (about 86 px) and above the footer (about 62 px).
         var window = new Window { Content = new Border { Child = view, Margin = new Thickness(24, 86, 24, 62) }, Width = w, Height = h };
         window.Show();
-        view.FindControl<RadioButton>(tab)!.IsChecked = true;
+        PenPageTabs.Select(view, tab);   // V29 #180: "EraserTab" = the Pen page with the eraser's settings
         Settle(window);
         // the page scrolls in a short window: scroll the picture (and its line / button) into view
         var spot = view.FindControl<StackPanel>("RadialSpot")!;
         var use = view.FindControl<Button>("RadialUseButton")!;
         (use.IsEffectivelyVisible ? (Control)use : view.FindControl<TextBlock>("RadialSpotLine")!).BringIntoView();
         Settle(window);
-        spot.FindControl<TextBlock>("RadialSpotHeading")!.BringIntoView();
+        spot.BringIntoView();   // V29 #180: no heading above the picture any more (Zak's mockup)
         Settle(window);
         return (vm, view, window);
     }

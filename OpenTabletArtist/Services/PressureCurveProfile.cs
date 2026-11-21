@@ -73,19 +73,40 @@ public static class PressureCurveProfile
             S("ManualEraserPressure")?.GetValue<float>() ?? ManualPressure.DefaultValue);
     }
 
+    /// <summary>V29 #180 (Zak 21 Nov: "1 Can you make them two different setting values?"): the eraser end's own feel curve, or null
+    /// when the profile has none (written by an older app: the eraser then uses the tip's curve).</summary>
+    public static PressureCurveSettings? ReadEraserCurve(Profile? profile) => ReadEraserCurve(FindStore(profile?.Filters));
+    public static PressureCurveSettings? ReadEraserCurve(Settings? settings, string tabletName) => ReadEraserCurve(FindStore(settings, tabletName));
+
+    private static PressureCurveSettings? ReadEraserCurve(PluginSettingStore? store)
+    {
+        if (store?.Settings == null) return null;
+        PluginSetting? S(string n) => store.Settings.FirstOrDefault(s => s.Property == n && s.HasValue);
+        if (S("EraserCurveOwn")?.GetValue<bool>() != true) return null;
+        double F(string n, double fallback) => S(n)?.GetValue<float>() ?? fallback;
+        return new PressureCurveSettings(
+            Softness: F("EraserSoftness", 0),
+            InputMinimum: F("EraserInputMinimum", 0),
+            InputMaximum: F("EraserInputMaximum", 1),
+            Minimum: F("EraserMinimum", 0),
+            Maximum: F("EraserMaximum", 1),
+            MinApproach: S("EraserCutBelowMinimum")?.GetValue<bool>() == true ? PressureMinApproach.Cut : PressureMinApproach.Clamp);
+    }
+
     /// <summary>Writes (and enables/disables) the filter on the tablet's profile. Mutates
     /// <paramref name="settings"/>. No-op if the profile isn't found. <paramref name="manual"/> null keeps
-    /// the profile's current manual-pressure settings.</summary>
+    /// the profile's current manual-pressure settings; <paramref name="eraser"/> null keeps the eraser's own curve (if any).</summary>
     public static void Write(Settings? settings, string tabletName, PenDynamicsSettings dynamics, bool enable,
-        ManualPressure? manual = null)
+        ManualPressure? manual = null, PressureCurveSettings? eraser = null)
     {
         var profile = settings?.Profiles?.FirstOrDefault(p => p.Tablet == tabletName);
         if (profile == null) return;
-        WriteProfile(profile, dynamics, enable, manual);
+        WriteProfile(profile, dynamics, enable, manual, eraser);
     }
 
     /// <summary>Same as <see cref="Write"/> for a profile the caller already has (V29 #159: the factory Tip Feel).</summary>
-    public static void WriteProfile(Profile profile, PenDynamicsSettings dynamics, bool enable, ManualPressure? manual = null)
+    public static void WriteProfile(Profile profile, PenDynamicsSettings dynamics, bool enable, ManualPressure? manual = null,
+        PressureCurveSettings? eraser = null)
     {
         var store = profile.Filters?.FirstOrDefault(f => f.Path == FilterTypeName);
         if (store == null)
@@ -96,8 +117,9 @@ public static class PressureCurveProfile
 
         var curve = dynamics.Curve;
         var m = manual ?? ReadManual(store);
+        var e = eraser ?? ReadEraserCurve(store);
         store.Enable = enable;
-        store.Settings = new ObservableCollection<PluginSetting>
+        var list = new ObservableCollection<PluginSetting>
         {
             new(nameof(PressureCurveSettings.Softness), (float)curve.Softness),
             new(nameof(PressureCurveSettings.InputMinimum), (float)curve.InputMinimum),
@@ -112,6 +134,17 @@ public static class PressureCurveProfile
             new("ManualTipPressure", (float)System.Math.Clamp(m.Tip, 0, 1)),
             new("ManualEraserPressure", (float)System.Math.Clamp(m.Eraser, 0, 1)),
         };
+        if (e is { } ec)
+        {
+            list.Add(new("EraserCurveOwn", true));
+            list.Add(new("EraserSoftness", (float)ec.Softness));
+            list.Add(new("EraserInputMinimum", (float)ec.InputMinimum));
+            list.Add(new("EraserInputMaximum", (float)ec.InputMaximum));
+            list.Add(new("EraserMinimum", (float)ec.Minimum));
+            list.Add(new("EraserMaximum", (float)ec.Maximum));
+            list.Add(new("EraserCutBelowMinimum", ec.MinApproach == PressureMinApproach.Cut));
+        }
+        store.Settings = list;
     }
 
     /// <summary>Ensure every profile carries the Pen Dynamics filter, present and enabled — the app's
@@ -131,7 +164,7 @@ public static class PressureCurveProfile
                 // V29 #159: a profile without the filter (a new install or a tablet seen for the first time) starts
                 // at the factory Tip Feel, 80, like Restore factory settings. A profile that has the filter keeps its curve.
                 WriteProfile(profile, new PenDynamicsSettings(PressureCurveSettings.Factory, 0, 0, SmoothAfterCurve: true),
-                    enable: true, ManualPressure.Off);
+                    enable: true, ManualPressure.Off, eraser: PressureCurveSettings.Factory);   // V29 #180: the eraser too
                 changed = true;
             }
             else if (!store.Enable)

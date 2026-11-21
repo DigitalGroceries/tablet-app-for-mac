@@ -37,8 +37,11 @@ public class BuildR5PenLayoutTests
         // only when the tip is not on its default.
         var column = tablet.FindControl<StackPanel>("PenDiagramColumn")!;
         Assert.Same(column, diagram.Parent);
-        Assert.Equal(Avalonia.Layout.VerticalAlignment.Center, column.VerticalAlignment);
-        Assert.True(tablet.FindControl<TextBlock>("PenTipLabel")!.IsEffectivelyVisible);
+        // V29 #180 (Zak's mockup 21 Nov): the round Eraser label on top, the drawing, the round Tip label underneath.
+        double Top(Control c) => c.TranslatePoint(new Point(0, 0), column)!.Value.Y;
+        Assert.True(Top(tablet.FindControl<Border>("EraserEndLabel")!) < Top(diagram));
+        Assert.True(Top(diagram) < Top(tablet.FindControl<Border>("TipEndLabel")!));
+        Assert.True(tablet.FindControl<Border>("TipEndLabel")!.IsEffectivelyVisible);   // V29 #180: the round "Tip" label
         w.Close();
     }
 

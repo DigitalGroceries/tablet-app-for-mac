@@ -690,6 +690,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Sensación del borrador",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Suave",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
@@ -740,22 +745,32 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Presión manual de la punta",
+    "text": "Presión manual",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Punta del lápiz",
+    "text": "PULSA UN BOTÓN PARA PROBARLO",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Pulsa un botón del lápiz para probarlo",
+    "text": "Borrador",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Botón 2",
+    "text": "Punta",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Predeterminado (borrar)",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "BOTÓN 2",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -770,7 +785,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Botón 1",
+    "text": "BOTÓN 1",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -781,26 +796,6 @@
   },
   {
     "text": "Ajustes del teclado",
-    "path": "Tableta › Lápiz › Lápiz",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Ajustes del menú radial",
-    "path": "Tableta › Lápiz › Lápiz",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Usar el botón 2 del lápiz",
-    "path": "Tableta › Lápiz › Lápiz",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Transparencia del menú",
-    "path": "Tableta › Lápiz › Lápiz",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Tamaño del menú",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -835,7 +830,37 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Feel Details (shared by tip and eraser)",
+    "text": "Ningún botón del lápiz abre el menú radial",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Usar el botón 2 del lápiz",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Transparencia del menú radial",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Tamaño del menú radial",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Tamaño de la paleta de colores",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ningún botón del lápiz abre la paleta de colores",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Sensación de la punta: detalles",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
@@ -885,179 +910,19 @@
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
   {
-    "text": "Inclinación",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Desactivar inclinación",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Compartido con el lápiz.",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Sensación del borrador",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Suave",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Firme",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Personalizar",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Presión actual",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Clic",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Completo",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Presión manual del borrador",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Botón 1",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Ajuste predeterminado",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Botón 2",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Modified to Adaptive Binding (Button 1)",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Fix",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Goma",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Ajustes de la paleta de colores",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Tamaño de la paleta",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Movimiento",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Suavizado de posición",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Curvas rápidas más suaves",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
     "text": "Entrada de la goma",
-    "path": "Tableta › Lápiz › Borrador",
+    "path": "Tableta › Lápiz › Lápiz › Sensación del borrador",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
     "text": "Desactivar goma",
-    "path": "Tableta › Lápiz › Borrador",
+    "path": "Tableta › Lápiz › Lápiz › Sensación del borrador",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
-    "text": "Desactivar sensibilidad a la presión",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Feel details (shared with Pen)",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Soft",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Hard",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Softness",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Pressure smoothing",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "raw —",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with raw pressure",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with processed pressure",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Clear",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Copy",
-    "path": "Tableta › Lápiz › Borrador",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+    "text": "Sensación del borrador: detalles",
+    "path": "Tableta › Lápiz › Lápiz › Sensación del borrador",
+    "route": "tablet/ToolPenButton/EraserTab/FeelDetails"
   },
   {
     "text": "Teclado flotante",

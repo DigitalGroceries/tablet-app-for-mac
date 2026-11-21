@@ -6,8 +6,9 @@ using OpenTabletArtist.Services;
 namespace OpenTabletArtist.Views;
 
 /// <summary>Movement, position smoothing, pressing (Windows) and the pen-input switches, on Tablet › Pen (R14).
-/// R18: <see cref="ForEraser"/> turns it into the Eraser tab's copy: "Disable eraser" instead of "Disable pen
-/// tip", and "Shared with Pen" notes on the settings the driver has only once.</summary>
+/// R18: <see cref="ForEraser"/> turns it into the eraser's copy: "Disable eraser" instead of "Disable pen tip".
+/// V29 #180: no "Shared with Pen" notes any more: with Tip Feel | Eraser Feel on one page they pushed the box down when the
+/// eraser's settings were chosen (Grok's review 21 Nov); the manual says which settings both ends share.</summary>
 public partial class PenBasicsPanel : UserControl
 {
     public static readonly StyledProperty<bool> ForEraserProperty =
@@ -37,8 +38,6 @@ public partial class PenBasicsPanel : UserControl
         Localizer.EnsureLoaded();
         DisableTipSwitch.IsVisible = !ForEraser;
         DisableEraserSwitch.IsVisible = ForEraser;
-        PressureSharedNote.IsVisible = ForEraser;
-        MovementSharedNote.IsVisible = ForEraser;
         if (MovementHeading != null) MovementHeading.Text = Localizer.T("tablet.pen.movement");
         if (PositionSmoothingCaption != null)
         {
@@ -58,7 +57,5 @@ public partial class PenBasicsPanel : UserControl
         DisableTipSwitch.Label = Localizer.T("tablet.pen.disable_tip");
         DisableEraserSwitch.Label = Localizer.T("tablet.eraser.disable");
         DisablePressureSwitch.Label = Localizer.T("tablet.pen.disable_pressure");
-        if (MovementSharedNote != null) MovementSharedNote.Text = Localizer.T("tablet.pen.shared");
-        if (PressureSharedNote != null) PressureSharedNote.Text = Localizer.T("tablet.eraser.pressure_shared");
     }
 }

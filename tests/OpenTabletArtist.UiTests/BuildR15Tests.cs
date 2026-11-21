@@ -69,7 +69,7 @@ public class BuildR15Tests
 
     private static ProgressBar Bar(TabletDetailView v, string tab)
     {
-        v.FindControl<RadioButton>(tab)!.IsChecked = true; Dispatcher.UIThread.RunJobs();
+        PenPageTabs.Select(v, tab); Dispatcher.UIThread.RunJobs();
         var label = v.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == "Current pressure" && t.IsEffectivelyVisible);
         return ((Panel)label.Parent!.Parent!).Children.OfType<ProgressBar>().Single();
     }

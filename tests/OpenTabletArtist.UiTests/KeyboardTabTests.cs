@@ -39,17 +39,19 @@ public class KeyboardTabTests
     private static bool ShownOnScreen(Control c) => c.IsVisible && c.GetLogicalAncestors().OfType<Control>().All(a => a.IsVisible);
 
     [AvaloniaFact]
-    public void KeyboardTab_SitsBetweenEraserAndMapping()
+    public void KeyboardTab_SitsBetweenPenAndMapping()
     {
         var (_, view, w) = Open("PenTab");
         try
         {
             var keyboard = view.FindControl<RadioButton>("KeyboardTab")!;
             var row = (Panel)keyboard.Parent!;
-            // Mapping is hidden in this test (no tablet area), so check the order of the four pen tabs as written.
-            var pens = new[] { "PenTab", "EraserTab", "KeyboardTab", "MappingTab" };
+            // Mapping is hidden in this test (no tablet area), so check the order of the pen tabs as written.
+            // V29 #180 (Zak's mockup 21 Nov): no Eraser tab any more; it must not come back.
+            var pens = new[] { "PenTab", "KeyboardTab", "MappingTab" };
             var order = row.Children.OfType<RadioButton>().Select(r => r.Name).Where(n => pens.Contains(n)).ToList();
-            Assert.Equal(new[] { "PenTab", "EraserTab", "KeyboardTab", "MappingTab" }, order);
+            Assert.Equal(pens, order);
+            Assert.Null(view.FindControl<RadioButton>("EraserTab"));
         }
         finally { w.Close(); }
     }

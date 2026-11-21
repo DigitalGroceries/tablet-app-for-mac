@@ -86,7 +86,7 @@ public class BuildR13Tests
         var vm = new TabletDetailViewModel(profile, settings, penInput: feed);
         var view = new TabletDetailView { DataContext = vm };
         var w = new Window { Content = view, Width = 1100, Height = 900 }; w.Show();
-        view.FindControl<RadioButton>(tab)!.IsChecked = true;
+        PenPageTabs.Select(view, tab);
         Dispatcher.UIThread.RunJobs();
         return (feed, vm, view, w);
     }

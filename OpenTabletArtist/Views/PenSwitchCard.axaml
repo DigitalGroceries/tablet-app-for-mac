@@ -1,8 +1,9 @@
-<UserControl x:Class="OpenTabletArtist.Views.PenSwitchCard"
+<UserControl x:Class="OpenTabletArtist.Views.PenSwitchCard" x:Name="CardRoot"
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:c="using:OpenTabletArtist.Controls"
-             xmlns:v="using:OpenTabletArtist.Views">
+             xmlns:v="using:OpenTabletArtist.Views"
+             xmlns:conv="using:OpenTabletArtist.Converters">
 
     <!-- One pen switch (tip / eraser / button N). DataContext is a PenSwitchRowViewModel.
          Build R5 (the user's mock-ups): larger, letter-spaced headings, larger Change… / Default buttons of one
@@ -18,6 +19,9 @@
         <!-- V29 (Zak 16 Nov 16:11, missed until 19 Nov): the action is shown in FULL ('Radial menu: Undo, Redo, Copy…',
              'Default (eraser)'): the box wraps onto more lines instead of cutting the text. It keeps one width (146, the card's
              240 minus the 84 heading and 10 gap) so every card lines up and the Radial Menu Settings picture keeps its real size. -->
+        <Style Selector="TextBlock.penHeading.shout">
+            <Setter Property="FontWeight" Value="Black" />
+        </Style>
         <Style Selector="TextBlock.penValue">
             <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -74,7 +78,13 @@
         <!-- R14 (the user's mock-up): the button's current action in a dark value box. The heading column has a fixed
              width so every card's box starts at the same x; the boxes are one width (the two buttons below). -->
         <StackPanel Orientation="Horizontal" Spacing="10">
-            <TextBlock Classes="penHeading" Text="{Binding SectionLabel}" MinWidth="84" />
+            <TextBlock Classes="penHeading" Text="{Binding SectionLabel}" MinWidth="84"
+                       IsVisible="{Binding !#CardRoot.Shout}" />
+            <!-- V29 #180 (Zak's mockup 21 Nov: "BUTTON 2", "BUTTON 1"; ~12:14 "These are all caps because they need to catch the
+                 user attention first"): the Pen page's cards show the heading in capitals, heavier. -->
+            <TextBlock x:Name="ShoutHeading" Classes="penHeading shout" MinWidth="84"
+                       Text="{Binding SectionLabel, Converter={x:Static conv:UpperCaseConverter.Instance}}"
+                       IsVisible="{Binding #CardRoot.Shout}" />
             <Border x:Name="ValueBox" Classes="penValueBox" IsVisible="{Binding ShowChooseAction}">
                 <TextBlock Classes="penValue" Text="{Binding CurrentPlainLabel}" HorizontalAlignment="Center" />
             </Border>

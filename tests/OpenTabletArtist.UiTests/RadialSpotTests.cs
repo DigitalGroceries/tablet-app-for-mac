@@ -107,18 +107,17 @@ public class RadialSpotTests
         {
             var spot = Find<StackPanel>(view, "RadialSpot");
             Assert.True(spot.IsEffectivelyVisible);
-            var heading = Find<TextBlock>(view, "RadialSpotHeading");
-            Assert.Equal("Radial Menu Settings", heading.Text);
-            Assert.Same(heading, spot.Children[0]);                       // the label is the first (top) thing
+            // V29 #180 (Zak's Pen page mockup, 21 Nov): no title above the picture; the picture is the first (top) thing.
+            Assert.Null(view.FindControl<TextBlock>("RadialSpotHeading"));
+            Assert.Same(Find<Viewbox>(view, "RadialSpotFit"), spot.Children[0]);
             var pie = Find<RadialMenuPie>(view, "RadialSpotPie");
             Assert.Equal("Zoomy", pie.Labels![0]);                        // this application's menu, not a fixed picture
             var line = Find<TextBlock>(view, "RadialSpotLine"); var sliders = Find<StackPanel>(view, "RadialSliders");
             var btn = Find<Button>(view, "RadialSpotButton");
-            Assert.True(In(heading, view).Bottom <= In(btn, view).Top + 0.5);          // only the label above the picture
             Assert.True(In(btn, view).Bottom <= In(line, view).Top + 0.5);
             Assert.True(In(line, view).Bottom <= In(sliders, view).Top + 0.5);          // the line, then the sliders, below the picture
-            Assert.Null(view.FindControl<RadioButton>("RadialTab"));                    // no new tab between Eraser and Mapping
-            Assert.Equal("Opens with: Pen button 2", line.Text);
+            Assert.Null(view.FindControl<RadioButton>("RadialTab"));                    // no tab of its own
+            Assert.Equal("By default Radial Menu opens with Pen Button 2", line.Text);   // V29 #180 (Zak 21 Nov)
             Assert.False(Find<Button>(view, "RadialUseButton").IsEffectivelyVisible);
             Assert.Equal(1.0, Find<Button>(view, "RadialSpotButton").Opacity);
             Assert.True(sliders.IsEnabled);
@@ -136,7 +135,7 @@ public class RadialSpotTests
             Assert.True(Find<StackPanel>(view, "RadialSpot").IsEffectivelyVisible);   // still shown
             Assert.True(Find<Button>(view, "RadialSpotButton").Opacity < 0.6);        // dimmed
             Assert.False(Find<Button>(view, "RadialSpotButton").IsEnabled);
-            Assert.Equal("No pen button opens the radial menu yet", Find<TextBlock>(view, "RadialSpotLine").Text);
+            Assert.Equal("No pen button opens the radial menu", Find<TextBlock>(view, "RadialSpotLine").Text);
             Assert.False(Find<StackPanel>(view, "RadialSliders").IsEnabled);
             var use = Find<Button>(view, "RadialUseButton");
             Assert.True(use.IsEffectivelyVisible);
@@ -148,7 +147,7 @@ public class RadialSpotTests
             await Pump(100); Settle(window);
 
             Assert.True(RadialMenuBinding.Is(profile.BindingSettings.PenButtons[1]));
-            Assert.Equal("Opens with: Pen button 2", Find<TextBlock>(view, "RadialSpotLine").Text);
+            Assert.Equal("By default Radial Menu opens with Pen Button 2", Find<TextBlock>(view, "RadialSpotLine").Text);
             Assert.False(use.IsEffectivelyVisible);
             Assert.Equal(1.0, Find<Button>(view, "RadialSpotButton").Opacity);
             Assert.True(Find<Button>(view, "RadialSpotButton").IsEnabled);
@@ -174,7 +173,7 @@ public class RadialSpotTests
         {
             profile.BindingSettings.PenButtons[1] = AuxKeyBinding.MakeKeyBinding("E")!;
             vm.RefreshRadialSpot(); Settle(window);
-            Assert.Equal("No pen button opens the radial menu yet", Find<TextBlock>(view, "RadialSpotLine").Text);
+            Assert.Equal("No pen button opens the radial menu", Find<TextBlock>(view, "RadialSpotLine").Text);
             await Pump();
         }
         finally { window.Close(); }
@@ -553,7 +552,7 @@ public class RadialSpotTests
             // the pen buttons are in the middle: between the pen drawing and the spot
             foreach (var c in cards) { Assert.True(In(c, page).Left >= In(diagram, page).Right - 0.5); Assert.True(In(c, page).Right <= spotRect.Left + 0.5); }
             // inside the spot the parts do not overlap each other either
-            var rects = new[] { "RadialSpotHeading", "RadialSpotButton", "RadialSpotLine", "RadialSliders" }.Select(n => In(Find<Control>(view, n), page)).ToList();
+            var rects = new[] { "RadialSpotButton", "RadialSpotLine", "RadialSliders" }.Select(n => In(Find<Control>(view, n), page)).ToList();
             for (int i = 0; i < rects.Count - 1; i++) Assert.True(rects[i].Bottom <= rects[i + 1].Top + 0.5, $"spot part {i} overlaps part {i + 1}: {rects[i]} / {rects[i + 1]}");
             if (!hasMenu) { var useRect = In(Find<Button>(view, "RadialUseButton"), page); Assert.True(useRect.Bottom <= In(Find<StackPanel>(view, "RadialSliders"), page).Top + 0.5); }
             // the picture is never bigger than the largest menu (320 pt + the window's 4)
@@ -567,12 +566,12 @@ public class RadialSpotTests
             Assert.True(In(Find<StackPanel>(view, "RadialSliders"), page).Bottom <= page.Viewport.Height + 0.5 + page.Extent.Height, "sliders unreachable");
 
             // the pen button test works as before: holding button 2 changes the line and lights the badge
-            Assert.Equal("Press a Pen button to test it", test.Text);
+            Assert.Equal("PRESS A BUTTON TO TEST IT", test.Text);   // V29 #180: Zak's capitals, and the tip and eraser count too
             vm.PenButton2Pressed = true; Settle(window);
-            Assert.Equal("Button 2 pressed.", test.Text);
+            Assert.Equal("BUTTON 2 PRESSED.", test.Text);
             Assert.Equal("Button 2 pressed.", vm.PenButtonTestText);
             vm.PenButton2Pressed = false; Settle(window);
-            Assert.Equal("Press a Pen button to test it", test.Text);
+            Assert.Equal("PRESS A BUTTON TO TEST IT", test.Text);
             await Pump();
         }
         finally { window.Close(); }

@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Ощущение пера",
+    "text": "Ощущение наконечника",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ощущение ластика",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -740,22 +745,32 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Ручное давление пера",
+    "text": "Ручное давление",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Наконечник пера",
+    "text": "НАЖМИТЕ КНОПКУ, ЧТОБЫ ПРОВЕРИТЬ ЕЁ",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Нажми кнопку пера, чтобы проверить её",
+    "text": "Ластик",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Кнопка 2",
+    "text": "Наконечник",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "По умолчанию (стирание)",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "КНОПКА 2",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -770,7 +785,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Кнопка 1",
+    "text": "КНОПКА 1",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -781,31 +796,6 @@
   },
   {
     "text": "Настройки клавиатуры",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Настройки радиального меню",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Пока ни одна кнопка пера не открывает радиальное меню",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Использовать кнопку пера 2",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Прозрачность меню",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Размер меню",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -840,7 +830,37 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Feel Details (shared by tip and eraser)",
+    "text": "Ни одна кнопка пера не открывает радиальное меню",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Использовать кнопку пера 2",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Прозрачность радиального меню",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Размер радиального меню",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Размер цветовой палитры",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ни одна кнопка пера не открывает цветовую палитру",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ощущение наконечника: подробности",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
@@ -890,179 +910,19 @@
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
   {
-    "text": "Наклон",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Отключить наклон",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Общее с пером.",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Ощущение ластика",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Мягко",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Жёстко",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Настроить",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Текущее давление",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Клик",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Полное",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Ручное давление ластика",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Кнопка 1",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Настройка по умолчанию",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Кнопка 2",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Modified to Adaptive Binding (Button 1)",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Fix",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Ластик",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Настройки цветовой палитры",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Размер палитры",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Движение",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Сглаживание позиции",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Более плавные быстрые кривые",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
     "text": "Ввод ластика",
-    "path": "Планшет › Перо › Ластик",
+    "path": "Планшет › Перо › Перо › Ощущение ластика",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
     "text": "Отключить ластик",
-    "path": "Планшет › Перо › Ластик",
+    "path": "Планшет › Перо › Перо › Ощущение ластика",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
-    "text": "Отключить чувствительность к давлению",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Feel details (shared with Pen)",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Soft",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Hard",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Softness",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Pressure smoothing",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "raw —",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with raw pressure",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with processed pressure",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Clear",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Copy",
-    "path": "Планшет › Перо › Ластик",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+    "text": "Ощущение ластика: подробности",
+    "path": "Планшет › Перо › Перо › Ощущение ластика",
+    "route": "tablet/ToolPenButton/EraserTab/FeelDetails"
   },
   {
     "text": "Плавающая клавиатура",

@@ -755,7 +755,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "ペンの感触",
+    "text": "ペン先の感触",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "消しゴムの感触",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -810,7 +815,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "手動のペン先圧力",
+    "text": "手動の圧力",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -820,12 +825,22 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "ボタンを押して試せます",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "消しゴム",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "ペン先",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "ペンボタンを押して試せます",
+    "text": "標準（消去）",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -860,31 +875,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "ラジアルメニューの設定",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "ラジアルメニューを開くペンボタンはまだありません",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "ペンボタン 2 を使う",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "メニューの透明度",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "メニューのサイズ",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "移動",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
@@ -915,7 +905,37 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Feel Details (shared by tip and eraser)",
+    "text": "ラジアルメニューを開くペンボタンはありません",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ペンボタン 2 を使う",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ラジアルメニューの透明度",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ラジアルメニューのサイズ",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "カラーパレットのサイズ",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "カラーパレットを開くペンボタンはありません",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ペン先の感触の詳細",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
@@ -965,199 +985,24 @@
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
   {
-    "text": "傾き",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "傾きをオフ",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "ペンと共通です。",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "消しゴムの感触",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "柔らかく",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "硬く",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "カスタマイズ",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "現在の筆圧",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "クリック",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "最大",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "ペンと共通（ペン先と消しゴムで同じカーブ）。",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "手動の消しゴム圧力",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
     "text": "筆圧感知がオフの間、消しゴムのすべての線に使われます。",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "ボタン 1",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "デフォルト設定",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "ボタン 2",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Modified to Adaptive Binding (Button 1)",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Fix",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "消しゴム",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "カラーパレットの設定",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "パレットのサイズ",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "パレットは常に不透明なので、正確な色を選べます。",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "移動",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "位置のスムージング",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "速いカーブをなめらかに",
-    "path": "タブレット › ペン › 消しゴム",
+    "path": "タブレット › ペン › ペン › 消しゴムの感触",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
     "text": "消しゴム入力",
-    "path": "タブレット › ペン › 消しゴム",
+    "path": "タブレット › ペン › ペン › 消しゴムの感触",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
     "text": "消しゴムを無効にする",
-    "path": "タブレット › ペン › 消しゴム",
+    "path": "タブレット › ペン › ペン › 消しゴムの感触",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
-    "text": "筆圧を無効",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "筆圧感知はペンと共通です。",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Feel details (shared with Pen)",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Soft",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Hard",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Softness",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Pressure smoothing",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "raw —",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with raw pressure",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with processed pressure",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Clear",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Copy",
-    "path": "タブレット › ペン › 消しゴム",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+    "text": "消しゴムの感触の詳細",
+    "path": "タブレット › ペン › ペン › 消しゴムの感触",
+    "route": "tablet/ToolPenButton/EraserTab/FeelDetails"
   },
   {
     "text": "フローティングキーボード",

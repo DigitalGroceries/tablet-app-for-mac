@@ -27,7 +27,7 @@ public class BuildR18Tests
         vm.PenButton2Row = new PenSwitchRowViewModel(PenSwitchKind.PenButton, 2, null, false, (_, _, _) => Task.CompletedTask);
         var view = new TabletDetailView { DataContext = vm };
         var w = new Window { Content = view, Width = 1100, Height = 1100 }; w.Show();
-        view.FindControl<RadioButton>(tab)!.IsChecked = true;
+        PenPageTabs.Select(view, tab);
         Dispatcher.UIThread.RunJobs(); w.UpdateLayout(); Dispatcher.UIThread.RunJobs();
         return (vm, view, w);
     }
@@ -37,19 +37,22 @@ public class BuildR18Tests
          root.GetVisualDescendants().OfType<Slider>().Count(c => c.IsVisible),
          root.GetVisualDescendants().OfType<ComboBox>().Count(c => c.IsVisible));
 
+    /// <summary>V29 #180: the eraser's settings are the Pen page's own, switched with "Eraser Feel": its Movement + Eraser input frame has
+    /// the same controls as the tip's, its feel has its own slider, Customise… and live bar, and the shared settings say so.</summary>
     [AvaloniaFact]
     public void Eraser_HasACounterpart_ForEveryPenFrameControl()
     {
-        var (_, pv, pw) = Open("PenTab");
-        var pen = Controls(pv.FindControl<Border>("PenBasicsBox")!);
-        pw.Close();
-        var (_, view, w) = Open("EraserTab");
-        Assert.Equal(pen, Controls(view.FindControl<Border>("EraserBasicsBox")!));   // Movement + Pen input frame
-        foreach (var n in new[] { "EraserTiltBox", "EraserFeelSlider", "EraserCustomizeButton", "EraserPressurePercent", "EraserCards", "EraserPenDiagram" })
+        var (_, view, w) = Open("PenTab");
+        var pen = Controls(view.FindControl<Border>("PenBasicsBox")!);
+        PenPageTabs.Select(view, "EraserTab");
+        Assert.Equal(pen, Controls(view.FindControl<Border>("PenBasicsBox")!));   // Movement + Eraser input frame
+        foreach (var n in new[] { "PenTiltOff", "EraserFeelSlider", "EraserCustomizeButton", "EraserPressurePercent", "EraserActionRow", "EraserEndLabel" })
             Assert.True(view.FindControl<Control>(n)!.IsEffectivelyVisible, n);
-        var shared = view.FindControl<Control>("EraserLeftColumn")!.GetVisualDescendants().OfType<TextBlock>()
-            .Count(t => t.IsEffectivelyVisible && (t.Text ?? "").Contains("Shared with Pen"));
-        Assert.True(shared >= 2);
+        Assert.False(view.FindControl<Control>("TipFeelSlider")!.IsEffectivelyVisible);
+        // V29 #180 (Grok's review 21 Nov): no "Shared with Pen" notes any more; they pushed the box down in the eraser's view.
+        var shared = view.FindControl<Control>("PenBasicsBox")!.GetVisualDescendants().OfType<TextBlock>()
+            .Count(t => t.IsEffectivelyVisible && (t.Text ?? "").Contains("shared with Pen", System.StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(0, shared);
         w.Close();
     }
 

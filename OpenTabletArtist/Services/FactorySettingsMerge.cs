@@ -119,7 +119,7 @@ public static class FactorySettingsMerge
         if (profile.Filters == null) return;
         PressureCurveProfile.WriteProfile(profile,
             new Domain.PenDynamicsSettings(Domain.PressureCurveSettings.Factory, 0, 0, SmoothAfterCurve: true),
-            enable: true, PressureCurveProfile.ManualPressure.Off);
+            enable: true, PressureCurveProfile.ManualPressure.Off, eraser: Domain.PressureCurveSettings.Factory);   // V29 #180
     }
 
     private static Profile CloneProfile(Profile profile) =>

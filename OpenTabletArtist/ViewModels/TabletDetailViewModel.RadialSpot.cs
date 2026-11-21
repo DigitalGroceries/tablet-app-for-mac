@@ -316,16 +316,26 @@ public partial class TabletDetailViewModel
             CanUseRadialButton = openers.Count == 0 && use > 0 && _applyAction != null;
             RadialUseButtonLabel = use > 0 ? FormatNumbered("radial_spot.use_button", "Use pen button {number}", use) : "";
             OnPropertyChanged(nameof(CanEditRadial));
+            // V29 #180 (Zak 21 Nov ~12:13: "You can replace the 'By default' text with what opens the menu if the user has chosen
+            // something different. By default will stay if the user havent chosen a custom action."): the factory set-up is the
+            // radial menu on pen button 2 alone; the colour palette opens with that same button pressed twice.
+            bool factory = openers.Count == 1 && openers[0].number == 2;
+            var numbers = string.Join(", ", openers.Select(o => o.number.ToString(System.Globalization.CultureInfo.InvariantCulture)));
             if (openers.Count > 0)
             {
                 _radialOpenerJson = openers[0].json;
-                RadialSpotLine = Localizer.Te("radial_spot.opens_with", "Opens with: {buttons}")
-                    .Replace("{buttons}", string.Join(", ", openers.Select(o => FormatNumbered("radial_spot.pen_button", "Pen button {number}", o.number))), StringComparison.Ordinal);
+                RadialSpotLine = factory
+                    ? Localizer.Te("radial_spot.default_line", "By default Radial Menu opens with Pen Button 2")
+                    : Localizer.Te("radial_spot.opens_line", "Radial Menu opens with Pen Button {number}").Replace("{number}", numbers, StringComparison.Ordinal);
+                PaletteSpotLine = factory
+                    ? Localizer.Te("palette_spot.default_line", "By default Colour Palette opens with Pen button 2 double click")
+                    : Localizer.Te("palette_spot.opens_line", "Colour Palette opens with Pen button {number} double click").Replace("{number}", numbers, StringComparison.Ordinal);
             }
             else
             {
                 _radialOpenerJson = null;
-                RadialSpotLine = Localizer.Te("radial_spot.none", "No pen button opens the radial menu yet");
+                RadialSpotLine = Localizer.Te("radial_spot.none", "No pen button opens the radial menu");
+                PaletteSpotLine = Localizer.Te("palette_spot.none", "No pen button opens the colour palette");
             }
             OnPropertyChanged(nameof(CanEditRadialSliders));
             RefreshKeyboardSlots();   // V29 #163

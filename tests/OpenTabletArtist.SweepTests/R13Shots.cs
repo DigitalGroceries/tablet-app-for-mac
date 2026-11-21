@@ -43,7 +43,7 @@ public class R13Shots
         var vm = new TabletDetailViewModel(profile, settings, penInput: feed);
         var view = new TabletDetailView { DataContext = vm };
         var w = Host(view, 1000, 1900);
-        void Tab(string t) { view.FindControl<RadioButton>(t)!.IsChecked = true; Pump(); w.UpdateLayout(); Pump(); }
+        void Tab(string t) { PenPageTabs.Select(view, t); Pump(); w.UpdateLayout(); Pump(); }
         // R15: each bar follows only its own end. Tip in use: tip bar 65 %, eraser bar idle; and vice versa.
         feed.Raw(new JObject { ["Tool"] = 0 }); feed.Pen(1330); Pump();
         Tab("PenTab"); Shot(w, "r15-tip-in-use-pen-tab-65pct");

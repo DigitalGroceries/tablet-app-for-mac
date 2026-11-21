@@ -765,6 +765,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "橡皮擦手感",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "柔和",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
@@ -805,7 +810,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "手动笔尖压力",
+    "text": "手动压力",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -815,12 +820,22 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "按下按钮即可测试",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "橡皮擦",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "笔尖",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "按笔上的按钮即可测试",
+    "text": "默认（擦除）",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -855,31 +870,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "径向菜单设置",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "还没有笔按键可以打开径向菜单",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "使用笔按键 2",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "菜单透明度",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "菜单大小",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "移动",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
@@ -910,7 +900,37 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Feel Details (shared by tip and eraser)",
+    "text": "没有笔按键可以打开径向菜单",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "使用笔按键 2",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "径向菜单透明度",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "径向菜单大小",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "调色板大小",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "没有笔按键可以打开调色板",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "笔尖手感详情",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
@@ -960,194 +980,24 @@
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
   {
-    "text": "倾斜",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "关闭倾斜",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "与笔共用。",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "橡皮擦手感",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "柔和",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "自定",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "当前压力",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "点击",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "满压",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "与笔共用（笔尖和橡皮擦同一条曲线）。",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "手动橡皮擦压力",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
     "text": "在关闭压感时，用于每一笔橡皮擦笔划。",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "按钮 1",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "默认设置",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "按钮 2",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Modified to Adaptive Binding (Button 1)",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Fix",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "橡皮擦",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "调色板设置",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "调色板大小",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "调色板始终不透明，因此你选取的颜色是准确的。",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "移动",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "位置平滑",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "更平滑的快速曲线",
-    "path": "数位板 › 笔 › 橡皮擦",
+    "path": "数位板 › 笔 › 笔 › 橡皮擦手感",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
     "text": "橡皮擦输入",
-    "path": "数位板 › 笔 › 橡皮擦",
+    "path": "数位板 › 笔 › 笔 › 橡皮擦手感",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
     "text": "禁用橡皮擦",
-    "path": "数位板 › 笔 › 橡皮擦",
+    "path": "数位板 › 笔 › 笔 › 橡皮擦手感",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
-    "text": "关闭压感",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "压感与笔共用。",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Feel details (shared with Pen)",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Soft",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Hard",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Softness",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Pressure smoothing",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "raw —",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with raw pressure",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with processed pressure",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Clear",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Copy",
-    "path": "数位板 › 笔 › 橡皮擦",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+    "text": "橡皮擦手感详情",
+    "path": "数位板 › 笔 › 笔 › 橡皮擦手感",
+    "route": "tablet/ToolPenButton/EraserTab/FeelDetails"
   },
   {
     "text": "浮动键盘",

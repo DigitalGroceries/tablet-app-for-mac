@@ -47,7 +47,7 @@ public class BuildR14Tests
         var vm = new TabletDetailViewModel(profile, settings, penInput: feed);
         var view = new TabletDetailView { DataContext = vm };
         var w = new Window { Content = view, Width = 1100, Height = 1000 }; w.Show();
-        view.FindControl<RadioButton>(tab)!.IsChecked = true;
+        PenPageTabs.Select(view, tab);
         Dispatcher.UIThread.RunJobs();
         return (feed, vm, view, w);
     }
@@ -92,7 +92,7 @@ public class BuildR14Tests
         var texts = view.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "").ToList();
         Assert.DoesNotContain(texts, t => t.StartsWith("More pen options"));
         Assert.DoesNotContain(view.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b.Content as string == "Default" && b.FindAncestorOfType<PenSwitchCard>() is null);
-        view.FindControl<RadioButton>("EraserTab")!.IsChecked = true; Dispatcher.UIThread.RunJobs();
+        PenPageTabs.Select(view, "EraserTab"); Dispatcher.UIThread.RunJobs();
         Assert.DoesNotContain(view.GetVisualDescendants().OfType<Button>(), b => b.IsEffectivelyVisible && b.Content as string == "Default" && b.FindAncestorOfType<PenSwitchCard>() is null);
         // R18: the user wants full Eraser parity, so the Eraser tab now mirrors the (shared) feel slider.
         w.Close();

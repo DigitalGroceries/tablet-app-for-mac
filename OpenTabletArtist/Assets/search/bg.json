@@ -670,7 +670,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Чувствителност на писалката",
+    "text": "Усещане на върха",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Усещане на гумата",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -725,22 +730,32 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Ръчен натиск на писалката",
+    "text": "Ръчен натиск",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Връх на писалката",
+    "text": "НАТИСНЕТЕ БУТОН, ЗА ДА ГО ТЕСТВАТЕ",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Натисни бутон на писалката, за да го тестваш",
+    "text": "Гума",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Бутон 2",
+    "text": "Връх",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "По подразбиране (изтриване)",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "БУТОН 2",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -755,7 +770,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Бутон 1",
+    "text": "БУТОН 1",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -766,31 +781,6 @@
   },
   {
     "text": "Настройки на клавиатурата",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Настройки на радиалното меню",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Все още никой бутон на писалката не отваря радиалното меню",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Използвай бутон 2 на писалката",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Прозрачност на менюто",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Размер на менюто",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -825,7 +815,37 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Feel Details (shared by tip and eraser)",
+    "text": "Никой бутон на писалката не отваря радиалното меню",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Използвай бутон 2 на писалката",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Прозрачност на радиалното меню",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Размер на радиалното меню",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Размер на цветовата палитра",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Никой бутон на писалката не отваря цветовата палитра",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Усещане на върха: подробности",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
@@ -875,179 +895,19 @@
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
   {
-    "text": "Наклон",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Изключи наклона",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Общо с писалката.",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Усещане на гумата",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Меко",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Твърдо",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Настрой",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Текущ натиск",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Щракване",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Пълно",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Ръчен натиск на гумата",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Бутон 1",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Настройка по подразбиране",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Бутон 2",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Modified to Adaptive Binding (Button 1)",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Fix",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Гума",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Настройки на цветовата палитра",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Размер на палитрата",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Движение",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Изглаждане на позицията",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "По-гладки бързи криви",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
     "text": "Въвеждане с гумата",
-    "path": "Таблет › Писалка › Гума",
+    "path": "Таблет › Писалка › Писалка › Усещане на гумата",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
     "text": "Изключи гумата",
-    "path": "Таблет › Писалка › Гума",
+    "path": "Таблет › Писалка › Писалка › Усещане на гумата",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
-    "text": "Изключи чувствителността към натиск",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Feel details (shared with Pen)",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Soft",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Hard",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Softness",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Pressure smoothing",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "raw —",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with raw pressure",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with processed pressure",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Clear",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Copy",
-    "path": "Таблет › Писалка › Гума",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+    "text": "Усещане на гумата: подробности",
+    "path": "Таблет › Писалка › Писалка › Усещане на гумата",
+    "route": "tablet/ToolPenButton/EraserTab/FeelDetails"
   },
   {
     "text": "Плаваща клавиатура",

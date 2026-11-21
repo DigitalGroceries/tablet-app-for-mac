@@ -107,10 +107,17 @@ Read this first. It is short on purpose.
 - **Match Wacom's layout and wording; never copy Wacom artwork.**
 - **macOS 27.2 broke the Mac's own window drag for custom title bars** (V29 #176, Zak 20 Nov 2026; warpdotdev/warp#16508, Apple FB25207761): `performWindowDragWithEvent:` / Avalonia's `BeginMoveDrag` is accepted but often moves nothing or starts seconds late; Finder is fine. The main window is therefore dragged by hand on macOS (`Helpers/ManualWindowDrag.cs`: place at the press + pointer movement read from macOS) and made not movable by macOS (`Services/MacWindowDrag.MakeNotMovableByMac`). Don't go back to the Mac's drag, and don't snap or throw the window between screens while dragging (it jittered). The team's permanent record: `AI/Team/TEAM-FACTS.md` on the T7.
 
+## Tablet › Pen: no Eraser tab (V29 #180, the maintainer's mockup 21 Nov 2026)
+
+- The tabs are Pen, Keyboard, Mapping. The **Tip Feel | Eraser Feel** switch on the Pen page swaps the Feel slider and curve, Manual Pressure, Double Click Fix (tip only; its space is kept) and Pen/Eraser input. The pen buttons, radial menu and colour palette are shared by both.
+- The eraser has its own pressure curve (`DynamicsFilter.EraserCurveOwn` + `Eraser*` fields, `PressureCurveProfile.ReadEraserCurve`). Without `EraserCurveOwn` the eraser uses the tip's curve, so an old settings file feels the same. Every `PressureCurveProfile.Write` passes `eraser:`; null keeps what is stored.
+- UI tests reach the eraser's settings with `PenPageTabs.Select(view, "EraserTab")`.
+
 ## Text casing rule (the maintainer's, since 0.89.1-P)
 
 - Headings, page and section titles, side-panel titles, nav labels and buttons use sentence case: first letter capitalised, the rest as written ("Start at login", "About touch ring", "About ExpressKeys"). Never all lowercase, never ALL CAPS.
 - Exceptions keep their own casing: ExpressKeys, JSON, OTD, OTA, OpenTabletArtist, OpenTabletDriver, VMulti (`Converters/TitleCaseConverter.Exceptions`).
+- The maintainer's exception (V29 #180, 21 Nov 2026, TEAM-RULES 7.12): on Tablet › Pen the pen-button card headings (`PenSwitchCard Shout="True"`) and the button test line above the pen drawing are ALL CAPS on purpose, "because they need to catch the user attention first". Leave them that way.
 - `TitleCaseConverter.Apply` is the one place the rule lives; `LowerCaseConverter` (kept for old XAML) now delegates to it, so `Section.Title` and the nav follow it automatically. Write heading literals already capitalised.
 - `tests/OpenTabletArtist.UiTests/HeadingCaseTests.cs` fails if any heading-class TextBlock (Display / section / Heading) or Title/Header literal in the XAML starts lowercase.
 
@@ -131,7 +138,7 @@ Read this first. It is short on purpose.
 - The O build has not been run on a real Mac (look, ad-hoc signature, permissions, install steps).
 - Smooth zoom and smooth hardness modifiers after the L fix (Photoshop seeing them); hardness direction; hardness needs Photoshop's "Vary Round Brush Hardness based on HUD vertical movement".
 - **Per-app (Application) settings are missing**: upstream retired its per-app tab; the + / − buttons are disabled.
-- Not supported by OTD, so left out: tilt sensitivity, separate eraser curve. Double Click Fix and a Double Click pen-button action shipped in Version 25; the Radial Menu shipped in Version 26.
+- Not supported by OTD, so left out: tilt sensitivity. (A separate eraser curve came in Version 29, #180, through the app's own DynamicsFilter.) Double Click Fix and a Double Click pen-button action shipped in Version 25; the Radial Menu shipped in Version 26.
 - Whether Wacom's own driver must be removed first.
 
 ## App icon (since 0.91.0-R)

@@ -8,6 +8,11 @@ namespace OpenTabletArtist.Views;
 /// <see cref="ViewModels.PenSwitchRowViewModel"/> bound to a slot by the diagram.</summary>
 public partial class PenSwitchCard : UserControl
 {
+    /// <summary>V29 #180: the heading in capitals (the Pen page's BUTTON 2 / BUTTON 1).</summary>
+    public static readonly Avalonia.StyledProperty<bool> ShoutProperty =
+        Avalonia.AvaloniaProperty.Register<PenSwitchCard, bool>(nameof(Shout));
+    public bool Shout { get => GetValue(ShoutProperty); set => SetValue(ShoutProperty, value); }
+
     public PenSwitchCard()
     {
         InitializeComponent();

@@ -34,10 +34,9 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         // Not while a control that uses the arrows has focus (text box, slider, dropdown, list).
         AddHandler(KeyDownEvent, OnTabKeyDown, RoutingStrategies.Bubble, handledEventsToo: false);
         // Build O: the Tool tile follows the open tab (and picks the tab group), from load on.
-        foreach (var t in new[] { ButtonsTab, WheelsTab, PenTab, EraserTab, KeyboardTab, MappingTab, AboutTab, CalibrationTab, FiltersTab, JsonTab, HoverTab })
+        foreach (var t in new[] { ButtonsTab, WheelsTab, PenTab, KeyboardTab, MappingTab, AboutTab, CalibrationTab, FiltersTab, JsonTab, HoverTab })
             t.IsCheckedChanged += (_, _) => SyncToolChips();
         PenTab.IsCheckedChanged += OnLiveTabChanged;
-        EraserTab.IsCheckedChanged += OnLiveTabChanged;
         SyncToolChips();
         ApplyLanguage();
         HookRadialSliders();
@@ -102,12 +101,10 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (ButtonsTab != null) ButtonsTab.Content = Localizer.T("tablet.tab.expresskeys");
         if (WheelsTab != null) WheelsTab.Content = Localizer.T("tablet.tab.touch_ring");
         if (PenTab != null) PenTab.Content = Localizer.T("tablet.tab.pen");
-        if (EraserTab != null) EraserTab.Content = Localizer.T("tablet.tab.eraser");
         if (MappingTab != null) MappingTab.Content = Localizer.T("tablet.tab.mapping");
         if (KeyboardTab != null) KeyboardTab.Content = Localizer.Te("tablet.tab.keyboard", "keyboard");
         if (KeyboardSettingsLink != null) KeyboardSettingsLink.Content = Localizer.Te("tablet.pen.keyboard_settings_link", "Keyboard settings…");
         if (HoldDefaultHeading != null) HoldDefaultHeading.Text = Localizer.Te("tablet.pen.hold_default_heading", "Default setting:");
-        if (PenTipLabel != null) PenTipLabel.Text = Localizer.Te("tablet.pen.tip", "Pen tip");
         if (AboutTab != null) AboutTab.Content = Localizer.T("tablet.tab.about");
         if (CalibrationTab != null) CalibrationTab.Content = Localizer.T("tablet.tab.calibration");
         if (HoverTab != null) HoverTab.Content = Localizer.T("tablet.tab.hover");
@@ -116,7 +113,6 @@ public partial class TabletDetailView : UserControl, ITabbedContent
 
         if (PenTiltGroup != null) PenTiltGroup.Header = Localizer.T("tablet.pen.tilt");
         if (PenTiltOff != null) PenTiltOff.Content = Localizer.T("tablet.pen.turn_tilt_off");
-        if (PenTipFeelGroup != null) PenTipFeelGroup.Header = Localizer.T("tablet.pen.tip_feel");
         if (PenSoft != null) PenSoft.Text = Localizer.T("tablet.pen.soft");
         if (PenFirm != null) PenFirm.Text = Localizer.T("tablet.pen.firm");
         if (PenDoubleClickDistanceGroup != null) PenDoubleClickDistanceGroup.Header = Localizer.Te("tablet.pen.double_click_distance", "Double Click Fix");
@@ -128,16 +124,15 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (PenDoubleClickLarge != null) PenDoubleClickLarge.Text = Localizer.Te("tablet.pen.double_click_large", "Large");
         if (PenDoubleClickNote != null) PenDoubleClickNote.Text = Localizer.Te("tablet.pen.double_click_note", "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.");
         if (PenCustomise != null) PenCustomise.Content = Localizer.T("tablet.pen.customise");
-        if (ManualTipPressureFrame != null) ManualTipPressureFrame.Header = Localizer.T("tablet.pen.manual_tip_pressure");
+        // V29 #180 (Zak's mockup): one name for both ends' manual pressure.
+        if (ManualTipPressureFrame != null) ManualTipPressureFrame.Header = Localizer.Te("tablet.pen.manual_pressure", "Manual Pressure");
+        if (ManualEraserPressureFrame != null) ManualEraserPressureFrame.Header = Localizer.Te("tablet.pen.manual_pressure", "Manual Pressure");
+        if (EraserChangeButton != null) EraserChangeButton.Content = Localizer.T("tablet.pen.change");
         if (PenManualNote != null) PenManualNote.Text = Localizer.T("tablet.pen.manual_tip_note");
 
-        if (EraserTiltGroup != null) EraserTiltGroup.Header = Localizer.T("tablet.pen.tilt");
-        if (EraserTiltBox != null) EraserTiltBox.Content = Localizer.T("tablet.pen.turn_tilt_off");
-        if (EraserFeelGroup != null) EraserFeelGroup.Header = Localizer.T("tablet.eraser.feel");
         if (EraserSoft != null) EraserSoft.Text = Localizer.T("tablet.pen.soft");
         if (EraserFirm != null) EraserFirm.Text = Localizer.T("tablet.pen.firm");
         if (EraserCustomizeButton != null) EraserCustomizeButton.Content = Localizer.T("tablet.pen.customise");
-        if (ManualEraserPressureFrame != null) ManualEraserPressureFrame.Header = Localizer.T("tablet.eraser.manual_pressure");
 
         if (LblMapSize != null) LblMapSize.Text = Localizer.T("tablet.mapping.size");
         if (LblMapRotation != null) LblMapRotation.Text = Localizer.T("tablet.mapping.rotation");
@@ -191,11 +186,9 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (LblPenClick != null) LblPenClick.Text = Localizer.T("tablet.pen.click");
         if (LblPenFull != null) LblPenFull.Text = Localizer.T("tablet.pen.full");
 
-        if (LblEraserTiltShared != null) LblEraserTiltShared.Text = Localizer.T("tablet.pen.shared");
         if (LblEraserCurrentPressure != null) LblEraserCurrentPressure.Text = Localizer.T("tablet.pen.current_pressure");
         if (LblEraserClick != null) LblEraserClick.Text = Localizer.T("tablet.pen.click");
         if (LblEraserFull != null) LblEraserFull.Text = Localizer.T("tablet.pen.full");
-        if (LblEraserSharedCurve != null) LblEraserSharedCurve.Text = Localizer.T("tablet.pen.shared_curve");
         if (LblEraserManualNote != null) LblEraserManualNote.Text = Localizer.T("tablet.eraser.manual_note");
 
         if (AppAddButton != null) ToolTip.SetTip(AppAddButton, Localizer.T("tablet.app.add_tip"));
@@ -212,9 +205,9 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     internal void SyncToolChips()
     {
         if (ButtonsTab.IsChecked == true || WheelsTab.IsChecked == true) SelectTool(ToolFunctionsButton);
-        else if (PenTab.IsChecked == true || EraserTab.IsChecked == true || KeyboardTab.IsChecked == true || MappingTab.IsChecked == true)
+        else if (PenTab.IsChecked == true || KeyboardTab.IsChecked == true || MappingTab.IsChecked == true)
         {
-            // Version 14: an extra pen tile stays selected while you move between Pen, Eraser and Mapping.
+            // Version 14: an extra pen tile stays selected while you move between Pen, Keyboard and Mapping.
             if (string.IsNullOrEmpty(Vm?.SelectedPenKey)) SelectTool(ToolPenButton);
         }
         else if (AboutTab.IsChecked == true || CalibrationTab.IsChecked == true || FiltersTab.IsChecked == true
@@ -241,7 +234,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (s is not Control { Tag: string key } || Vm is null) return;
         foreach (var t in new[] { ToolFunctionsButton, ToolPenButton, ToolMoreButton }) t.IsChecked = false;
         Vm.PenToolActive = true;
-        if (PenTab.IsChecked != true && EraserTab.IsChecked != true && KeyboardTab.IsChecked != true && MappingTab.IsChecked != true) PenTab.IsChecked = true;
+        if (PenTab.IsChecked != true && KeyboardTab.IsChecked != true && MappingTab.IsChecked != true) PenTab.IsChecked = true;
         Vm.SelectPenProfileCommand.Execute(key);
     }
 
@@ -355,9 +348,6 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         FeelDetails.IsVisible = !FeelDetails.IsVisible;
     }
 
-    /// <summary>R18: the Eraser tab's Customize… opens the same (shared) curve under its own frame.</summary>
-    private void OnCustomizeEraserFeel(object? s, RoutedEventArgs e) =>
-        EraserFeelDetails.IsVisible = !EraserFeelDetails.IsVisible;
 
 
     private void OnAppAllTile(object? s, RoutedEventArgs e) => Vm?.SelectAllAppCommand.Execute(null);
@@ -579,12 +569,17 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     /// False when a name isn't on this page (an index older than the page).</summary>
     public bool OpenSearchPlace(string tool, string tab, string? panel = null)
     {
+        // V29 #180 (Zak's mockup 21 Nov): the Eraser tab became the Pen page with "Eraser Feel" chosen. Its routes (and
+        // older search results) open the Pen page with the eraser's settings; "PenTab" shows the tip's.
+        bool eraser = tab == "EraserTab";
+        if (eraser) { tab = "PenTab"; if (panel == "EraserFeelDetails") panel = "FeelDetails"; }
         var tile = this.FindControl<RadioButton>(tool);
         var pivot = this.FindControl<RadioButton>(tab);
         if (tile is null || pivot is null || !ReferenceEquals(tile, ToolFunctionsButton) && !ReferenceEquals(tile, ToolPenButton)
             && !ReferenceEquals(tile, ToolMoreButton)) return false;
         SelectTool(tile);
         pivot.IsChecked = true;
+        if (ReferenceEquals(pivot, PenTab)) (eraser ? EraserFeelChip : TipFeelChip).IsChecked = true;
         if (panel is null) return true;
         if (this.FindControl<Control>(panel) is not { } details) return false;
         details.IsVisible = true;
@@ -622,7 +617,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     private void UpdateLiveInput()
     {
         if (Vm is not { } vm) return;
-        if (ButtonsTab.IsChecked == true || WheelsTab.IsChecked == true || PenTab.IsChecked == true || EraserTab.IsChecked == true)
+        if (ButtonsTab.IsChecked == true || WheelsTab.IsChecked == true || PenTab.IsChecked == true)
             vm.StartLiveInput();
         else vm.StopLiveInput();
     }

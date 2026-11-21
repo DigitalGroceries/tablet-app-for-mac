@@ -55,6 +55,32 @@ public class DynamicsFilter : IPositionedPipelineElement<IDeviceReport>
 
     private bool _eraser;
 
+    // V29 #180 (Zak 21 Nov: "1 Can you make them two different setting values?"): the eraser end has its own feel curve. Off
+    // (a profile written by an older app) = the eraser uses the tip's curve, as before.
+    [Property("Eraser curve own"), DefaultPropertyValue(false),
+     ToolTip("On: the eraser end uses the Eraser curve values below. Off: it uses the tip's curve.")]
+    public bool EraserCurveOwn { get; set; }
+
+    [Property("Eraser softness"), DefaultPropertyValue(0f)]
+    public float EraserSoftness { get; set; }
+
+    [Property("Eraser input minimum"), DefaultPropertyValue(0f)]
+    public float EraserInputMinimum { get; set; }
+
+    [Property("Eraser input maximum"), DefaultPropertyValue(1f)]
+    public float EraserInputMaximum { get; set; } = 1f;
+
+    [Property("Eraser output minimum"), DefaultPropertyValue(0f)]
+    public float EraserMinimum { get; set; }
+
+    [Property("Eraser output maximum"), DefaultPropertyValue(1f)]
+    public float EraserMaximum { get; set; } = 1f;
+
+    [Property("Eraser cut below minimum"), DefaultPropertyValue(false)]
+    public bool EraserCutBelowMinimum { get; set; }
+
+    private bool _lastCurveWasEraser;
+
     [Property("Pressure Smoothing"), DefaultPropertyValue(0f),
      ToolTip("EMA smoothing of pressure (amount 0 = off to 1 = max, perceptually scaled). Reduces pressure jitter at the cost of lag. Applies while drawing.")]
     public float PressureSmoothing { get; set; }
@@ -78,12 +104,6 @@ public class DynamicsFilter : IPositionedPipelineElement<IDeviceReport>
 
     public void Consume(IDeviceReport value)
     {
-        _processor.Settings = new PenDynamicsSettings(
-            new PressureCurveSettings(
-                Softness, InputMinimum, InputMaximum, Minimum, Maximum,
-                CutBelowMinimum ? PressureMinApproach.Cut : PressureMinApproach.Clamp),
-            PressureSmoothing, PositionSmoothing, SmoothAfterCurve);
-
         // Pen left the sensor — reset smoothing so the next stroke doesn't lerp in from here.
         if (value is IProximityReport { NearProximity: false })
             _processor.Reset();
@@ -96,6 +116,11 @@ public class DynamicsFilter : IPositionedPipelineElement<IDeviceReport>
             AnnouncePen(tool);
         }
         if (value is IEraserReport er) _eraser = er.Eraser;
+
+        // V29 #180: the curve of the end that is down (the eraser's own one when the app has written it).
+        bool eraserCurve = _eraser && EraserCurveOwn;
+        if (eraserCurve != _lastCurveWasEraser) { _processor.Reset(); _lastCurveWasEraser = eraserCurve; }
+        _processor.Settings = new PenDynamicsSettings(CurveFor(eraserCurve), PressureSmoothing, PositionSmoothing, SmoothAfterCurve);
 
         // Skip entirely when MaxPressure is unknown (some custom configs) — normalizing needs it, and
         // we must not zero pressure just because we can't process it (Codex #106). Pass through.
@@ -132,6 +157,13 @@ public class DynamicsFilter : IPositionedPipelineElement<IDeviceReport>
 
         Emit?.Invoke(value);
     }
+
+    /// <summary>V29 #180: the tip's curve, or the eraser's own curve.</summary>
+    public PressureCurveSettings CurveFor(bool eraser) => eraser
+        ? new PressureCurveSettings(EraserSoftness, EraserInputMinimum, EraserInputMaximum, EraserMinimum, EraserMaximum,
+            EraserCutBelowMinimum ? PressureMinApproach.Cut : PressureMinApproach.Clamp)
+        : new PressureCurveSettings(Softness, InputMinimum, InputMaximum, Minimum, Maximum,
+            CutBelowMinimum ? PressureMinApproach.Cut : PressureMinApproach.Clamp);
 
     // Version 14: tell the app which pen (and which end) is near, for per-pen settings. Written only when it
     // changes, so the file is touched once per pen change, not on every report.

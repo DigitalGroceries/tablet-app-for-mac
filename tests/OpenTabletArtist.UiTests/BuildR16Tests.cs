@@ -32,7 +32,7 @@ public class BuildR16Tests
         vm.PenButton2Row = new PenSwitchRowViewModel(PenSwitchKind.PenButton, 2, null, false, (_, _, _) => Task.CompletedTask);
         var view = new TabletDetailView { DataContext = vm };
         var w = new Window { Content = view, Width = 1100, Height = 1100 }; w.Show();
-        view.FindControl<RadioButton>(tab)!.IsChecked = true;
+        PenPageTabs.Select(view, tab);
         Dispatcher.UIThread.RunJobs(); w.UpdateLayout(); Dispatcher.UIThread.RunJobs();
         return (vm, view, w);
     }
@@ -49,17 +49,52 @@ public class BuildR16Tests
         w.Close();
     }
 
+    /// <summary>V29 #180 (Zak's Pen page mockup, 21 Nov): the eraser's action sits by the Eraser label, above BUTTON 2 and BUTTON 1,
+    /// and the middle column is the same whichever end's settings are shown ("the 'Tip Feel' and the 'Eraser Feel' buttons share
+    /// the same pen buttons setting").</summary>
     [AvaloniaFact]
-    public void EraserTab_HasTheSameButtonCards_InFlippedOrder()
+    public void PenPage_EraserRowAboveTheButtons_SameForTipAndEraser()
     {
-        var (vm, view, w) = Open("EraserTab");
-        var cards = view.FindControl<StackPanel>("EraserCards")!.Children.OfType<PenSwitchCard>().Where(c => c.IsVisible).ToList();
-        Assert.Same(vm.PenButton1Row, cards[0].DataContext);
-        Assert.Same(vm.PenButton2Row, cards[1].DataContext);
-        Assert.Same(vm.PenEraserRow, cards[^1].DataContext);
-        var tops = cards.Select(c => c.TranslatePoint(new Point(0, 0), w)!.Value.Y).ToList();
-        Assert.True(tops[0] < tops[1] && tops[1] < tops[^1]);
-        w.Close();
+        var (vm, view, w) = Open("PenTab");
+        try
+        {
+            var row = view.FindControl<StackPanel>("EraserActionRow")!;
+            var cards = view.FindControl<StackPanel>("PenCardsColumn")!.Children.OfType<PenSwitchCard>().Where(c => c.IsVisible).ToList();
+            Assert.Same(vm.PenButton2Row, cards[0].DataContext);
+            Assert.Same(vm.PenButton1Row, cards[1].DataContext);
+            double Y(Control c) => c.TranslatePoint(new Point(0, 0), w)!.Value.Y;
+            Assert.True(Y(row) < Y(cards[0]) && Y(cards[0]) < Y(cards[1]));
+            var before = cards.Select(Y).ToList();
+            // V29 #180 (Grok 21 Nov): nothing below or beside moves either: the Movement box, the Manual Pressure frame, the right column.
+            double X(Control c) => c.TranslatePoint(new Point(0, 0), w)!.Value.X;
+            var movement = view.GetVisualDescendants().OfType<ComboBox>().First(c => c.Name == "MovementBox");
+            var movementY = Y(movement);
+            var manualY = Y(view.FindControl<Control>("ManualTipPressureFrame")!);
+            var radialX = X(view.FindControl<Control>("RadialSpot")!);
+            PenPageTabs.Select(view, "EraserTab"); w.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+            Assert.True(row.IsEffectivelyVisible);
+            Assert.Equal(before, cards.Select(Y).ToList());
+            Assert.All(cards, c => Assert.True(c.IsEffectivelyVisible));
+            Assert.Equal(movementY, Y(movement));
+            Assert.Equal(manualY, Y(view.FindControl<Control>("ManualEraserPressureFrame")!));
+            Assert.Equal(radialX, X(view.FindControl<Control>("RadialSpot")!));
+            // The test line wraps inside the drawing-and-cards width, so a pressed button never moves the right column.
+            var line = view.FindControl<TextBlock>("PenButtonTestLine")!;
+            Assert.Equal(TextWrapping.Wrap, line.TextWrapping);
+            Assert.True(line.Bounds.Width <= view.FindControl<Grid>("PenMiddleBody")!.Bounds.Width + 0.5);
+            // ...and its row keeps the height of the tallest text it can show (Grok 21 Nov: in fr and ru the drawing jumped up
+            // ~18 px when BUTTON 2 PRESSED. took one line instead of two).
+            var sizer = view.FindControl<ItemsControl>("PenButtonTestSizer")!;
+            Assert.Equal(4, sizer.ItemCount);
+            var eraserY = Y(view.FindControl<Control>("EraserEndLabel")!);
+            vm.PenButton2Pressed = true; w.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+            Assert.Equal(radialX, X(view.FindControl<Control>("RadialSpot")!));
+            Assert.Equal(eraserY, Y(view.FindControl<Control>("EraserEndLabel")!));
+            vm.PenButton1Pressed = true; w.UpdateLayout(); Dispatcher.UIThread.RunJobs();   // "BUTTONS 1 AND 2 PRESSED."
+            Assert.Equal(eraserY, Y(view.FindControl<Control>("EraserEndLabel")!));
+            vm.PenButton1Pressed = false; vm.PenButton2Pressed = false;
+        }
+        finally { w.Close(); }
     }
 
     /// <summary>V29 (Zak 16 Nov 16:11: 'the Buttons column on the Pen and Eraser pages is squished at the right, its text is
@@ -92,7 +127,6 @@ public class BuildR16Tests
     }
 
     [AvaloniaTheory]
-    [InlineData("EraserTab", "EraserPenDiagram")]
     [InlineData("PenTab", null)]
     public void ButtonCards_SitNextToThePen_AndShowTheFullText(string tab, string? diagramName)
     {
@@ -132,8 +166,9 @@ public class BuildR16Tests
     [AvaloniaFact]
     public void FlippedDiagram_RotatesShapes_BadgesUpright_OnTheirButtons()
     {
-        var (_, view, w) = Open("EraserTab");
-        var d = view.FindControl<PenDiagram>("EraserPenDiagram")!;
+        // V29 #180: no page shows the flipped drawing any more (the Eraser tab is gone); the control keeps the option.
+        var d = new PenDiagram { Flipped = true };
+        var w = new Window { Content = d, Width = 200, Height = 400 }; w.Show(); Dispatcher.UIThread.RunJobs();
         Assert.True(d.Flipped);
         var shapes = d.FindControl<Canvas>("Shapes")!;
         Assert.Equal(180, ((RotateTransform)shapes.RenderTransform!).Angle);

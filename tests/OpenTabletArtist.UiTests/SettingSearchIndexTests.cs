@@ -132,8 +132,12 @@ internal static class SettingSearchIndexWalk
         {
             // A details panel's route ("tablet/ToolPenButton/PenTab/FeelDetails") lists only what the closed panel hid.
             var parent = route.Count(c => c == '/') == 3 ? route[..route.LastIndexOf('/')] : null;
+            // V29 #180: the Pen page with "Eraser Feel" chosen lists only what differs from the tip's view (the eraser's own
+            // settings); what both views share stays under the Pen tab.
+            var twins = route.Contains("/EraserTab", StringComparison.Ordinal)
+                ? new[] { route.Replace("/EraserTab", "/PenTab", StringComparison.Ordinal), "tablet/ToolPenButton/PenTab" } : Array.Empty<string>();
             foreach (var text in Words(root, skip))
-                if ((parent is null || !seen.Contains((text, parent))) && seen.Add((text, route)))
+                if ((parent is null || !seen.Contains((text, parent))) && !twins.Any(t => seen.Contains((text, t))) && seen.Add((text, route)))
                     list.Add(new SettingSearchEntry(text, path, route));
         }
 
@@ -217,6 +221,7 @@ internal static class SettingSearchIndexWalk
             var tools = new (string Tile, string Label, string[] Tabs)[]
             {
                 ("ToolFunctionsButton", "LblFunctions", new[] { "ButtonsTab", "WheelsTab" }),
+                // V29 #180: no Eraser tab; "EraserTab" is the Pen page with "Eraser Feel" chosen (OpenSearchPlace).
                 ("ToolPenButton", "LblToolPen", new[] { "PenTab", "EraserTab", "KeyboardTab", "MappingTab" }),
                 ("ToolMoreButton", "LblMore", new[] { "AboutTab", "CalibrationTab", "HoverTab", "FiltersTab", "JsonTab" }),
             };
@@ -228,11 +233,12 @@ internal static class SettingSearchIndexWalk
                 {
                     if (!view.OpenSearchPlace(tile, tab)) continue;
                     Pump(w);
-                    var pivot = view.FindControl<RadioButton>(tab)!;
+                    var pivot = view.FindControl<RadioButton>(tab == "EraserTab" ? "PenTab" : tab)!;
                     if (!pivot.IsVisible) continue;
                     var path = $"{tabletLabel} › {toolName} › {Title(pivot.Content as string)}";
+                    if (tab == "EraserTab") path += $" › {Title(view.FindControl<RadioButton>("EraserFeelChip")!.Content as string)}";
                     collect(view, path, $"tablet/{tile}/{tab}", Chrome);
-                    var panel = tab switch { "PenTab" => "FeelDetails", "EraserTab" => "EraserFeelDetails", _ => null };
+                    var panel = tab switch { "PenTab" or "EraserTab" => "FeelDetails", _ => null };
                     if (panel is null || !view.OpenSearchPlace(tile, tab, panel)) continue;
                     Pump(w);
                     collect(view, path, $"tablet/{tile}/{tab}/{panel}", Chrome);
@@ -279,6 +285,7 @@ internal static class SettingSearchIndexWalk
     static readonly HashSet<string> Notices = new()
     {
         "AttentionNotices", "AccessibilityMissingCard", "PermissionsResetCard", "OfflineOfferCard",
+        "PenButtonTestSizer",   // V29 #180: the unseen texts that size the pen-button test line
     };
 
     static readonly Regex Numbers = new(@"\d{2,}|\d[.,:]\d", RegexOptions.Compiled);

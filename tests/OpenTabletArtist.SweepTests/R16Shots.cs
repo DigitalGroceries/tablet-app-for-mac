@@ -30,7 +30,7 @@ public class R16Shots
         vm.PenButton2Row = new PenSwitchRowViewModel(PenSwitchKind.PenButton, 2, null, false, (_, _, _) => Task.CompletedTask);
         var view = new TabletDetailView { DataContext = vm };
         var w = new Window { Content = view, Width = 1100, Height = 1100 }; w.Show();
-        view.FindControl<RadioButton>(tab)!.IsChecked = true;
+        PenPageTabs.Select(view, tab);   // V29 #180
         Dispatcher.UIThread.RunJobs(); w.UpdateLayout(); Dispatcher.UIThread.RunJobs();
         return (vm, view, w);
     }

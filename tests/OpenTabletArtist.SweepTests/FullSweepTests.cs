@@ -260,7 +260,7 @@ public class FullSweepTests : IDisposable
         tdv.FindControl<RadioButton>("PenTab")!.IsChecked = true; await Settle(80);
         var texts = Visible<TextBlock>(tw).Select(t => t.Text ?? "").ToList();
         var heads = Visible<TextBlock>(tw).Where(t => t.Classes.Contains("penHeading")).ToList();
-        tdv.FindControl<RadioButton>("EraserTab")!.IsChecked = true; await Settle(80);
+        PenPageTabs.Select(tdv, "EraserTab"); await Settle(80);   // V29 #180: the eraser's settings on the Pen page
         texts.AddRange(Visible<TextBlock>(tw).Select(t => t.Text ?? ""));
         heads.AddRange(Visible<TextBlock>(tw).Where(t => t.Classes.Contains("penHeading")));
         tdv.FindControl<RadioButton>("PenTab")!.IsChecked = true; await Settle(80);
@@ -314,7 +314,7 @@ public class FullSweepTests : IDisposable
         if (!saved) Defect("[Save] SaveSettingsAsync failed");
         Shot(host, "tablet-pen-pressure-after-save");
         // leave: another tab, then back
-        tdv2.FindControl<RadioButton>("EraserTab")!.IsChecked = true; await Settle(80);
+        PenPageTabs.Select(tdv2, "EraserTab"); await Settle(80);
         tdv2.FindControl<RadioButton>("PenTab")!.IsChecked = true; await Settle(80);
         host.Close();
         foreach (var (n, v, read) in found)
@@ -454,7 +454,7 @@ public class FullSweepTests : IDisposable
             else Pass("Turn tilt off toggles and applies");
             Click(w, tilt); await Settle(300);
         }
-        foreach (var name in new[] { "EraserTab", "MappingTab", "PenTab" })
+        foreach (var name in new[] { "KeyboardTab", "MappingTab", "PenTab" })   // V29 #180: no Eraser tab
         {
             var t = view.FindControl<RadioButton>(name)!;
             var hit = Click(w, t); await Settle(100);

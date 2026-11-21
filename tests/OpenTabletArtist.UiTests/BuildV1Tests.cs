@@ -28,14 +28,15 @@ public class BuildV1Tests
         vm.PenButton2Row = new PenSwitchRowViewModel(PenSwitchKind.PenButton, 2, null, false, (_, _, _) => Task.CompletedTask);
         var view = new TabletDetailView { DataContext = vm };
         var w = new Window { Content = view, Width = 1100, Height = 1100 }; w.Show();
-        view.FindControl<RadioButton>(tab)!.IsChecked = true;
+        PenPageTabs.Select(view, tab);
         Dispatcher.UIThread.RunJobs(); w.UpdateLayout(); Dispatcher.UIThread.RunJobs();
         return (vm, view, w, profile, settings);
     }
 
     [AvaloniaTheory]
-    [InlineData("PenTab", "ManualTipPressureFrame", "Manual Pen Tip Pressure")]
-    [InlineData("EraserTab", "ManualEraserPressureFrame", "Manual Eraser Pressure")]
+    // V29 #180 (Zak's mockup): one name, "Manual Pressure", for the end whose settings are shown.
+    [InlineData("PenTab", "ManualTipPressureFrame", "Manual Pressure")]
+    [InlineData("EraserTab", "ManualEraserPressureFrame", "Manual Pressure")]
     public void ManualPressureFrame_IsShown_With50PercentDefault(string tab, string frame, string title)
     {
         var (vm, view, w, _, _) = Open(tab);

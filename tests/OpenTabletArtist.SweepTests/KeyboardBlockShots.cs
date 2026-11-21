@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.VisualTree;
 using OpenTabletArtist.Domain;
 using OpenTabletArtist.ViewModels;
 using OpenTabletArtist.Views;
@@ -54,9 +56,45 @@ public class KeyboardBlockShots
         win.Show();
         view.FindControl<RadioButton>("PenTab")!.IsChecked = true;
         RadialSpotShots.Settle(win);
-        view.FindControl<Button>("KeyboardSettingsLink")!.BringIntoView();
         RadialSpotShots.Settle(win);
         win.CaptureRenderedFrame()!.Save($"{Dir}/keyboard-block-{(int)w}x{(int)h}.png");
+        // V29 #180: the same page with the eraser's settings shown (Eraser Feel), and with the eraser touching the tablet.
+        vm.EraserSettingsShown = true;
+        vm.EraserPressed = true;
+        RadialSpotShots.Settle(win);
+        win.CaptureRenderedFrame()!.Save($"{Dir}/pen-page-eraser-{(int)w}x{(int)h}.png");
+        // Grok 21 Nov: the bottom of the page too (palette size and its line, Smoother fast curves), in both views.
+        var sv = view.FindControl<Grid>("PenPageOuter")!.GetVisualAncestors().OfType<ScrollViewer>().First();
+        sv.Offset = new Vector(0, sv.Extent.Height);
+        RadialSpotShots.Settle(win);
+        win.CaptureRenderedFrame()!.Save($"{Dir}/pen-page-eraser-scrolled-{(int)w}x{(int)h}.png");
+        vm.EraserSettingsShown = false; vm.EraserPressed = false;
+        view.FindControl<RadioButton>("TipFeelChip")!.IsChecked = true;
+        RadialSpotShots.Settle(win);
+        sv.Offset = new Vector(0, sv.Extent.Height);
+        RadialSpotShots.Settle(win);
+        win.CaptureRenderedFrame()!.Save($"{Dir}/pen-page-tip-scrolled-{(int)w}x{(int)h}.png");
         win.Close();
+    }
+
+    /// <summary>V29 #180 (Grok 21 Nov): the capitals test line in a long language wraps inside the drawing-and-cards width.</summary>
+    [AvaloniaTheory]
+    [InlineData("fr")]
+    [InlineData("ru")]
+    public void PenPage_InALongLanguage(string code)
+    {
+        Directory.CreateDirectory(Dir);
+        using var mac = OpenTabletArtist.Services.UiPlatform.PretendMac();   // Change… / Default as on Zak's Mac
+        OpenTabletArtist.Services.Localizer.SetPreference(code);
+        try
+        {
+            var (vm, view, win) = RadialSpotShots.Open(1046, 1365, radialOnButton2: true);
+            RadialSpotShots.Settle(win);
+            win.CaptureRenderedFrame()!.Save($"{Dir}/pen-page-{code}-1046x1365.png");
+            vm.PenButton2Pressed = true; RadialSpotShots.Settle(win);
+            win.CaptureRenderedFrame()!.Save($"{Dir}/pen-page-{code}-button2-1046x1365.png");
+            win.Close();
+        }
+        finally { OpenTabletArtist.Services.Localizer.SetPreference("en"); }
     }
 }

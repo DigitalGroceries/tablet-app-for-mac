@@ -19,7 +19,7 @@ public sealed record SettingSearchEntry(
 
 /// <summary>Where an index entry leads: a page ("home", "scribble", "settings", "advanced", "tablet"), its tab
 /// (a Settings or Advanced tab name; on the tablet page a Tool tile, "ToolPenButton"), then a sub-tab of its rail ("BackdropSubtab";
-/// on the tablet page a tab, "EraserTab") and a details panel that starts closed ("EraserFeelDetails").</summary>
+/// on the tablet page a tab, "KeyboardTab") and a details panel that starts closed ("FeelDetails").</summary>
 public sealed record SettingSearchRoute(string Page, string? Tab = null, string? Sub = null, string? Panel = null)
 {
     public static bool TryParse(string? route, out SettingSearchRoute result)

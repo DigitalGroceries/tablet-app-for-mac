@@ -690,6 +690,11 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
+    "text": "Eraser Feel",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
     "text": "Soft",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
@@ -740,22 +745,32 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Manual Pen Tip Pressure",
+    "text": "Manual Pressure",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Pen tip",
+    "text": "PRESS A BUTTON TO TEST IT",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Press a Pen button to test it",
+    "text": "Eraser",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Button 2",
+    "text": "Tip",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Default (erase)",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "BUTTON 2",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -770,7 +785,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Button 1",
+    "text": "BUTTON 1",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -781,31 +796,6 @@
   },
   {
     "text": "Keyboard settings",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Radial Menu Settings",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "No pen button opens the radial menu yet",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Use pen button 2",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Menu transparency",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Menu size",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -840,7 +830,37 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Feel Details (shared by tip and eraser)",
+    "text": "No pen button opens the radial menu",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Use pen button 2",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial Menu Transparency",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Radial Menu Size",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Colour Palette Size",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "No pen button opens the colour palette",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Tip Feel details",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
@@ -885,174 +905,19 @@
     "route": "tablet/ToolPenButton/PenTab/FeelDetails"
   },
   {
-    "text": "Tilt",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Turn tilt off",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Shared with Pen.",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Eraser Feel",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Soft",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Firm",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Customise",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Current pressure",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Click",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Full",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Manual Eraser Pressure",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Button 1",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Default setting",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Button 2",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Modified to Adaptive Binding (Button 1)",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Fix",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Eraser",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Colour Palette Settings",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Palette size",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Movement",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Position smoothing",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Smoother fast curves",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
     "text": "Eraser input",
-    "path": "Tablet › Pen › Eraser",
+    "path": "Tablet › Pen › Pen › Eraser Feel",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
     "text": "Disable eraser",
-    "path": "Tablet › Pen › Eraser",
+    "path": "Tablet › Pen › Pen › Eraser Feel",
     "route": "tablet/ToolPenButton/EraserTab"
   },
   {
-    "text": "Disable pressure sensitivity",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab"
-  },
-  {
-    "text": "Feel details (shared with Pen)",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Hard",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Softness",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Pressure smoothing",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "raw —",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with raw pressure",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Draw with processed pressure",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Clear",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
-  },
-  {
-    "text": "Copy",
-    "path": "Tablet › Pen › Eraser",
-    "route": "tablet/ToolPenButton/EraserTab/EraserFeelDetails"
+    "text": "Eraser Feel details",
+    "path": "Tablet › Pen › Pen › Eraser Feel",
+    "route": "tablet/ToolPenButton/EraserTab/FeelDetails"
   },
   {
     "text": "Floating keyboard",
