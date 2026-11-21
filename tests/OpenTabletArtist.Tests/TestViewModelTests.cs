@@ -487,6 +487,23 @@ public class TestViewModelTests
         if (raw == 2047) Assert.True(expected > 0.99);
     }
 
+    // V29 #180 (21 Nov): the eraser draws with its own feel when it has one, like the driver; without one, the tip's.
+    [Fact]
+    public void V29_TheEraser_UsesItsOwnCurve_OnTheCanvas()
+    {
+        var dyn = PenDynamicsSettings.Default with { PressureSmoothing = 0, Curve = PressureCurveSettings.Default with { Softness = 0 } };
+        var soft = PressureCurveSettings.Default with { Softness = 0.8 };
+        using var vm = NewVm(new FakeDeviceData { Profiles = new List<ProfileItem>() });
+        vm.SetInputSwitches(dyn, false, false, eraserCurve: soft);
+        var tip = vm.ProcessPressure(Pen(0.5));
+        var eraser = vm.ProcessPressure(Pen(0.5) with { IsEraser = true });
+        Assert.Equal(PressureCurve.Apply(0.5, dyn.Curve), tip, 6);
+        Assert.Equal(PressureCurve.Apply(0.5, soft), eraser, 6);
+        Assert.True(eraser > tip + 0.05);
+        vm.SetInputSwitches(dyn, false, false);                          // an older profile: the eraser follows the tip
+        Assert.Equal(tip, vm.ProcessPressure(Pen(0.5) with { IsEraser = true }), 6);
+    }
+
     // Disable pressure sensitivity: a flat curve, so every pressed sample is exactly 30%, lifted is 0.
     [Theory]
     [InlineData(1)] [InlineData(512)] [InlineData(1024)] [InlineData(2047)]

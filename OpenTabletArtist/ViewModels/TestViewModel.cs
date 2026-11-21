@@ -143,6 +143,8 @@ public partial class TestViewModel : ObservableObject, IDisposable
         _fixedPressure = b?.DisablePressure == true;
         _manual = PressureCurveProfile.ReadManual(detected?.Profile);
         if (_fixedPressure && !_manual.On) _manual = _manual with { On = true };
+        // V29 #180: the eraser's own feel, as the driver uses it (none = the tip's curve, as before)
+        _eraserCurve = DynamicsActive ? PressureCurveProfile.ReadEraserCurve(detected?.Profile) : null;
         CurveActive = DynamicsActive && d.CurveShapesPressure;
         PressureSmoothingActive = DynamicsActive && d.HasPressureSmoothing;
         PositionSmoothingActive = DynamicsActive && d.HasPositionSmoothing;
@@ -339,18 +341,24 @@ public partial class TestViewModel : ObservableObject, IDisposable
 
     internal double ProcessPressure(PenSample s)
     {
-        _pressure.Settings = _dynamics;
+        // V29 #180 (found 21 Nov while writing agent K's test steps): the canvas drew the eraser with the tip's curve.
+        // Like the driver's filter, an eraser sample uses the eraser's own curve, and switching ends starts the smoothing afresh.
+        bool eraserCurve = s.IsEraser && _eraserCurve is not null;
+        if (eraserCurve != _lastEraserCurve) { _pressure.Reset(); _lastEraserCurve = eraserCurve; }
+        _pressure.Settings = eraserCurve ? _dynamics with { Curve = _eraserCurve!.Value } : _dynamics;
         if (s.IsEraser ? _eraserDisabled : _tipDisabled) { _pressure.Reset(); return 0; }
         var p = _pressure.ProcessSample(Math.Clamp(s.Pressure, 0, 1));
         // Version 1: pressure sensitivity off draws at the end's manual pressure.
         return _manual.On && p > 0 ? (s.IsEraser ? _manual.Eraser : _manual.Tip) : p;
     }
 
-    private bool _tipDisabled, _eraserDisabled, _fixedPressure;
+    private bool _tipDisabled, _eraserDisabled, _fixedPressure, _lastEraserCurve;
+    private PressureCurveSettings? _eraserCurve;
 
     /// <summary>Test hook: the input switches as Tablet › Pen / Eraser leave them.</summary>
-    internal void SetInputSwitches(PenDynamicsSettings dynamics, bool tipDisabled, bool eraserDisabled, bool legacyFixed = false)
-    { _dynamics = dynamics; _tipDisabled = tipDisabled; _eraserDisabled = eraserDisabled; _fixedPressure = legacyFixed; }
+    internal void SetInputSwitches(PenDynamicsSettings dynamics, bool tipDisabled, bool eraserDisabled, bool legacyFixed = false,
+        PressureCurveSettings? eraserCurve = null)
+    { _dynamics = dynamics; _tipDisabled = tipDisabled; _eraserDisabled = eraserDisabled; _fixedPressure = legacyFixed; _eraserCurve = eraserCurve; }
 
     // --- Pipeline counters ---
     // Where every pen report ends up, so "is every point used?" has a numeric answer at 1000 Hz:
