@@ -760,7 +760,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Наконечник",
+    "text": "Кончик",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -775,12 +775,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Modified to Adaptive Binding (Button 1)",
+    "text": "Изменено на Adaptive Binding (Button 1)",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Fix",
+    "text": "Сбросить",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },

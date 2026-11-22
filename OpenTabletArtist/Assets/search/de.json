@@ -775,12 +775,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Modified to Adaptive Binding (Button 1)",
+    "text": "Geändert in Adaptive Binding (Button 1)",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Fix",
+    "text": "Zurücksetzen",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },

@@ -39,7 +39,14 @@ public partial class PenSwitchRowViewModel : ObservableObject
         _applyAsync = applyAsync;
         _chooseAction = chooseAction;
         RefreshFromStore(store, canEdit);
-        Localizer.LanguageChanged += () => OnPropertyChanged(nameof(SectionLabel));
+        // V29 #198 (Zak 22 Nov, switching Bulgarian and English back and forth): the card's action text is worked out here,
+        // so it is worked out again on a language change, not only after a restart.
+        Localizer.LanguageChanged += () =>
+        {
+            OnPropertyChanged(nameof(SectionLabel));
+            RefreshFromStore(_store, CanEdit);
+            OnPropertyChanged(nameof(ModifiedLabel));
+        };
     }
 
     public string SectionLabel => _kind switch
@@ -63,7 +70,13 @@ public partial class PenSwitchRowViewModel : ObservableObject
     [ObservableProperty] private string _bindingLabel = "None";
     /// <summary>Plain-language name of the current binding for the simplified card's "Currently: …" line
     /// (e.g. "Mouse button", "Windows Ink (legacy)") — no plugin jargon (#pen-inputs-simplify).</summary>
-    [ObservableProperty] private string _currentPlainLabel = "None";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ModifiedLabel))]
+    private string _currentPlainLabel = "None";
+
+    /// <summary>V29 #182: "Modified to X" in the app's language (it was a fixed English StringFormat in the card, so a
+    /// customised button read "Modified to B" in every language).</summary>
+    public string ModifiedLabel => Localizer.Te("tablet.pen.modified_to", "Modified to {0}").Replace("{0}", CurrentPlainLabel ?? "", StringComparison.Ordinal);
     [ObservableProperty] private PenSwitchBindingMode _mode;
     [ObservableProperty] private bool _canEdit;
 
@@ -108,7 +121,9 @@ public partial class PenSwitchRowViewModel : ObservableObject
         else if (AuxKeyBinding.ReadBinding(store) is { IsBound: true } action)
             CurrentPlainLabel = AuxKeyBinding.Describe(action);
         else if (Mode == PenSwitchBindingMode.Auto && _kind == PenSwitchKind.PenButton)
-            CurrentPlainLabel = _penButtonIndex == 1 ? "Default (right click)" : "Default (middle click)";
+            CurrentPlainLabel = _penButtonIndex == 1
+                ? Localizer.Te("tablet.pen.default_right_click", "Default (right click)")
+                : Localizer.Te("tablet.pen.default_middle_click", "Default (middle click)");
         else if (Mode == PenSwitchBindingMode.Auto && _kind == PenSwitchKind.Eraser)
             CurrentPlainLabel = Localizer.Te("tablet.eraser.default_action", "Default (erase)");
         OnPropertyChanged(nameof(ShowChooseAction));

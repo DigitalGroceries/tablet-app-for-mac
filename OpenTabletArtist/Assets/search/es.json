@@ -775,12 +775,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Modified to Adaptive Binding (Button 1)",
+    "text": "Cambiado a Adaptive Binding (Button 1)",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Fix",
+    "text": "Restablecer",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },

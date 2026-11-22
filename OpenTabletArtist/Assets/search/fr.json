@@ -775,12 +775,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Modified to Adaptive Binding (Button 1)",
+    "text": "Modifié en Adaptive Binding (Button 1)",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Fix",
+    "text": "Rétablir",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
   },

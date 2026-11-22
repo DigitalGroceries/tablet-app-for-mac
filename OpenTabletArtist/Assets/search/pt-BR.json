@@ -775,12 +775,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Modified to Adaptive Binding (Button 1)",
+    "text": "Alterado para Adaptive Binding (Button 1)",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Fix",
+    "text": "Restaurar",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },

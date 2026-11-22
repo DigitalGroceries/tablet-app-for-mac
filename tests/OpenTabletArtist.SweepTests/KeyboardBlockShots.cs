@@ -81,6 +81,8 @@ public class KeyboardBlockShots
     [AvaloniaTheory]
     [InlineData("fr")]
     [InlineData("ru")]
+    [InlineData("bg")]   // V29 #183/#198
+    [InlineData("sv")]   // V29 #183: 'Suddgummi'
     public void PenPage_InALongLanguage(string code)
     {
         Directory.CreateDirectory(Dir);
@@ -93,6 +95,8 @@ public class KeyboardBlockShots
             win.CaptureRenderedFrame()!.Save($"{Dir}/pen-page-{code}-1046x1365.png");
             vm.PenButton2Pressed = true; RadialSpotShots.Settle(win);
             win.CaptureRenderedFrame()!.Save($"{Dir}/pen-page-{code}-button2-1046x1365.png");
+            vm.PenButton1Pressed = true; RadialSpotShots.Settle(win);   // V29 #183: the join word ('ET', 'И')
+            win.CaptureRenderedFrame()!.Save($"{Dir}/pen-page-{code}-buttons12-1046x1365.png");
             win.Close();
         }
         finally { OpenTabletArtist.Services.Localizer.SetPreference("en"); }

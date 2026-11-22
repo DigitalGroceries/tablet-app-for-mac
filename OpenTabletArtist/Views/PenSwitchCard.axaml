@@ -104,9 +104,9 @@
         </StackPanel>
 
         <StackPanel Spacing="8" IsVisible="{Binding IsNotRecommended}">
-            <TextBlock Classes="working" Text="{Binding CurrentPlainLabel, StringFormat='Modified to {0}'}"
-                       TextWrapping="Wrap" AutomationProperties.Name="{Binding CurrentPlainLabel, StringFormat='Modified to {0}'}" />
-            <Button Classes="penAction" Content="Fix" Command="{Binding SetAutoCommand}"
+            <TextBlock Classes="working" Text="{Binding ModifiedLabel}"
+                       TextWrapping="Wrap" AutomationProperties.Name="{Binding ModifiedLabel}" />
+            <Button x:Name="BtnFix" Classes="penAction" Content="Fix" Command="{Binding SetAutoCommand}"
                     IsVisible="{Binding ShowUseAdaptive}" HorizontalAlignment="Left"
                     ToolTip.Tip="Reset this input to its default action" />
         </StackPanel>

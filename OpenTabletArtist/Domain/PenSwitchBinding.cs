@@ -84,7 +84,7 @@ public static class PenSwitchBinding
                 PenSwitchKind.PenButton => OperatingSystem.IsWindows() ? $"Windows Ink, Button {penButtonIndex}" : $"Legacy binding, Button {penButtonIndex}",
                 _ => OperatingSystem.IsWindows() ? "Windows Ink" : "Legacy binding"
             },
-            _ => store == null ? "None" : FormatOtherBindingName(store, friendlyName)
+            _ => store == null ? Localizer.Te("binding.none", "None") : FormatOtherBindingName(store, friendlyName)
         };
     }
 
@@ -106,10 +106,11 @@ public static class PenSwitchBinding
         }
 
         var path = store?.Path;
-        if (path == null) return "None";
-        if (path == MouseBindingPath) return "Mouse button";
+        // V29 #183: these show on the pen cards ("Modified to None"), so they follow the language
+        if (path == null) return Localizer.Te("binding.none", "None");
+        if (path == MouseBindingPath) return Localizer.Te("binding.mouse_button", "Mouse button");
         if (path == AuxKeyBinding.DoubleClickBindingPath) return Localizer.Te("binding.mouse.double_click", "Double Click");
-        if (path == OwnWindowBindingPath) return "Off (clicks in this app only)";
+        if (path == OwnWindowBindingPath) return Localizer.Te("binding.own_window_off", "Off (clicks in this app only)");
         if (path.EndsWith("MouseScrollBinding", StringComparison.Ordinal)) return "Mouse scroll";
         if (path == PenScrollBinding.BindingTypeName)
             return Localizer.Te("binding.scroll.pen", "Move pen to scroll");
@@ -187,7 +188,7 @@ public static class PenSwitchBinding
     /// <summary>Friendly label for a binding shown read-only (e.g. ExpressKeys).</summary>
     public static string GetBindingLabel(PluginSettingStore? store, Func<string?, string?>? friendlyName = null)
     {
-        if (store?.Path == null) return "None";
+        if (store?.Path == null) return Localizer.Te("binding.none", "None");
         return FormatOtherBindingName(store, friendlyName);
     }
 

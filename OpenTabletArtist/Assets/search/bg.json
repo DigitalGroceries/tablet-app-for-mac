@@ -760,12 +760,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Modified to Adaptive Binding (Button 1)",
+    "text": "Променено на Adaptive Binding (Button 1)",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Fix",
+    "text": "Върни",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },

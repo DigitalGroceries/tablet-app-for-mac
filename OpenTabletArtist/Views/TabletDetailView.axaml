@@ -1684,18 +1684,24 @@
                                              AutomationProperties.Name="Double Click Fix value" />
                                 </Grid>
                                 <!-- Default at 50% (UI 50 = 1.0 mm). -->
-                                <Grid ColumnDefinitions="*,*,*" Margin="0,0,54,0">
+                                <!-- V29 #183 (Grok 21 Nov): three equal columns cut a long "Default" (ru 'По умо') and let it cover
+                                     "Off" (fr 'Par déf' over 'Désactivé'). Off and Large now take their own width, the row uses the
+                                     card's full width (ru/bg 'По умолчанию'/'По подразбиране' then stay readable), and the button's
+                                     word shrinks only if it still does not fit. -->
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
                                     <TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" VerticalAlignment="Center" />
                                     <!-- Zak 9 Nov: "Default" is a button: one click sets the selected profile to 50. Same
                                          theme Button as the pen buttons' Default (PenSwitchCard penAction), in a compact size
                                          so the Off / Default / Large row keeps its height. -->
                                     <Button x:Name="PenDoubleClickDefaultButton" Grid.Column="1" HorizontalAlignment="Center"
-                                            VerticalAlignment="Center" MinWidth="64" MinHeight="0" Height="22" Padding="10,0"
+                                            VerticalAlignment="Center" MinWidth="0" MinHeight="0" Height="22" Padding="8,0"
                                             FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                             Command="{Binding ResetDoubleClickFixCommand}"
                                             AutomationProperties.Name="Default"
                                             ToolTip.Tip="50">
-                                        <TextBlock x:Name="PenDoubleClickDefault" Text="Default" FontSize="12" />
+                                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                                            <TextBlock x:Name="PenDoubleClickDefault" Text="Default" FontSize="12" />
+                                        </Viewbox>
                                     </Button>
                                     <TextBlock x:Name="PenDoubleClickLarge" Grid.Column="2" Text="Large" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                 </Grid>
@@ -1809,10 +1815,16 @@
                                         <TextBlock x:Name="PenTipHoldLine" Text="{Binding PenTipHoldLine}" FontSize="18" FontWeight="SemiBold"
                                                    TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
                                     </StackPanel>
-                                    <Button x:Name="KeyboardSettingsLink" Content="Keyboard settings…" Click="OnKeyboardSettingsLink"
+                                    <!-- V29 #183: a long translation (ru 'Настройки клавиатуры…') was cut by the fixed width; the
+                                         words now shrink to fit the button instead. -->
+                                    <Button x:Name="KeyboardSettingsLink" Click="OnKeyboardSettingsLink"
                                             FontSize="17" FontWeight="SemiBold" Width="220" Height="40" HorizontalAlignment="Left"
-                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                            AutomationProperties.Name="Keyboard settings" />
+                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="10,0"
+                                            AutomationProperties.Name="Keyboard settings">
+                                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                                            <TextBlock x:Name="KeyboardSettingsLinkText" Text="Keyboard settings…" />
+                                        </Viewbox>
+                                    </Button>
                                     <views:PenSwitchCard x:Name="PenTipCard" DataContext="{Binding PenTipRow}"
                                                          IsVisible="{Binding $parent[UserControl].DataContext.PenTipRow.IsNotRecommended, FallbackValue=False}" />
                                 </StackPanel>

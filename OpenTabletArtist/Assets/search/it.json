@@ -775,12 +775,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Modified to Adaptive Binding (Button 1)",
+    "text": "Modificato in Adaptive Binding (Button 1)",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Fix",
+    "text": "Ripristina",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

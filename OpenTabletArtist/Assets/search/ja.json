@@ -850,12 +850,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Modified to Adaptive Binding (Button 1)",
+    "text": "Adaptive Binding (Button 1) に変更",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Fix",
+    "text": "元に戻す",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },

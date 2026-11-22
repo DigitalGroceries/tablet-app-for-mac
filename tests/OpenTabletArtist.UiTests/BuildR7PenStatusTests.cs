@@ -16,6 +16,8 @@ public class BuildR7PenStatusTests
     {
         public string SectionLabel { get; init; } = "BUTTON 1";
         public string CurrentPlainLabel { get; init; } = "Right click";
+        // V29 #182: the card shows the row's ModifiedLabel (built from the language's "Modified to {0}")
+        public string ModifiedLabel => OpenTabletArtist.Services.Localizer.Te("tablet.pen.modified_to", "Modified to {0}").Replace("{0}", CurrentPlainLabel);
         public bool ShowChooseAction { get; init; }
         public bool IsRecommended { get; init; }
         public bool IsNotRecommended => !IsRecommended;

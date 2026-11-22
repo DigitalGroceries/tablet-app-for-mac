@@ -755,7 +755,7 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Sudd",
+    "text": "Suddgummi",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -775,12 +775,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Modified to Adaptive Binding (Button 1)",
+    "text": "Ändrad till Adaptive Binding (Button 1)",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Fix",
+    "text": "Återställ",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

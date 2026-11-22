@@ -718,13 +718,16 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// <see cref="Key"/> is the argument the matching Select… command takes.</summary>
     public sealed record ChoiceOption(string Key, string Title, string Description);
 
-    public ChoiceOption[] MovementOptions { get; } =
+    /// <summary>V29 #198: built again after a language change (it was built once, so the Movement box kept the old language
+    /// until a restart).</summary>
+    public ChoiceOption[] MovementOptions => _movementOptions ??=
     [
         new("absolute", Localizer.Te("tablet.pen.movement_absolute", "Normal (Absolute)"),
             Localizer.Te("tablet.pen.movement_absolute_help", "The pen maps 1:1 to the screen.")),
         new("relative", Localizer.Te("tablet.pen.movement_relative", "Relative (slow / no mouse-like speed-up)"),
             Localizer.Te("tablet.pen.movement_relative_help", "The pointer moves from where it is, by how far the pen moves. No Mac-style speed-up.")),
     ];
+    private ChoiceOption[]? _movementOptions;
 
     public ChoiceOption[] PressModeOptions { get; } =
     [
@@ -1042,6 +1045,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     /// <summary>Version 9 leftovers: rebuild localised ABOUT fact labels and pen-button test line after a language change.</summary>
     public void RefreshLocalizedLabels()
     {
+        _movementOptions = null;                       // V29 #198: the Movement box follows the language at once
+        OnPropertyChanged(nameof(MovementOptions));
+        OnPropertyChanged(nameof(SelectedMovement));
         RefreshAbout();
         OnPropertyChanged(nameof(PenButtonTestText));
         OnPropertyChanged(nameof(PenButtonTestAllTexts));
@@ -2448,7 +2454,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 : t.Replace("{number}", down[0], StringComparison.Ordinal);
         }
         {
-            var list = string.Join(" and ", down);
+            // V29 #183: the join word follows the language (fr 'BOUTONS 1 ET 2', not '1 AND 2')
+            var list = string.Join(Localizer.Te("tablet.pen.list_and", " and "), down);
             var t = Localizer.T("tablet.pen.buttons_pressed");
             return t == "tablet.pen.buttons_pressed"
                 ? $"Buttons {list} pressed."

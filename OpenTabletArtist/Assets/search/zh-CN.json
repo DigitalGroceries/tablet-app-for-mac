@@ -845,12 +845,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Modified to Adaptive Binding (Button 1)",
+    "text": "已改为 Adaptive Binding (Button 1)",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Fix",
+    "text": "恢复",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },
