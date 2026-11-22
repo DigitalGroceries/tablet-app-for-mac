@@ -134,10 +134,13 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (string.IsNullOrEmpty(idle) || width <= 0) return PenHeadingMinSize;
         idle = idle.ToUpper(System.Globalization.CultureInfo.CurrentUICulture);
         var face = new Typeface(PenButtonTestLine.FontFamily, PenButtonTestLine.FontStyle, FontWeight.Black);
+        // measured only, never drawn, so no brush (the app has no pure white anywhere: BuildR2LightnessTests)
         var at20 = new FormattedText(idle, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, face, 20,
-            Brushes.White).WidthIncludingTrailingWhitespace;
+            null).WidthIncludingTrailingWhitespace;
         if (at20 <= 0) return PenHeadingMinSize;
-        return Math.Clamp(Math.Floor(20 * width / at20 * 0.99 * 10) / 10, PenHeadingMinSize, PenHeadingMaxSize);
+        // the largest size (in 0.05 steps) at which the line still fits: the helper's check found the 1% margin left it 2-4 px
+        // short of the cards' edge (Zak: "stretches from the pen to the right [edge] of the buttons")
+        return Math.Clamp(Math.Floor(20 * width / at20 * 20) / 20, PenHeadingMinSize, PenHeadingMaxSize);
     }
 
     /// <summary>Version 8: refresh high-visibility Tablet chrome when the language preference changes.</summary>

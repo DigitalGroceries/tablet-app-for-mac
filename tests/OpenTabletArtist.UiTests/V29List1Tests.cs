@@ -154,7 +154,7 @@ public class V29List1Tests
             Assert.True(line.FontSize > 20, $"font {line.FontSize}");
             // one line that fills the width (his mockup: from the pen to the right edge of the buttons)
             Assert.True(line.TextLayout.TextLines.Count == 1, "the idle heading wraps");
-            Assert.True(line.TextLayout.WidthIncludingTrailingWhitespace >= row.Width * 0.95, $"{line.TextLayout.WidthIncludingTrailingWhitespace} of {row.Width}");
+            Assert.True(line.TextLayout.WidthIncludingTrailingWhitespace >= row.Width - 1.5, $"{line.TextLayout.WidthIncludingTrailingWhitespace} of {row.Width}");
             // a pressed button's text uses the same size and wraps inside the same width; nothing below moves
             var eraserY = In(Find<Border>(view, "EraserEndLabel"), view).Top;
             var size = line.FontSize;
