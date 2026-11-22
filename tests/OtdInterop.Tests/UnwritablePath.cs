@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.Versioning;
+using Xunit;
 
 namespace OtdInterop.Tests;
 
@@ -22,6 +23,11 @@ internal static class UnwritablePath
 {
     public static IDisposable For(string path)
     {
+        // V29 release (22 Nov 2026): root ignores file permissions, so on a machine that runs the suites as root
+        // (the team's cloud build box) the path can't be made unwritable and the test would prove nothing.
+        // GitHub's runners use a normal user, so these tests still run there.
+        Assert.SkipWhen(!OperatingSystem.IsWindows() && Environment.IsPrivilegedProcess,
+            "Running as root: file permissions don't stop root, so a failed write can't be made here.");
         if (OperatingSystem.IsWindows())
         {
             File.SetAttributes(path, FileAttributes.ReadOnly);
