@@ -22,6 +22,9 @@ public partial class PenDiagram : UserControl
     private static readonly double[] UprightTops = { 140, 172, 204 };
     private const double CanvasHeight = 360, CanvasWidth = 64, BadgeHeight = 26, BadgeWidth = 24, UprightLeft = 20;
 
+    /// <summary>Build 17: the barrel's left edge on the 64 × 360 canvas (the Pen page heading starts here).</summary>
+    public const double BarrelLeft = 18;
+
     public PenDiagram()
     {
         InitializeComponent();

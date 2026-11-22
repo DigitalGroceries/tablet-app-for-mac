@@ -80,25 +80,29 @@
             <Setter Property="Background" Value="#E4E4E4" />
             <Setter Property="Foreground" Value="#000000" />
         </Style>
-        <!-- Round Eraser / Tip labels on the pen drawing; they light like the 1 / 2 badges while that end touches the tablet. -->
+        <!-- V29 build 17 (Zak's pager task list 1, 21 Nov ~21:07, items 1-5 + his item 1 note ~21:15): the round Eraser / Tip
+             labels are bullseye targets around the part of the pen they set up (the eraser cap, the tip), so the drawing shows which
+             end the page's settings are for. Always hollow, perfectly round and see-through, so the pen stays visible under them;
+             the end whose Feel button is selected (Tip Feel / Eraser Feel) has the more opaque circle. They don't light when the
+             pen touches the tablet. -->
         <Style Selector="Border.penEndLabel">
-            <!-- A circle; a longer word in another language (Наконечник, Radierer) makes it a pill rather than cutting it. -->
-            <Setter Property="MinWidth" Value="72" /><Setter Property="Height" Value="72" /><Setter Property="CornerRadius" Value="36" />
-            <Setter Property="Padding" Value="10,0" />
-            <Setter Property="Background" Value="{DynamicResource WacomPaneBrush}" />
-            <Setter Property="BorderBrush" Value="#C8C8C8" /><Setter Property="BorderThickness" Value="2" />
+            <Setter Property="Width" Value="76" /><Setter Property="Height" Value="76" /><Setter Property="CornerRadius" Value="38" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="#3BE4E4E4" /><Setter Property="BorderThickness" Value="3" />
+            <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
-        <Style Selector="Border.penEndLabel > TextBlock">
-            <Setter Property="FontSize" Value="17" /><Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Style Selector="Border.penEndLabel.selected">
+            <Setter Property="BorderBrush" Value="#D9E4E4E4" />
+        </Style>
+        <!-- A longer word in another language (Наконечник, Radierer) gets smaller instead of stretching the circle into an oval. -->
+        <Style Selector="Border.penEndLabel > Viewbox">
+            <Setter Property="MaxWidth" Value="62" /><Setter Property="MaxHeight" Value="26" />
+            <Setter Property="Stretch" Value="Uniform" /><Setter Property="StretchDirection" Value="DownOnly" />
             <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        <Style Selector="Border.penEndLabel.pressed">
-            <Setter Property="Background" Value="#E4E4E4" /><Setter Property="BorderBrush" Value="#E4E4E4" />
-            <Setter Property="BoxShadow" Value="0 0 12 4 #9A9A9A" />
-        </Style>
-        <Style Selector="Border.penEndLabel.pressed > TextBlock">
-            <Setter Property="Foreground" Value="#000000" />
+        <Style Selector="Border.penEndLabel TextBlock">
+            <Setter Property="FontSize" Value="17" /><Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
         <!-- The eraser's Change… and its action, sized like the Button cards' (PenSwitchCard penAction / penValueBox). -->
         <Style Selector="Button.penEndAction">
@@ -1740,7 +1744,9 @@
 
                     <!-- Middle: the pen drawing with its round Eraser / Tip labels, and the shared pen buttons. -->
                     <Grid x:Name="PenMiddle" Grid.Column="2" RowDefinitions="Auto,Auto" VerticalAlignment="Top">
-                        <Grid x:Name="PenButtonTestRow" Margin="0,0,0,12" HorizontalAlignment="Left" Width="{Binding #PenMiddleBody.Bounds.Width}"
+                        <!-- Build 17 (Zak's list 1, item 6): the heading runs from the pen to the right edge of the button cards, as in his mockup;
+                             TabletDetailView.LayoutPenPage sets its left edge, width and font size. -->
+                        <Grid x:Name="PenButtonTestRow" Margin="0,0,0,12" HorizontalAlignment="Left"
                               IsVisible="{Binding HasPenButtons}">
                             <!-- V29 #180 (Grok 21 Nov): every text the line can show, unseen, so the row keeps the height of the tallest
                                  one and the drawing and cards never move when a button is pressed (French and Russian wrap). -->
@@ -1763,17 +1769,21 @@
                         <!-- V29 #180: the drawing and the cards; the test line above takes this width and wraps (Grok 21 Nov:
                              the capitals in fr, bg, ru, sv and pt-BR were wider than the column and moved the right column). -->
                         <Grid x:Name="PenMiddleBody" Grid.Row="1" ColumnDefinitions="Auto,20,Auto" HorizontalAlignment="Left">
-                        <StackPanel x:Name="PenDiagramColumn" MinWidth="76" HorizontalAlignment="Center">
-                            <Border x:Name="EraserEndLabel" Classes="penEndLabel" Classes.pressed="{Binding EraserPressed}" HorizontalAlignment="Center"
-                                    AutomationProperties.Name="Eraser">
-                                <TextBlock Text="{Binding EraserLabel}" />
+                        <!-- Build 17 (Zak's list 1, items 3-5): the circles sit over the pen's ends like a bullseye: the Eraser circle
+                             round the eraser cap, the Tip circle round the point, the words just beyond the pen as in his mockup. The
+                             pen drawing is 64 x 360 (eraser cap from 0, point at 351); the circles' centres are 17 above the cap and 16
+                             below the point, measured on Zak_Mockup_Pen_App_Page.png. -->
+                        <Panel x:Name="PenDiagramColumn" Width="80" Height="460" HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <views:PenDiagram x:Name="PenDrawing" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,55,0,0" />
+                            <Border x:Name="EraserEndLabel" Classes="penEndLabel" Classes.selected="{Binding EraserSettingsShown}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,0,0" AutomationProperties.Name="Eraser">
+                                <Viewbox><TextBlock Text="{Binding EraserLabel}" /></Viewbox>
                             </Border>
-                            <views:PenDiagram HorizontalAlignment="Center" Margin="0,-6,0,-6" />
-                            <Border x:Name="TipEndLabel" Classes="penEndLabel" Classes.pressed="{Binding TipPressed}" HorizontalAlignment="Center"
-                                    AutomationProperties.Name="Tip">
-                                <TextBlock Text="{Binding TipLabel}" />
+                            <Border x:Name="TipEndLabel" Classes="penEndLabel" Classes.selected="{Binding TipSettingsShown}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,384,0,0" AutomationProperties.Name="Tip">
+                                <Viewbox><TextBlock Text="{Binding TipLabel}" /></Viewbox>
                             </Border>
-                        </StackPanel>
+                        </Panel>
                         <StackPanel x:Name="PenCardsColumn" Grid.Column="2" Spacing="24" HorizontalAlignment="Left">
                             <!-- The eraser end's action beside the Eraser label: Change… and its current action (Zak's mockup). -->
                             <StackPanel x:Name="EraserActionRow" Orientation="Horizontal" Spacing="12" Margin="0,18,0,10">
@@ -1825,7 +1835,9 @@
                 </Grid>
                     <!-- Right: the radial menu and, under it, the colour palette (Zak's mockup), each with its size and its line. The pictures
                          keep the v27 rule: the menu at its real size in a fixed square, so nothing moves while a slider is dragged. -->
-                    <StackPanel x:Name="PenRightColumn" Grid.Column="2" Spacing="6" VerticalAlignment="Top" HorizontalAlignment="Center" MaxWidth="324">
+                    <!-- Build 17 (Zak's list 1, item 9): TabletDetailView.LayoutPenPage centres this column exactly between the right edge of the
+                         button cards and the page's right edge, as in his mockup (the 24 gap and the page's 10 padding had put it ~5 px right). -->
+                    <StackPanel x:Name="PenRightColumn" Grid.Column="2" Spacing="6" VerticalAlignment="Top" HorizontalAlignment="Left" MaxWidth="324">
                         <StackPanel x:Name="RadialSpot" Spacing="6">
                             <Viewbox x:Name="RadialSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center">
                             <Grid x:Name="RadialSpotArea" Width="324" Height="324">
@@ -1849,14 +1861,17 @@
                             <TextBlock x:Name="RadialCentreHint" Text="{Binding RadialPreview.CentreHint}" FontSize="12" TextWrapping="Wrap"
                                        TextAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
                                        IsVisible="{Binding RadialPreview.HasCentreHint}" />
-                            <TextBlock x:Name="RadialSpotLine" Text="{Binding RadialSpotLine}" Classes="spotLine" />
+                            <!-- Build 17 (Zak's list 1, item 8): starts exactly where "Radial Menu Size" starts. -->
+                            <TextBlock x:Name="RadialSpotLine" Text="{Binding RadialSpotLine}" Classes="spotLine" HorizontalAlignment="Left" TextAlignment="Left" />
                             <Button x:Name="RadialUseButton" Content="{Binding RadialUseButtonLabel}" Command="{Binding UseRadialButtonCommand}"
                                     IsVisible="{Binding CanUseRadialButton}" HorizontalAlignment="Center" />
                             <StackPanel x:Name="RadialSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}" Opacity="{Binding RadialSpotOpacity}">
                                 <TextBlock x:Name="RadialTransparencyTitle" Text="{Binding RadialTransparencyTitle}" Classes="spotTitle" />
                                 <Grid x:Name="RadialTransparencyRow" ColumnDefinitions="*,8,52,4,18">
+                                    <!-- Build 17 (Zak's list 1, item 7): as long as the Radial Menu Size slider looks (its line ends at its
+                                         knob's centre at 10), so half a knob shorter. -->
                                     <Slider x:Name="RadialTransparencySlider" Minimum="0" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True"
-                                            Value="{Binding RadialPreview.Transparency, Mode=TwoWay}" VerticalAlignment="Center"
+                                            Value="{Binding RadialPreview.Transparency, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0"
                                             AutomationProperties.Name="Menu transparency" />
                                     <TextBox x:Name="RadialTransparencyBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
                                              VerticalAlignment="Center" FontWeight="SemiBold" MaxLength="6"

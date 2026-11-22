@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.LogicalTree;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -45,6 +46,8 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         // Touch ring: About sits over the top right of the page; keep the ring table below it, however many
         // lines the About text wraps to in the chosen language.
         WheelsPage.LayoutUpdated += (_, _) => KeepRingTableClearOfAbout();
+        // Build 17 (Zak's pager task list 1, items 6 and 9): the Pen page's heading and right column follow the drawing and cards.
+        PenPageOuter.LayoutUpdated += (_, _) => LayoutPenPage();
         Localizer.LanguageChanged += ApplyLanguage;
         DetachedFromLogicalTree += (_, _) => Localizer.LanguageChanged -= ApplyLanguage;
     }
@@ -80,6 +83,62 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     }
 
     const double RingDiagramTopMargin = 8;
+
+    /// <summary>The heading's smallest and largest font size (20 was its size before build 17).</summary>
+    internal const double PenHeadingMinSize = 20, PenHeadingMaxSize = 36;
+    /// <summary>The least gap between the button cards and the right column (radial menu and palette).</summary>
+    internal const double PenRightColumnMinGap = 12;
+
+    /// <summary>
+    /// Build 17 (Zak's pager task list 1, 21 Nov ~21:07):
+    /// item 6, "PRESS A BUTTON TO TEST IT" "need to be bigger so it stretches from the pen to the right [edge] of the buttons just
+    /// like in the mockup": the heading starts at the pen's barrel and ends at the right edge of the button cards, in the font
+    /// size that makes the idle heading fill that width on one line (never below its old 20); the other texts it shows use the
+    /// same size and wrap inside the same width;
+    /// item 9, "The radial menu and the palette menu needs to be position exactly in the verticle centre of their fields": the
+    /// right column is centred between the right edge of the button cards and the page's right edge (his mockup's guide lines).
+    /// </summary>
+    internal void LayoutPenPage()
+    {
+        if (!PenPageOuter.IsEffectivelyVisible) return;
+        if (PenDrawing.TranslatePoint(new Point(PenDiagram.BarrelLeft, 0), PenMiddle) is { } barrel
+            && PenCardsColumn.TranslatePoint(new Point(PenCardsColumn.Bounds.Width, 0), PenMiddle) is { } cardsEnd)
+        {
+            double left = Math.Round(barrel.X), width = Math.Max(0, Math.Round(cardsEnd.X - left));
+            if (Math.Abs(PenButtonTestRow.Margin.Left - left) > 0.5) PenButtonTestRow.Margin = new Thickness(left, 0, 0, 12);
+            if (double.IsNaN(PenButtonTestRow.Width) || Math.Abs(PenButtonTestRow.Width - width) > 0.5) PenButtonTestRow.Width = width;
+            var size = PenHeadingSize(width);
+            // the line and its unseen sizer copies (which keep the row as tall as the tallest text) share the size
+            foreach (var t in PenButtonTestSizer.GetVisualDescendants().OfType<TextBlock>().Append(PenButtonTestLine))
+                if (Math.Abs(t.FontSize - size) > 0.1) t.FontSize = size;
+        }
+        if (PenCardsColumn.TranslatePoint(new Point(PenCardsColumn.Bounds.Width, 0), PenPageOuter) is { } cards)
+        {
+            var pane = PenPageOuter.FindAncestorOfType<Border>();
+            double fieldLeft = cards.X, fieldRight = PenPageOuter.Bounds.Width + (pane?.Padding.Right ?? 0);
+            double colLeft = PenPageOuter.ColumnDefinitions[0].ActualWidth + PenPageOuter.ColumnDefinitions[1].ActualWidth;
+            double w = PenRightColumn.Bounds.Width;
+            if (w <= 0) return;
+            double margin = (fieldLeft + fieldRight) / 2 - w / 2 - colLeft;
+            margin = Math.Round(Math.Max(margin, fieldLeft + PenRightColumnMinGap - colLeft), 1);
+            if (Math.Abs(PenRightColumn.Margin.Left - margin) > 0.25)
+                PenRightColumn.Margin = new Thickness(margin, 0, Math.Min(0, -(pane?.Padding.Right ?? 0)), 0);
+        }
+    }
+
+    /// <summary>The font size at which the idle heading ("PRESS A BUTTON TO TEST IT" in the chosen language) is
+    /// <paramref name="width"/> wide, between <see cref="PenHeadingMinSize"/> and <see cref="PenHeadingMaxSize"/>.</summary>
+    internal double PenHeadingSize(double width)
+    {
+        var idle = Vm?.PenButtonTestAllTexts.FirstOrDefault();
+        if (string.IsNullOrEmpty(idle) || width <= 0) return PenHeadingMinSize;
+        idle = idle.ToUpper(System.Globalization.CultureInfo.CurrentUICulture);
+        var face = new Typeface(PenButtonTestLine.FontFamily, PenButtonTestLine.FontStyle, FontWeight.Black);
+        var at20 = new FormattedText(idle, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, face, 20,
+            Brushes.White).WidthIncludingTrailingWhitespace;
+        if (at20 <= 0) return PenHeadingMinSize;
+        return Math.Clamp(Math.Floor(20 * width / at20 * 0.99 * 10) / 10, PenHeadingMinSize, PenHeadingMaxSize);
+    }
 
     /// <summary>Version 8: refresh high-visibility Tablet chrome when the language preference changes.</summary>
     void ApplyLanguage()

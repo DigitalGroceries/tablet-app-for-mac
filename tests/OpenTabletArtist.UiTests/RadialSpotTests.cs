@@ -274,7 +274,7 @@ public class RadialSpotTests
     /// <summary>v27 (Zak 16:05): the Menu transparency and Menu size boxes line up (same left edge, same width) and the sliders are
     /// the same length; only transparency has the % sign (the size is a step from 1 to 50, not a percentage).</summary>
     [AvaloniaFact]
-    public void TheTwoNumberBoxes_LineUp_AndTheSlidersAreTheSameLength()
+    public void TheTwoNumberBoxes_LineUp_AndTheSliderLinesEndTogether()
     {
         var (_, view, window, _) = Open(NewProfile(Name(), new PluginSettingStore?[] { null, Radial("A") }));
         try
@@ -285,7 +285,9 @@ public class RadialSpotTests
             var t = tBox.TranslatePoint(new Point(0, 0), view)!.Value; var z = sBox.TranslatePoint(new Point(0, 0), view)!.Value;
             Assert.Equal(t.X, z.X, 1);
             Assert.Equal(tBox.Bounds.Width, sBox.Bounds.Width, 1);
-            Assert.Equal(tSlider.Bounds.Width, sSlider.Bounds.Width, 1);
+            // build 17 (Zak's list 1, item 7): the transparency slider is half a knob shorter, so its line ends where the size
+            // slider's line ends at 10 (under the knob's centre); V29List1Tests.Item7 checks that against the knob itself
+            Assert.Equal(sSlider.Bounds.Width - 10, tSlider.Bounds.Width, 1);
         }
         finally { window.Close(); }
     }

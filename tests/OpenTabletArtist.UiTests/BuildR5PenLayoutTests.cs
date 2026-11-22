@@ -35,7 +35,7 @@ public class BuildR5PenLayoutTests
         var diagram = tablet.GetVisualDescendants().OfType<PenDiagram>().First(d => d.IsEffectivelyVisible);
         // V29 #177 (Zak's mockup 20 Nov): the drawing and its "Pen tip" label are one centred column; the tip's card shows
         // only when the tip is not on its default.
-        var column = tablet.FindControl<StackPanel>("PenDiagramColumn")!;
+        var column = tablet.FindControl<Panel>("PenDiagramColumn")!;   // build 17 (Zak's list 1): circles over the pen's ends
         Assert.Same(column, diagram.Parent);
         // V29 #180 (Zak's mockup 21 Nov): the round Eraser label on top, the drawing, the round Tip label underneath.
         double Top(Control c) => c.TranslatePoint(new Point(0, 0), column)!.Value.Y;
