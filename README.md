@@ -10,15 +10,17 @@ A free tablet app for Mac: settings for your Wacom drawing tablet (tested with a
 2. Drag **Tablet App for Mac** onto the **Applications** folder.
 3. Open the app from Applications. If your Mac warns you, right-click the app and choose **Open**. If there is no Open button, go to **System Settings › Privacy & Security**, scroll down and click **Open Anyway**.
 
-When the app asks, allow **Input Monitoring** and **Accessibility** so it can read your pen.
+When the app asks, allow **Input Monitoring** and **Device Control and Data Access** (called **Accessibility** before macOS 27) so it can read your pen.
 
 Help and the user manual: https://digitalgroceries.github.io/tablet-app-for-mac/
+
+**New in Version 29:** a colour palette and a floating keyboard on the pen, a radial menu that stays open until you close it, a new Pen page where the eraser has its own feel, and more. See [What is new](https://digitalgroceries.github.io/tablet-app-for-mac/releases/).
 
 ### Tell us what works and what doesn't
 
 We read everything, and your reports decide what we fix next.
 
-- **Talk about the latest version:** [Version 27 discussion](https://github.com/DigitalGroceries/tablet-app-for-mac/discussions/112)
+- **Talk about the latest version:** [the latest version's discussion](https://digitalgroceries.github.io/tablet-app-for-mac/talk/)
 - **Report a problem or ask for a feature:** [open an issue](https://github.com/DigitalGroceries/tablet-app-for-mac/issues/new/choose)
 - **No GitHub account?** Use **Feedback** on the app's Home page, or [send feedback and screenshots here](https://www.dropbox.com/request/r2fqvmi7n4vozy26zrbf) (no account needed; Dropbox asks for a name and an email, any name is fine)
 
