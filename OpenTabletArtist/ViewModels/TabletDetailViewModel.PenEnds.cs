@@ -22,9 +22,9 @@ public partial class TabletDetailViewModel
     /// <summary>The switch at the top of the Pen page's left column: false = the tip's settings, true = the eraser's.</summary>
     [ObservableProperty] private bool _eraserSettingsShown;
 
-    /// <summary>The pen tip touches the tablet: its round "Tip" label on the drawing lights up (like the 1 / 2 badges).</summary>
+    /// <summary>The pen tip touches the tablet. Build 17 (Zak's list 1, item 1): the round "Tip" circle no longer lights for it.</summary>
     [ObservableProperty] private bool _tipPressed;
-    /// <summary>The eraser touches the tablet: its round "Eraser" label lights up.</summary>
+    /// <summary>The eraser touches the tablet (the "Eraser" circle no longer lights for it, build 17).</summary>
     [ObservableProperty] private bool _eraserPressed;
 
     /// <summary>The other side of <see cref="EraserSettingsShown"/>, for the "Tip Feel" half of the switch.</summary>

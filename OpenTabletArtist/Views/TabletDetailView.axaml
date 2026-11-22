@@ -1593,7 +1593,7 @@
              two pen ends ("Clicking Pen button brings the user to the pen settings and clicking the eraser button brings the user in
              eraser settings menu"); the middle (the eraser's Change…, BUTTON 2, BUTTON 1, Default setting, Keyboard settings…) is
              shared ("the 'Tip Feel' and the 'Eraser Feel' buttons share the same pen buttons setting"). Round "Eraser" and "Tip"
-             labels on the drawing light like the 1 / 2 badges, so "PRESS A BUTTON TO TEST IT" covers all four. The right column has
+             circles sit over the pen's ends; the selected Feel end's circle is the more opaque one (build 17). The right column has
              the radial menu and the colour palette (from the old Eraser tab), each with its "By default ..." line. -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Focusable="True" Background="Transparent" Classes="tabScroll"
                       IsVisible="{Binding #PenTab.IsChecked}">
