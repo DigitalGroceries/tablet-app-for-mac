@@ -1,6 +1,6 @@
 # Tablet App for Mac – User Manual
 
-App version 26. British English. Screens are real screenshots from a Mac; a few come from earlier versions, so some may differ slightly.
+App version 29. British English. Screens are real screenshots from a Mac; a few come from earlier versions, so some may differ slightly.
 
 ## Before you start
 
