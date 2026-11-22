@@ -185,7 +185,7 @@ A pen button or an ExpressKey can open a radial menu, like the one in Wacom's dr
 ## Tablet › Functions › Touch ring
 
 - **Touch Ring** (a tablet with one ring), **Touch Rings** (two rings, for example Cintiq 24HD), or **Touch Strip** / **Touch Strips** (tablets with touch strips, for example Intuos3 or Cintiq 22HD): an Off / On switch, On. Off pauses the ring or strip actions without deleting them. With two rings or strips, each one also has its own Off / On switch next to its name; it works only while the main switch is On, and the main switch never changes it.
-- **One switch, one menu** (since Version 29): the **Touch Ring** switch above is the only one. Every ring has up to four modes; the factory ones are Wacom's Rotate, Zoom, Brush size and Brush hardness (see **Default** below). The old **Touch Ring modes** switch and the plain Clockwise / Anticlockwise rows are gone. A ring that used the plain rows moves into **mode 1** by itself, with the same keys and the same centre button, so it keeps doing what it did.
+- **One switch, one menu** (since Version 29): the **Touch Ring** switch above is the only one. Every ring has up to four modes; the factory ones are Rotate, Zoom, Brush size and Brush hardness (see **Default** below). The old **Touch Ring modes** switch and the plain Clockwise / Anticlockwise rows are gone. A ring that used the plain rows moves into **mode 1** by itself, with the same keys and the same centre button, so it keeps doing what it did.
 - **Centre button**: its own menu, next to the ring. **Next mode** (the factory choice) switches between the modes and the on-screen display shows each one. **Do nothing** turns the centre button off. **Keyboard shortcut…** shows a box: click it and press the keys. Or pick a click (**Left**, **Right**, **Middle**, **Double Click**) or a **Media** key (Mute, Volume, Play / Pause, tracks, Brightness). With anything but **Next mode**, nothing switches the modes, so the ring always does what **mode 1** is set to and modes 2 to 4 are dimmed. The line under the menu says what the ring does.
 - **Show touch ring setting (on-screen mode display)**: shows the mode name when you switch.
 - The dial follows the ring live: the dot sits under your finger. The angle and turn direction show under the ring, for example "0° · Clockwise". 12 o'clock is 0° and 3 o'clock is 90°.
@@ -226,7 +226,7 @@ A pen button or an ExpressKey can open a radial menu, like the one in Wacom's dr
 
 ## Finger touch (Intuos Pro M PTH-651; Bamboo Pen & Touch CTH-460, CTH-461, CTH-661)
 
-On these tablets finger touch works like a Mac trackpad. Switch it on or off with **Touch trackpad** on **Tablet › More › about**. On the PTH-651 it starts on; on the Bamboo Pen & Touch models it starts off.
+On these tablets finger touch works like a Mac trackpad. Switch it on or off with **Touch trackpad** on **Tablet › More › About**. On the PTH-651 it starts on; on the Bamboo Pen & Touch models it starts off.
 
 **Touch on/off key**: set a pen button, the eraser or an ExpressKey to **Touch on/off** (**Change…** › **Touch**; the tab is only there on tablets with finger touch). Each press turns finger touch on or off, like Wacom's Touch On/Off. Changing the **Touch trackpad** switch sets touch again.
 
