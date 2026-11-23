@@ -240,8 +240,11 @@
                         <!-- V30 #200 B2: nothing on this key yet - say so, and offer to choose. Zak 23 Nov (test build 1): grey small links are not seen,
                              so the line is bold yellow (AttentionTextBrush) (Zak 19:23: 'These warning texts must be in bold yellow') and Choose is a real button. -->
                         <StackPanel Orientation="Vertical" Spacing="6" Margin="0,4,0,0" IsVisible="{Binding IsNotSetUp}">
-                            <TextBlock Text="{Binding NotSetUpText}" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
-                                       Foreground="{DynamicResource AttentionTextBrush}" />
+                            <!-- Light steps: dark ink on a yellow highlight (AttentionFillBrush; transparent on dark steps, where the text itself is yellow). -->
+                            <Border Background="{DynamicResource AttentionFillBrush}" CornerRadius="4" Padding="6,2" Margin="-6,0,0,0" HorizontalAlignment="Left">
+                                <TextBlock x:Name="NotSetUpMark" Text="{Binding NotSetUpText}" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource AttentionTextBrush}" />
+                            </Border>
                             <Button Name="NotSetUpChoose" Theme="{StaticResource GhostButton}" Content="{Binding ChooseText}" Command="{Binding EditCommand}"
                                 Padding="14,6" Cursor="Hand" HorizontalAlignment="Left" />
                         </StackPanel>
@@ -284,8 +287,11 @@
                                Foreground="{DynamicResource TextSecondaryBrush}" />
                     <!-- V30 #200 B2: nothing on this direction or button yet - say so, and offer to choose. -->
                     <StackPanel Orientation="Vertical" Spacing="6" Margin="0,4,0,0" IsVisible="{Binding IsNotSetUp}">
-                        <TextBlock Text="{Binding NotSetUpText}" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
-                                   Foreground="{DynamicResource AttentionTextBrush}" />
+                        <!-- Light steps: dark ink on a yellow highlight (AttentionFillBrush; transparent on dark steps, where the text itself is yellow). -->
+                        <Border Background="{DynamicResource AttentionFillBrush}" CornerRadius="4" Padding="6,2" Margin="-6,0,0,0" HorizontalAlignment="Left">
+                            <TextBlock x:Name="NotSetUpMark" Text="{Binding NotSetUpText}" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource AttentionTextBrush}" />
+                        </Border>
                         <Button Name="NotSetUpChoose" Theme="{StaticResource GhostButton}" Content="{Binding ChooseText}" Command="{Binding EditCommand}"
                                 Padding="14,6" Cursor="Hand" HorizontalAlignment="Left" />
                     </StackPanel>

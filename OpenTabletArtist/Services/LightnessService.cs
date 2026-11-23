@@ -115,7 +115,18 @@ public static class LightnessService
     /// <summary>V30 (Zak 23 Nov 2026: "These warning texts must be in bold yellow"): the yellow of a control with nothing on
     /// it ("Not set up"), kept readable on every step the same way as <see cref="WarningText"/>.</summary>
     public static readonly Color Attention = Color.FromRgb(0xFA, 0xCC, 0x15);
-    public static Color AttentionText(int step) => Readable(Attention, step);
+    /// <summary>The dark ink on the yellow highlight (light steps).</summary>
+    public static readonly Color AttentionInk = Color.FromRgb(0x1C, 0x16, 0x00);
+    /// <summary>Dark steps: yellow text. Light steps: yellow cannot be read as text on a light window (made readable it turned
+    /// dark brown - the fresh check of test build 2's pictures, 23 Nov 2026), so the text is dark ink on a yellow highlight
+    /// (<see cref="AttentionFill"/>): still yellow, still bold, and 4.5:1 or better.</summary>
+    public static Color AttentionText(int step) => For(step).Dark ? Readable(Attention, step) : AttentionInk;
+    public static Color AttentionFill(int step) => For(step).Dark ? Colors.Transparent : Attention;
+
+    /// <summary>A switch that is On. Dark steps: a light track with a black knob. Light steps: the light track vanished into
+    /// the light window (only the knob showed, test build 2 check, 23 Nov 2026), so the track is dark and the knob light.</summary>
+    public static Color SwitchOnFill(int step) => For(step).Dark ? SelectionFill(step) : G(0x30);
+    public static Color SwitchOnKnob(int step) => For(step).Dark ? SelectionText : G(0xE4);
 
     /// <summary>The hue, scaled darker (light steps) or towards white (dark steps) until it has 4.5:1 on BgElevated and BgBase.</summary>
     private static Color Readable(Color hue, int step)
@@ -161,6 +172,7 @@ public static class LightnessService
             ("GlassBgBrush", p.Surface), ("GlassBgHoverBrush", p.ControlHover), ("GlassBorderBrush", p.Border),
             ("TextPrimaryBrush", p.Text), ("TextSecondaryBrush", p.TextSecondary), ("TextMutedBrush", p.TextMuted),
             ("DividerBrush", p.Divider), ("TextInverseBrush", p.OnAccent), ("WarningTextBrush", WarningText(step)), ("AttentionTextBrush", AttentionText(step)),
+            ("AttentionFillBrush", AttentionFill(step)), ("SwitchOnFillBrush", SwitchOnFill(step)),
             ("PenDiagramFillBrush", p.Dark ? G(0x4A) : G(0x5A)), ("PenDiagramButtonFillBrush", p.Dark ? G(0x5E) : G(0x70)),
             ("PenDiagramStrokeBrush", p.Dark ? G(0xB0) : G(0x20)),
             ("WacomPaneBrush", p.Pane), ("WacomTileWellBrush", p.Well), ("ScribbleCanvasBrush", p.Canvas),
@@ -170,7 +182,7 @@ public static class LightnessService
             ("SelectionFillBrush", SelectionFill(step)), ("SelectionTextBrush", SelectionText), ("SelectionBorderBrush", SelectionBorder(step)),
             ("CheckBoxCheckGlyphForegroundChecked", SelectionText), ("CheckBoxCheckGlyphForegroundCheckedPointerOver", SelectionText),
             ("CheckBoxCheckGlyphForegroundCheckedPressed", SelectionText),
-            ("ToggleSwitchKnobFillOn", SelectionText), ("ToggleSwitchKnobFillOnPointerOver", SelectionText), ("ToggleSwitchKnobFillOnPressed", SelectionText),
+            ("ToggleSwitchKnobFillOn", SwitchOnKnob(step)), ("ToggleSwitchKnobFillOnPointerOver", SwitchOnKnob(step)), ("ToggleSwitchKnobFillOnPressed", SwitchOnKnob(step)),
             // Fluent controls: text fields, lists, combo boxes, buttons, dialogs.
             ("TextControlBackground", p.Well), ("TextControlBackgroundPointerOver", p.Control),
             ("TextControlBackgroundFocused", p.Well), ("TextControlForeground", p.Text),

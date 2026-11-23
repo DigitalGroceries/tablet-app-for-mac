@@ -41,8 +41,35 @@ public class WarningTextContrastTests
     {
         var p = LightnessService.For(step);
         var c = LightnessService.AttentionText(step);
+        if (!p.Dark)
+        {
+            // Light steps (fresh check of test build 2, 23 Nov 2026): dark ink on the yellow highlight, never brown text.
+            Assert.Equal(LightnessService.Attention, LightnessService.AttentionFill(step));
+            Assert.True(LightnessService.Contrast(c, LightnessService.Attention) >= 4.5, $"step {step}: ink on yellow");
+            return;
+        }
+        Assert.Equal(Avalonia.Media.Colors.Transparent, LightnessService.AttentionFill(step));
         Assert.True(LightnessService.Contrast(c, p.Elevated) >= 4.5, $"step {step}: {LightnessService.Contrast(c, p.Elevated):0.00}:1 on sheet");
         Assert.True(LightnessService.Contrast(c, p.Base) >= 4.5, $"step {step}: on window");
+    }
+
+    // A switch that is On must show its track on every step (WCAG 1.4.11: 3:1 for a control's parts), and its knob on the track.
+    [Theory, MemberData(nameof(AllSteps))]
+    public void SwitchOn_TrackAndKnobCanBeSeen(int step)
+    {
+        var p = LightnessService.For(step);
+        var track = LightnessService.SwitchOnFill(step); var knob = LightnessService.SwitchOnKnob(step);
+        Assert.True(LightnessService.Contrast(track, p.Base) >= 3, $"step {step}: track on window {LightnessService.Contrast(track, p.Base):0.0}:1");
+        Assert.True(LightnessService.Contrast(track, p.Elevated) >= 3, $"step {step}: track on sheet");
+        Assert.True(LightnessService.Contrast(knob, track) >= 3, $"step {step}: knob on track");
+    }
+
+    [Fact]
+    public void AttentionFill_AndSwitchTrack_AreAppliedPerStep()
+    {
+        var keys = LightnessService.BrushResources(LightnessService.Steps - 1);
+        Assert.Contains(keys, r => r.Key == "AttentionFillBrush");
+        Assert.Contains(keys, r => r.Key == "SwitchOnFillBrush");
     }
 
     [Fact]

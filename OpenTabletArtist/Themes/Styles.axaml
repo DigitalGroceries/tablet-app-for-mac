@@ -1063,18 +1063,19 @@
     </Style>
 
     <!-- ToggleSwitch: the "on" track uses the theme accent (Fluent's default reads blue, off-theme in
-         the Sakura skin — e.g. the Output Mode "Absolute" switch, #297). -->
+         the Sakura skin — e.g. the Output Mode "Absolute" switch, #297). V30: SwitchOnFillBrush, dark on the light
+         steps (the light track was invisible on a light window, test build 2 check, 23 Nov 2026). -->
     <Style Selector="ToggleSwitch:checked /template/ Border#SwitchKnobBounds">
-        <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SwitchOnFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SwitchOnFillBrush}" />
     </Style>
     <Style Selector="ToggleSwitch:checked:pointerover /template/ Border#SwitchKnobBounds">
-        <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SwitchOnFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SwitchOnFillBrush}" />
     </Style>
     <Style Selector="ToggleSwitch:checked:pressed /template/ Border#SwitchKnobBounds">
-        <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SwitchOnFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SwitchOnFillBrush}" />
     </Style>
 
     <!-- Version 1: no text box or drop-down wider than the longest entry it holds (Controls/FitWidth.cs). -->

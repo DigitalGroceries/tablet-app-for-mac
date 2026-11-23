@@ -89,7 +89,12 @@ public class V30ButtonsShots
         if (view.FindControl<ToggleButton>("ToolFunctionsButton") is { } f) f.IsChecked = true;
         Dispatcher.UIThread.RunJobs();
         view.FindControl<RadioButton>("ButtonsTab")!.IsChecked = true;
+        // The second look Zak asked to be bold yellow: a key with nothing on it that was just pressed (Button 3).
+        vm.AuxButtons[2].JustUsed = true;
         Save(w, "expresskeys-not-set-up" + Sfx);
+        var marks = view.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Name == "NotSetUpMark" && t.IsEffectivelyVisible).Select(t => t.Text).ToList();
+        Assert.Contains("Not set up", marks);
+        Assert.Contains("You just used this. It does nothing yet.", marks);
         w.Close();
     }
 
@@ -136,10 +141,25 @@ public class V30ButtonsShots
     }
 
     [AvaloniaFact]
+    public void All_buttons_switch_on()
+    {
+        // The fresh check of test build 2's pictures (23 Nov 2026): on the light look the On track of the "All buttons" switch was invisible.
+        Dark();
+        var sw = new ToggleSwitch { IsChecked = true, OnContent = "", OffContent = "", MinWidth = 0 };
+        var row = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 6, Margin = new Thickness(24),
+            Children = { new TextBlock { Text = "All buttons  Off" , VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center }, sw,
+                         new TextBlock { Text = "On", VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center } } };
+        var w = new Window { Content = row, Width = 320, Height = 90 };
+        w.Show();
+        Save(w, "all-buttons-switch-on" + Sfx);
+        w.Close();
+    }
+
+    [AvaloniaFact]
     public async Task Light_theme_versions()
     {
         _light = true;
-        try { Home_keys_not_set_up_button(); ExpressKeys_card_not_set_up(); Manual_help_buttons(); await Report_page_wont_open_button(); }
+        try { Home_keys_not_set_up_button(); ExpressKeys_card_not_set_up(); Manual_help_buttons(); All_buttons_switch_on(); await Report_page_wont_open_button(); }
         finally { _light = false; LightnessService.Set(0); ThemeService.Apply(ThemeService.Wacom); }
     }
 }
