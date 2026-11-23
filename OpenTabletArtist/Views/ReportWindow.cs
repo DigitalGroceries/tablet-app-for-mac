@@ -303,8 +303,10 @@ public sealed class ReportWindow : Window
         var number = new Border
         {
             Width = 34, Height = 34, CornerRadius = new CornerRadius(17), VerticalAlignment = VerticalAlignment.Top,
-            Child = new TextBlock { Text = n.ToString(), FontSize = 17, FontWeight = FontWeight.Bold, Foreground = Brushes.White,
-                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+            // the theme's text-on-accent colour (rules R2/R6: no hard-coded white)
+            Child = new TextBlock { Text = n.ToString(), FontSize = 17, FontWeight = FontWeight.Bold,
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+                .Use(TextBlock.ForegroundProperty, "AccentButtonForegroundBrush"),
         };
         number.Use(Border.BackgroundProperty, "AccentBrush");
         var right = new StackPanel { Spacing = 8, Margin = new Thickness(14, 4, 0, 0) };
