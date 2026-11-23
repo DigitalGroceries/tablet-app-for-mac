@@ -121,7 +121,8 @@ public static class LightnessService
     /// dark brown - the fresh check of test build 2's pictures, 23 Nov 2026), so the text is dark ink on a yellow highlight
     /// (<see cref="AttentionFill"/>): still yellow, still bold, and 4.5:1 or better.</summary>
     public static Color AttentionText(int step) => For(step).Dark ? Readable(Attention, step) : AttentionInk;
-    public static Color AttentionFill(int step) => For(step).Dark ? Colors.Transparent : Attention;
+    /// <remarks>Transparent black, not Colors.Transparent (whose R, G and B are full white): the no-white check reads R, G and B only (CI, 23 Nov 2026).</remarks>
+    public static Color AttentionFill(int step) => For(step).Dark ? Color.FromArgb(0, 0, 0, 0) : Attention;
 
     /// <summary>A switch that is On. Dark steps: a light track with a black knob. Light steps: the light track vanished into
     /// the light window (only the knob showed, test build 2 check, 23 Nov 2026), so the track is dark and the knob light.</summary>

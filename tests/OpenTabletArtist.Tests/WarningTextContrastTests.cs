@@ -48,7 +48,7 @@ public class WarningTextContrastTests
             Assert.True(LightnessService.Contrast(c, LightnessService.Attention) >= 4.5, $"step {step}: ink on yellow");
             return;
         }
-        Assert.Equal(Avalonia.Media.Colors.Transparent, LightnessService.AttentionFill(step));
+        Assert.Equal(0, LightnessService.AttentionFill(step).A);
         Assert.True(LightnessService.Contrast(c, p.Elevated) >= 4.5, $"step {step}: {LightnessService.Contrast(c, p.Elevated):0.00}:1 on sheet");
         Assert.True(LightnessService.Contrast(c, p.Base) >= 4.5, $"step {step}: on window");
     }
