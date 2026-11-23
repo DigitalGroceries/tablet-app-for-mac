@@ -73,7 +73,7 @@ public sealed class ReportWindow : Window
     {
         Model = vm;
         Title = vm.Title;
-        Width = 560; SizeToContent = SizeToContent.Height; CanResize = false;
+        Width = 620; SizeToContent = SizeToContent.Height; CanResize = false;   // V30 #200: bigger (Zak 23 Nov)
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
         var problem = new RadioButton { Name = "ReportProblem", Content = vm.ProblemLabel, GroupName = "ReportKind", IsChecked = !vm.IsRecommendation };
@@ -180,24 +180,60 @@ public sealed class ReportWindow : Window
         };
         body.Children.Add(buttons);
 
-        // Version 24 (Zak, 5 Nov 2026): after "Send with file" the sheet says where the file is and offers
-        // Open upload page. The text can be selected, so the path can be copied.
-        // Zak 5 Nov 2026: no "Show in Finder" — the save panel already chose the place, so the path in the message is enough.
-        var savedText = new SelectableTextBlock { Name = "ReportSavedText", TextWrapping = TextWrapping.Wrap }.Fg();
-        var openUpload = new Button { Name = "ReportOpenUpload", Content = vm.OpenUploadLabel, Padding = new Thickness(16, 8), Command = vm.OpenUploadCommand };
-        var done = new Button { Name = "ReportDone", Content = vm.CloseLabel, Padding = new Thickness(16, 8), Command = vm.DoneCommand };
+        // V30 #200 (Zak 23 Nov 2026: "make it simpler ... bigger ... the list of the steps numbered one under another";
+        // team vote A1, A3, A5): after Send with file the sheet shows 3 big numbered steps. Step 1 has the big Open upload
+        // page button, step 2 shows the file itself (it can be dragged onto the page), step 3 the name and email. The sheet
+        // stays open until Done. Zak 5 Nov: no Show in Finder (the file is shown right here instead). Zak 23 Nov: the
+        // upload service is never named.
+        var openUpload = new Button
+        {
+            Name = "ReportOpenUpload", Content = vm.OpenUploadLabel, Padding = new Thickness(22, 10), FontSize = 15,
+            FontWeight = FontWeight.SemiBold, Command = vm.OpenUploadCommand, HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        if (Application.Current?.TryFindResource("AccentButton", out var accent) == true && accent is Avalonia.Styling.ControlTheme accentTheme)
+            openUpload.Theme = accentTheme;
+        var fileName = new TextBlock { Name = "ReportFileName", FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }.Fg();
+        var fileFolder = new TextBlock { Name = "ReportFileFolder", FontSize = 12, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush");
+        var fileTile = new Border
+        {
+            Name = "ReportFileTile", Padding = new Thickness(12, 8), CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1),
+            HorizontalAlignment = HorizontalAlignment.Left, Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+            Child = new StackPanel
+            {
+                Orientation = Orientation.Horizontal, Spacing = 10,
+                Children = { FileIcon(), new StackPanel { VerticalAlignment = VerticalAlignment.Center, Children = { fileName, fileFolder } } },
+            },
+        };
+        fileTile.Use(Border.BorderBrushProperty, "GlassBorderBrush").Use(Border.BackgroundProperty, "BgSurfaceBrush");
+        fileTile.PointerPressed += async (_, e) => await DragFileOutAsync(fileTile, e, vm.SavedPath);
+        var done = new Button { Name = "ReportDone", Content = vm.DoneLabel, Padding = new Thickness(22, 10), FontSize = 15, Command = vm.DoneCommand };
+        var savedAt = new SelectableTextBlock { Name = "ReportSavedAt", FontSize = 11, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush");
+        // The whole message as one text for screen readers and the tests (not shown).
+        var savedText = new SelectableTextBlock { Name = "ReportSavedText", IsVisible = false };
         var saved = new StackPanel
         {
-            Name = "ReportSaved", Margin = new Thickness(24, 8, 24, 20), Spacing = 12, IsVisible = false,
+            Name = "ReportSaved", Margin = new Thickness(24, 8, 24, 20), Spacing = 14, IsVisible = false,
             Children =
             {
-                new TextBlock { Text = vm.SavedTitle, FontSize = 15, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }.Fg(),
-                savedText,
-                new StackPanel
+                new TextBlock { Text = vm.SavedTitle, FontSize = 20, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }.Fg(),
+                new TextBlock { Name = "ReportStepsIntro", Text = vm.StepsIntro, FontSize = 15, TextWrapping = TextWrapping.Wrap }.Fg(),
+                Step("ReportStep1", 1, vm.Step1, openUpload),
+                Step("ReportStep2", 2, vm.Step2, fileTile,
+                    new TextBlock { Name = "ReportStep2Drag", Text = vm.Step2Drag, FontSize = 12, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush")),
+                Step("ReportStep3", 3, vm.Step3,
+                    new TextBlock { Name = "ReportStep3Note", Text = vm.Step3Note, FontSize = 12, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush")),
+                new DockPanel
                 {
-                    Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right,
-                    Margin = new Thickness(0, 4, 0, 0), Children = { openUpload, done },
+                    Margin = new Thickness(0, 6, 0, 0),
+                    Children =
+                    {
+                        Docked(done, Dock.Right),
+                        new TextBlock { Name = "ReportDoneLine", Text = vm.DoneLine, FontSize = 15, FontWeight = FontWeight.SemiBold,
+                            VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap }.Fg(),
+                    },
                 },
+                savedAt,
+                savedText,
             },
         };
         void ShowSaved()
@@ -205,7 +241,10 @@ public sealed class ReportWindow : Window
             body.IsVisible = !vm.IsSaved;
             saved.IsVisible = vm.IsSaved;
             savedText.Text = vm.SavedMessage;
-            if (vm.IsSaved) done.Focus();
+            fileName.Text = vm.SavedFileName;
+            fileFolder.Text = vm.SavedFolderText;
+            savedAt.Text = vm.SavedAtText;
+            if (vm.IsSaved) openUpload.Focus();
         }
         Content = new Panel { Children = { body, saved } };
 
@@ -220,6 +259,7 @@ public sealed class ReportWindow : Window
             if (e.PropertyName is nameof(ReportViewModel.IsRecording) or nameof(ReportViewModel.RecordStatus)) FollowRecording(vm);
             if (e.PropertyName == nameof(ReportViewModel.Status)) { status.Text = vm.Status; status.IsVisible = vm.Status.Length > 0; }
             if (e.PropertyName == nameof(ReportViewModel.SavedPath)) ShowSaved();
+            if (e.PropertyName == nameof(ReportViewModel.UploadPageOpened) && vm.UploadPageOpened) done.Focus();
             if (e.PropertyName == nameof(ReportViewModel.AskingEmail))
             {
                 ask.IsVisible = askFrame.IsVisible = vm.AskingEmail;
@@ -255,6 +295,65 @@ public sealed class ReportWindow : Window
             InWindowSheet.HideBar();
             InWindowSheet.StepAside(this, false);
         }
+    }
+
+    /// <summary>V30 #200: one numbered step - a big round number, the step's words, then what belongs to it.</summary>
+    static Grid Step(string name, int n, string text, params Control[] extra)
+    {
+        var number = new Border
+        {
+            Width = 34, Height = 34, CornerRadius = new CornerRadius(17), VerticalAlignment = VerticalAlignment.Top,
+            Child = new TextBlock { Text = n.ToString(), FontSize = 17, FontWeight = FontWeight.Bold, Foreground = Brushes.White,
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+        };
+        number.Use(Border.BackgroundProperty, "AccentBrush");
+        var right = new StackPanel { Spacing = 8, Margin = new Thickness(14, 4, 0, 0) };
+        right.Children.Add(new TextBlock { Name = name + "Text", Text = text, FontSize = 15, TextWrapping = TextWrapping.Wrap }.Fg());
+        foreach (var c in extra) right.Children.Add(c);
+        var g = new Grid { Name = name, ColumnDefinitions = new ColumnDefinitions("Auto,*") };
+        g.Children.Add(number);
+        Grid.SetColumn(right, 1); g.Children.Add(right);
+        return g;
+    }
+
+    static Control Docked(Control c, Dock d) { DockPanel.SetDock(c, d); return c; }
+
+    /// <summary>A plain file picture (a page with a folded corner and a zipper line) for the report file.</summary>
+    static Control FileIcon()
+    {
+        var page = new Avalonia.Controls.Shapes.Path
+        {
+            Data = Geometry.Parse("M 2,0 L 18,0 L 26,8 L 26,34 L 2,34 Z M 18,0 L 18,8 L 26,8"),
+            StrokeThickness = 1.5, Width = 28, Height = 36, Stretch = Stretch.None,
+        };
+        page.Use(Avalonia.Controls.Shapes.Shape.StrokeProperty, "TextSecondaryBrush");
+        page.Use(Avalonia.Controls.Shapes.Shape.FillProperty, "BgElevatedBrush");
+        var zip = new Avalonia.Controls.Shapes.Path
+        {
+            Data = Geometry.Parse("M 12,4 L 12,6 M 14,8 L 14,10 M 12,12 L 12,14 M 14,16 L 14,18 M 11,20 L 15,20 L 15,25 L 11,25 Z"),
+            StrokeThickness = 1.5, Width = 28, Height = 36, Stretch = Stretch.None,
+        };
+        zip.Use(Avalonia.Controls.Shapes.Shape.StrokeProperty, "AccentBrush");
+        return new Panel { Width = 28, Height = 36, VerticalAlignment = VerticalAlignment.Center, Children = { page, zip } };
+    }
+
+    /// <summary>V30 #200 (vote A5, Grok): the report file can be dragged from the sheet straight onto the upload page.</summary>
+    static async Task DragFileOutAsync(Control from, Avalonia.Input.PointerPressedEventArgs e, string path)
+    {
+        if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path)) return;
+        if (!e.GetCurrentPoint(from).Properties.IsLeftButtonPressed) return;
+        try
+        {
+            var top = TopLevel.GetTopLevel(from);
+            if (top == null) return;
+            var file = await top.StorageProvider.TryGetFileFromPathAsync(new Uri(path));
+            if (file == null) return;
+            var data = new Avalonia.Input.DataTransfer();
+            data.Add(Avalonia.Input.DataTransferItem.CreateFile(file));
+            var result = await Avalonia.Input.DragDrop.DoDragDropAsync(e, data, Avalonia.Input.DragDropEffects.Copy);
+            AppLog.Info($"Report: the report file was dragged out of the sheet ({result}).");
+        }
+        catch (Exception ex) { AppLog.Warn("Report: couldn't drag the report file out of the sheet.", ex); }
     }
 
     static Bitmap? LoadThumb(string path)

@@ -83,7 +83,7 @@ public partial class ReportViewModel : ObservableObject
 
     /// <summary>Where "Send with file" saved the zip (empty until then). When set, the sheet shows the saved message.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSaved), nameof(SavedMessage))]
+    [NotifyPropertyChangedFor(nameof(IsSaved), nameof(SavedMessage), nameof(SavedFileName), nameof(SavedFolderText), nameof(SavedAtText))]
     private string _savedPath = "";
 
     public bool IsSaved => SavedPath.Length > 0;
@@ -107,7 +107,7 @@ public partial class ReportViewModel : ObservableObject
         "If it is about clicks, click the same windows with your mouse first, then with the pen.",
         "Click Stop recording within 2 minutes.",
         "In one line, write what you expected and what happened instead.",
-        "Click Send with file, then Open upload page, and add the file there.",
+        "Click Send with file, then follow the 3 steps on the screen.",
     };
 
     /// <summary>The guide's numbered steps ("1. Click Record the problem.").</summary>
@@ -190,18 +190,39 @@ public partial class ReportViewModel : ObservableObject
     public string AddScreenshotsLabel => Localizer.Te("diag.report.screenshots", "Add screenshots…");
     public string Note => Localizer.Te("report.note", DefaultNote);
     public const string DefaultNote =
-        "Send with file asks where to save one file with your text, your pictures and the app and driver logs. Then click Open upload page and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed.\n" +
+        "Send with file saves one file with your text, your pictures and the app and driver logs, then shows 3 short steps: a web page opens in your browser and you add the file there. You don't need an account.\n" +
         "Send with GitHub account saves the file on your Desktop and opens a new GitHub issue with your text: drag the file into it and press Create. This needs a free GitHub account.\n" +
         "Serial numbers and your user name are removed from the logs, but pictures are sent as they are: check them first.";
     public string SendGitHubLabel => Localizer.Te("report.send_github", "Send with GitHub account");
     public string SendFileLabel => Localizer.Te("report.send_file", "Send with file");
     public string SaveDialogTitle => Localizer.Te("report.save_title", "Save the report file");
     public string SavedTitle => Localizer.Te("report.saved_title", "Report saved");
-    /// <summary>Where the file is and how to upload it (Version 24: a message only; the upload page is opened on request).</summary>
-    public string SavedMessage => !IsSaved ? "" : Localizer.Te("report.saved_text", DefaultSavedText)
-        .Replace("{path}", SavedPath);
-    public const string DefaultSavedText =
-        "Your report file is saved here:\n{path}\n\nTo send it, click Open upload page and add this file. The page asks for your name and email (Dropbox's rule) — only the Tablet App for Mac team sees them; no Dropbox account is needed. Your text and pictures are already in the file.";
+
+    // V30 #200 (Zak 23 Nov 2026: "Try and make it simpler and easier to understand ... include the list of the steps numbered
+    // one under another"; team vote A1, A3, A5): the saved message is now 3 big numbered steps, a file to drag, and a Done
+    // button. Zak 23 Nov: never name the upload service ("Dropbox") - agent K thought he needed an account and never tried.
+    public string StepsIntro => Localizer.Te("report.steps_intro", "Send it to us in 3 steps:");
+    public string Step1 => Localizer.Te("report.step1", "Click Open upload page. A web page opens in your browser.");
+    public string Step2 => Localizer.Te("report.step2", "On that page, click Add files and choose your report file:");
+    public string Step2Drag => Localizer.Te("report.step2_drag", "Or drag this file from here onto the page.");
+    public string Step3 => Localizer.Te("report.step3", "Type any name and your email, then click Upload.");
+    public string Step3Note => Localizer.Te("report.step3_note", "Only the Tablet App for Mac team sees them. You don't need an account.");
+    public string DoneLine => Localizer.Te("report.done_line", "Uploaded? Click Done.");
+    public string DoneLabel => Localizer.Te("report.done", "Done");
+    /// <summary>The saved file's name, shown on the file you can drag.</summary>
+    public string SavedFileName => !IsSaved ? "" : Path.GetFileName(SavedPath);
+    /// <summary>"in Desktop": the folder the file is in, under its name.</summary>
+    public string SavedFolderText => !IsSaved ? "" : Localizer.Te("report.file_in", "in {folder}")
+        .Replace("{folder}", Path.GetFileName(Path.GetDirectoryName(SavedPath)?.TrimEnd(Path.DirectorySeparatorChar)) ?? "");
+    /// <summary>The full path, in small print at the bottom (it can be selected and copied).</summary>
+    public string SavedAtText => !IsSaved ? "" : Localizer.Te("report.saved_at", "Saved here: {path}").Replace("{path}", SavedPath);
+
+    /// <summary>The whole saved message as text (the log, tests and screen readers).</summary>
+    public string SavedMessage => !IsSaved ? "" : string.Join(Environment.NewLine, new[]
+    {
+        StepsIntro, "1. " + Step1, "2. " + Step2, "   " + SavedFileName + " (" + SavedFolderText + ")", "   " + Step2Drag,
+        "3. " + Step3, "   " + Step3Note, DoneLine, SavedAtText,
+    });
     public string OpenUploadLabel => Localizer.Te("report.open_upload", "Open upload page");
     public string CloseLabel => Localizer.Te("app.close", "Close");
     public string CancelLabel => Localizer.Te("diag.report.cancel", "Cancel");
@@ -329,13 +350,27 @@ public partial class ReportViewModel : ObservableObject
         await SendFile();
     }
 
-    /// <summary>"Open upload page" on the saved message (Digital Groceries' Dropbox file request).</summary>
+    /// <summary>"Open upload page" on the saved message (the team's upload page). The message stays open: the job is done only
+    /// when the file is on the page (V30 #200, vote A3).</summary>
     [RelayCommand]
-    private void OpenUpload() { if (IsSaved) OpenUrl(DiagnosticBundle.ReportUploadUrl); }
+    private void OpenUpload()
+    {
+        if (!IsSaved) return;
+        OpenUrl(DiagnosticBundle.ReportUploadUrl);
+        UploadPageOpened = true;
+        AppLog.Info("Report: opened the upload page; the steps stay on screen until Done.");
+    }
 
-    /// <summary>"Close" on the saved message.</summary>
+    /// <summary>True once Open upload page was clicked (the window then points at step 2).</summary>
+    [ObservableProperty] private bool _uploadPageOpened;
+
+    /// <summary>"Done" on the saved message.</summary>
     [RelayCommand]
-    private void Done() => Finished?.Invoke(true);
+    private void Done()
+    {
+        AppLog.Info(UploadPageOpened ? "Report: Done after opening the upload page." : "Report: Done without opening the upload page.");
+        Finished?.Invoke(true);
+    }
 
     string Kind => IsRecommendation ? "recommendation" : "problem";
 

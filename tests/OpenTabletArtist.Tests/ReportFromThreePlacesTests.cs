@@ -215,11 +215,13 @@ public class ReportFromThreePlacesTests
     }
 
     [Fact]
-    public void Upload_page_is_Dropbox_and_shows_in_the_note()
+    public void Upload_page_is_the_teams_request_and_the_note_says_a_web_page_opens()
     {
         Assert.Equal("https://www.dropbox.com/request/9k5b0u782t79plarauv9", DiagnosticBundle.ReportUploadUrl);
         var vm = new ReportViewModel(Inputs, null, "test");
-        Assert.Contains("Open upload page", vm.Note);
+        // V30 #200 (Zak 23 Nov): the note says what happens (a web page opens in your browser), never the service's name.
+        Assert.Contains("a web page opens in your browser", vm.Note);
+        Assert.Contains("You don't need an account", vm.Note);
         Assert.DoesNotContain("{email}", vm.Note);
         Assert.DoesNotContain(DiagnosticBundle.FeedbackEmail, vm.Note);
     }
@@ -321,16 +323,37 @@ public class ReportFromThreePlacesTests
             var keys = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(file));
             foreach (var k in new[] { "report.menu", "report.title", "report.note", "report.window_picture",
                          "report.send_github", "report.send_file", "report.save_title", "report.saved_title",
-                         "report.saved_text", "report.show_file", "report.open_upload", "app.close",
-                         "diag.report.cancel", "diag.report.screenshots" })
+                         "report.open_upload", "app.close", "diag.report.cancel", "diag.report.screenshots",
+                         // V30 #200: the 3 numbered steps
+                         "report.steps_intro", "report.step1", "report.step2", "report.step2_drag", "report.step3",
+                         "report.step3_note", "report.done_line", "report.done", "report.file_in", "report.saved_at" })
                 Assert.True(keys[k] != null, $"{Path.GetFileName(file)} has no {k}");
             Assert.DoesNotContain("{email}", (string)keys["report.note"]!);
-            Assert.Contains("{path}", (string)keys["report.saved_text"]!);
-            Assert.DoesNotContain("{email}", (string)keys["report.saved_text"]!);
+            Assert.Contains("{path}", (string)keys["report.saved_at"]!);
+            Assert.Contains("{folder}", (string)keys["report.file_in"]!);
+            Assert.Null(keys["report.saved_text"]);                       // V30 #200: replaced by the steps
+            // V30 #200 step 1 names the app's own button, in that language.
+            Assert.Contains((string)keys["report.open_upload"]!, (string)keys["report.step1"]!);
             // The email button and its message are gone (owner's request, 4 Nov 2026).
             Assert.Null(keys["report.send_email"]);
             Assert.Null(keys["report.mail_opened"]);
         }
+    }
+
+    /// <summary>Zak 23 Nov 2026 (TASKS #200): agent K read "Dropbox" in the report and thought he needed a Dropbox account, so
+    /// he never sent one. No text of the app names the upload service, in any language.</summary>
+    [Fact]
+    public void No_text_of_the_app_names_Dropbox_in_any_language()
+    {
+        var dir = Path.Combine(Root(), "OpenTabletArtist", "Assets", "i18n");
+        foreach (var file in Directory.GetFiles(dir, "*.json"))
+            foreach (var kv in Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(file)))
+                Assert.False(((string?)kv.Value ?? "").Contains("Dropbox", StringComparison.OrdinalIgnoreCase),
+                    $"{Path.GetFileName(file)} {kv.Key} names Dropbox");
+        var vm = new ReportViewModel(Inputs, null, "test");
+        Assert.DoesNotContain("Dropbox", vm.Note);
+        Assert.DoesNotContain("Dropbox", ReportViewModel.DefaultNote);
+        Assert.DoesNotContain("Dropbox", File.ReadAllText(Path.Combine(Root(), "OpenTabletArtist", "Assets", "manual", "manual.md")));
     }
 
     static string Root([System.Runtime.CompilerServices.CallerFilePath] string f = "") =>

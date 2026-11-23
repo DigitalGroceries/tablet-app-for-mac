@@ -114,7 +114,28 @@ public class ReportSheetTests
             var buttons = saved.GetVisualDescendants().OfType<Button>().ToDictionary(b => b.Name ?? "", b => b.Content);
             Assert.False(buttons.ContainsKey("ReportShowFile"));
             Assert.Equal("Open upload page", buttons["ReportOpenUpload"]);
-            Assert.Equal("Close", buttons["ReportDone"]);
+            Assert.Equal("Done", buttons["ReportDone"]);                       // V30 #200 (vote A3)
+
+            // V30 #200 (Zak 23 Nov: "the list of the steps numbered one under another"): 3 numbered steps, the file to drag
+            // in step 2, and the upload service is never named.
+            var steps = saved.GetVisualDescendants().OfType<Grid>().Where(g => (g.Name ?? "").StartsWith("ReportStep")).Select(g => g.Name).ToList();
+            Assert.Equal(new[] { "ReportStep1", "ReportStep2", "ReportStep3" }, steps);
+            var words = saved.GetVisualDescendants().OfType<TextBlock>().Select(b => b.Text ?? "").ToList();
+            Assert.Contains("Click Open upload page. A web page opens in your browser.", words);
+            Assert.Contains("my-report.zip", words);
+            Assert.Contains("Type any name and your email, then click Upload.", words);
+            Assert.Contains("Uploaded? Click Done.", words);
+            Assert.DoesNotContain(words, w => w.Contains("Dropbox"));
+            Assert.True(saved.GetVisualDescendants().OfType<Border>().First(b => b.Name == "ReportFileTile").IsEffectivelyVisible);
+
+            // Open upload page keeps the steps on screen (the job ends with Done).
+            var opened = new System.Collections.Generic.List<string>();
+            vm.OpenUrl = u => opened.Add(u);
+            vm.OpenUploadCommand.Execute(null);
+            Dispatcher.UIThread.RunJobs();
+            Assert.Single(opened);
+            Assert.True(ReportWindow.IsOpen);
+            Assert.True(saved.IsVisible);
 
             vm.DoneCommand.Execute(null);
             Dispatcher.UIThread.RunJobs();
