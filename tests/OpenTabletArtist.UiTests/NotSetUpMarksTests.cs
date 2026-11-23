@@ -93,4 +93,27 @@ public class NotSetUpMarksTests
         Assert.True(key.ShowSummary);
         Assert.Equal(nameof(ButtonBinding.IsNotSetUp), changed);
     }
+
+    [AvaloniaFact]
+    public void The_marks_can_be_seen_bold_yellow_text_and_real_buttons()
+    {
+        // Zak 23 Nov 2026 (test build 1): the Home line was small dark text he "would have never seen let alone try to click it"
+        // ("That deserves a huge button"); on the cards: "These warning texts must be in bold yellow".
+        var s = SettingsFor("TestTablet-NotSetUp-" + Guid.NewGuid().ToString("N")[..8], "A", null);
+        var vm = new TabletDetailViewModel(s.Profiles[0], s, applyAction: _ => Task.FromResult(SettingsApplyOutcome.Live));
+        var view = new TabletDetailView { DataContext = vm };
+        var w = new Window { Content = view, Width = 1300, Height = 1100 }; w.Show();
+        if (view.FindControl<Avalonia.Controls.Primitives.ToggleButton>("ToolFunctionsButton") is { } f) f.IsChecked = true;
+        Dispatcher.UIThread.RunJobs();
+        view.FindControl<RadioButton>("ButtonsTab")!.IsChecked = true;
+        for (int i = 0; i < 6; i++) { Dispatcher.UIThread.RunJobs(); w.UpdateLayout(); }
+        var mark = view.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == "Not set up" && t.IsEffectivelyVisible);
+        Assert.Equal(Avalonia.Media.FontWeight.Bold, mark.FontWeight);
+        Assert.True(Avalonia.Application.Current!.TryFindResource("AttentionTextBrush", out var yellow));
+        Assert.Equal(((Avalonia.Media.ISolidColorBrush)yellow!).Color, ((Avalonia.Media.ISolidColorBrush)mark.Foreground!).Color);
+        var choose = view.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "NotSetUpChoose" && b.IsEffectivelyVisible);
+        Assert.NotEqual(Avalonia.Media.Colors.Transparent, (choose.Background as Avalonia.Media.ISolidColorBrush)?.Color ?? Avalonia.Media.Colors.Transparent);
+        Assert.True(choose.Bounds.Height >= 26, $"Choose is {choose.Bounds.Height} high");
+        w.Close();
+    }
 }

@@ -110,16 +110,24 @@ public static class LightnessService
     /// <summary>Item 14 (#23): warning TEXT (Setup's hints, Wacom removal errors) in the warning hue, scaled
     /// darker (light steps) or towards white (dark steps) until it has 4.5:1 on the sheet background
     /// (BgElevated) and the window (BgBase). The plain amber had about 1.6:1 on the light steps.</summary>
-    public static Color WarningText(int step)
+    public static Color WarningText(int step) => Readable(Warning, step);
+
+    /// <summary>V30 (Zak 23 Nov 2026: "These warning texts must be in bold yellow"): the yellow of a control with nothing on
+    /// it ("Not set up"), kept readable on every step the same way as <see cref="WarningText"/>.</summary>
+    public static readonly Color Attention = Color.FromRgb(0xFA, 0xCC, 0x15);
+    public static Color AttentionText(int step) => Readable(Attention, step);
+
+    /// <summary>The hue, scaled darker (light steps) or towards white (dark steps) until it has 4.5:1 on BgElevated and BgBase.</summary>
+    private static Color Readable(Color hue, int step)
     {
         var p = For(step);
-        var c = Warning;
+        var c = hue;
         for (int i = 0; i <= 100; i++)
         {
             double f = i / 100.0;
             c = p.Dark
-                ? Color.FromRgb(Mix(Warning.R, 255, f), Mix(Warning.G, 255, f), Mix(Warning.B, 255, f))
-                : Color.FromRgb(Mix(Warning.R, 0, f), Mix(Warning.G, 0, f), Mix(Warning.B, 0, f));
+                ? Color.FromRgb(Mix(hue.R, 255, f), Mix(hue.G, 255, f), Mix(hue.B, 255, f))
+                : Color.FromRgb(Mix(hue.R, 0, f), Mix(hue.G, 0, f), Mix(hue.B, 0, f));
             if (Contrast(c, p.Elevated) >= 4.5 && Contrast(c, p.Base) >= 4.5) return c;
         }
         return c;
@@ -152,7 +160,7 @@ public static class LightnessService
             ("BgBaseBrush", p.Base), ("BgElevatedBrush", p.Elevated), ("BgSurfaceBrush", p.Surface),
             ("GlassBgBrush", p.Surface), ("GlassBgHoverBrush", p.ControlHover), ("GlassBorderBrush", p.Border),
             ("TextPrimaryBrush", p.Text), ("TextSecondaryBrush", p.TextSecondary), ("TextMutedBrush", p.TextMuted),
-            ("DividerBrush", p.Divider), ("TextInverseBrush", p.OnAccent), ("WarningTextBrush", WarningText(step)),
+            ("DividerBrush", p.Divider), ("TextInverseBrush", p.OnAccent), ("WarningTextBrush", WarningText(step)), ("AttentionTextBrush", AttentionText(step)),
             ("PenDiagramFillBrush", p.Dark ? G(0x4A) : G(0x5A)), ("PenDiagramButtonFillBrush", p.Dark ? G(0x5E) : G(0x70)),
             ("PenDiagramStrokeBrush", p.Dark ? G(0xB0) : G(0x20)),
             ("WacomPaneBrush", p.Pane), ("WacomTileWellBrush", p.Well), ("ScribbleCanvasBrush", p.Canvas),

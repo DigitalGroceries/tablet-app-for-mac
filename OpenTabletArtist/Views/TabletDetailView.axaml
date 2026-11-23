@@ -237,13 +237,13 @@
                                    TextWrapping="Wrap" />
                         <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" IsVisible="{Binding ShowSummary}"
                                    Foreground="{DynamicResource TextSecondaryBrush}" />
-                        <!-- V30 #200 B2: nothing on this key yet - say so, and offer to choose. -->
-                        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsNotSetUp}">
-                            <TextBlock Text="{Binding NotSetUpText}" FontWeight="SemiBold" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource AccentBrush}" />
-                            <Button Name="NotSetUpChoose" Classes="link" Content="{Binding ChooseText}" Command="{Binding EditCommand}"
-                                    Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand"
-                                    Foreground="{DynamicResource AccentBrush}" />
+                        <!-- V30 #200 B2: nothing on this key yet - say so, and offer to choose. Zak 23 Nov (test build 1): grey small links are not seen,
+                             so the line is bold yellow (AttentionTextBrush) (Zak 19:23: 'These warning texts must be in bold yellow') and Choose is a real button. -->
+                        <StackPanel Orientation="Vertical" Spacing="6" Margin="0,4,0,0" IsVisible="{Binding IsNotSetUp}">
+                            <TextBlock Text="{Binding NotSetUpText}" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource AttentionTextBrush}" />
+                            <Button Name="NotSetUpChoose" Theme="{StaticResource GhostButton}" Content="{Binding ChooseText}" Command="{Binding EditCommand}"
+                                Padding="14,6" Cursor="Hand" HorizontalAlignment="Left" />
                         </StackPanel>
                     </StackPanel>
                     <!-- The card's actions behind one "…", the same menu the wheel rows carry
@@ -283,12 +283,11 @@
                     <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" IsVisible="{Binding ShowSummary}"
                                Foreground="{DynamicResource TextSecondaryBrush}" />
                     <!-- V30 #200 B2: nothing on this direction or button yet - say so, and offer to choose. -->
-                    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsNotSetUp}">
-                        <TextBlock Text="{Binding NotSetUpText}" FontWeight="SemiBold" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource AccentBrush}" />
-                        <Button Name="NotSetUpChoose" Classes="link" Content="{Binding ChooseText}" Command="{Binding EditCommand}"
-                                Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand"
-                                Foreground="{DynamicResource AccentBrush}" />
+                    <StackPanel Orientation="Vertical" Spacing="6" Margin="0,4,0,0" IsVisible="{Binding IsNotSetUp}">
+                        <TextBlock Text="{Binding NotSetUpText}" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource AttentionTextBrush}" />
+                        <Button Name="NotSetUpChoose" Theme="{StaticResource GhostButton}" Content="{Binding ChooseText}" Command="{Binding EditCommand}"
+                                Padding="14,6" Cursor="Hand" HorizontalAlignment="Left" />
                     </StackPanel>
                 </StackPanel>
                 <!-- The row's actions behind one "…", as elsewhere in the app (#row-actions). Clear is new:

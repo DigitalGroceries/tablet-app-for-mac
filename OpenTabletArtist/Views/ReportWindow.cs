@@ -208,13 +208,14 @@ public sealed class ReportWindow : Window
         fileTile.Use(Border.BorderBrushProperty, "GlassBorderBrush").Use(Border.BackgroundProperty, "BgSurfaceBrush");
         fileTile.PointerPressed += async (_, e) => await DragFileOutAsync(fileTile, e, vm.SavedPath);
         // V30 #200 A6: the upload page doesn't open (no internet, a blocked site) - email the file instead.
+        // Zak 23 Nov 19:1x: a small grey text link is not seen as something to click - a real button (the normal kind, so the
+        // big accent Open upload page stays the first thing to press).
         var wontOpen = new Button
         {
-            Name = "ReportPageWontOpen", Content = vm.PageWontOpenLabel, Command = vm.ShowEmailFallbackCommand, Classes = { "homeLink" },
-            Padding = new Thickness(0), Background = Brushes.Transparent, BorderThickness = new Thickness(0), FontSize = 12,
+            Name = "ReportPageWontOpen", Content = vm.PageWontOpenLabel, Command = vm.ShowEmailFallbackCommand,
+            Padding = new Thickness(16, 8), FontSize = 14,
             HorizontalAlignment = HorizontalAlignment.Left, Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
         };
-        wontOpen.Fg("TextSecondaryBrush");
         var copied = new TextBlock { Name = "ReportAddressCopied", Text = vm.AddressCopiedText, IsVisible = false,
             VerticalAlignment = VerticalAlignment.Center }.Fg("TextSecondaryBrush");
         var emailFallback = new StackPanel

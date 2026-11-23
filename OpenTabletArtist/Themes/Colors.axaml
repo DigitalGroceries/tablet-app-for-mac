@@ -18,6 +18,9 @@
     <Color x:Key="SuccessMuted">#1A10B981</Color>
     <Color x:Key="Warning">#F59E0B</Color>
     <Color x:Key="WarningMuted">#1AF59E0B</Color>
+    <!-- V30 (Zak 23 Nov 2026: "These warning texts must be in bold yellow"): a control with nothing on it ("Not set up").
+         Yellow, not the amber of Warning. LightnessService replaces the text brush per step so it keeps 4.5:1. -->
+    <Color x:Key="Attention">#FACC15</Color>
     <Color x:Key="Error">#EF4444</Color>
     <Color x:Key="ErrorMuted">#1AEF4444</Color>
     <Color x:Key="Info">#3B82F6</Color>
@@ -34,6 +37,7 @@
          keeps 4.5:1 (darker amber on the light steps); this default suits the dark default step. -->
     <SolidColorBrush x:Key="WarningTextBrush" Color="{StaticResource Warning}" />
     <SolidColorBrush x:Key="WarningMutedBrush" Color="{StaticResource WarningMuted}" />
+    <SolidColorBrush x:Key="AttentionTextBrush" Color="{StaticResource Attention}" />
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}" />
     <SolidColorBrush x:Key="ErrorMutedBrush" Color="{StaticResource ErrorMuted}" />
     <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource Info}" />
