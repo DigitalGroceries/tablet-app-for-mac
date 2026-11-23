@@ -125,6 +125,11 @@ public static class LightnessService
 
     /// <summary>A switch that is On. Dark steps: a light track with a black knob. Light steps: the light track vanished into
     /// the light window (only the knob showed, test build 2 check, 23 Nov 2026), so the track is dark and the knob light.</summary>
+    /// <summary>The big Home button (CallToActionButton): its fill is the text colour, so its text is the window colour on
+    /// dark steps; on light steps the window grey looked dimmed, almost disabled, on the dark fill (fresh check 23 Nov 2026),
+    /// so it is the brightest grey the app uses there.</summary>
+    public static Color CallToActionText(int step) => For(step).Dark ? For(step).Base : G(0xE4);
+
     public static Color SwitchOnFill(int step) => For(step).Dark ? SelectionFill(step) : G(0x30);
     public static Color SwitchOnKnob(int step) => For(step).Dark ? SelectionText : G(0xE4);
 
@@ -172,7 +177,7 @@ public static class LightnessService
             ("GlassBgBrush", p.Surface), ("GlassBgHoverBrush", p.ControlHover), ("GlassBorderBrush", p.Border),
             ("TextPrimaryBrush", p.Text), ("TextSecondaryBrush", p.TextSecondary), ("TextMutedBrush", p.TextMuted),
             ("DividerBrush", p.Divider), ("TextInverseBrush", p.OnAccent), ("WarningTextBrush", WarningText(step)), ("AttentionTextBrush", AttentionText(step)),
-            ("AttentionFillBrush", AttentionFill(step)), ("SwitchOnFillBrush", SwitchOnFill(step)),
+            ("AttentionFillBrush", AttentionFill(step)), ("SwitchOnFillBrush", SwitchOnFill(step)), ("CallToActionTextBrush", CallToActionText(step)),
             ("PenDiagramFillBrush", p.Dark ? G(0x4A) : G(0x5A)), ("PenDiagramButtonFillBrush", p.Dark ? G(0x5E) : G(0x70)),
             ("PenDiagramStrokeBrush", p.Dark ? G(0xB0) : G(0x20)),
             ("WacomPaneBrush", p.Pane), ("WacomTileWellBrush", p.Well), ("ScribbleCanvasBrush", p.Canvas),

@@ -64,6 +64,15 @@ public class WarningTextContrastTests
         Assert.True(LightnessService.Contrast(knob, track) >= 3, $"step {step}: knob on track");
     }
 
+    // The big Home button: its text on its fill (the text colour) is clear on every step - not the dimmed grey of the first light look.
+    [Theory, MemberData(nameof(AllSteps))]
+    public void CallToAction_TextIsClearOnItsFill(int step)
+    {
+        var p = LightnessService.For(step);
+        var c = LightnessService.Contrast(LightnessService.CallToActionText(step), p.Text);
+        Assert.True(c >= 7, $"step {step}: {c:0.0}:1");
+    }
+
     [Fact]
     public void AttentionFill_AndSwitchTrack_AreAppliedPerStep()
     {

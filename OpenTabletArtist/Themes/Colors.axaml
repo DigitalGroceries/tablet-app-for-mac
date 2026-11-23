@@ -40,6 +40,7 @@
     <SolidColorBrush x:Key="AttentionTextBrush" Color="{StaticResource Attention}" />
     <SolidColorBrush x:Key="AttentionFillBrush" Color="Transparent" />
     <SolidColorBrush x:Key="SwitchOnFillBrush" Color="#D8D8D8" />
+    <SolidColorBrush x:Key="CallToActionTextBrush" Color="#181818" />
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}" />
     <SolidColorBrush x:Key="ErrorMutedBrush" Color="{StaticResource ErrorMuted}" />
     <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource Info}" />

@@ -95,7 +95,7 @@
                                             IsVisible="{Binding HasKeysNotSetUp}" Margin="0,16,0,4" Padding="28,20" MinHeight="72"
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                                         <TextBlock x:Name="KeysNotSetUpText" Text="{Binding KeysNotSetUpText}" FontSize="22" FontWeight="SemiBold"
-                                                   TextWrapping="Wrap" Foreground="{DynamicResource BgBaseBrush}" />
+                                                   TextWrapping="Wrap" Foreground="{DynamicResource CallToActionTextBrush}" />
                                     </Button>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
