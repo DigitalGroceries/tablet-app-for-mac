@@ -33,6 +33,13 @@ public static partial class RingModeBinding
             : new RingCentre(false, AuxBinding.Unbound, store);
     }
 
+    /// <summary>V29 #190 (agent K's PTH-460, 23 Nov 2026: "the centre button does nothing"): a ring nobody ever set up has
+    /// nothing on either turn and nothing on its centre button. Such a ring does nothing at all, so the app gives it the
+    /// factory modes once (see TabletDetailViewModel.GiveUnsetRingFactoryModesAsync).</summary>
+    public static bool IsUnsetRing(WheelBindingSettings? wheel) =>
+        wheel != null && wheel.WheelButtons.Count > 0 && wheel.WheelButtons[0] == null
+        && wheel.ClockwiseRotation == null && wheel.CounterClockwiseRotation == null;
+
     /// <summary>V29 #158 (Zak 20 Nov: one switch, one menu): the ring is shown as its modes, with no plain Clockwise /
     /// Anticlockwise rows: its turns are driven by modes, its centre button switches modes, or its turns do nothing.
     /// A ring whose plain rows hold something modes can't show (set up in OpenTabletDriver) keeps the plain rows.</summary>

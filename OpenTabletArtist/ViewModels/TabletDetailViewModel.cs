@@ -1999,6 +1999,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         var list = new List<WheelEditor>();
         var stepSync = new List<(int Wheel, List<RingMode> Modes)>();
         var plainMoves = new List<(int Wheel, RingMode ModeOne, RingCentre Centre)>();
+        var unsetRings = new List<int>();   // V29 #190
         bool multi = wheels.Count > 1;
         // Version 16: Intuos3 and the older Cintiqs report their touch strips as wheels; label them Up / Down.
         bool strips = _deviceData != null && TabletAboutInfo.From(_deviceData.TabletsWithRemembered, TabletName)?.WheelsAreTouchStrips == true;
@@ -2049,6 +2050,15 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 && !RingDowngrade.IsPrepared(_profile.Tablet) && RingModeBinding.TryPlainAsMode(ws, out var modeOne)
                 && _ringPlainMoveTried.Add($"{_profile.Tablet}:{SelectedAppBundleId}:{wi}"))
                 plainMoves.Add((wi, modeOne, RingModeBinding.ReadCentre(ws)));
+            // V29 #190 (agent K's PTH-460, 23 Nov: "the centre button does nothing"; his settings file showed a ring with nothing
+            // on its turns or its centre button and no saved modes): the four factory modes are written only by Restore factory
+            // settings, so a ring nobody ever set up did nothing. Give it the factory modes once, with the centre button
+            // switching them. Only the All table of the main pen, a ring that is On, and never over modes the user saved.
+            if (!strips && hasCentre && canEdit && string.IsNullOrEmpty(SelectedPenKey) && string.IsNullOrEmpty(SelectedAppBundleId)
+                && !RingDowngrade.IsPrepared(_profile.Tablet) && RingModeBinding.IsUnsetRing(ws)
+                && string.IsNullOrEmpty(SavedRingModes(wi))
+                && _ringFactoryTried.Add($"{_profile.Tablet}:{wi}"))
+                unsetRings.Add(wi);
             var modes = modesLayout ? RingModeBinding.LoadLayout(ws, SavedRingModes(wi))
                 : RingModeBinding.Load(ws, SavedRingModes(wi),
                     AuxKeyBinding.ReadCombo(ws.ClockwiseRotation), AuxKeyBinding.ReadCombo(ws.CounterClockwiseRotation));
@@ -2093,10 +2103,29 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         Wheels = list;
         foreach (var (wi, modes) in stepSync) _ = RingModesChangedAsync(wi, modes);
         foreach (var (wi, modeOne, centre) in plainMoves) _ = MovePlainRingIntoModeOneAsync(wi, modeOne, centre);
+        foreach (var wi in unsetRings) _ = GiveUnsetRingFactoryModesAsync(wi);
     }
 
     private readonly HashSet<string> _ringStepSyncTried = new();
     private readonly HashSet<string> _ringPlainMoveTried = new();
+    private readonly HashSet<string> _ringFactoryTried = new();
+
+    /// <summary>V29 #190: a ring nobody ever set up gets the four factory modes (Rotate, Zoom, Brush size, Brush hardness) with
+    /// the centre button switching them, as Restore factory settings gives it. Latched per tablet and ring, so it can't loop.</summary>
+    private async Task GiveUnsetRingFactoryModesAsync(int wheelIndex)
+    {
+        var modes = RingModeBinding.Defaults.ToList();
+        AppSettings.Set(RingModesKey(wheelIndex), RingModeBinding.Serialize(modes));
+        bool written = false;
+        await ApplyRingBindingsAsync(b =>
+        {
+            var w = b.WheelBindings;
+            if (wheelIndex < w.Count) written = RingModeBinding.ApplyLayout(w[wheelIndex], modes, RingCentre.Next);
+        });
+        AppLog.Info($"Touch Ring {wheelIndex + 1}: nothing was set on it, so it got the four factory modes with the centre button "
+                    + "switching them (V29 #190)" + (written ? "." : "; nothing was written."));
+        RefreshWheels();
+    }
 
     /// <summary>V29 #158 (Zak 20 Nov: "plain-ring users move into mode 1"): the ring's plain Clockwise / Anticlockwise keys
     /// become mode 1 and its centre button keeps what it did, so the ring does exactly what it did before; the page then

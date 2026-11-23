@@ -89,6 +89,61 @@ public class OneRingMenuTests
         finally { window.Close(); }
     }
 
+    /// <summary>V29 #190 (agent K's PTH-460, 23 Nov 2026): his settings file showed a ring with nothing on its turns or its
+    /// centre button and no saved modes, so the centre button did nothing. Such a ring now gets the four factory modes once,
+    /// with the centre button switching them.</summary>
+    [AvaloniaFact]
+    public async Task ARingNobodySetUp_GetsTheFactoryModes_WithTheCentreButtonSwitchingThem()
+    {
+        var ring = new WheelBindingSettings
+        {
+            WheelButtons = new PluginSettingStoreCollection(new PluginSettingStore?[] { null }),
+            ClockwiseActivationThreshold = 5, CounterClockwiseActivationThreshold = 5,
+        };
+        var (vm, view, window, profile) = Open(ring);
+        try
+        {
+            var w = profile.BindingSettings.WheelBindings[0];
+            await PumpUntil(() => RingModeBinding.IsActive(w) && RingModeBinding.CentreIsNext(w));
+            Assert.Equal(RingModeBinding.Defaults[0].Clockwise, RingModeBinding.Read(w)[0].Clockwise);   // mode 1 = Rotate
+            Assert.Equal(4, RingModeBinding.ActiveModes(RingModeBinding.Read(w)).Count());
+            Assert.False(string.IsNullOrEmpty(Services.AppSettings.Get($"RingModes:{profile.Tablet}:0")));
+        }
+        finally { window.Close(); }
+    }
+
+    /// <summary>V29 #190: a ring the user set to do nothing (saved modes, centre Do nothing) is left alone.</summary>
+    [AvaloniaFact]
+    public async Task ARingTheUserSetToNothing_IsLeftAlone()
+    {
+        var ring = new WheelBindingSettings
+        {
+            WheelButtons = new PluginSettingStoreCollection(new PluginSettingStore?[] { null }),
+            ClockwiseActivationThreshold = 5, CounterClockwiseActivationThreshold = 5,
+        };
+        var tablet = "One ring menu " + Guid.NewGuid().ToString("N")[..8];
+        var saved = RingModeBinding.Serialize(RingModeBinding.Defaults.Select(m => m with { Enabled = false }));
+        Services.AppSettings.Set($"RingModes:{tablet}:0", saved);
+        _ = new ThemeViewModel();
+        var profile = new Profile { Tablet = tablet, OutputMode = new PluginSettingStore(typeof(OpenTabletDriver.Desktop.Output.AbsoluteMode)) };
+        profile.BindingSettings.WheelBindings = new List<WheelBindingSettings> { ring };
+        var settings = new Settings { Profiles = new ProfileCollection { profile } };
+        var vm = new TabletDetailViewModel(profile, settings, applyAction: _ => Task.FromResult(OtdInterop.SettingsApplyOutcome.Live));
+        var view = new TabletDetailView { DataContext = vm };
+        var window = new Window { Content = view, Width = 1200, Height = 1100 };
+        window.Show();
+        try
+        {
+            view.FindControl<RadioButton>("WheelsTab")!.IsChecked = true;
+            for (int i = 0; i < 20; i++) { Dispatcher.UIThread.RunJobs(); window.UpdateLayout(); await Task.Delay(5, TestContext.Current.CancellationToken); }
+            var w = profile.BindingSettings.WheelBindings[0];
+            Assert.False(RingModeBinding.IsActive(w));
+            Assert.False(RingModeBinding.CentreIsNext(w));
+            Assert.Equal(saved, Services.AppSettings.Get($"RingModes:{tablet}:0"));
+        }
+        finally { window.Close(); }
+    }
+
     [AvaloniaFact]
     public async Task PickingNextMode_InTheCentreMenu_SwitchesTheModes()
     {
