@@ -351,14 +351,50 @@ public partial class ReportViewModel : ObservableObject
     }
 
     /// <summary>"Open upload page" on the saved message (the team's upload page). The message stays open: the job is done only
-    /// when the file is on the page (V30 #200, vote A3).</summary>
+    /// when the file is on the page (V30 #200, vote A3). V30 #200 A2 (team vote; Zak 23 Nov 17:42 "Yes, open Finder too", which
+    /// replaces his 4 Nov "message only"): Finder also shows the report file, ready to drag onto the page.</summary>
     [RelayCommand]
     private void OpenUpload()
     {
         if (!IsSaved) return;
         OpenUrl(DiagnosticBundle.ReportUploadUrl);
+        Reveal(SavedPath);
         UploadPageOpened = true;
-        AppLog.Info("Report: opened the upload page; the steps stay on screen until Done.");
+        AppLog.Info("Report: opened the upload page and showed the file in Finder; the steps stay on screen until Done.");
+    }
+
+    // ── V30 #200 A6 (Devin's vote; Zak 23 Nov 17:42 "Yes, show the email", which makes an exception to his 5 Nov "Dropbox only"):
+    // when the upload page doesn't open (no internet, a blocked site), the user can email the file instead. The address shows
+    // only after "The page doesn't open?" is clicked, as on the website.
+
+    /// <summary>True once "The page doesn't open?" was clicked: the address, Copy and "attach this file" show.</summary>
+    [ObservableProperty] private bool _emailFallbackShown;
+    /// <summary>True once the address was copied.</summary>
+    [ObservableProperty] private bool _addressCopied;
+    /// <summary>Set by the window: puts text on the Mac's clipboard.</summary>
+    public Func<string, Task>? CopyText { get; set; }
+
+    /// <summary>The public feedback address (Zak 27 Oct 2026: no name in it; the website shows it only when its button is clicked).</summary>
+    public string FeedbackEmail => DiagnosticBundle.FeedbackEmail;
+    public string PageWontOpenLabel => Localizer.Te("report.page_wont_open", "The page doesn't open?");
+    public string EmailFallbackText => Localizer.Te("report.email_fallback",
+        "Email the file to us instead. Attach the report file from step 2 to your email.");
+    public string CopyAddressLabel => Localizer.Te("report.copy_address", "Copy address");
+    public string AddressCopiedText => Localizer.Te("report.address_copied", "Copied");
+
+    [RelayCommand]
+    private void ShowEmailFallback()
+    {
+        EmailFallbackShown = true;
+        AppLog.Info("Report: the upload page didn't open - showing the email address.");
+    }
+
+    [RelayCommand]
+    private async Task CopyAddress()
+    {
+        if (CopyText != null) await CopyText(DiagnosticBundle.FeedbackEmail);
+        AddressCopied = true;
+        AppLog.Info("Report: copied the email address.");
     }
 
     /// <summary>True once Open upload page was clicked (the window then points at step 2).</summary>

@@ -660,7 +660,12 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Do nothing",
+    "text": "Inte inställd",
+    "path": "Ritplatta › Funktioner › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Välj vad den gör",
     "path": "Ritplatta › Funktioner › Touch Ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },

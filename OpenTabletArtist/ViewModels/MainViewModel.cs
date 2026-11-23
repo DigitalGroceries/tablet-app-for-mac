@@ -383,6 +383,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             () => _conflicts.Drivers.Select(d => d.Name).ToList());
         Settings = new SettingsViewModel(Startup, Hotkeys, Theme, Shortcut, DesktopEntry, DriverCleanup,
             VMulti, Presets, Developer, Troubleshooting);
+        Services.HelpFixes.Run = HelpFix;   // V30 #200 B5: the manual's "Something doesn't work?" buttons
 
         // The single TABLET page (#542): a switcher dropdown over the selected tablet's headerless detail
         // view. It resolves detail VMs through the shell (which owns the per-tablet cache + daemon plumbing).
@@ -584,6 +585,30 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (vm.RefreshDisplaysCommand.CanExecute(null))
                 vm.RefreshDisplaysCommand.Execute(null);
     }
+
+    /// <summary>V30 #200 B5: a "Something doesn't work?" button in the manual. Keys and ring open the active tablet's page
+    /// (opening it gives a never-set ring its factory modes, #190); driver restarts the tablet driver.</summary>
+    internal void HelpFix(string action)
+    {
+        switch (action)
+        {
+            case "keys":
+            case "ring":
+                var tab = action == "keys" ? TabletDetailTab.ExpressKeys : TabletDetailTab.Wheels;
+                if (HelpFixTablet() is { } name) NavigateToTabletByName(name, tab);
+                else CurrentPage = TabletPage;
+                break;
+            case "driver":
+                _ = _session.RestartDaemonCommand.ExecuteAsync(null);
+                break;
+        }
+    }
+
+    /// <summary>The tablet the help buttons open: the one shown on the TABLET page, else the first connected one, else the first known.</summary>
+    private string? HelpFixTablet() =>
+        TabletPage.SelectedTablet?.Name
+        ?? TabletsOverview.Tablets.FirstOrDefault(t => t.IsDetected)?.Name
+        ?? TabletsOverview.Tablets.FirstOrDefault()?.Name;
 
     /// <summary>Open the TABLET page on a specific tablet (the Home cards, a health-issue "Fix" deep-link),
     /// optionally deep-linking to one of its tabs.</summary>

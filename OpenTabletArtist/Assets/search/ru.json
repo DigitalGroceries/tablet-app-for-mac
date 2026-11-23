@@ -660,7 +660,12 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Do nothing",
+    "text": "Не настроено",
+    "path": "Планшет › Функции › Тач-ринг",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Выберите действие",
     "path": "Планшет › Функции › Тач-ринг",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },

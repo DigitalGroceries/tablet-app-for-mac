@@ -1176,7 +1176,7 @@
                 <Grid x:Name="ExpressKeysDiagram" IsVisible="{Binding !NoAuxButtons}" Width="600" HorizontalAlignment="Left">
                     <Border Width="64" HorizontalAlignment="Left" CornerRadius="14,0,0,14" BorderThickness="2,2,0,2"
                             BorderBrush="{DynamicResource TextMutedBrush}" Background="{DynamicResource GlassBgBrush}" />
-                    <ItemsControl ItemsSource="{Binding AuxButtons}" Margin="0,10">
+                    <ItemsControl x:Name="AuxKeysList" ItemsSource="{Binding AuxButtons}" Margin="0,10">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid ColumnDefinitions="64,36,*">
@@ -1258,7 +1258,7 @@
                 <!-- One card per wheel: the live gauge on the left, and every mapping for that wheel
                      (clockwise + counter-clockwise actions with sensitivity, and the wheel button)
                      grouped on the right — so a wheel is a single self-contained unit (#310). -->
-                <ItemsControl ItemsSource="{Binding Wheels}">
+                <ItemsControl x:Name="WheelsList" ItemsSource="{Binding Wheels}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <ctrl:Entity>

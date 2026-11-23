@@ -660,7 +660,12 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Do nothing",
+    "text": "Sin configurar",
+    "path": "Tableta › Funciones › Anillo táctil",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Elige qué hace",
     "path": "Tableta › Funciones › Anillo táctil",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },

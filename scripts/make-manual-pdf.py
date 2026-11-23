@@ -15,6 +15,7 @@ ns={'__file__':BS}; exec(code,ns)
 ICON=os.environ.get('SITE_ICON') or os.path.join(ROOT,'site','icon-256.png')
 MAN=os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','OpenTabletArtist','Assets','manual'); MAN=os.path.abspath(MAN)
 src=open(MAN+'/manual.md',encoding='utf-8').read()
+src=re.sub(r'^\[[^\]]+\]\(app:[^)]*\)[ \t]*\n?','',src,flags=re.M)   # V30 #200 B5: in-app buttons only
 title,_,rest=src.partition('\n')
 body=ns['md'](re.sub(r'!\[([^\]]*)\]\(([^)]+)\)',r'IMG[\1](\2)',rest))
 body=re.sub(r'<p>IMG\[([^\]]*)\]\(([^)]+)\)</p>',lambda m:f'<figure><img src="file://{MAN}/{m.group(2)}" alt="{m.group(1)}"><figcaption>{m.group(1)}</figcaption></figure>',body)

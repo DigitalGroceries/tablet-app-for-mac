@@ -493,6 +493,12 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         // off-screen mapping) instead of the default About tab. Also handle a request that arrives while
         // the page is already shown (re-navigation wouldn't re-attach the view).
         if (Vm != null) Vm.TabRequested += OnTabRequested;
+        // V30 #200 B3: a key, ring or strip with nothing on it that the user presses while this window is in front opens its card.
+        if (Vm != null)
+        {
+            Vm.UnsetControlUsed += OnUnsetControlUsed;
+            Vm.IsAppInFront = () => TopLevel.GetTopLevel(this) is Window { IsActive: true };
+        }
         // Version 16: the page re-opens on the Pen tile (its XAML default), but PenToolActive lives on the view
         // model and still held the last visit's Functions or More choice, so the Pen / Eraser / Mapping tabs
         // stayed hidden until the Pen tile was clicked again. Bring them back with the tile.
@@ -523,6 +529,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     {
         base.OnDetachedFromVisualTree(e);
         if (Vm != null) Vm.TabRequested -= OnTabRequested;
+        if (Vm != null) { Vm.UnsetControlUsed -= OnUnsetControlUsed; Vm.IsAppInFront = () => false; }
         if (PerAppBindingRuntime.Shared is { } runtime) runtime.PenSeen -= OnPenSeen;
         if (_screens != null) { _screens.Changed -= OnScreensChanged; _screens = null; }
         ButtonsTab.IsCheckedChanged -= OnLiveTabChanged;
@@ -656,6 +663,20 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         SelectTab(tab);
     }
 
+    /// <summary>V30 #200 B3: open the tab that holds the control and scroll its card into view (its line says it does nothing yet).</summary>
+    private void OnUnsetControlUsed(TabletDetailTab tab, ButtonBinding b)
+    {
+        SelectTab(tab);
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            Control? card = tab == TabletDetailTab.ExpressKeys
+                ? AuxKeysList.ContainerFromItem(b)
+                : Vm?.Wheels.FirstOrDefault(w => ReferenceEquals(w.Clockwise, b) || ReferenceEquals(w.CounterClockwise, b)
+                        || w.Buttons.Any(x => ReferenceEquals(x, b))) is { } wheel ? WheelsList.ContainerFromItem(wheel) : null;
+            card?.BringIntoView();
+        }, Avalonia.Threading.DispatcherPriority.Loaded);
+    }
+
     // Check the RadioButton for a deep-linked tab. Its content ScrollViewer is gated on IsChecked, so
     // checking the tab shows it (and unchecks whatever was selected — they share the rail's group).
     private void SelectTab(TabletDetailTab tab)
@@ -664,6 +685,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         {
             case TabletDetailTab.DisplayMapping: MappingTab.IsChecked = true; break;
             case TabletDetailTab.ExpressKeys: SelectTool(ToolFunctionsButton); ButtonsTab.IsChecked = true; break;   // V30 #200 B2
+            case TabletDetailTab.Wheels: SelectTool(ToolFunctionsButton); WheelsTab.IsChecked = true; break;   // V30 #200 B3
             // R13: the pressure curve's one home is Tablet › Pen › Feel details (Pen › Pressure is gone).
             case TabletDetailTab.PenTilt:
             case TabletDetailTab.PenBehavior:

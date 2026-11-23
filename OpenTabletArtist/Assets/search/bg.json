@@ -645,7 +645,12 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Do nothing",
+    "text": "Не е настроено",
+    "path": "Таблет › Функции › Сензорен пръстен",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Изберете какво да прави",
     "path": "Таблет › Функции › Сензорен пръстен",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },

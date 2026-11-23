@@ -257,8 +257,12 @@ public partial class WheelEditor : ObservableObject
         foreach (var b in Buttons) b.IsPressed = false;
     }
 
+    /// <summary>V30 #200 B3: a direction row was just used on the tablet (the ring turned or the finger moved on the strip).</summary>
+    public event Action<ButtonBinding>? RowUsed;
+
     private void Flash(bool clockwise)
     {
+        RowUsed?.Invoke(clockwise ? Clockwise : CounterClockwise);
         Clockwise.IsPressed = clockwise;
         CounterClockwise.IsPressed = !clockwise;
         TurningClockwise = clockwise;

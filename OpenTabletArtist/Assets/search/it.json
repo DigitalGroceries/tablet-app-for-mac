@@ -660,7 +660,12 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Do nothing",
+    "text": "Non impostato",
+    "path": "Tavoletta › Funzioni › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Scegli cosa fa",
     "path": "Tavoletta › Funzioni › Touch Ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },

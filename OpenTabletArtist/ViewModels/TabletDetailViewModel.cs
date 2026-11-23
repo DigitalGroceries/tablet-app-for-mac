@@ -33,6 +33,8 @@ public enum TabletDetailTab
     PenTilt,
     /// <summary>V30 #200 B2: Tablet › Functions › ExpressKeys (Home's "not set up" line).</summary>
     ExpressKeys,
+    /// <summary>V30 #200 B3: Tablet › Functions › Touch Ring / Touch Strip (a ring or strip with nothing on it was used).</summary>
+    Wheels,
 }
 
 /// <summary>One row of the Calibration tab's positional report (#460): the target it was captured for
@@ -2082,7 +2084,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                          || !RingModeBinding.SameKeys(RingModeBinding.ActiveModes(modes), RingModeBinding.Read(ws)))   // build K migration
                         && _ringStepSyncTried.Add($"{_profile.Tablet}:{SelectedAppBundleId}:{wi}"))))
                 stepSync.Add((wi, modes));
-            list.Add(new WheelEditor(
+            var editor = new WheelEditor(
                 wheelIndex: wi,
                 title: strips ? StripTitle(w, wheels.Count) : RingTitle(w, wheels.Count),
                 showTitle: multi || strips,
@@ -2099,7 +2101,11 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 OnOffTip = WheelEnabled ? ""
                     : strips ? Localizer.Te("tablet.strip.needs_all", "Turn on Touch Strips first")
                     : Localizer.Te("tablet.ring.needs_all", "Turn on Touch Rings first"),
-            });
+            };
+            // V30 #200 B3: turning a ring or strip direction that has nothing on it jumps to its row.
+            editor.RowUsed += row => NoticeUnsetUse(row,
+                $"wheel:{wi}:{(ReferenceEquals(row, editor.Clockwise) ? "cw" : "ccw")}", TabletDetailTab.Wheels);
+            list.Add(editor);
                 ringModes?.RefreshFromStateFile();
         }
         Wheels = list;
@@ -2450,6 +2456,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                 // published the new mode, light that mode's badge.
                 if (b == 0 && down && !buttons[b].IsPressed && Wheels[w].RingModes is { } rm)
                     DispatcherTimer.RunOnce(() => rm.RefreshFromStateFile(), TimeSpan.FromMilliseconds(80));
+                if (down && !buttons[b].IsPressed) NoticeUnsetUse(buttons[b], $"wheel:{w}:button:{b}", TabletDetailTab.Wheels);   // V30 #200 B3
                 buttons[b].IsPressed = down;
             }
         }
@@ -2956,7 +2963,46 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     private void OnAuxButtons(bool[] states)
     {
         for (int i = 0; i < AuxButtons.Count; i++)
-            AuxButtons[i].IsPressed = i < states.Length && states[i];
+        {
+            bool down = i < states.Length && states[i];
+            if (down && !AuxButtons[i].IsPressed) NoticeUnsetUse(AuxButtons[i], $"key:{i}", TabletDetailTab.ExpressKeys);
+            AuxButtons[i].IsPressed = down;
+        }
+    }
+
+    // ── V30 #200 B3 (team vote 23 Nov 2026, "press to find it"): a control with nothing on it that the user presses or turns ──
+    // Grok: only while the Tablet App is the front window. Devin: once per control, inside the window, never while drawing.
+
+    /// <summary>Set by the page: true while the app's window is the front window. Until a page sets it, nothing jumps.</summary>
+    public Func<bool> IsAppInFront { get; set; } = () => false;
+
+    /// <summary>The page opens <paramref name="tab"/> and brings the control's card into view.</summary>
+    public event Action<TabletDetailTab, ButtonBinding>? UnsetControlUsed;
+
+    // Once per control for the whole run of the app (the page's view model is made again on each visit).
+    private static readonly HashSet<string> UnsetUseShown = new();
+    internal static void ResetUnsetUseShownForTests() { lock (UnsetUseShown) UnsetUseShown.Clear(); }
+
+    private DateTime _lastPenDownUtc = DateTime.MinValue;
+    partial void OnTipPressedChanged(bool value) { if (value) _lastPenDownUtc = DateTime.UtcNow; }
+    partial void OnEraserPressedChanged(bool value) { if (value) _lastPenDownUtc = DateTime.UtcNow; }
+
+    /// <summary>The time a pen stroke keeps the page still after the pen leaves the surface (a pause between strokes is still drawing).</summary>
+    internal static readonly TimeSpan DrawingQuietTime = TimeSpan.FromSeconds(2);
+
+    /// <summary>Returns true when the page jumped to <paramref name="b"/>.</summary>
+    internal bool NoticeUnsetUse(ButtonBinding b, string id, TabletDetailTab tab)
+    {
+        if (!b.IsNotSetUp || b.JustUsed) return false;
+        // The All table of the main pen only: a key empty in an app's own table or an extra pen's table may still work from All.
+        if (!string.IsNullOrEmpty(SelectedAppBundleId) || !string.IsNullOrEmpty(SelectedPenKey)) return false;
+        if (TipPressed || EraserPressed || DateTime.UtcNow - _lastPenDownUtc < DrawingQuietTime) return false;
+        if (!IsAppInFront()) return false;
+        lock (UnsetUseShown)
+            if (!UnsetUseShown.Add($"{_profile.Tablet}:{id}")) return false;
+        b.JustUsed = true;
+        UnsetControlUsed?.Invoke(tab, b);
+        return true;
     }
 
     /// <summary>Enables the daemon's device-report stream (live pressure dot + aux highlight). Driven

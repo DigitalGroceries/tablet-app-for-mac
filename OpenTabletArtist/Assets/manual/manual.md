@@ -27,6 +27,30 @@ Tested only on an Apple silicon Mac with macOS 27.0.1 and a Wacom Intuos4 Small 
 - Your changes are saved by themselves, as with the Wacom driver (Settings › System › **Save changes automatically**, on by default). With that switch off, click **Save** in the footer; unsaved changes are kept and offered again after a shutdown.
 - Test in **Scribble**.
 
+## Something doesn't work?
+
+In the app, each answer has a button that does it for you. The buttons are only in the app's own manual.
+
+**My ExpressKeys do nothing.** A key does nothing until you choose what it does. On Tablet › Functions › ExpressKeys, a key with nothing on it says **Not set up**, and Home says how many there are. While the app is in front on the tablet's Pen, ExpressKeys or Touch Ring page, pressing such a key takes you to its card.
+
+[Set them up now](app:keys)
+
+**My Touch Ring does nothing.** A Touch Ring nobody has set up gets the four factory modes (Rotate, Zoom, Brush size, Brush hardness) when you open its tablet in the app. The centre button switches between them.
+
+[Open the Touch Ring](app:ring)
+
+**The pen moves on the tablet, but the pointer doesn't.** macOS needs **Device Control and Data Access** (called **Accessibility** on older macOS) turned on for Tablet App for Mac.
+
+[Open Device Control and Data Access](app:pointer)
+
+**The app doesn't find my tablet.** Check it has power and that its USB cable goes straight into the Mac, not through a hub. Then restart the driver.
+
+[Restart the driver](app:driver)
+
+**How do I send a report?** Open the report window, describe the problem, click **Send with file**, then follow the 3 steps on the screen. See Report a problem or send a recommendation.
+
+[Report a problem](app:report)
+
 ## Introduction and requirements
 
 Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, ExpressKeys and Touch Ring modes, with per-app settings. Tablet input comes from the tablet driver, built on OpenTabletDriver, which the app starts.
@@ -301,7 +325,7 @@ The report opens inside the app window:
 - **Record the problem**: click it, make the problem happen with your tablet (pen, eraser, buttons, touch, ExpressKeys or touch ring), then click **Stop recording**. The report then also holds what the tablet sent in those seconds (up to 2 minutes), and the app and driver logs are marked where the recording started and stopped. On a Mac it also records every click and mouse event macOS sees, from the mouse and from the pen, and how long each click took to bring its window and app to the front, so a mouse click and a pen click on the same windows can be compared.
 - Press **Send with file** or **Send with GitHub account**. Both make one file with your text, your pictures and the app and driver logs. Serial numbers and your user name are removed from the logs. Pictures are sent as they are, so check them first.
 - **Send with file** needs no account. It asks where to save the file (the Desktop is suggested). Then the report shows 3 numbered steps:
-  1. Click **Open upload page**. A web page opens in your browser.
+  1. Click **Open upload page**. A web page opens in your browser, and Finder shows your report file. If the page doesn't open (no internet, or the page is blocked), click **The page doesn't open?** under the button: the report shows our email address with **Copy address**. Email the report file to us instead.
   2. On that page, click **Add files** and choose your report file. The report shows the file's name and folder; you can also drag the file from the report straight onto the page.
   3. Type any name and your email, then click **Upload**. Only the Tablet App for Mac team sees them. You don't need an account.
 

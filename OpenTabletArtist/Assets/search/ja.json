@@ -715,7 +715,12 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Do nothing",
+    "text": "未設定",
+    "path": "タブレット › ファンクション › タッチリング",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "動作を選ぶ",
     "path": "タブレット › ファンクション › タッチリング",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },

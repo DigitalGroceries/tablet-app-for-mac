@@ -660,7 +660,12 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Do nothing",
+    "text": "Nicht eingerichtet",
+    "path": "Tablet › Funktionen › Touch-ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Funktion wählen",
     "path": "Tablet › Funktionen › Touch-ring",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },

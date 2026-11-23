@@ -36,7 +36,11 @@ public sealed class ManualWindow : Window
         Title = "Tablet App for Mac – User Manual";
         Width = 860; Height = 900; MinWidth = 560;
         Title = Services.Localizer.Te("manual.title", "User manual");
-        var page = Build(Load(Services.Localizer.ResolvedCode));
+        var page = Build(Load(Services.Localizer.ResolvedCode), action =>
+        {
+            Close();   // the page or window the button opens is behind this sheet
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => DoFix(action));
+        });
         if (Services.AppLinks.Manual is { } url)
         {
             var online = new Button { Content = Services.Localizer.Te("manual.open_online", "Open online version"), Classes = { "homeLink" },
@@ -79,7 +83,19 @@ public sealed class ManualWindow : Window
     // Theme keys, not fixed colours (Version 19 BETA 3): the manual follows the app's Light/Dark theme.
     private const string BodyKey = "TextSecondaryBrush", HeadKey = "TextPrimaryBrush", MutedKey = "TextMutedBrush";
 
-    internal static StackPanel Build(string md)
+    /// <summary>V30 #200 B5: what a "Something doesn't work?" button does (manual.md line <c>[Text](app:action)</c>).</summary>
+    internal static void DoFix(string action)
+    {
+        Services.AppLog.Info($"Manual: help button '{action}'.");
+        switch (action)
+        {
+            case "report": _ = ReportWindow.OpenAsync("manual"); break;
+            case "pointer": Services.PlatformShell.OpenAccessibilitySettings(); break;
+            default: Services.HelpFixes.Run?.Invoke(action); break;
+        }
+    }
+
+    internal static StackPanel Build(string md, Action<string>? onFix = null)
     {
         var root = new StackPanel { Spacing = 8, MaxWidth = 780 };
         var para = new List<string>();
@@ -93,6 +109,21 @@ public sealed class ManualWindow : Window
         {
             var line = raw.TrimEnd();
             if (line.Length == 0) { Flush(); continue; }
+            // V30 #200 B5: a line that is only an app link is an in-app button (an unknown one is left out).
+            if (System.Text.RegularExpressions.Regex.IsMatch(line.Trim(), @"^\[[^\]]+\]\(app:[^)]*\)$"))
+            {
+                Flush();
+                if (Services.HelpFixes.ParseLine(line) is { } fix)
+                {
+                    var b = new Button { Name = "HelpFix_" + fix.Action, Content = fix.Text, Padding = new Thickness(16, 6),
+                        HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 6), Tag = fix.Action };
+                    if (Application.Current?.TryFindResource("AccentButton", out var accent) == true && accent is Avalonia.Styling.ControlTheme theme)
+                        b.Theme = theme;
+                    b.Click += (_, _) => (onFix ?? DoFix)(fix.Action);
+                    root.Children.Add(b);
+                }
+                continue;
+            }
             if (line.StartsWith("#"))
             {
                 Flush();

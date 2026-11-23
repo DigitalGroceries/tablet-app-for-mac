@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -183,8 +184,8 @@ public sealed class ReportWindow : Window
         // V30 #200 (Zak 23 Nov 2026: "make it simpler ... bigger ... the list of the steps numbered one under another";
         // team vote A1, A3, A5): after Send with file the sheet shows 3 big numbered steps. Step 1 has the big Open upload
         // page button, step 2 shows the file itself (it can be dragged onto the page), step 3 the name and email. The sheet
-        // stays open until Done. Zak 5 Nov: no Show in Finder (the file is shown right here instead). Zak 23 Nov: the
-        // upload service is never named.
+        // stays open until Done. Zak 23 Nov: the upload service is never named. Zak 23 Nov 17:42: Open upload page also shows
+        // the file in Finder (A2), and "The page doesn't open?" shows the email address (A6).
         var openUpload = new Button
         {
             Name = "ReportOpenUpload", Content = vm.OpenUploadLabel, Padding = new Thickness(22, 10), FontSize = 15,
@@ -206,6 +207,37 @@ public sealed class ReportWindow : Window
         };
         fileTile.Use(Border.BorderBrushProperty, "GlassBorderBrush").Use(Border.BackgroundProperty, "BgSurfaceBrush");
         fileTile.PointerPressed += async (_, e) => await DragFileOutAsync(fileTile, e, vm.SavedPath);
+        // V30 #200 A6: the upload page doesn't open (no internet, a blocked site) - email the file instead.
+        var wontOpen = new Button
+        {
+            Name = "ReportPageWontOpen", Content = vm.PageWontOpenLabel, Command = vm.ShowEmailFallbackCommand, Classes = { "homeLink" },
+            Padding = new Thickness(0), Background = Brushes.Transparent, BorderThickness = new Thickness(0), FontSize = 12,
+            HorizontalAlignment = HorizontalAlignment.Left, Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+        };
+        wontOpen.Fg("TextSecondaryBrush");
+        var copied = new TextBlock { Name = "ReportAddressCopied", Text = vm.AddressCopiedText, IsVisible = false,
+            VerticalAlignment = VerticalAlignment.Center }.Fg("TextSecondaryBrush");
+        var emailFallback = new StackPanel
+        {
+            Name = "ReportEmailFallback", Spacing = 6, IsVisible = false,
+            Children =
+            {
+                new TextBlock { Name = "ReportEmailFallbackText", Text = vm.EmailFallbackText, TextWrapping = TextWrapping.Wrap }.Fg(),
+                new StackPanel
+                {
+                    Orientation = Orientation.Horizontal, Spacing = 10,
+                    Children =
+                    {
+                        new SelectableTextBlock { Name = "ReportEmailAddress", Text = vm.FeedbackEmail, FontWeight = FontWeight.SemiBold,
+                            VerticalAlignment = VerticalAlignment.Center }.Fg(),
+                        new Button { Name = "ReportCopyAddress", Content = vm.CopyAddressLabel, Command = vm.CopyAddressCommand,
+                            Padding = new Thickness(12, 4) },
+                        copied,
+                    },
+                },
+            },
+        };
+        vm.CopyText = async t => { if (TopLevel.GetTopLevel(this)?.Clipboard is { } cb) await cb.SetTextAsync(t); };
         var done = new Button { Name = "ReportDone", Content = vm.DoneLabel, Padding = new Thickness(22, 10), FontSize = 15, Command = vm.DoneCommand };
         var savedAt = new SelectableTextBlock { Name = "ReportSavedAt", FontSize = 11, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush");
         // The whole message as one text for screen readers and the tests (not shown).
@@ -217,7 +249,7 @@ public sealed class ReportWindow : Window
             {
                 new TextBlock { Text = vm.SavedTitle, FontSize = 20, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }.Fg(),
                 new TextBlock { Name = "ReportStepsIntro", Text = vm.StepsIntro, FontSize = 15, TextWrapping = TextWrapping.Wrap }.Fg(),
-                Step("ReportStep1", 1, vm.Step1, openUpload),
+                Step("ReportStep1", 1, vm.Step1, openUpload, wontOpen, emailFallback),
                 Step("ReportStep2", 2, vm.Step2, fileTile,
                     new TextBlock { Name = "ReportStep2Drag", Text = vm.Step2Drag, FontSize = 12, TextWrapping = TextWrapping.Wrap }.Fg("TextSecondaryBrush")),
                 Step("ReportStep3", 3, vm.Step3,
@@ -260,6 +292,12 @@ public sealed class ReportWindow : Window
             if (e.PropertyName == nameof(ReportViewModel.Status)) { status.Text = vm.Status; status.IsVisible = vm.Status.Length > 0; }
             if (e.PropertyName == nameof(ReportViewModel.SavedPath)) ShowSaved();
             if (e.PropertyName == nameof(ReportViewModel.UploadPageOpened) && vm.UploadPageOpened) done.Focus();
+            if (e.PropertyName == nameof(ReportViewModel.EmailFallbackShown))
+            {
+                emailFallback.IsVisible = vm.EmailFallbackShown;
+                wontOpen.IsVisible = !vm.EmailFallbackShown;
+            }
+            if (e.PropertyName == nameof(ReportViewModel.AddressCopied)) copied.IsVisible = vm.AddressCopied;
             if (e.PropertyName == nameof(ReportViewModel.AskingEmail))
             {
                 ask.IsVisible = askFrame.IsVisible = vm.AskingEmail;

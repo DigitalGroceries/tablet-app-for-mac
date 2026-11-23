@@ -660,7 +660,12 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Do nothing",
+    "text": "Non configuré",
+    "path": "Tablette › Fonctions › Anneau tactile",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Choisir son action",
     "path": "Tablette › Fonctions › Anneau tactile",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },

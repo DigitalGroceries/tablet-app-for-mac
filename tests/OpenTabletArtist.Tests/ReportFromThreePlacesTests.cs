@@ -93,6 +93,32 @@ public class ReportFromThreePlacesTests
     }
 
     /// <summary>Saves where the user chose (the test's stand-in for the save panel) and records the suggested name.</summary>
+    [Fact]
+    public async Task The_email_address_shows_only_after_The_page_doesnt_open_and_can_be_copied()
+    {
+        // V30 #200 A6 (Devin's vote; Zak 23 Nov 17:42 "Yes, show the email"): only when the upload page can't open.
+        var (vm, _, _, dir) = Make();
+        SaveTo(vm, Path.Combine(dir, "r.zip"));
+        vm.Email = "";
+        await vm.SendWithoutEmailCommand.ExecuteAsync(null);
+        Assert.True(vm.IsSaved);
+        Assert.False(vm.EmailFallbackShown);
+        Assert.DoesNotContain(DiagnosticBundle.FeedbackEmail, vm.SavedMessage);
+        Assert.Equal("The page doesn't open?", vm.PageWontOpenLabel);
+
+        vm.ShowEmailFallbackCommand.Execute(null);
+        Assert.True(vm.EmailFallbackShown);
+        Assert.Equal(DiagnosticBundle.FeedbackEmail, vm.FeedbackEmail);
+        Assert.Equal("Email the file to us instead. Attach the report file from step 2 to your email.", vm.EmailFallbackText);
+
+        string? copied = null;
+        vm.CopyText = t => { copied = t; return Task.CompletedTask; };
+        Assert.False(vm.AddressCopied);
+        await vm.CopyAddressCommand.ExecuteAsync(null);
+        Assert.Equal(DiagnosticBundle.FeedbackEmail, copied);
+        Assert.True(vm.AddressCopied);
+    }
+
     static List<string> SaveTo(ReportViewModel vm, string? path)
     {
         var suggested = new List<string>();
@@ -139,10 +165,12 @@ public class ReportFromThreePlacesTests
         Assert.DoesNotContain(DiagnosticBundle.FeedbackEmail, vm.SavedMessage);
         Assert.Equal("", vm.Status);
 
-        // Zak 5 Nov 2026: no Show in Finder — path is already on the message; only Open upload page + Close.
+        // Nothing opens Finder by itself; V30 #200 A2 (Zak 23 Nov 17:42 "Yes, open Finder too"): Open upload page opens the page
+        // and shows the file in Finder.
         Assert.Empty(revealed);
         vm.OpenUploadCommand.Execute(null);
         Assert.Equal(DiagnosticBundle.ReportUploadUrl, Assert.Single(urls));
+        Assert.Equal(saved, Assert.Single(revealed));
         vm.DoneCommand.Execute(null);
         Assert.True(finished);
     }

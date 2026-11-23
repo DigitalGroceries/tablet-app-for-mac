@@ -41,6 +41,12 @@ def figure(alt, name, first):
             f'<figcaption>{html.escape(alt, quote=False)}</figcaption></figure>')
 
 
+def strip_app_buttons(text):
+    """V30 #200 B5: a manual line that is only an app link, [Text](app:action), is a button in the app's own manual window.
+    It can do nothing on the website, so the line is left out."""
+    return re.sub(r'^\[[^\]]+\]\(app:[^)]*\)[ \t]*\n?', '', text, flags=re.M)
+
+
 def body(text, used, first_fig):
     """markdown.py's md(), plus pictures and numbered steps (md() has neither)."""
     out, chunk = [], []
@@ -81,6 +87,7 @@ def main():
     if '--images' in sys.argv:
         images = sys.argv[sys.argv.index('--images') + 1]
     manual = open(os.path.join(MANUAL_DIR, 'manual.md'), encoding='utf-8').read()
+    manual = strip_app_buttons(manual)
     parts = re.split(r'^## (.+)$', manual, flags=re.M)
     chapters = list(zip(parts[1::2], parts[2::2]))   # the title and the text before the first ## are left out
     page = open(PAGE, encoding='utf-8').read()

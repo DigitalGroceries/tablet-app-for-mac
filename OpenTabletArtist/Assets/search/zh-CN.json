@@ -720,7 +720,12 @@
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },
   {
-    "text": "Do nothing",
+    "text": "未设置",
+    "path": "数位板 › 功能 › 触控环",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "选择它的功能",
     "path": "数位板 › 功能 › 触控环",
     "route": "tablet/ToolFunctionsButton/WheelsTab"
   },

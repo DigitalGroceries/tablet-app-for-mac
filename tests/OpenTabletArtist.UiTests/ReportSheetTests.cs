@@ -7,6 +7,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using OpenTabletArtist.Helpers;
+using OpenTabletArtist.Services;
 using OpenTabletArtist.ViewModels;
 using OpenTabletArtist.Views;
 using Xunit;
@@ -121,7 +122,18 @@ public class ReportSheetTests
             var steps = saved.GetVisualDescendants().OfType<Grid>().Where(g => (g.Name ?? "").StartsWith("ReportStep")).Select(g => g.Name).ToList();
             Assert.Equal(new[] { "ReportStep1", "ReportStep2", "ReportStep3" }, steps);
             var words = saved.GetVisualDescendants().OfType<TextBlock>().Select(b => b.Text ?? "").ToList();
-            Assert.Contains("Click Open upload page. A web page opens in your browser.", words);
+            Assert.Contains("Click Open upload page. A web page opens in your browser, and Finder shows your report file.", words);
+            // V30 #200 A6 (Zak 23 Nov 17:42): the email address shows only after "The page doesn't open?"
+            var wontOpen = saved.GetVisualDescendants().OfType<Button>().First(b => b.Name == "ReportPageWontOpen");
+            Assert.True(wontOpen.IsEffectivelyVisible);
+            Assert.False(saved.GetVisualDescendants().OfType<StackPanel>().First(p => p.Name == "ReportEmailFallback").IsVisible);
+            Assert.DoesNotContain(saved.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == DiagnosticBundle.FeedbackEmail && t.IsEffectivelyVisible);
+            wontOpen.Command!.Execute(null);
+            Dispatcher.UIThread.RunJobs();
+            Assert.True(saved.GetVisualDescendants().OfType<StackPanel>().First(p => p.Name == "ReportEmailFallback").IsVisible);
+            Assert.False(wontOpen.IsVisible);
+            Assert.Contains(saved.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == DiagnosticBundle.FeedbackEmail && t.IsEffectivelyVisible);
+            Assert.Equal("Copy address", saved.GetVisualDescendants().OfType<Button>().First(b => b.Name == "ReportCopyAddress").Content);
             Assert.Contains("my-report.zip", words);
             Assert.Contains("Type any name and your email, then click Upload.", words);
             Assert.Contains("Uploaded? Click Done.", words);

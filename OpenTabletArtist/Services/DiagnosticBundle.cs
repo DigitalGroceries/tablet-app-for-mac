@@ -173,8 +173,8 @@ public static class DiagnosticBundle
     /// (folder "/Tablet App for Mac - send a report"). The page itself asks for name and email.</summary>
     public const string ReportUploadUrl = "https://www.dropbox.com/request/9k5b0u782t79plarauv9";
 
-    /// <summary>The old address for feedback without a GitHub account. Kept for compatibility; Version 24
-    /// sends file reports through <see cref="ReportUploadUrl"/> instead.</summary>
+    /// <summary>The public feedback address (Zak 27 Oct 2026). Version 24 sends file reports through <see cref="ReportUploadUrl"/>;
+    /// V30 #200 A6 (Zak 23 Nov 17:42): the report window shows this address only after "The page doesn't open?".</summary>
     public static string FeedbackEmail => string.Join("@", "organicmachine", "protonmail.com");
 
     static (string Title, string Words) ReportTitle(bool recommendation, string? text)

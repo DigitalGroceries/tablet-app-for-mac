@@ -104,7 +104,13 @@ public partial class ButtonBinding : ObservableObject
     /// choose, instead of a quiet "Do nothing".</summary>
     public bool IsNotSetUp => CanEdit && _keyOn && !IsOtherBinding && !_applied.IsBound;
     public bool ShowSummary => !IsNotSetUp;
-    public string NotSetUpText => Localizer.Te("tablet.not_set_up", "Not set up");
+    public string NotSetUpText => JustUsed
+        ? Localizer.Te("tablet.not_set_up.used", "You just used this. It does nothing yet.")
+        : Localizer.Te("tablet.not_set_up", "Not set up");
+
+    /// <summary>V30 #200 B3 (team vote 23 Nov: "press to find it"): the user just pressed or turned this control on the tablet
+    /// while the app was in front, and it has nothing on it. The page has jumped to it; its line says so.</summary>
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(NotSetUpText))] private bool _justUsed;
     public string ChooseText => Localizer.Te("tablet.not_set_up.choose", "Choose what it does…");
 
     /// <summary>True when this button already holds a binding this editor can't model (Windows Ink, an
