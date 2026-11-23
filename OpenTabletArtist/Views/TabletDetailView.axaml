@@ -235,8 +235,16 @@
                         <TextBlock Text="{Binding Label}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                    TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding Summary}" TextWrapping="Wrap"
+                        <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" IsVisible="{Binding ShowSummary}"
                                    Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <!-- V30 #200 B2: nothing on this key yet - say so, and offer to choose. -->
+                        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsNotSetUp}">
+                            <TextBlock Text="{Binding NotSetUpText}" FontWeight="SemiBold" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource AccentBrush}" />
+                            <Button Name="NotSetUpChoose" Classes="link" Content="{Binding ChooseText}" Command="{Binding EditCommand}"
+                                    Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                    Foreground="{DynamicResource AccentBrush}" />
+                        </StackPanel>
                     </StackPanel>
                     <!-- The card's actions behind one "…", the same menu the wheel rows carry
                          (#row-actions, #692). This was a bare pencil glyph, which made Edit the only
@@ -272,8 +280,16 @@
                     <TextBlock Text="{Binding Label}" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextPrimaryBrush}"
                                TextWrapping="Wrap" />
-                    <TextBlock Text="{Binding Summary}" TextWrapping="Wrap"
+                    <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" IsVisible="{Binding ShowSummary}"
                                Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <!-- V30 #200 B2: nothing on this direction or button yet - say so, and offer to choose. -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsNotSetUp}">
+                        <TextBlock Text="{Binding NotSetUpText}" FontWeight="SemiBold" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AccentBrush}" />
+                        <Button Name="NotSetUpChoose" Classes="link" Content="{Binding ChooseText}" Command="{Binding EditCommand}"
+                                Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                Foreground="{DynamicResource AccentBrush}" />
+                    </StackPanel>
                 </StackPanel>
                 <!-- The row's actions behind one "…", as elsewhere in the app (#row-actions). Clear is new:
                      it was reachable only by opening the editor and pressing Clear in there, and for a

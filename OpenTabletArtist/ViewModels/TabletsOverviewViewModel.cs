@@ -29,7 +29,7 @@ public partial class TabletOverviewItemViewModel : ObservableObject
     private readonly Func<Task> _forget;
 
     public TabletOverviewItemViewModel(string name, bool isDetected, string statusText,
-        string? statusDetail, Action navigate, Func<Task> forget)
+        string? statusDetail, Action navigate, Func<Task> forget, int keysNotSetUp = 0, Action? openExpressKeys = null)
     {
         Name = name;
         IsDetected = isDetected;
@@ -37,7 +37,22 @@ public partial class TabletOverviewItemViewModel : ObservableObject
         StatusDetail = statusDetail;
         _navigate = navigate;
         _forget = forget;
+        KeysNotSetUp = keysNotSetUp;
+        _openExpressKeys = openExpressKeys ?? navigate;
     }
+
+    private readonly Action _openExpressKeys;
+
+    /// <summary>V30 #200 B2 (Zak 23 Nov 2026; team vote: do this first): how many ExpressKeys do nothing yet (not counting
+    /// keys the user turned Off). Home's card says so, with a link to the ExpressKeys page.</summary>
+    public int KeysNotSetUp { get; }
+    public bool HasKeysNotSetUp => KeysNotSetUp > 0;
+    public string KeysNotSetUpText => KeysNotSetUp == 1
+        ? Services.Localizer.Te("home.keys_not_set_up.one", "1 ExpressKey not set up: choose what it does")
+        : Services.Localizer.Te("home.keys_not_set_up.many", "{n} ExpressKeys not set up: choose what they do").Replace("{n}", KeysNotSetUp.ToString());
+
+    [RelayCommand]
+    private void OpenExpressKeys() => _openExpressKeys();
 
     public string Name { get; }
     public bool IsDetected { get; }

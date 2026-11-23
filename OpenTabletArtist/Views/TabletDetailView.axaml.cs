@@ -663,6 +663,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         switch (tab)
         {
             case TabletDetailTab.DisplayMapping: MappingTab.IsChecked = true; break;
+            case TabletDetailTab.ExpressKeys: SelectTool(ToolFunctionsButton); ButtonsTab.IsChecked = true; break;   // V30 #200 B2
             // R13: the pressure curve's one home is Tablet › Pen › Feel details (Pen › Pressure is gone).
             case TabletDetailTab.PenTilt:
             case TabletDetailTab.PenBehavior:

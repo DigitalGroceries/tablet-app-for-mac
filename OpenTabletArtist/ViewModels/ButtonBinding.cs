@@ -41,6 +41,8 @@ public partial class ButtonBinding : ObservableObject
             OnPropertyChanged(nameof(Label));
             OnPropertyChanged(nameof(KeyToggleHeader));
             OnPropertyChanged(nameof(KeyToggleTip));
+            OnPropertyChanged(nameof(NotSetUpText));
+            OnPropertyChanged(nameof(ChooseText));
         };
     }
 
@@ -97,6 +99,14 @@ public partial class ButtonBinding : ObservableObject
     /// <summary>False disables the Edit button (read-only host, or button mapping suspended).</summary>
     public bool CanEdit { get; }
 
+    /// <summary>V30 #200 B2 (Zak 23 Nov 2026: users "wouldnt know their tablets buttons, wheels and strips wouldnt do anything
+    /// until they are setup"; team vote: do this first): nothing is on this control, so its card says so and offers to
+    /// choose, instead of a quiet "Do nothing".</summary>
+    public bool IsNotSetUp => CanEdit && _keyOn && !IsOtherBinding && !_applied.IsBound;
+    public bool ShowSummary => !IsNotSetUp;
+    public string NotSetUpText => Localizer.Te("tablet.not_set_up", "Not set up");
+    public string ChooseText => Localizer.Te("tablet.not_set_up.choose", "Choose what it does…");
+
     /// <summary>True when this button already holds a binding this editor can't model (Windows Ink, an
     /// adaptive binding, or a multi-key macro) — the summary shows its friendly name until it's replaced.
     /// Settable only by <see cref="Clear"/>, which is the one thing that can remove such a binding: the
@@ -122,7 +132,7 @@ public partial class ButtonBinding : ObservableObject
         if (binding == _applied) return;        // no change
         var before = _applied;
         _applied = binding;
-        OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(Summary)); OnPropertyChanged(nameof(IsNotSetUp)); OnPropertyChanged(nameof(ShowSummary));
         OnPropertyChanged(nameof(KeysText));
         ClearCommand.NotifyCanExecuteChanged();
         if (_applyBinding != null) await _applyBinding(Index, binding);
@@ -147,7 +157,7 @@ public partial class ButtonBinding : ObservableObject
         if (binding == _applied && !IsOtherBinding) return;
         _applied = binding;
         IsOtherBinding = false;
-        OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(Summary)); OnPropertyChanged(nameof(IsNotSetUp)); OnPropertyChanged(nameof(ShowSummary));
         OnPropertyChanged(nameof(KeysText));
         ClearCommand.NotifyCanExecuteChanged();
         if (_applyBinding != null) await _applyBinding(Index, binding);
@@ -159,7 +169,7 @@ public partial class ButtonBinding : ObservableObject
     {
         _applied = binding;
         IsOtherBinding = false;
-        OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(Summary)); OnPropertyChanged(nameof(IsNotSetUp)); OnPropertyChanged(nameof(ShowSummary));
         OnPropertyChanged(nameof(KeysText));
         ClearCommand.NotifyCanExecuteChanged();
     }
@@ -176,7 +186,7 @@ public partial class ButtonBinding : ObservableObject
         _applied = AuxBinding.Unbound;
         IsOtherBinding = false;
         OtherLabel = "";
-        OnPropertyChanged(nameof(Summary));
+        OnPropertyChanged(nameof(Summary)); OnPropertyChanged(nameof(IsNotSetUp)); OnPropertyChanged(nameof(ShowSummary));
         OnPropertyChanged(nameof(KeysText));
         ClearCommand.NotifyCanExecuteChanged();
         if (_applyBinding != null) await _applyBinding(Index, _applied);

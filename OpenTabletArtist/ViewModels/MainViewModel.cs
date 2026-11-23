@@ -645,6 +645,26 @@ public partial class MainViewModel : ObservableObject, IDisposable
         catch (Exception ex) { AppLog.Warn("Couldn't re-fit the All displays mapping.", ex); }
     }
 
+    /// <summary>V30 #200 B2: ExpressKeys of All's table with nothing on them (a key the user turned Off is not counted).</summary>
+    internal static int KeysNotSetUp(OpenTabletDriver.Desktop.Profiles.Profile profile)
+    {
+        try
+        {
+            var stores = profile.BindingSettings?.AuxButtons;
+            if (stores == null) return 0;
+            var off = AuxKeyOffStore.Load(AuxKeyOffStore.ScopeKey(profile.Tablet ?? ""));
+            int n = 0;
+            for (int i = 0; i < stores.Count; i++)
+            {
+                if (!AuxKeyOffStore.IsOn(off, i + 1)) continue;
+                var b = AuxKeyBinding.ReadBinding(AuxKeyOffStore.Shown(stores, off, i + 1));
+                if (b != null && !b.IsBound) n++;
+            }
+            return n;
+        }
+        catch (Exception ex) { AppLog.Debug("Home: couldn't count the ExpressKeys that are not set up.", ex); return 0; }
+    }
+
     private void RebuildTablets()
     {
         var ordered = _session.Profiles
@@ -669,7 +689,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
                 return new TabletOverviewItemViewModel(tablet, p.IsDetected, p.StatusText,
                     p.StatusDetail,
                     () => NavigateToTabletByName(tablet),
-                    () => ForgetTabletByNameAsync(tablet));
+                    () => ForgetTabletByNameAsync(tablet),
+                    KeysNotSetUp(p.Profile),
+                    () => NavigateToTabletByName(tablet, TabletDetailTab.ExpressKeys));
             })
             .ToList();
         TabletsOverview.HasTablets = ordered.Count > 0;

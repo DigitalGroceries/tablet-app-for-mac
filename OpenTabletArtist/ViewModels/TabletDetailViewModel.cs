@@ -31,6 +31,8 @@ public enum TabletDetailTab
     PenDynamics,
     /// <summary>Tablet › Pen (tilt switch and pen button cards), R13.</summary>
     PenTilt,
+    /// <summary>V30 #200 B2: Tablet › Functions › ExpressKeys (Home's "not set up" line).</summary>
+    ExpressKeys,
 }
 
 /// <summary>One row of the Calibration tab's positional report (#460): the target it was captured for
