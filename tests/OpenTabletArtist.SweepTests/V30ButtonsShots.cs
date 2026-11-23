@@ -32,10 +32,13 @@ public class V30ButtonsShots
 {
     static string Dir => Environment.GetEnvironmentVariable("OTA_SHOTS_DIR") ?? "/tmp/ota-v30-shots";
 
+    static bool _light;
+    static string Sfx => _light ? "-light" : "";
     static void Dark()
     {
         _ = new ThemeViewModel();
         ThemeService.Apply(ThemeService.Wacom);
+        LightnessService.Set(_light ? 8 : 0);   // the app's own Lightness: light at 8, dark at 0 (as V19SheetThemeShots)
         Localizer.SetPreference("en");
     }
 
@@ -64,7 +67,7 @@ public class V30ButtonsShots
         var view = new DashboardView { DataContext = page };
         var w = new Window { Content = view, Width = 1000, Height = 700 };
         w.Show();
-        Save(w, "home-keys-not-set-up");
+        Save(w, "home-keys-not-set-up" + Sfx);
         var b = view.GetVisualDescendants().OfType<Button>().First(x => x.Name == "KeysNotSetUpLink");
         Assert.True(b.IsEffectivelyVisible);
         Assert.True(b.Bounds.Height >= 50, $"the button is {b.Bounds.Height} high");
@@ -86,7 +89,7 @@ public class V30ButtonsShots
         if (view.FindControl<ToggleButton>("ToolFunctionsButton") is { } f) f.IsChecked = true;
         Dispatcher.UIThread.RunJobs();
         view.FindControl<RadioButton>("ButtonsTab")!.IsChecked = true;
-        Save(w, "expresskeys-not-set-up");
+        Save(w, "expresskeys-not-set-up" + Sfx);
         w.Close();
     }
 
@@ -108,12 +111,35 @@ public class V30ButtonsShots
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             vm.PickSaveFile = _ => Task.FromResult<string?>(target);
             await vm.SendFileCommand.ExecuteAsync(null);
-            Save(mw, "report-steps-page-wont-open");
+            Save(mw, "report-steps-page-wont-open" + Sfx);
             vm.ShowEmailFallbackCommand.Execute(null);
-            Save(mw, "report-steps-email-shown");
+            Save(mw, "report-steps-email-shown" + Sfx);
             vm.DoneCommand.Execute(null);
             Dispatcher.UIThread.RunJobs();
         }
         finally { InWindowSheet.MainOverride = null; mw.Close(); }
+    }
+
+    [AvaloniaFact]
+    public void Manual_help_buttons()
+    {
+        Dark();
+        var md = ManualWindow.Load("en");
+        var start = md.IndexOf("## Something doesn't work?", StringComparison.Ordinal);
+        var end = md.IndexOf("\n## ", start + 5, StringComparison.Ordinal);
+        var page = ManualWindow.Build(md[start..end], _ => { });
+        var w = new Window { Content = new ScrollViewer { Content = page, Padding = new Thickness(36, 28) }, Width = 860, Height = 1100 };
+        w.Show();
+        Save(w, "manual-help-buttons" + Sfx);
+        Assert.Equal(5, page.Children.OfType<Button>().Count());
+        w.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task Light_theme_versions()
+    {
+        _light = true;
+        try { Home_keys_not_set_up_button(); ExpressKeys_card_not_set_up(); Manual_help_buttons(); await Report_page_wont_open_button(); }
+        finally { _light = false; LightnessService.Set(0); ThemeService.Apply(ThemeService.Wacom); }
     }
 }
