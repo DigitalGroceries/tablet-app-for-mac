@@ -126,10 +126,30 @@ public static class LightnessService
 
     /// <summary>A switch that is On. Dark steps: a light track with a black knob. Light steps: the light track vanished into
     /// the light window (only the knob showed, test build 2 check, 23 Nov 2026), so the track is dark and the knob light.</summary>
-    /// <summary>The big Home button (CallToActionButton): its fill is the text colour, so its text is the window colour on
-    /// dark steps; on light steps the window grey looked dimmed, almost disabled, on the dark fill (fresh check 23 Nov 2026),
-    /// so it is the brightest grey the app uses there.</summary>
-    public static Color CallToActionText(int step) => For(step).Dark ? For(step).Base : G(0xE4);
+    /// <summary>V30 build 4 (Zak 24 Nov 2026: "change the word CONNECTED to be in green"): Home's CONNECTED. Green, made lighter
+    /// (dark steps) or darker (light steps) until it reads at 4.5:1 or better on every surface it can sit on.</summary>
+    public static readonly Color Connected = Color.FromRgb(0x22, 0xC5, 0x5E);
+    public static Color ConnectedText(int step)
+    {
+        var p = For(step);
+        var c = Connected;
+        for (int i = 0; i <= 100; i++)
+        {
+            double f = i / 100.0;
+            c = p.Dark
+                ? Color.FromRgb(Mix(Connected.R, 255, f), Mix(Connected.G, 255, f), Mix(Connected.B, 255, f))
+                : Color.FromRgb(Mix(Connected.R, 0, f), Mix(Connected.G, 0, f), Mix(Connected.B, 0, f));
+            if (new[] { p.Base, p.Elevated, p.Surface, p.Pane }.All(b => Contrast(c, b) >= 4.5)) return c;
+        }
+        return c;
+        static byte Mix(byte a, byte b, double f) => (byte)Math.Round(a + (b - a) * f);
+    }
+
+    /// <summary>V30 build 4 (Zak 24 Nov 2026: "Again 2 designs of buttons"): tabs are drawn as raised buttons; the tab you are on
+    /// is lit. Dark steps: the light selection fill with dark text, as before. Light steps: dark with light text, because a
+    /// light tab would not stand out among light raised buttons.</summary>
+    public static Color TabOnFill(int step) => For(step).Dark ? SelectionFill(step) : G(0x30);
+    public static Color TabOnText(int step) => For(step).Dark ? SelectionText : G(0xE4);
 
     /// <summary>V30 (ZAK-LISTS L6.5, Zak 24 Nov 2026: "All of our app buttons need to look a bit more 3D now they all look like
     /// speech bubbles"): a raised button - an outline, a soft top-to-bottom shade and a small shadow; pressed, it looks pushed in.
@@ -190,6 +210,8 @@ public static class LightnessService
             ("ButtonRaisedPressedBrush", new SolidColorBrush(r.Bottom)),
             ("ButtonRaisedBorderBrush", Edge(step, r)),
             ("ButtonRaisedBorderThickness", r.Edge),
+            ("TabOnFillBrush", new SolidColorBrush(TabOnFill(step))), ("TabOnTextBrush", new SolidColorBrush(TabOnText(step))),
+            ("TabOffTextBrush", new SolidColorBrush(For(step).Text)),
             ("DangerFillBrush", Shade(Danger(step).Top, Danger(step).Bottom)),
             ("DangerFillHoverBrush", Shade(Danger(step).HoverTop, Danger(step).HoverBottom)),
             ("DangerPressedBrush", new SolidColorBrush(Danger(step).Bottom)),
@@ -254,7 +276,7 @@ public static class LightnessService
             ("GlassBgBrush", p.Surface), ("GlassBgHoverBrush", p.ControlHover), ("GlassBorderBrush", p.Border),
             ("TextPrimaryBrush", p.Text), ("TextSecondaryBrush", p.TextSecondary), ("TextMutedBrush", p.TextMuted),
             ("DividerBrush", p.Divider), ("TextInverseBrush", p.OnAccent), ("WarningTextBrush", WarningText(step)), ("AttentionTextBrush", AttentionText(step)),
-            ("AttentionFillBrush", AttentionFill(step)), ("SwitchOnFillBrush", SwitchOnFill(step)), ("CallToActionTextBrush", CallToActionText(step)),
+            ("AttentionFillBrush", AttentionFill(step)), ("SwitchOnFillBrush", SwitchOnFill(step)), ("ConnectedTextBrush", ConnectedText(step)),
             ("DangerTextBrush", DangerText(step)),
             ("AttentionBubbleBrush", Attention), ("AttentionBubbleTextBrush", AttentionInk),   // L6.3: the same in both looks
             ("PenDiagramFillBrush", p.Dark ? G(0x4A) : G(0x5A)), ("PenDiagramButtonFillBrush", p.Dark ? G(0x5E) : G(0x70)),

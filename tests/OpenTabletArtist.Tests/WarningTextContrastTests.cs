@@ -64,14 +64,21 @@ public class WarningTextContrastTests
         Assert.True(LightnessService.Contrast(knob, track) >= 3, $"step {step}: knob on track");
     }
 
-    // The big Home button: its text on its fill (the text colour) is clear on every step - not the dimmed grey of the first light look.
+    // V30 build 4 (Zak 24 Nov: "change the word CONNECTED to be in green"): green, and readable on every surface of every step.
     [Theory, MemberData(nameof(AllSteps))]
-    public void CallToAction_TextIsClearOnItsFill(int step)
+    public void Connected_IsGreen_AndReadable(int step)
     {
         var p = LightnessService.For(step);
-        var c = LightnessService.Contrast(LightnessService.CallToActionText(step), p.Text);
-        Assert.True(c >= 7, $"step {step}: {c:0.0}:1");
+        var c = LightnessService.ConnectedText(step);
+        Assert.True(c.G > c.R + 40 && c.G > c.B + 40, $"step {step}: {c} is not green");
+        foreach (var bg in new[] { p.Base, p.Elevated, p.Surface, p.Pane })
+            Assert.True(LightnessService.Contrast(c, bg) >= 4.5, $"step {step}: {LightnessService.Contrast(c, bg):0.0}:1 on {bg}");
     }
+
+    // V30 build 4 (Zak 24 Nov: "Again 2 designs of buttons"): the tab you are on is lit and its word reads clearly.
+    [Theory, MemberData(nameof(AllSteps))]
+    public void ChosenTab_TextIsClear(int step)
+        => Assert.True(LightnessService.Contrast(LightnessService.TabOnText(step), LightnessService.TabOnFill(step)) >= 7, $"step {step}");
 
     [Fact]
     public void AttentionFill_AndSwitchTrack_AreAppliedPerStep()

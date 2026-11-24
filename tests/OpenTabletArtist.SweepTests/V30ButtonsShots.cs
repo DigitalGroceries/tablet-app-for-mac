@@ -139,6 +139,36 @@ public class V30ButtonsShots
         finally { InWindowSheet.MainOverride = null; mw.Close(); }
     }
 
+    /// <summary>V30 build 4 (Zak 24 Nov 2026, his screenshot of build 3's Home: "we have 3 different designs for buttons?";
+    /// "The huge white square doesnt even look like a clickable button"; "change the word CONNECTED to be in green"):
+    /// the whole Home page as he sees it, dark and light, with one tablet that has 6 keys not set up.</summary>
+    [AvaloniaFact]
+    public void Home_whole_page_for_Zak()
+    {
+        try
+        {
+            foreach (var light in new[] { false, true })
+            {
+                _light = light;
+                Dark();
+                var mw = new MainWindow { Width = 1130, Height = 810 };
+                mw.Show();
+                for (int i = 0; i < 8; i++) { Dispatcher.UIThread.RunJobs(); mw.UpdateLayout(); }
+                var dash = mw.GetVisualDescendants().OfType<DashboardView>().First();
+                var page = (DashboardViewModel)dash.DataContext!;
+                page.TabletsOverview.Tablets = new[]
+                {
+                    new TabletOverviewItemViewModel("Wacom PTK-440", true, "Detected", "CONNECTED", () => { }, () => Task.CompletedTask,
+                        keysNotSetUp: 6, openExpressKeys: () => { }),
+                }.ToList();
+                page.TabletsOverview.HasTablets = true;
+                Save(mw, "home-whole" + Sfx);
+                mw.Close();
+            }
+        }
+        finally { _light = false; LightnessService.Set(0); }
+    }
+
     [AvaloniaFact]
     public void Manual_help_buttons()
     {

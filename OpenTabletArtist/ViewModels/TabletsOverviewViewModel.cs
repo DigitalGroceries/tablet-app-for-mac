@@ -47,10 +47,12 @@ public partial class TabletOverviewItemViewModel : ObservableObject
     /// keys the user turned Off). Home's card says so, with a link to the ExpressKeys page.</summary>
     public int KeysNotSetUp { get; }
     public bool HasKeysNotSetUp => KeysNotSetUp > 0;
-    /// <summary>V30 build 3 (Zak 24 Nov, his words): "... not set up: Choose what they do or restore to factory settings".</summary>
+    /// <summary>V30 build 3 (Zak 24 Nov, his words): "... not set up: Choose what they do or restore to factory settings".
+    /// Build 4 (Zak 24 Nov, on build 3): "change the text to include "Click this button to choose what they do..."" - "I dont
+    /// want to take any (IQ) chances".</summary>
     public string KeysNotSetUpText => KeysNotSetUp == 1
-        ? Services.Localizer.Te("home.keys_not_set_up.one", "1 ExpressKey not set up: Choose what it does or restore to factory settings")
-        : Services.Localizer.Te("home.keys_not_set_up.many", "{n} ExpressKeys not set up: Choose what they do or restore to factory settings").Replace("{n}", KeysNotSetUp.ToString());
+        ? Services.Localizer.Te("home.keys_not_set_up.one", "1 ExpressKey not set up: Click this button to choose what it does or restore to factory settings")
+        : Services.Localizer.Te("home.keys_not_set_up.many", "{n} ExpressKeys not set up: Click this button to choose what they do or restore to factory settings").Replace("{n}", KeysNotSetUp.ToString());
 
     /// <summary>V30 build 3 (ZAK-LISTS L6.2): the card's own red Forget button (was in the ••• menu).</summary>
     public string ForgetText => Services.Localizer.Te("home.forget", "Forget this tablet");

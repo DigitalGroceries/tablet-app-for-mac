@@ -68,7 +68,9 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
+                    <!-- V30 build 4 (Zak 24 Nov: "Again 2 designs of buttons"): Bd.raisedTab, so on the Lightness steps it is drawn
+                         like every other tab (Themes/Styles.axaml). -->
+                    <Border x:Name="Bd" Classes="raisedTab" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
                             CornerRadius="4" Padding="10,3">
                         <ContentPresenter Content="{TemplateBinding Content}" FontSize="12" FontWeight="SemiBold"
                                           Foreground="{TemplateBinding Foreground}" />

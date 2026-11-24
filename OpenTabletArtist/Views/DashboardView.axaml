@@ -78,7 +78,9 @@
                                          this tablet was last seen. A timestamp is context, not something
                                          you read the card for; and a connected tablet has no timestamp, so
                                          this line used to go blank and the card lost a row. -->
-                                    <TextBlock x:Name="TabletStatusText" Text="{Binding StatusDetail}" Margin="0,6,0,0" Classes="Detail" FontSize="22" LetterSpacing="1"
+                                    <!-- V30 build 4 (Zak 24 Nov: "change the word CONNECTED to be in green"): green while connected
+                                         (ConnectedTextBrush, readable on the dark and light steps); the last-seen time keeps its grey. -->
+                                    <TextBlock x:Name="TabletStatusText" Text="{Binding StatusDetail}" Margin="0,6,0,0" Classes="Detail" Classes.connected="{Binding IsDetected}" FontSize="22" LetterSpacing="1"
                                                IsVisible="{Binding HasStatusDetail}"
                                                TextWrapping="Wrap" />
                                     <!-- #27/#30: not found = where to look next (the tablet page has the help and buttons). -->
@@ -95,7 +97,7 @@
                                             IsVisible="{Binding HasKeysNotSetUp}" Margin="0,16,0,4" Padding="28,20" MinHeight="72"
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                                         <TextBlock x:Name="KeysNotSetUpText" Text="{Binding KeysNotSetUpText}" FontSize="22" FontWeight="SemiBold"
-                                                   TextWrapping="Wrap" Foreground="{DynamicResource CallToActionTextBrush}" />
+                                                   TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}" />
                                     </Button>
                                     <!-- V30 build 3 (Zak 24 Nov, ZAK-LISTS L6.2): the ••• menu beside the card sat over the big button. Its
                                          only other item, Open tablet settings, is the Tablet tab; Forget this tablet stays here as its own
