@@ -2,7 +2,7 @@
 
 > **UNDER CONSTRUCTION**
 
-A free tablet app for Mac: settings for your Wacom drawing tablet (tested with a Wacom Intuos4) on macOS with Apple silicon. A free alternative to the Wacom driver for Mac, built on OpenTabletDriver.
+A free tablet app for Mac: settings for your Wacom drawing tablet (tested by users with Intuos3, Intuos4, Intuos5, Intuos Pro, Intuos and Bamboo tablets) on macOS with Apple silicon. A free alternative to the Wacom driver for Mac, built on OpenTabletDriver.
 
 ## [⬇ Download for Mac](https://github.com/DigitalGroceries/tablet-app-for-mac/releases/latest/download/Tablet-App-for-Mac.dmg)
 
@@ -16,7 +16,25 @@ When the app asks, allow **Input Monitoring** and **Device Control and Data Acce
 
 Help and the user manual: https://digitalgroceries.github.io/tablet-app-for-mac/
 
-Tested only with macOS 27.0.1 and a Wacom Intuos4 Small (PTK-440). Quit the Wacom driver first.
+Quit the Wacom driver first.
+
+## Tablets users have tested
+
+People using the app have told us it works with these tablets:
+
+| Tablet | Model | Tested with |
+|---|---|---|
+| Intuos3 6x11 | PTZ-631W | Version 29 |
+| Intuos4 Small | PTK-440 | Every version (our own tablet) |
+| Intuos4 Medium | PTK-640 | Version 26, including the ExpressKey displays |
+| Intuos5 touch Small | PTH-450 | Version 25 |
+| Intuos5 touch Medium | PTH-650 | Version 29 |
+| Intuos5 touch Large | PTH-850 | Version 28 |
+| Intuos Pro Medium (2013) | PTH-651 | Version 21, including the Wireless Kit |
+| Intuos S Bluetooth | CTL-4100WL | Version 28, over USB and Bluetooth |
+| Bamboo Fun Small (Pen & Touch) | CTH-461 | Version 28, including finger touch |
+
+Is your tablet working, or not yet? Tell us on [the Tablets page](https://github.com/DigitalGroceries/tablet-app-for-mac/discussions/categories/tablets), so other artists know too. The full list of tablets the app knows is on [the website](https://digitalgroceries.github.io/tablet-app-for-mac/tablets/).
 
 ---
 
