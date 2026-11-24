@@ -14,7 +14,7 @@ When the app asks, allow **Input Monitoring** and **Device Control and Data Acce
 
 Help and the user manual: https://digitalgroceries.github.io/tablet-app-for-mac/
 
-**New in Version 29:** a colour palette and a floating keyboard on the pen, a radial menu that stays open until you close it, a new Pen page where the eraser has its own feel, and more. See [What is new](https://digitalgroceries.github.io/tablet-app-for-mac/releases/).
+**New in Version 30:** Off / On switches for the radial menu and the colour palette, a window to choose the palette's own colours, keys that do nothing yet are easy to find and set up, one button design everywhere, and Hindi and Swahili. See [What is new](https://digitalgroceries.github.io/tablet-app-for-mac/releases/).
 
 ### Tell us what works and what doesn't
 

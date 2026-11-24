@@ -545,7 +545,7 @@
                 <Border Grid.Row="2" Grid.Column="2" Classes="wacomWell">
                     <ScrollViewer x:Name="ApplicationScroll" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                         <StackPanel Orientation="Horizontal" Spacing="4" Margin="4,3">
-                            <RadioButton x:Name="AppAllTile" GroupName="WacomApp" Theme="{StaticResource WacomTile}" IsChecked="True"
+                            <RadioButton x:Name="AppAllTile" GroupName="WacomApp" Theme="{StaticResource WacomTile}" IsChecked="{Binding IsAllAppSelected, Mode=OneWay}"
                                          Click="OnAppAllTile" ToolTip.Tip="All">
                                 <StackPanel Spacing="2">
                                     <Viewbox Width="34" Height="26"><Canvas Width="34" Height="26"><Rectangle Canvas.Left="6" Canvas.Top="1" Width="10" Height="10" Classes="tileIcon" /><Rectangle Canvas.Left="18" Canvas.Top="1" Width="10" Height="10" Classes="tileIcon" Opacity="0.7" /><Rectangle Canvas.Left="6" Canvas.Top="13" Width="10" Height="10" Classes="tileIcon" Opacity="0.7" /><Rectangle Canvas.Left="18" Canvas.Top="13" Width="10" Height="10" Classes="tileIcon" Opacity="0.5" /></Canvas></Viewbox>
@@ -562,6 +562,7 @@
                                     <DataTemplate>
                                         <RadioButton GroupName="WacomApp" Theme="{StaticResource WacomTile}"
                                                      Tag="{Binding BundleId}" Click="OnAppProfileTile"
+                                                     IsChecked="{Binding IsSelected, Mode=OneWay}"
                                                      ToolTip.Tip="{Binding BundleId}">
                                             <StackPanel Spacing="2">
                                                 <Viewbox Width="34" Height="26">

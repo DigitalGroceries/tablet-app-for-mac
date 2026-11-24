@@ -115,10 +115,19 @@ public class V30PaletteShots
                 await Settle(60);
                 await Click(w, Centre(picker.FindControl<Button>("Trigger")!, w));          // open its wheel, swatches and hex code
                 Save(w, "palette-3-colour-picker" + sfx);
+                // V30 build 6 (Zak's build 5 screenshot 21:22): the open drop-down must not cover Cancel or Save
+                var flyoutRoot = w.GetVisualDescendants().OfType<Avalonia.Controls.FlyoutPresenter>().FirstOrDefault(f => f.IsEffectivelyVisible);
+                Assert.NotNull(flyoutRoot);
+                var fr = new Rect(flyoutRoot!.TranslatePoint(new Point(0, 0), w)!.Value, flyoutRoot.Bounds.Size);
+                foreach (var b in picker.GetVisualAncestors().OfType<Grid>().First().GetVisualDescendants().OfType<Button>().Where(b => b.Content is "Cancel" or "Save"))
+                    Assert.False(fr.Intersects(new Rect(b.TranslatePoint(new Point(0, 0), w)!.Value, b.Bounds.Size)), $"the drop-down {fr} covers {b.Content}");
                 picker.FindControl<Button>("Trigger")!.Flyout?.Hide(); await Settle(60);
 
-                var pickerSave = picker.GetVisualAncestors().OfType<StackPanel>().Last()
+                // the picker's own Save: on the colour box's row (V30 build 6)
+                var pickerSave = picker.GetVisualAncestors().OfType<Grid>().First()
                     .GetVisualDescendants().OfType<Button>().First(b => b.Content as string == "Save");
+                var pickerCancel = picker.GetVisualAncestors().OfType<Grid>().First()
+                    .GetVisualDescendants().OfType<Button>().First(b => b.Content as string == "Cancel");
                 pickerSave.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Settle(120);
                 Assert.Equal("#FF2D9B", ColourPalette.HexFor(big.Menu!, swatch));          // the window shows the new colour
                 w.MouseMove(new Point(4, 4)); await Settle(40);

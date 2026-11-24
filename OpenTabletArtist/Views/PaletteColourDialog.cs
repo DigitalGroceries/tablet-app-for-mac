@@ -34,10 +34,24 @@ public sealed class PaletteColourDialog : Window
             {
                 // V30 build 5: no heading of its own; the window's title bar already says "Change this colour" (it said it twice)
                 new TextBlock { Text = swatchName, Opacity = 0.8 },
-                _picker,
-                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { cancel, save } },
+                // V30 build 6 (Zak's build 5 screenshot 24 Nov 21:22: the picker's drop-down opened over Cancel): the colour box and
+                // Cancel / Save on one row, so the drop-down opens below them and covers neither.
+                PickerRow(_picker, cancel, save),
             },
         };
+    }
+
+    private static Grid PickerRow(Control picker, Button cancel, Button save)
+    {
+        var row = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto") };
+        picker.VerticalAlignment = VerticalAlignment.Center;
+        row.Children.Add(picker);
+        row.Children.Add(new StackPanel
+        {
+            Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center,
+            [Grid.ColumnProperty] = 2, Children = { cancel, save },
+        });
+        return row;
     }
 
     internal static string Hex(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
