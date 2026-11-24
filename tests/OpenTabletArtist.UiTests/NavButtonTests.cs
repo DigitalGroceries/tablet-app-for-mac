@@ -33,8 +33,17 @@ public class NavButtonTests
 
     private static Border Bd(RadioButton r) => r.GetVisualDescendants().OfType<Border>().First(b => b.Name == "Bd");
     private static TextBlock Word(RadioButton r) => r.GetVisualDescendants().OfType<TextBlock>().First(b => b.Name == "Word");
-    private static Color Fill(RadioButton r) => ((ISolidColorBrush)Bd(r).Background!).Color;
-    private static Color Edge(RadioButton r) => ((ISolidColorBrush)Bd(r).BorderBrush!).Color;
+    // V30 build 4 (Zak 24 Nov: "Again 2 designs of buttons"): on the Lightness steps tabs are raised buttons, so a fill or edge
+    // can be a gradient; compared by description.
+    private static string Paint(IBrush? b) => b switch
+    {
+        null => "none",
+        ISolidColorBrush s => s.Color.A == 0 || s.Opacity == 0 ? "clear" : $"{s.Color}@{s.Opacity}",
+        IGradientBrush g => "grad(" + string.Join(",", g.GradientStops.Select(x => x.Color.ToString())) + ")",
+        _ => b.GetType().Name,
+    };
+    private static string Fill(RadioButton r) => Paint(Bd(r).Background);
+    private static string Edge(RadioButton r) => Paint(Bd(r).BorderBrush);
 
     [AvaloniaTheory]
     [InlineData("WordmarkNav")] [InlineData("PivotTab")] [InlineData("SubtabRadioButton")]
@@ -46,7 +55,8 @@ public class NavButtonTests
         var bd = Bd(a);
         Assert.True(bd.CornerRadius.TopLeft >= 6, "rounded corners");
         Assert.True(bd.BorderThickness.Left >= 1, "visible border");
-        Assert.NotEqual(Colors.Transparent, Edge(a));
+        Assert.NotEqual("clear", Edge(a));
+        Assert.NotEqual("none", Edge(a));
         Assert.True(a.Bounds.Height >= 32 && a.Bounds.Width >= 90, $"button size {a.Bounds}");
         Assert.True(a.Focusable);
     }
@@ -75,7 +85,7 @@ public class NavButtonTests
         Assert.False(a.IsChecked);
         Assert.NotEqual(idle, Fill(b));
         Assert.Equal(Fill(a), idle);                                      // the other is back to normal
-        Assert.NotEqual(Edge(a), Edge(b));                                // selected has the accent edge
+        // (the selected one used to differ by its edge too; raised tabs share one edge and differ by fill and word colour)
         Assert.NotEqual(Word(a).Foreground, Word(b).Foreground);
     }
 

@@ -90,6 +90,7 @@ public class ButtonLookAuditTests
 
     static async Task<List<Look>> Walk(bool light)
     {
+        using var mac = UiPlatform.PretendMac();   // pages laid out as on Zak's Mac (the pen cards' Change… / Default)
         Hook();
         _ = new ThemeViewModel();
         ThemeService.Apply(ThemeService.Wacom);
@@ -110,14 +111,25 @@ public class ButtonLookAuditTests
         foreach (var sub in new[] { "ThemeSubtab", "BackdropSubtab", "ColorsSubtab" })
             if (w.GetVisualDescendants().OfType<RadioButton>().FirstOrDefault(x => x.Name == sub) is { } rb)
             { rb.IsChecked = true; await Settle(60); all.AddRange(Looks(w, $"settings-theme-{sub}")); }
-        w.AllowCloseForQuit(); w.Close();
-        (vm as IDisposable)?.Dispose();
-
-        var (app, _, _) = await FullSweepTests.Session();
-        using var _a = app;
-        using var ed = FullSweepTests.Editor(app);
-        var view = new TabletDetailView { DataContext = ed };
-        var tw = Host(view, 1130, 1500);
+        // The Tablet pages inside the app window, as Zak sees them (Zak 24 Nov ~15:50: "Dont create mockup pictures that are different
+        // from the app"): the nav row, the tablet switcher and a connected Wacom PTK-440 with factory settings (ZakTablet).
+        var details = (System.Collections.IDictionary)typeof(MainViewModel)
+            .GetField("_tabletDetails", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(vm)!;
+        var ed = ZakTablet.Page();
+        ed.ShowHeader = false;
+        details[ZakTablet.Name] = ed;
+        vm.TabletPage.SetTablets(new[] { (ZakTablet.Name, true) });
+        vm.CurrentPage = vm.TabletPage;
+        w.Height = 1500;
+        await Settle(150);
+        // This test window has no driver, so the app greys the page and the Save row (MainViewModel.PageInputEnabled,
+        // CanEditSettings). Zak's app has one: for pictures that match it, they take input here as they do on his Mac.
+        foreach (var host in w.GetVisualDescendants().OfType<TransitioningContentControl>()) host.IsEnabled = true;
+        foreach (var name in new[] { "SaveButton", "SaveAsDefaultButton", "RevertToDefaultButton", "FactoryButton", "RestoreFactoryButton" })
+            foreach (var b in w.GetVisualDescendants().OfType<Button>().Where(x => x.Name == name)) b.IsEnabled = true;
+        foreach (var p in w.GetVisualDescendants().OfType<StackPanel>().Where(x => x.Children.OfType<Button>().Any(b => b.Name == "SaveButton"))) p.IsEnabled = true;
+        await Settle(60);
+        var view = w.GetVisualDescendants().OfType<TabletDetailView>().First();
         foreach (var tool in new[] { "ToolFunctionsButton", "ToolPenButton", "ToolMoreButton" })
         {
             if (view.FindControl<RadioButton>(tool) is not { } t) continue;
@@ -126,29 +138,45 @@ public class ButtonLookAuditTests
             foreach (var tab in tabs)
             {
                 tab.IsChecked = true; await Settle(80);
-                all.AddRange(Looks(tw, $"tablet-{Label(t)}-{Label(tab)}"));
-                Shot(tw, light, $"tablet-{Label(t)}-{Label(tab)}");
+                all.AddRange(Looks(w, $"tablet-{Label(t)}-{Label(tab)}"));
+                Shot(w, light, $"tablet-{Label(t)}-{Label(tab)}");
                 if (Label(tab) == "Pen")
                 {
                     PenPageTabs.Select(view, "EraserTab"); await Settle(60);
-                    all.AddRange(Looks(tw, $"tablet-{Label(t)}-{Label(tab)}-eraser"));
+                    all.AddRange(Looks(w, $"tablet-{Label(t)}-{Label(tab)}-eraser"));
                     PenPageTabs.Select(view, "TipTab"); await Settle(40);
                 }
             }
         }
-        tw.Close();
+        w.AllowCloseForQuit(); w.Close();
+        (vm as IDisposable)?.Dispose();
+        ed.Dispose();
         return all;
     }
 
     static string Key(Look l) => $"{l.Fill} | shadow {(l.Shadow ? "yes" : "no")} | edge {l.Edge}";
 
+    /// <summary>Not drawn as a raised word button on purpose: icon glyphs and text links (no fill), the touch ring's centre picture, the
+    /// Wacom-style picture tiles (tablet, tool, application), keyboard key caps, the red Forget / Delete buttons.</summary>
+    static bool OwnLookOnPurpose(Look l) =>
+        l.Fill is "clear" or "none"
+        || l.Theme is "LinkButton" or "IconButton" or "KeyCapButton" or "ModifierToggle" or "DeleteButton"
+        || (l.Theme == "other" && l.Kind == "RadioButton")
+        || l.Classes.Split(' ').Any(c => c is "ringCentre" or "flat" or "pathLink" or "dangerText");
+
     [AvaloniaFact]
     public async Task Button_look_inventory()
     {
         var lines = new List<string> { "# Every button and tab, by the look it is drawn with", "" };
+        var odd = new List<string>();
         foreach (var light in new[] { false, true })
         {
             var looks = await Walk(light);
+            // Zak 24 Nov ("They are all over the app"): every enabled word button and tab is raised; the tab you are on is lit.
+            var tabOn = Describe(new SolidColorBrush(LightnessService.TabOnFill(light ? 8 : 0)));
+            foreach (var l in looks.Where(l => l.Enabled && !l.Raised && !OwnLookOnPurpose(l)))
+                if (!(l.Checked == true && l.Fill == tabOn && l.Shadow))
+                    odd.Add($"{(light ? "light" : "dark")} {l.Page}: {l.Kind} '{l.Label}' theme {l.Theme} [{l.Classes}] {l.Fill} shadow {l.Shadow}");
             lines.Add($"## {(light ? "Light" : "Dark")} look - {looks.Count} buttons and tabs on {looks.Select(l => l.Page).Distinct().Count()} pages");
             foreach (var g in looks.GroupBy(l => (l.Raised, l.Enabled, Kind: l.Kind == "RadioButton" || l.Kind == "ToggleButton" ? (l.Checked == true ? "tab on" : "tab off") : "button", l.Theme, Key(l)))
                          .OrderBy(g => g.Key.Raised).ThenBy(g => g.Key.Theme))
@@ -164,5 +192,6 @@ public class ButtonLookAuditTests
         LightnessService.Set(0);
         Directory.CreateDirectory(Dir);
         File.WriteAllLines(Path.Combine(Dir, "button-looks.md"), lines);
+        Assert.True(odd.Count == 0, "Not drawn with the shared raised look:\n" + string.Join("\n", odd.Distinct().Take(40)));
     }
 }

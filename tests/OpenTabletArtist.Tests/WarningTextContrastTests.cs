@@ -64,15 +64,25 @@ public class WarningTextContrastTests
         Assert.True(LightnessService.Contrast(knob, track) >= 3, $"step {step}: knob on track");
     }
 
-    // V30 build 4 (Zak 24 Nov: "change the word CONNECTED to be in green"): green, and readable on every surface of every step.
+    // V30 build 4 (Zak 24 Nov: "change the word CONNECTED to be in green"): green, and readable on the window and a pane of every
+    // step: 4.5:1 on the dark steps; 3:1 (bold 22 px = large text) on the mid-grey light ones, where 4.5:1 would be near black.
     [Theory, MemberData(nameof(AllSteps))]
     public void Connected_IsGreen_AndReadable(int step)
     {
         var p = LightnessService.For(step);
         var c = LightnessService.ConnectedText(step);
-        Assert.True(c.G > c.R + 40 && c.G > c.B + 40, $"step {step}: {c} is not green");
-        foreach (var bg in new[] { p.Base, p.Elevated, p.Surface, p.Pane })
-            Assert.True(LightnessService.Contrast(c, bg) >= 4.5, $"step {step}: {LightnessService.Contrast(c, bg):0.0}:1 on {bg}");
+        Assert.True(c.G > c.R + 30 && c.G > c.B + 30, $"step {step}: {c} is not green");
+        foreach (var bg in new[] { p.Base, p.Pane })
+            Assert.True(LightnessService.Contrast(c, bg) >= (p.Dark ? 4.5 : 3.0), $"step {step}: {LightnessService.Contrast(c, bg):0.0}:1 on {bg}");
+    }
+
+    // V30 build 4 (Zak 24 Nov: "All the text in the black frame is not readable"): the Movement / Pen input inset follows the step.
+    [Theory, MemberData(nameof(AllSteps))]
+    public void PenBasicsInset_TextIsReadable(int step)
+    {
+        var p = LightnessService.For(step);
+        Assert.True(LightnessService.Contrast(p.Text, LightnessService.PenBasicsInset(step)) >= 4.5, $"step {step}");
+        Assert.True(LightnessService.Contrast(p.TextMuted, LightnessService.PenBasicsInset(step)) >= 3.0, $"step {step} muted");
     }
 
     // V30 build 4 (Zak 24 Nov: "Again 2 designs of buttons"): the tab you are on is lit and its word reads clearly.

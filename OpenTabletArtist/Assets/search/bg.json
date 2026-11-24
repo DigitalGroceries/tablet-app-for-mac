@@ -820,12 +820,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Никой бутон на писалката не отваря радиалното меню",
+    "text": "Радиално меню",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Използвай бутон 2 на писалката",
+    "text": "Вкл.",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Никой бутон на писалката не отваря радиалното меню",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,6 +841,11 @@
   },
   {
     "text": "Размер на радиалното меню",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Цветова палитра",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },

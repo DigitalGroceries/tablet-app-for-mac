@@ -835,12 +835,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Ningún botón del lápiz abre el menú radial",
+    "text": "Menú radial",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Usar el botón 2 del lápiz",
+    "text": "Activado",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ningún botón del lápiz abre el menú radial",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -851,6 +856,11 @@
   },
   {
     "text": "Tamaño del menú radial",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Paleta de colores",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },

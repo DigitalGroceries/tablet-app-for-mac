@@ -392,6 +392,16 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     }
 
     /// <summary>TASKS #63: the radial picture on the Pen page was clicked: the radial menu editor for the selected table.</summary>
+    /// <summary>V30 build 4: the radial menu's and colour palette's switches ask which pen button to use in a small dialog.</summary>
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        if (Vm is { } vm)
+            vm.ChooseMenuButton = (title, body, choices) => TopLevel.GetTopLevel(this) is Window owner
+                ? MenuButtonChoiceDialog.ShowAsync(owner, title, body, choices)
+                : Task.FromResult<int?>(null);
+    }
+
     private async void OnRadialSpotClick(object? s, RoutedEventArgs e)
     {
         try

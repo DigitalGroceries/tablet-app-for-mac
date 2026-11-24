@@ -126,8 +126,10 @@ public static class LightnessService
 
     /// <summary>A switch that is On. Dark steps: a light track with a black knob. Light steps: the light track vanished into
     /// the light window (only the knob showed, test build 2 check, 23 Nov 2026), so the track is dark and the knob light.</summary>
-    /// <summary>V30 build 4 (Zak 24 Nov 2026: "change the word CONNECTED to be in green"): Home's CONNECTED. Green, made lighter
-    /// (dark steps) or darker (light steps) until it reads at 4.5:1 or better on every surface it can sit on.</summary>
+    /// <summary>V30 build 4 (Zak 24 Nov 2026: "change the word CONNECTED to be in green"): Home's CONNECTED, in bold. Green, made
+    /// lighter (dark steps) or darker (light steps) until it reads on the window and on a pane: 4.5:1 on the dark steps; on the
+    /// mid-grey light steps 4.5:1 is only reached by a green so dark it reads as black, so there it is large bold text (22 px
+    /// bold, WCAG "large text") at 3:1 or better.</summary>
     public static readonly Color Connected = Color.FromRgb(0x22, 0xC5, 0x5E);
     public static Color ConnectedText(int step)
     {
@@ -139,7 +141,7 @@ public static class LightnessService
             c = p.Dark
                 ? Color.FromRgb(Mix(Connected.R, 255, f), Mix(Connected.G, 255, f), Mix(Connected.B, 255, f))
                 : Color.FromRgb(Mix(Connected.R, 0, f), Mix(Connected.G, 0, f), Mix(Connected.B, 0, f));
-            if (new[] { p.Base, p.Elevated, p.Surface, p.Pane }.All(b => Contrast(c, b) >= 4.5)) return c;
+            if (new[] { p.Base, p.Pane }.All(b => Contrast(c, b) >= (p.Dark ? 4.5 : 3.0))) return c;
         }
         return c;
         static byte Mix(byte a, byte b, double f) => (byte)Math.Round(a + (b - a) * f);
@@ -148,6 +150,12 @@ public static class LightnessService
     /// <summary>V30 build 4 (Zak 24 Nov 2026: "Again 2 designs of buttons"): tabs are drawn as raised buttons; the tab you are on
     /// is lit. Dark steps: the light selection fill with dark text, as before. Light steps: dark with light text, because a
     /// light tab would not stand out among light raised buttons.</summary>
+    /// <summary>V30 build 4 (Zak 24 Nov 2026, the light-look picture of Tablet › Pen: "All the text in the black frame is not
+    /// readable"): the Movement / Pen input inset was a fixed #262626 on every look. Dark steps keep it; light steps use the window
+    /// grey (darker than the pane around it, and a surface the text colours are picked for), with the step's border.</summary>
+    public static Color PenBasicsInset(int step) => For(step).Dark ? G(0x26) : For(step).Base;
+    public static Color PenBasicsInsetBorder(int step) => For(step).Dark ? G(0x4A) : For(step).Border;
+
     public static Color TabOnFill(int step) => For(step).Dark ? SelectionFill(step) : G(0x30);
     public static Color TabOnText(int step) => For(step).Dark ? SelectionText : G(0xE4);
 
@@ -277,6 +285,7 @@ public static class LightnessService
             ("TextPrimaryBrush", p.Text), ("TextSecondaryBrush", p.TextSecondary), ("TextMutedBrush", p.TextMuted),
             ("DividerBrush", p.Divider), ("TextInverseBrush", p.OnAccent), ("WarningTextBrush", WarningText(step)), ("AttentionTextBrush", AttentionText(step)),
             ("AttentionFillBrush", AttentionFill(step)), ("SwitchOnFillBrush", SwitchOnFill(step)), ("ConnectedTextBrush", ConnectedText(step)),
+            ("PenBasicsInsetBrush", PenBasicsInset(step)), ("PenBasicsInsetBorderBrush", PenBasicsInsetBorder(step)),
             ("DangerTextBrush", DangerText(step)),
             ("AttentionBubbleBrush", Attention), ("AttentionBubbleTextBrush", AttentionInk),   // L6.3: the same in both looks
             ("PenDiagramFillBrush", p.Dark ? G(0x4A) : G(0x5A)), ("PenDiagramButtonFillBrush", p.Dark ? G(0x5E) : G(0x70)),

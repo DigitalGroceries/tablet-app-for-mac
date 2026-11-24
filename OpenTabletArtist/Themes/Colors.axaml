@@ -89,6 +89,8 @@
         <ResourceDictionary x:Key="Light">
             <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#15803D" />
+            <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#D0D0D0" />
+            <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#A0A0A0" />
             <Color x:Key="BgBase">#E4E4E4</Color>
             <Color x:Key="BgElevated">#E3E3E3</Color>
             <Color x:Key="BgSurface">#E4E4E4</Color>
@@ -159,6 +161,8 @@
         <ResourceDictionary x:Key="Dark">
             <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#4ADE80" />
+            <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#262626" />
+            <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#4A4A4A" />
             <Color x:Key="BgBase">#2B2B2B</Color>
             <Color x:Key="BgElevated">#333333</Color>
             <Color x:Key="BgSurface">#3A3A3A</Color>
@@ -232,6 +236,8 @@
         <ResourceDictionary x:Key="{x:Static svc:ThemeService.AnimeVariant}">
             <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#15803D" />
+            <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#D0D0D0" />
+            <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#A0A0A0" />
             <!-- Pink accent (ties to the app's magenta mark) overriding the shared indigo. -->
             <Color x:Key="Accent">#E0218A</Color>
             <Color x:Key="AccentMuted">#1FE0218A</Color>
@@ -350,6 +356,8 @@
         <ResourceDictionary x:Key="{x:Static svc:ThemeService.DarkSakuraVariant}">
             <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#4ADE80" />
+            <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#262626" />
+            <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#4A4A4A" />
             <!-- Pink accent (same as Sakura). -->
             <Color x:Key="Accent">#E0218A</Color>
             <Color x:Key="AccentMuted">#2EE0218A</Color>
@@ -446,6 +454,8 @@
         <ResourceDictionary x:Key="{x:Static svc:ThemeService.CustomVariant}">
             <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#4ADE80" />
+            <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#262626" />
+            <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#4A4A4A" />
             <!-- Default accent (the app's shared indigo); replaced live when the user picks a color. -->
             <Color x:Key="Accent">#6366F1</Color>
             <Color x:Key="AccentMuted">#1F6366F1</Color>
@@ -532,6 +542,8 @@
         <ResourceDictionary x:Key="{x:Static svc:ThemeService.WacomVariant}">
             <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#15803D" />
+            <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#D0D0D0" />
+            <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#A0A0A0" />
             <Color x:Key="BgBase">#E4E4E4</Color>
             <Color x:Key="BgElevated">#DDDDDD</Color>
             <Color x:Key="BgSurface">#E4E4E4</Color>

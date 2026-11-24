@@ -145,6 +145,7 @@ public class V30ButtonsShots
     [AvaloniaFact]
     public void Home_whole_page_for_Zak()
     {
+        using var mac = UiPlatform.PretendMac();   // as on Zak's Mac
         try
         {
             foreach (var light in new[] { false, true })

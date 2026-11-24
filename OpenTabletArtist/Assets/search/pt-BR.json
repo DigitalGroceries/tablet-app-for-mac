@@ -835,12 +835,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Nenhum botão da caneta abre o menu radial",
+    "text": "Menu radial",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Usar o botão 2 da caneta",
+    "text": "Ativado",
+    "path": "Tablet › Caneta › Caneta",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Nenhum botão da caneta abre o menu radial",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -851,6 +856,11 @@
   },
   {
     "text": "Tamanho do menu radial",
+    "path": "Tablet › Caneta › Caneta",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Paleta de cores",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },

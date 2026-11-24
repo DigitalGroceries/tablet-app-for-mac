@@ -835,12 +835,22 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Hakuna kitufe cha kalamu kinachofungua menyu ya duara",
+    "text": "Menyu ya duara",
     "path": "Kibao › Kalamu › Kalamu",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Tumia kitufe cha kalamu 2",
+    "text": "Zima",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Washa",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Hakuna kitufe cha kalamu kinachofungua menyu ya duara",
     "path": "Kibao › Kalamu › Kalamu",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -851,6 +861,11 @@
   },
   {
     "text": "Ukubwa wa menyu ya duara",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Paleti ya rangi",
     "path": "Kibao › Kalamu › Kalamu",
     "route": "tablet/ToolPenButton/PenTab"
   },
