@@ -183,8 +183,10 @@ public class RingAndKeysSwitchTests
         // Version 29: Italian, Swedish and Brazilian Portuguese joined the 8 languages.
         Assert.Equal(OpenTabletArtist.Services.Localizer.Languages.Length - 1, files.Length);
         // Those three keep Wacom's own name "Touch Ring", as Wacom's manuals in those languages do.
+        // V30 (TASKS #218): Hindi and Swahili keep it too; Wacom has no manuals in those languages, so the English product name stays.
         static bool KeepsWacomName(string file, string english) =>
-            english.Contains("Touch Ring") && (file.EndsWith("it.json") || file.EndsWith("sv.json") || file.EndsWith("pt-BR.json"));
+            english.Contains("Touch Ring") && (file.EndsWith("it.json") || file.EndsWith("sv.json") || file.EndsWith("pt-BR.json")
+                                               || file.EndsWith("hi.json") || file.EndsWith("sw.json"));
         var en = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.Combine(dir, "en.json")))!;
         foreach (var f in files)
         {

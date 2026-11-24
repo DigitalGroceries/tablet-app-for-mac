@@ -1,0 +1,1062 @@
+[
+  {
+    "text": "Vibao vyako",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Hakuna vibao vilivyounganishwa au kukumbukwa",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Chagua kibao chako",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Pata msaada",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Vibao vinavyotumika",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Msimbo chanzo",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Matoleo",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Maoni",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Mwongozo wa mtumiaji",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Shukrani na leseni",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Angalia masasisho sasa",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Matoleo ya awali",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Sasisha kiotomatiki",
+    "path": "Mwanzo",
+    "route": "home"
+  },
+  {
+    "text": "Brashi",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Futa",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Nakili",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Weka alama za nafasi",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Rekodi",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Turubai",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Ghafi",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Mwinamo",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Shinikizo",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Msokoto",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "AZ/AL",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Kuelea",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Marudio",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Saved presets",
+    "path": "Mipangilio › Mipangilio-awali",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Save as preset",
+    "path": "Mipangilio › Mipangilio-awali",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "What a preset is",
+    "path": "Mipangilio › Mipangilio-awali",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Shortcuts",
+    "path": "Mipangilio › Njia za mkato",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Tablet actions",
+    "path": "Mipangilio › Njia za mkato",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Move to next display",
+    "path": "Mipangilio › Njia za mkato",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Not set",
+    "path": "Mipangilio › Njia za mkato",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "About shortcuts",
+    "path": "Mipangilio › Njia za mkato",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Themes",
+    "path": "Mipangilio › Mandhari › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Theme",
+    "path": "Mipangilio › Mandhari › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Lightness",
+    "path": "Mipangilio › Mandhari › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Dark",
+    "path": "Mipangilio › Mandhari › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Light",
+    "path": "Mipangilio › Mandhari › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Lugha",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Kuhifadhi",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Hifadhi mabadiliko kiotomatiki",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Menyu ya duara",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Onyesha menyu ya duara",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Nakala rudufu ya mipangilio",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Hamisha mipangilio",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Leta mipangilio",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Nakala rudufu za kiotomatiki",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Onyesha katika Finder",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Faili ya uchunguzi",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Unda faili ya uchunguzi",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Anza wakati wa kuingia",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Anza kiotomatiki ninapoingia",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Fungua Login Items",
+    "path": "Mipangilio › Mfumo",
+    "route": "settings/System"
+  },
+  {
+    "text": "Utatuzi wa matatizo",
+    "path": "Mipangilio › Utatuzi wa matatizo",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Anzisha upya kiendeshi",
+    "path": "Mipangilio › Utatuzi wa matatizo",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Ripoti ya uchunguzi",
+    "path": "Mipangilio › Utatuzi wa matatizo",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Unda faili ya uchunguzi",
+    "path": "Mipangilio › Utatuzi wa matatizo",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Weka upya ruhusa",
+    "path": "Mipangilio › Utatuzi wa matatizo",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Trigger health warnings",
+    "path": "Mipangilio › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Conflicting tablet driver detected",
+    "path": "Mipangilio › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Running as administrator",
+    "path": "Mipangilio › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tray icon can't be shown",
+    "path": "Mipangilio › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Using an external driver",
+    "path": "Mipangilio › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: mapped area partly off-screen",
+    "path": "Mipangilio › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: custom display mapping",
+    "path": "Mipangilio › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: using a custom config override",
+    "path": "Mipangilio › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: pen isn't set up for drawing",
+    "path": "Mipangilio › Dev › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Introduce config errors",
+    "path": "Mipangilio › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Map active area partly off-screen",
+    "path": "Mipangilio › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Push active area off-screen",
+    "path": "Mipangilio › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Rotate active area to a non-standard angle",
+    "path": "Mipangilio › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create a slightly-wrong calibration",
+    "path": "Mipangilio › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create off calibration",
+    "path": "Mipangilio › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Break the pen for drawing (artist health check)",
+    "path": "Mipangilio › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Turn off pen tip, pressure and tilt",
+    "path": "Mipangilio › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing (asserted)",
+    "path": "Mipangilio › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing",
+    "path": "Mipangilio › Dev › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Force a tablet in the list",
+    "path": "Mipangilio › Dev › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Add to tablet list",
+    "path": "Mipangilio › Dev › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Clear",
+    "path": "Mipangilio › Dev › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Tablet page extras",
+    "path": "Mipangilio › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Filters tab",
+    "path": "Mipangilio › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the JSON tab",
+    "path": "Mipangilio › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the ‘Cut below input minimum’ pressure option",
+    "path": "Mipangilio › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show card-role tags",
+    "path": "Mipangilio › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Advanced page extras",
+    "path": "Mipangilio › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Diagnostics tab",
+    "path": "Mipangilio › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Window size",
+    "path": "Mipangilio › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Current size",
+    "path": "Mipangilio › Dev › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Screenshots",
+    "path": "Mipangilio › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Screenshot all pages",
+    "path": "Mipangilio › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Format",
+    "path": "Mipangilio › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "On-page screenshot control",
+    "path": "Mipangilio › Dev › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "This app",
+    "path": "Kina › Kiendeshi",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Tablet App for Mac",
+    "path": "Kina › Kiendeshi",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not connected",
+    "path": "Kina › Kiendeshi",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Driver process",
+    "path": "Kina › Kiendeshi",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not running",
+    "path": "Kina › Kiendeshi",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Marekebisho ya kubadili dirisha la programu",
+    "path": "Kina › Kiendeshi",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Level",
+    "path": "Kina › Konsoli",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Auto-scroll",
+    "path": "Kina › Konsoli",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Driver not connected.",
+    "path": "Kina › Konsoli",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Copy",
+    "path": "Kina › Konsoli",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Clear",
+    "path": "Kina › Konsoli",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "No log messages yet.",
+    "path": "Kina › Konsoli",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Configurations folder",
+    "path": "Kina › Usanidi",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Add tablet support",
+    "path": "Kina › Usanidi",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Check for more configs",
+    "path": "Kina › Usanidi",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Programu-jalizi zilizosakinishwa",
+    "path": "Kina › Programu-jalizi",
+    "route": "advanced/Plugins"
+  },
+  {
+    "text": "Vitufe vyote",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Zima",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Washa",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Chaguo-msingi",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Kitufe cha 1",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Kitufe cha 2",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Kitufe cha 3",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Space",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Kitufe cha 4",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Control",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Kitufe cha 5",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Shift",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Kitufe cha 6",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Alt",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Kitufe cha 7",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Kitufe cha 8",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Kuhusu ExpressKeys",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Touch Ring",
+    "path": "Kibao › Vitendo › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Zima",
+    "path": "Kibao › Vitendo › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Washa",
+    "path": "Kibao › Vitendo › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Gusa pete",
+    "path": "Kibao › Vitendo › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Mwelekeo wa saa",
+    "path": "Kibao › Vitendo › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Haijawekwa",
+    "path": "Kibao › Vitendo › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Chagua kitakachofanya",
+    "path": "Kibao › Vitendo › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Kinyume cha mwelekeo wa saa",
+    "path": "Kibao › Vitendo › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Kuhusu Touch Ring",
+    "path": "Kibao › Vitendo › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Mwinamo",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Zima mwinamo",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Hisia ya ncha",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Hisia ya kifutio",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Laini",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ngumu",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Geuza kukufaa",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Shinikizo la sasa",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Bofya",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Kamili",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Marekebisho ya kubofya mara mbili",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Imezimwa",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Chaguo-msingi",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Kubwa",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Shinikizo la kuweka mwenyewe",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "BONYEZA KITUFE ILI KUKIJARIBU",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Kifutio",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ncha",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Chaguo-msingi (futa)",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "KITUFE CHA 2",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Imebadilishwa kuwa Adaptive Binding (Button 1)",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Rekebisha",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "KITUFE CHA 1",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Mpangilio wa chaguo-msingi",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Mipangilio ya kibodi",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Mwendo",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Kulainisha nafasi",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Mikunjo laini zaidi unapochora haraka",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ingizo la kalamu",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Zima ncha ya kalamu",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Zima usikivu wa shinikizo",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Hakuna kitufe cha kalamu kinachofungua menyu ya duara",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Tumia kitufe cha kalamu 2",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Uwazi wa menyu ya duara",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ukubwa wa menyu ya duara",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ukubwa wa paleti ya rangi",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Hakuna kitufe cha kalamu kinachofungua paleti ya rangi",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Hisia ya ncha: maelezo zaidi",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Ingizo la kifutio",
+    "path": "Kibao › Kalamu › Kalamu › Hisia ya kifutio",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Zima kifutio",
+    "path": "Kibao › Kalamu › Kalamu › Hisia ya kifutio",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "Hisia ya kifutio: maelezo zaidi",
+    "path": "Kibao › Kalamu › Kalamu › Hisia ya kifutio",
+    "route": "tablet/ToolPenButton/EraserTab/FeelDetails"
+  },
+  {
+    "text": "Kibodi inayoelea",
+    "path": "Kibao › Kalamu › Kibodi",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Kushikilia kitufe cha kalamu 1",
+    "path": "Kibao › Kalamu › Kibodi",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Kipande cha menyu ya duara",
+    "path": "Kibao › Kalamu › Kibodi",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Ukubwa wa kibodi",
+    "path": "Kibao › Kalamu › Kibodi",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Uwazi wa kibodi",
+    "path": "Kibao › Kalamu › Kibodi",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "Ukubwa",
+    "path": "Kibao › Kalamu › Upangaji",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Mzunguko",
+    "path": "Kibao › Kalamu › Upangaji",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Kibao",
+    "path": "Kibao › Kalamu › Upangaji",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Eneo linalotumika",
+    "path": "Kibao › Kalamu › Upangaji",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Eneo",
+    "path": "Kibao › Kalamu › Upangaji",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Vipimo",
+    "path": "Kibao › Kalamu › Upangaji",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Mshazari",
+    "path": "Kibao › Kalamu › Upangaji",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Uwiano wa vipimo",
+    "path": "Kibao › Kalamu › Upangaji",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Mipangilio ya onyesho",
+    "path": "Kibao › Kalamu › Upangaji",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "Modeli",
+    "path": "Kibao › Zaidi › Kuhusu",
+    "route": "tablet/ToolMoreButton/AboutTab"
+  },
+  {
+    "text": "This tablet",
+    "path": "Kibao › Zaidi › Urekebishaji",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Not calibrated",
+    "path": "Kibao › Zaidi › Urekebishaji",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "The calibration screen opens on your tablet's mapped display",
+    "path": "Kibao › Zaidi › Urekebishaji",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Calibrate · 4 points",
+    "path": "Kibao › Zaidi › Urekebishaji",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "About calibration",
+    "path": "Kibao › Zaidi › Urekebishaji",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Hover limit",
+    "path": "Kibao › Zaidi › Kuelea",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Off",
+    "path": "Kibao › Zaidi › Kuelea",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "On",
+    "path": "Kibao › Zaidi › Kuelea",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Max hover",
+    "path": "Kibao › Zaidi › Kuelea",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Near proximity only",
+    "path": "Kibao › Zaidi › Kuelea",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "No filters configured",
+    "path": "Kibao › Zaidi › Vichujio",
+    "route": "tablet/ToolMoreButton/FiltersTab"
+  }
+]

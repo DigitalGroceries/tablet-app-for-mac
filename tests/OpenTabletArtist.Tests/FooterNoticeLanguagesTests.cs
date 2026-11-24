@@ -8,7 +8,7 @@ namespace OpenTabletArtist.Tests;
 
 /// <summary>#117 (Version 29, from Devin's #84 review): the notices in the settings footer were English in every
 /// language, and the one after a restart did not say that the restored changes are not saved yet. They are now in
-/// all 11 languages, and the restore notice names the Save and Revert buttons with the buttons' own words.</summary>
+/// all the languages (11, from Version 30 13), and the restore notice names the Save and Revert buttons with the buttons' own words.</summary>
 public class FooterNoticeLanguagesTests
 {
     private static string RepoRoot([CallerFilePath] string thisFile = "") =>
@@ -19,7 +19,7 @@ public class FooterNoticeLanguagesTests
 
     public static readonly TheoryData<string> Languages = new()
     {
-        "bg", "de", "en", "es", "fr", "it", "ja", "pt-BR", "ru", "sv", "zh-CN",
+        "bg", "de", "en", "es", "fr", "hi", "it", "ja", "pt-BR", "ru", "sv", "sw", "zh-CN",
     };
 
     private static readonly string[] Keys =

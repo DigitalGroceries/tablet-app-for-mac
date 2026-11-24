@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
@@ -33,7 +34,8 @@ public class V30ButtonsShots
     static string Dir => Environment.GetEnvironmentVariable("OTA_SHOTS_DIR") ?? "/tmp/ota-v30-shots";
 
     static bool _light;
-    static string Sfx => _light ? "-light" : "";
+    static string _tag = "";
+    static string Sfx => (_light ? "-light" : "") + _tag;
     static void Dark()
     {
         _ = new ThemeViewModel();
@@ -71,6 +73,14 @@ public class V30ButtonsShots
         var b = view.GetVisualDescendants().OfType<Button>().First(x => x.Name == "KeysNotSetUpLink");
         Assert.True(b.IsEffectivelyVisible);
         Assert.True(b.Bounds.Height >= 50, $"the button is {b.Bounds.Height} high");
+        // L6.2 (Zak 24 Nov): no ••• menu on the card any more; Forget is its own smaller red button under the big one
+        Assert.DoesNotContain(view.GetVisualDescendants().OfType<OpenTabletArtist.Controls.IconButton>(),
+            x => (AutomationProperties.GetName(x) ?? "") == "More actions");
+        var forget = view.GetVisualDescendants().OfType<Button>().First(x => x.Name == "ForgetTabletButton");
+        Assert.True(forget.IsEffectivelyVisible);
+        Assert.Equal("Forget this tablet", forget.Content);
+        Assert.True(forget.Bounds.Height < b.Bounds.Height, "Forget is smaller than the big button");
+        Assert.True(forget.Bounds.Y > b.Bounds.Y, "Forget is under the big button");
         w.Close();
     }
 
@@ -94,7 +104,11 @@ public class V30ButtonsShots
         Save(w, "expresskeys-not-set-up" + Sfx);
         var marks = view.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Name == "NotSetUpMark" && t.IsEffectivelyVisible).Select(t => t.Text).ToList();
         Assert.Contains("Not set up", marks);
-        Assert.Contains("You just used this. It does nothing yet.", marks);
+        // L6.3 (Zak 24 Nov): the just-used line is a speech bubble with much bigger type, not the small mark
+        Assert.DoesNotContain("You just used this. It does nothing yet.", marks);
+        var bubble = view.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Name == "JustUsedText" && t.IsEffectivelyVisible);
+        Assert.Equal("You just used this. It does nothing yet.", bubble.Text);
+        Assert.True(bubble.FontSize >= 22, $"bubble text {bubble.FontSize}");
         w.Close();
     }
 
@@ -153,6 +167,31 @@ public class V30ButtonsShots
         w.Show();
         Save(w, "all-buttons-switch-on" + Sfx);
         w.Close();
+    }
+
+    /// <summary>ZAK-LISTS L6.5 (Zak 24 Nov 2026: "Ok lets see your mockup for 3D buttons. Make 3 versions to choose from?"): the same
+    /// pages with the three raised-button strengths, dark and light.</summary>
+    [AvaloniaFact]
+    public async Task Raised_button_versions_for_Zak()
+    {
+        var before = LightnessService.RaisedVariant;
+        try
+        {
+            // OTA_RAISED_ONLY=3 (or "3d" = version 3, dark only) narrows the run when only one version is being tuned.
+            var only = Environment.GetEnvironmentVariable("OTA_RAISED_ONLY") ?? "";
+            foreach (var v in new[] { 1, 2, 3 })
+            {
+                if (only.Length > 0 && !only.StartsWith(v.ToString(), StringComparison.Ordinal)) continue;
+                LightnessService.RaisedVariant = v; _tag = $"-v{v}";
+                foreach (var light in new[] { false, true })
+                    if (!(only.EndsWith("d", StringComparison.Ordinal) && light))
+                {
+                    _light = light;
+                    Home_keys_not_set_up_button(); ExpressKeys_card_not_set_up(); Manual_help_buttons(); await Report_page_wont_open_button();
+                }
+            }
+        }
+        finally { LightnessService.RaisedVariant = before; _light = false; _tag = ""; LightnessService.Set(0); ThemeService.Apply(ThemeService.Wacom); }
     }
 
     [AvaloniaFact]

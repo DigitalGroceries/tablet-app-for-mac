@@ -94,7 +94,7 @@ public class V29LanguageSwitchTests
     [AvaloniaFact]
     public void Item183_LongTranslationsFit_TheDefaultButtonNeverCoversOffOrLarge_AndKeyboardSettingsIsNotCut()
     {
-        foreach (var lang in new[] { "fr", "ru", "bg", "de", "es", "it", "sv", "pt-BR", "en" })
+        foreach (var lang in new[] { "fr", "ru", "bg", "de", "es", "it", "sv", "pt-BR", "hi", "sw", "en" })
         {
             Localizer.SetPreference(lang);
             var (vm, w) = Open();

@@ -26,7 +26,8 @@ public class BuildV5Tests
     {
         var m = File.ReadAllText(Path.Combine(Root(), "OpenTabletArtist", "Assets", "manual", "manual.md"));
         Assert.DoesNotContain("Z" + "ak", m);
-        Assert.Contains("App version 29", m);   // the cover line follows the app version
+        Assert.Contains("App version 30", m);   // the cover line follows the app version (V30 build 3, ZAK-LISTS L6.7)
+        Assert.Contains("PTH-650", m);           // L6.7: the tablets users told us work are named
         Assert.Contains("macOS 27.0.1", m);
     }
 }

@@ -241,10 +241,20 @@
                              so the line is bold yellow (AttentionTextBrush) (Zak 19:23: 'These warning texts must be in bold yellow') and Choose is a real button. -->
                         <StackPanel Orientation="Vertical" Spacing="6" Margin="0,4,0,0" IsVisible="{Binding IsNotSetUp}">
                             <!-- Light steps: dark ink on a yellow highlight (AttentionFillBrush; transparent on dark steps, where the text itself is yellow). -->
-                            <Border Background="{DynamicResource AttentionFillBrush}" CornerRadius="4" Padding="6,2" Margin="-6,0,0,0" HorizontalAlignment="Left">
+                            <Border Background="{DynamicResource AttentionFillBrush}" CornerRadius="4" Padding="6,2" Margin="-6,0,0,0" HorizontalAlignment="Left"
+                                    IsVisible="{Binding !JustUsed}">
                                 <TextBlock x:Name="NotSetUpMark" Text="{Binding NotSetUpText}" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
                                            Foreground="{DynamicResource AttentionTextBrush}" />
                             </Border>
+                            <!-- V30 build 3 (Zak 24 Nov, ZAK-LISTS L6.3): "You just used this. It does nothing yet." is a yellow SPEECH BUBBLE with much
+                                 bigger type, its tail pointing left at the key's number; only the key pressed last shows it (TabletDetailViewModel.NoticeUnsetUse). -->
+                            <Grid x:Name="JustUsedBubble" ColumnDefinitions="Auto,*" IsVisible="{Binding JustUsed}" Margin="-16,2,0,4" HorizontalAlignment="Left">
+                                <Path Grid.Column="0" Data="M 16,0 L 0,13 L 16,26 Z" Fill="{DynamicResource AttentionBubbleBrush}" VerticalAlignment="Center" Margin="0,0,-1,0" />
+                                <Border Grid.Column="1" Background="{DynamicResource AttentionBubbleBrush}" CornerRadius="12" Padding="16,10" BoxShadow="0 2 6 0 #59000000">
+                                    <TextBlock x:Name="JustUsedText" Text="{Binding NotSetUpText}" FontSize="22" FontWeight="Bold" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource AttentionBubbleTextBrush}" />
+                                </Border>
+                            </Grid>
                             <Button Name="NotSetUpChoose" Theme="{StaticResource GhostButton}" Content="{Binding ChooseText}" Command="{Binding EditCommand}"
                                 Padding="14,6" Cursor="Hand" HorizontalAlignment="Left" />
                         </StackPanel>
@@ -288,10 +298,20 @@
                     <!-- V30 #200 B2: nothing on this direction or button yet - say so, and offer to choose. -->
                     <StackPanel Orientation="Vertical" Spacing="6" Margin="0,4,0,0" IsVisible="{Binding IsNotSetUp}">
                         <!-- Light steps: dark ink on a yellow highlight (AttentionFillBrush; transparent on dark steps, where the text itself is yellow). -->
-                        <Border Background="{DynamicResource AttentionFillBrush}" CornerRadius="4" Padding="6,2" Margin="-6,0,0,0" HorizontalAlignment="Left">
+                        <Border Background="{DynamicResource AttentionFillBrush}" CornerRadius="4" Padding="6,2" Margin="-6,0,0,0" HorizontalAlignment="Left"
+                                IsVisible="{Binding !JustUsed}">
                             <TextBlock x:Name="NotSetUpMark" Text="{Binding NotSetUpText}" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
                                        Foreground="{DynamicResource AttentionTextBrush}" />
                         </Border>
+                        <!-- V30 build 3 (Zak 24 Nov, ZAK-LISTS L6.3): "You just used this. It does nothing yet." is a yellow SPEECH BUBBLE with much
+                             bigger type, its tail pointing left at the key's number; only the key pressed last shows it (TabletDetailViewModel.NoticeUnsetUse). -->
+                        <Grid x:Name="JustUsedBubble" ColumnDefinitions="Auto,*" IsVisible="{Binding JustUsed}" Margin="-16,2,0,4" HorizontalAlignment="Left">
+                            <Path Grid.Column="0" Data="M 16,0 L 0,13 L 16,26 Z" Fill="{DynamicResource AttentionBubbleBrush}" VerticalAlignment="Center" Margin="0,0,-1,0" />
+                            <Border Grid.Column="1" Background="{DynamicResource AttentionBubbleBrush}" CornerRadius="12" Padding="16,10" BoxShadow="0 2 6 0 #59000000">
+                                <TextBlock x:Name="JustUsedText" Text="{Binding NotSetUpText}" FontSize="22" FontWeight="Bold" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource AttentionBubbleTextBrush}" />
+                            </Border>
+                        </Grid>
                         <Button Name="NotSetUpChoose" Theme="{StaticResource GhostButton}" Content="{Binding ChooseText}" Command="{Binding EditCommand}"
                                 Padding="14,6" Cursor="Hand" HorizontalAlignment="Left" />
                     </StackPanel>
@@ -1874,7 +1894,7 @@
                         <StackPanel x:Name="RadialSpot" Spacing="6">
                             <Viewbox x:Name="RadialSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center">
                             <Grid x:Name="RadialSpotArea" Width="324" Height="324">
-                                <Button x:Name="RadialSpotButton" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
+                                <Button x:Name="RadialSpotButton" Classes="flat" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
                                         BorderThickness="0" Cursor="Hand" IsEnabled="{Binding CanEditRadial}" Click="OnRadialSpotClick"
                                         AutomationProperties.Name="{Binding RadialSpotHeading}"
                                         Opacity="{Binding RadialSpotOpacity}">

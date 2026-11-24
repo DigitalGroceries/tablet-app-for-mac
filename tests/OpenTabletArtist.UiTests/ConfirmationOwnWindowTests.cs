@@ -35,6 +35,26 @@ public class ConfirmationOwnWindowTests
     }
 
     [AvaloniaFact]
+    public void Popups_are_45_percent_and_a_confirmation_stays_4_5_seconds()
+    {
+        // V30 build 3 (Zak 24 Nov, L6.4): "Make all see through 5% more opaque"; the 'Saved' overlay was too fast to read.
+        Assert.Equal(0.45, RingModeHud.ContentOpacity, 3);
+        var hud = new RingModeHud();
+        RingModeHud.OwnWindowBounds = () => new Rect(300, 200, 1100, 720);
+        try
+        {
+            hud.ShowNowForTest(0, 0, "Settings saved", ActionConfirmation.HeaderText(), "✓", overOwnWindow: true);
+            Dispatcher.UIThread.RunJobs();
+            Assert.Equal(TimeSpan.FromMilliseconds(4500), hud.LastShownFor);
+            Assert.Equal(0.45, ((Avalonia.Controls.Control)hud.PopupWindow!.Content!).Opacity, 3);
+            hud.ShowNowForTest(2, 4, "Brush size");
+            Dispatcher.UIThread.RunJobs();
+            Assert.Equal(TimeSpan.FromMilliseconds(2500), hud.LastShownFor);   // the touch ring popup keeps 2.5 s
+        }
+        finally { RingModeHud.OwnWindowBounds = null; hud.Dispose(); }
+    }
+
+    [AvaloniaFact]
     public void ButtonConfirmation_WithNoOwnWindowUp_StillShows_OnTheDisplay()
     {
         var hud = new RingModeHud();

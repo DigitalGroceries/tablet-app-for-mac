@@ -1,10 +1,10 @@
 # Tablet App for Mac – User Manual
 
-App version 29. British English. Screens are real screenshots from a Mac; a few come from earlier versions, so some may differ slightly.
+App version 30. British English. Screens are real screenshots from a Mac; a few come from earlier versions, so some may differ slightly.
 
 ## Before you start
 
-Tested only on an Apple silicon Mac with macOS 27.0.1 and a Wacom Intuos4 Small (PTK-440). Other systems and tablets are untested. Use at your own risk.
+Made and tested on an Apple silicon Mac with macOS 27.0.1 and a Wacom Intuos4 Small (PTK-440). People using the app have told us it also works with the Intuos3 6x11 (PTZ-631W), Intuos4 Medium (PTK-640), Intuos5 touch Small, Medium and Large (PTH-450, PTH-650, PTH-850), Intuos Pro Medium 2013 (PTH-651), Intuos S Bluetooth (CTL-4100WL) and Bamboo Fun Small Pen & Touch (CTH-461) (see Tested system and tablet). Other tablets are untested. Use at your own risk.
 
 ## Quick start
 
@@ -31,7 +31,7 @@ Tested only on an Apple silicon Mac with macOS 27.0.1 and a Wacom Intuos4 Small 
 
 In the app, each answer has a button that does it for you. The buttons are only in the app's own manual.
 
-**My ExpressKeys do nothing.** A key does nothing until you choose what it does. On Tablet › Functions › ExpressKeys, a key with nothing on it says **Not set up**, and Home says how many there are. While the app is in front on the tablet's Pen, ExpressKeys or Touch Ring page, pressing such a key takes you to its card.
+**My ExpressKeys do nothing.** A key does nothing until you choose what it does. On Tablet › Functions › ExpressKeys, a key with nothing on it says **Not set up**, and Home says how many there are. While the app is in front on the tablet's Pen, ExpressKeys or Touch Ring page, pressing such a key takes you to its card, where a yellow speech bubble says **You just used this. It does nothing yet.** (Version 30: only the key you pressed last shows it).
 
 [Set them up now](app:keys)
 
@@ -96,7 +96,7 @@ Tablet App for Mac sets up a pen tablet on macOS: pen feel, buttons, mapping, Ex
 - **Setting search** (the box under the tabs, with **Find any setting or function** under it): type what you are looking for, in the app's language. A list shows the matching settings and where they are, for example **Settings › System**. Click one, or press Enter for the first: its page opens and the setting is framed for a moment. Down and Up move through the list; Escape empties the box. Settings of the Tablet page open on the tablet shown there; with no tablet set up, the Tablet page opens without them.
 - **Your tablets**: one card per connected or remembered tablet. Click a card to open its settings.
 - **No tablet yet?** Click **Choose your tablet**, search for your model (the model number is on the label on the back of the tablet, for example PTK-440) and click **Set up this tablet**, or click **Use a sample tablet**. Every page of that tablet opens, so you can set everything up before you plug it in. Your settings are used as soon as that model is connected. If a different model that this Mac hasn't seen before is plugged in instead, Home offers to copy the pen and screen mapping settings to it (**Copy settings** or **Not now**).
-- Card **⋯** menu: **Open tablet settings**, **Forget this tablet**.
+- When a tablet's ExpressKeys have nothing on them, its card shows a big button, for example **6 ExpressKeys not set up: Choose what they do or restore to factory settings**: click it to go to the ExpressKeys page. Under it, the smaller red **Forget this tablet** button removes a remembered tablet, or resets a connected one to defaults; it asks first (Version 30: the card's **⋯** menu is gone; open a tablet's settings by clicking its card or the Tablet tab).
 - If a remembered tablet is not plugged in, the card tooltip says **Not detected**, and a hint reads **Not found. Double-click to see what to try.** On the tablet page a line says **Not detected. Showing this tablet's saved settings.** The help under it is: if it is plugged in, check it has power and that its USB cable goes straight into the Mac, not through a hub. Then click **Restart driver**. Still not found? **Send a report…**
 - Health rows: problems found, each with **Fix** or a specific action where one exists. **Fix** works with the pen even while the pen tip or eraser is disabled.
 - **Open driver page**: shown when the driver is not reachable.
@@ -342,13 +342,13 @@ The footer of the tablet page has **Save**, **Save as default**, **Revert to sav
 - **Save** writes the settings so they survive a driver restart (Cmd+S). With automatic saving off, a line under **Unsaved changes** says: **Your changes work now. Click Save to keep them after a restart.** **Revert to saved** goes back to the last save, after asking **Revert to saved settings?**
 - **Save as default** stores the current settings as your own default. They survive a restart, and **Revert to default** brings them back. This includes each ExpressKey's and each Touch Ring's own On/Off, and the app's own switches.
 - **Revert to default** replaces the current settings with your saved default (or the factory settings if you have not saved one) and saves them, after asking **Revert to default?** Unsaved edits will be lost. If you have not saved your own default, the tooltip says this restores the factory settings. If the settings already match, the button is disabled (**Already matching your saved default.**). Without a saved default it does the same as **Restore factory settings**, including the Radial menu on pen button 2.
-- **Restore factory settings** resets everything to the original factory defaults, including each ExpressKey's and each Touch Ring's own On/Off. It asks first: **Restore factory settings?** Your own saved default is kept, so you can still use **Revert to default** afterwards. After a factory restore the Radial menu is on **pen button 2** (and **Show the radial menu** is switched on); pen button 1 and the other buttons keep their factory settings.
+- **Restore factory settings** resets everything to the original factory defaults, including each ExpressKey's and each Touch Ring's own On/Off. It asks first: **Restore factory settings?** Your own saved default is kept, so you can still use **Revert to default** afterwards. After a factory restore the Radial menu is on **pen button 2** (and **Show the radial menu** is switched on); pen button 1 and the other buttons keep their factory settings. Version 30: the ExpressKeys get factory functions too, from the top: **1** Undo (Cmd+Z), **2** Redo (Cmd+Shift+Z), **3** Brush (B), **4** Eye dropper (I), **5** Move (V), **6** Pan (Space, held for as long as you hold the key). A tablet with fewer keys gets the list from the top; keys after the sixth stay as they were.
 - After a shutdown or crash with unsaved changes, the app offers the snapshot again at the next launch.
 - **Save as preset** stores the whole configuration under a name. Preset **⋯**: **Update from current settings**, **Duplicate**, **Rename…**, **Delete**. **Load** applies it.
 
 ## Confirmation messages
 
-Buttons that complete an action show a large on-screen message, the same size and style as the Touch Ring mode display (for example when you switch ring mode). It appears in the centre of the window, shows the app name and a short past-tense line such as **Settings saved**, **Saved as default**, **Reverted to default**, **Factory settings restored**, **Settings reverted**, **Driver restarted** or **Diagnostic file created**, then fades away. Switches, Cancel, and buttons that only open a menu, dialog or folder do not show it. New in Version 26.
+Buttons that complete an action show a large on-screen message, the same size and style as the Touch Ring mode display (for example when you switch ring mode). It appears in the centre of the window, shows the app name and a short past-tense line such as **Settings saved**, **Saved as default**, **Reverted to default**, **Factory settings restored**, **Settings reverted**, **Driver restarted** or **Diagnostic file created**, then fades away (Version 30: it stays about 4.5 seconds and is a little easier to see). Switches, Cancel, and buttons that only open a menu, dialog or folder do not show it. New in Version 26.
 
 ## The pen menu
 
@@ -377,7 +377,22 @@ The **driver** is the background part of the app that reads the pen and moves th
 
 ## Tested system and tablet
 
-macOS 27.0.1 on Apple silicon, Wacom Intuos4 Small (PTK-440). Nothing else has been tested.
+Our own test system: macOS 27.0.1 on Apple silicon, Wacom Intuos4 Small (PTK-440), tested with every version.
+
+People using the app have told us it works with these tablets:
+
+| Tablet | Model | Tested with |
+|---|---|---|
+| Intuos3 6x11 | PTZ-631W | Version 29 |
+| Intuos4 Medium | PTK-640 | Version 26, including the ExpressKey displays |
+| Intuos5 touch Small | PTH-450 | Version 25 |
+| Intuos5 touch Medium | PTH-650 | Version 29 |
+| Intuos5 touch Large | PTH-850 | Version 28 |
+| Intuos Pro Medium (2013) | PTH-651 | Version 21, including the Wireless Kit |
+| Intuos S Bluetooth | CTL-4100WL | Version 28, over USB and Bluetooth |
+| Bamboo Fun Small (Pen & Touch) | CTH-461 | Version 28, including finger touch |
+
+Is your tablet working, or not yet? Tell us on the Tablets page of the app's GitHub discussions: https://github.com/DigitalGroceries/tablet-app-for-mac/discussions/categories/tablets
 
 ## Supported tablets
 

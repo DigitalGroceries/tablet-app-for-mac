@@ -527,7 +527,7 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="RaisedKeep" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{DynamicResource ButtonCornerRadius}"
@@ -567,7 +567,7 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="RaisedKeep" Background="{TemplateBinding Background}"
                             CornerRadius="{DynamicResource ButtonCornerRadius}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter Content="{TemplateBinding Content}"
@@ -598,7 +598,7 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="RaisedBd" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{DynamicResource ButtonCornerRadius}"
@@ -637,7 +637,7 @@
             <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="RaisedBd" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{DynamicResource ButtonCornerRadius}" Padding="{TemplateBinding Padding}">
@@ -1060,6 +1060,67 @@
     <Style Selector="CheckBox:checked:pressed /template/ Border#NormalRectangle">
         <Setter Property="Background" Value="{DynamicResource SelectionFillBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
+    </Style>
+
+    <!-- V30 (ZAK-LISTS L6.5, Zak 24 Nov 2026: "All of our app buttons need to look a bit more 3D now they all look like speech
+         bubbles"): every button stands up from the window - an outline, a soft top-to-bottom shade and a small shadow - and looks
+         pushed in while pressed. Plain buttons (the theme's own template, PART_ContentPresenter) get all three; the app's own button
+         looks (ghost, accent, call to action, icon) keep their colours and get the outline and shadow (their Border is RaisedBd).
+         Link-style buttons (.homeLink, .flat) stay flat. The colours come from LightnessService.RaisedResources; on the themes the
+         Lightness slider doesn't drive, those keys are absent, the setters do nothing and the buttons keep their old look. -->
+    <Style Selector="Button:not(.homeLink):not(.flat):not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonRaisedFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonRaisedBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource ButtonRaisedBorderThickness}" />
+        <Setter Property="BoxShadow" Value="{DynamicResource ButtonRaisedShadow}" />
+    </Style>
+    <Style Selector="Button:not(.homeLink):not(.flat):pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonRaisedFillHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonRaisedBorderBrush}" />
+    </Style>
+    <Style Selector="Button:not(.homeLink):not(.flat):pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonRaisedPressedBrush}" />
+        <Setter Property="BoxShadow" Value="{DynamicResource ButtonPressedShadow}" />
+    </Style>
+    <!-- Ghost and icon buttons (RaisedBd) get the full raised look; accent and call-to-action buttons (RaisedKeep) keep their own
+         fill and get the edge and shadow. -->
+    <Style Selector="Button:not(:disabled) /template/ Border#RaisedBd, Button:not(:disabled) /template/ Border#RaisedKeep">
+        <Setter Property="BoxShadow" Value="{DynamicResource ButtonRaisedShadow}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource ButtonRaisedBorderThickness}" />
+    </Style>
+    <Style Selector="Button:not(:disabled):not(:pointerover) /template/ Border#RaisedBd, Button:not(:disabled):not(:pointerover) /template/ Border#RaisedKeep">
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonRaisedBorderBrush}" />
+    </Style>
+    <Style Selector="Button:not(:disabled):not(:pointerover):not(:pressed) /template/ Border#RaisedBd">
+        <Setter Property="Background" Value="{DynamicResource ButtonRaisedFillBrush}" />
+    </Style>
+    <Style Selector="Button:pointerover:not(:pressed) /template/ Border#RaisedBd">
+        <Setter Property="Background" Value="{DynamicResource ButtonRaisedFillHoverBrush}" />
+    </Style>
+    <Style Selector="Button:pressed /template/ Border#RaisedBd">
+        <Setter Property="Background" Value="{DynamicResource ButtonRaisedPressedBrush}" />
+    </Style>
+    <!-- A .danger icon button (delete a config) turns solid red under the pointer, as the .danger theme says. A .dangerText word
+         button (Forget this tablet, L6.2, Zak 24 Nov: "smaller, quieter red button") is a deep red raised button with a light word
+         (red words on a grey button can't reach 4.5:1); these come after the raised styles so they win. -->
+    <Style Selector="Button.danger:pointerover /template/ Border#RaisedBd">
+        <Setter Property="Background" Value="{DynamicResource ErrorBrush}" />
+    </Style>
+    <Style Selector="Button.dangerText">
+        <Setter Property="Foreground" Value="{DynamicResource DangerTextBrush}" />
+    </Style>
+    <Style Selector="Button.dangerText:not(:disabled) /template/ Border#RaisedBd">
+        <Setter Property="Background" Value="{DynamicResource DangerFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DangerBorderBrush}" />
+    </Style>
+    <Style Selector="Button.dangerText:pointerover:not(:pressed) /template/ Border#RaisedBd">
+        <Setter Property="Background" Value="{DynamicResource DangerFillHoverBrush}" />
+    </Style>
+    <Style Selector="Button.dangerText:pressed /template/ Border#RaisedBd">
+        <Setter Property="Background" Value="{DynamicResource DangerPressedBrush}" />
+    </Style>
+    <Style Selector="Button:pressed /template/ Border#RaisedBd, Button:pressed /template/ Border#RaisedKeep">
+        <Setter Property="BoxShadow" Value="{DynamicResource ButtonPressedShadow}" />
     </Style>
 
     <!-- ToggleSwitch: the "on" track uses the theme accent (Fluent's default reads blue, off-theme in

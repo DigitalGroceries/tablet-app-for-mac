@@ -642,13 +642,17 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // settings and it comes back at defaults — it stays in the list. A remembered (disconnected)
         // tablet is removed outright. Word the confirm to match either case (#575).
         bool connected = _session.DetectedTablets.Any(d => d.Name == name);
-        var (title, message) = connected
-            ? ("Reset this tablet?",
-               $"\"{name}\" is connected, so this clears its saved settings and returns it to defaults; " +
-               "it stays in your list. This can't be undone.")
-            : ("Forget this tablet?",
-               $"\"{name}\" and its saved settings will be removed from your list. This can't be undone.");
-        if (!await _dialogs.ShowConfirmAsync(title, message))
+        // V30 build 3: the Forget button is now on Home's card itself, so its question speaks the app's language too.
+        var (title, message, yes) = connected
+            ? (Localizer.Te("home.reset.title", "Reset this tablet?"),
+               Localizer.Te("home.reset.body", "\"{name}\" is connected, so this clears its saved settings and returns it to defaults; " +
+                   "it stays in your list. This can't be undone.").Replace("{name}", name),
+               Localizer.Te("home.reset.yes", "Reset"))
+            : (Localizer.Te("home.forget.title", "Forget this tablet?"),
+               Localizer.Te("home.forget.body", "\"{name}\" and its saved settings will be removed from your list. This can't be undone.")
+                   .Replace("{name}", name),
+               Localizer.Te("home.forget.yes", "Forget"));
+        if (!await _dialogs.ShowConfirmAsync(title, message, yes, Localizer.Te("app.cancel", "Cancel"), cancelIsDefault: true))
             return;
 
         var settings = _session.CurrentSettings;

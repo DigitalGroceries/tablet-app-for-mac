@@ -19,6 +19,8 @@ British English (`en.json`) is the source of truth. Other languages are JSON str
 | `it` | Italiano | Version 29 |
 | `sv` | Svenska | Version 29 |
 | `pt-BR` | Português (Brasil) | Version 29 (Zak: the Portuguese spoken by more people). Every `pt-*` Mac (Portugal too) gets it |
+| `hi` | हिन्दी | Version 30 (Zak 24 Nov: "Indian"; Hindi, the most spoken language of India). Daemon = सेवा, never दानव |
+| `sw` | Kiswahili | Version 30 (Zak 24 Nov: "the most popular african language"). Daemon = huduma ya chinichini, never pepo |
 
 ## How it works
 
@@ -54,3 +56,5 @@ English keeps the computing word **daemon**. When translating, do **not** use a 
 | Russian (`ru`) | **служба** (service) — not демон |
 | German / Spanish / French | English loanword **daemon** / **Daemon** is fine |
 | Chinese (`zh-CN`) | **守护进程** is fine |
+| Hindi (`hi`) | **सेवा** (service) — not दानव |
+| Swahili (`sw`) | **huduma ya chinichini** (background service) — not pepo / shetani |

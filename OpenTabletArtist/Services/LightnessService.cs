@@ -131,10 +131,86 @@ public static class LightnessService
     /// so it is the brightest grey the app uses there.</summary>
     public static Color CallToActionText(int step) => For(step).Dark ? For(step).Base : G(0xE4);
 
+    /// <summary>V30 (ZAK-LISTS L6.5, Zak 24 Nov 2026: "All of our app buttons need to look a bit more 3D now they all look like
+    /// speech bubbles"): a raised button - an outline, a soft top-to-bottom shade and a small shadow; pressed, it looks pushed in.
+    /// Three strengths were drawn for Zak to choose from; <see cref="RaisedVariant"/> is the one in use.</summary>
+    public static int RaisedVariant { get; set; } = 3;   // Zak 24 Nov: Version 3 for light and dark
+
+    static Color Shift(Color c, int by) => G(Math.Clamp(c.R + by, 0, 0xE4));
+
+    /// <summary>A raised button for a step and strength 1-3: fill top and bottom, outline, outline thickness, shadow, pressed shadow.
+    /// 1 Outline: a clear edge and a light shade. 2 Raised: a stronger shade, a light top edge and a shadow. 3 Key: like a keyboard key,
+    /// a deep shade, a light top edge, a thick dark bottom edge and a deeper shadow.</summary>
+    public static (Color Top, Color Bottom, Color Outline, Thickness Edge, string Shadow, string PressedShadow) Raised(int step, int variant)
+    {
+        var p = For(step); var c = p.Control;
+        string A(string dark, string light) => p.Dark ? dark : light;
+        return variant switch
+        {
+            1 => (Shift(c, 0x10), Shift(c, -0x06), p.Dark ? Shift(c, 0x30) : Shift(c, -0x58), new Thickness(1),
+                  $"0 1 1 0 #{A("50", "30")}000000", "inset 0 1 3 0 #73000000"),
+            3 => (Shift(c, 0x30), Shift(c, -0x14), p.Dark ? Shift(c, -0x22) : Shift(c, -0x6A), new Thickness(1, 1, 1, 3),
+                  $"inset 0 1 0 0 #{A("59", "C0")}E4E4E4, 0 3 6 0 #{A("C0", "66")}000000", "inset 0 2 4 0 #8C000000"),
+            _ => (Shift(c, 0x22), Shift(c, -0x0C), p.Dark ? Shift(c, 0x2C) : Shift(c, -0x60), new Thickness(1),
+                  $"inset 0 1 0 0 #{A("40", "99")}E4E4E4, 0 2 4 0 #{A("A0", "55")}000000", "inset 0 1 3 0 #80000000"),
+        };
+    }
+
+    static LinearGradientBrush Shade(Color top, Color bottom) => new()
+    {
+        StartPoint = new RelativePoint(0.5, 0, RelativeUnit.Relative),
+        EndPoint = new RelativePoint(0.5, 1, RelativeUnit.Relative),
+        GradientStops = { new GradientStop(top, 0), new GradientStop(bottom, 1) },
+    };
+
+    /// <summary>The button's outline. Dark steps (Zak 24 Nov on Version 3: "In the dark GUI perhaps add a highlight line on the top
+    /// line of the buttons"): the top edge is a light line that fades into the dark outline down the sides, so the button's top
+    /// stands out from a dark window. An inset BoxShadow was tried first and is not drawn by the renderer (pixels unchanged).</summary>
+    static IBrush Edge(int step, (Color Top, Color Bottom, Color Outline, Thickness Edge, string Shadow, string PressedShadow) r)
+    {
+        if (!For(step).Dark) return new SolidColorBrush(r.Outline);
+        var hi = Shift(r.Top, 0x4C);
+        return new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0.5, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(0.5, 1, RelativeUnit.Relative),
+            GradientStops = { new GradientStop(hi, 0), new GradientStop(hi, 0.03), new GradientStop(r.Outline, 0.22), new GradientStop(r.Outline, 1) },
+        };
+    }
+
+    /// <summary>The raised-button resources (brushes and shadows) for a step, applied with the other colours.</summary>
+    public static (string Key, object Value)[] RaisedResources(int step, int variant)
+    {
+        var r = Raised(step, variant); var h = For(step).ControlHover;
+        int d = r.Top.R - For(step).Control.R;
+        return new (string, object)[]
+        {
+            ("ButtonRaisedFillBrush", Shade(r.Top, r.Bottom)),
+            ("ButtonRaisedFillHoverBrush", Shade(Shift(h, d), Shift(h, -(For(step).Control.R - r.Bottom.R)))),
+            ("ButtonRaisedPressedBrush", new SolidColorBrush(r.Bottom)),
+            ("ButtonRaisedBorderBrush", Edge(step, r)),
+            ("ButtonRaisedBorderThickness", r.Edge),
+            ("DangerFillBrush", Shade(Danger(step).Top, Danger(step).Bottom)),
+            ("DangerFillHoverBrush", Shade(Danger(step).HoverTop, Danger(step).HoverBottom)),
+            ("DangerPressedBrush", new SolidColorBrush(Danger(step).Bottom)),
+            ("DangerBorderBrush", new SolidColorBrush(Danger(step).Outline)),
+            ("ButtonRaisedShadow", BoxShadows.Parse(r.Shadow)),
+            ("ButtonPressedShadow", BoxShadows.Parse(r.PressedShadow)),
+        };
+    }
+
     public static Color SwitchOnFill(int step) => For(step).Dark ? SelectionFill(step) : G(0x30);
     public static Color SwitchOnKnob(int step) => For(step).Dark ? SelectionText : G(0xE4);
 
     /// <summary>The hue, scaled darker (light steps) or towards white (dark steps) until it has 4.5:1 on BgElevated and BgBase.</summary>
+    /// <summary>V30 build 3 (ZAK-LISTS L6.2, Zak 24 Nov: "Forget this tablet" as its own smaller, quieter red button): a deep red
+    /// raised fill (top, bottom), its outline and hover fill. Red WORDS on the grey raised button could not reach 4.5:1 (the
+    /// button's top is a mid grey), so the button is red and its word is the light on-accent grey (5:1 or more on both looks).</summary>
+    public static (Color Top, Color Bottom, Color Outline, Color HoverTop, Color HoverBottom) Danger(int step) => For(step).Dark
+        ? (Color.FromRgb(0x8A, 0x28, 0x28), Color.FromRgb(0x5C, 0x18, 0x18), Color.FromRgb(0x3A, 0x0E, 0x0E), Color.FromRgb(0x9C, 0x30, 0x30), Color.FromRgb(0x6A, 0x1C, 0x1C))
+        : (Color.FromRgb(0xA8, 0x30, 0x30), Color.FromRgb(0x7A, 0x1E, 0x1E), Color.FromRgb(0x5A, 0x14, 0x14), Color.FromRgb(0xB4, 0x36, 0x36), Color.FromRgb(0x86, 0x22, 0x22));
+    public static Color DangerText(int step) => For(step).OnAccent;
+
     private static Color Readable(Color hue, int step)
     {
         var p = For(step);
@@ -179,6 +255,8 @@ public static class LightnessService
             ("TextPrimaryBrush", p.Text), ("TextSecondaryBrush", p.TextSecondary), ("TextMutedBrush", p.TextMuted),
             ("DividerBrush", p.Divider), ("TextInverseBrush", p.OnAccent), ("WarningTextBrush", WarningText(step)), ("AttentionTextBrush", AttentionText(step)),
             ("AttentionFillBrush", AttentionFill(step)), ("SwitchOnFillBrush", SwitchOnFill(step)), ("CallToActionTextBrush", CallToActionText(step)),
+            ("DangerTextBrush", DangerText(step)),
+            ("AttentionBubbleBrush", Attention), ("AttentionBubbleTextBrush", AttentionInk),   // L6.3: the same in both looks
             ("PenDiagramFillBrush", p.Dark ? G(0x4A) : G(0x5A)), ("PenDiagramButtonFillBrush", p.Dark ? G(0x5E) : G(0x70)),
             ("PenDiagramStrokeBrush", p.Dark ? G(0xB0) : G(0x20)),
             ("WacomPaneBrush", p.Pane), ("WacomTileWellBrush", p.Well), ("ScribbleCanvasBrush", p.Canvas),
@@ -218,6 +296,7 @@ public static class LightnessService
             app.RequestedThemeVariant = For(step).Dark ? DarkVariant : LightVariant;
             foreach (var (k, c) in Resources(step)) { app.Resources[k] = c; Applied.Add(k); }
             foreach (var (k, c) in BrushResources(step)) { app.Resources[k] = new SolidColorBrush(c); Applied.Add(k); }
+            foreach (var (k, v) in RaisedResources(step, RaisedVariant)) { app.Resources[k] = v; Applied.Add(k); }
         }
         NoNearWhite.Apply(app);   // R12
         Changed?.Invoke();

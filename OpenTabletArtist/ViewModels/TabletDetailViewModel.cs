@@ -3000,10 +3000,14 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (!IsAppInFront()) return false;
         lock (UnsetUseShown)
             if (!UnsetUseShown.Add($"{_profile.Tablet}:{id}")) return false;
+        // V30 build 3 (Zak 24 Nov, L6.3): only the key pressed last shows the bubble
+        if (_lastJustUsed is { } before && !ReferenceEquals(before, b)) before.JustUsed = false;
+        _lastJustUsed = b;
         b.JustUsed = true;
         UnsetControlUsed?.Invoke(tab, b);
         return true;
     }
+    private ButtonBinding? _lastJustUsed;
 
     /// <summary>Enables the daemon's device-report stream (live pressure dot + aux highlight). Driven
     /// by the view: on while the Dynamics or ExpressKeys tab is visible, off otherwise.</summary>

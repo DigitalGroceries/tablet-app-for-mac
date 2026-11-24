@@ -1,0 +1,1062 @@
+[
+  {
+    "text": "आपके टैबलेट",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "न कोई टैबलेट कनेक्ट है, न कोई याद रखा गया है",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "अपना टैबलेट चुनें",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "सहायता पाएँ",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "समर्थित टैबलेट",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "सोर्स कोड",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "रिलीज़",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "फ़ीडबैक",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "उपयोगकर्ता मैनुअल",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "क्रेडिट और लाइसेंस",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "अभी अपडेट की जाँच करें",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "पिछले संस्करण",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "अपने-आप अपडेट करें",
+    "path": "होम",
+    "route": "home"
+  },
+  {
+    "text": "ब्रश",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "साफ़ करें",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "कॉपी करें",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "पोज़िशन चिह्नित करें",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "रिकॉर्ड करें",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "कैनवास",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "झुकाव",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "दबाव",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "ट्विस्ट",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "AZ/AL",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "होवर",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "रेट",
+    "path": "Scribble",
+    "route": "scribble"
+  },
+  {
+    "text": "Saved presets",
+    "path": "सेटिंग्स › प्रीसेट",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Save as preset",
+    "path": "सेटिंग्स › प्रीसेट",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "What a preset is",
+    "path": "सेटिंग्स › प्रीसेट",
+    "route": "settings/Presets"
+  },
+  {
+    "text": "Shortcuts",
+    "path": "सेटिंग्स › हॉटकी",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Tablet actions",
+    "path": "सेटिंग्स › हॉटकी",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Move to next display",
+    "path": "सेटिंग्स › हॉटकी",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Not set",
+    "path": "सेटिंग्स › हॉटकी",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "About shortcuts",
+    "path": "सेटिंग्स › हॉटकी",
+    "route": "settings/Hotkeys"
+  },
+  {
+    "text": "Themes",
+    "path": "सेटिंग्स › थीम › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Theme",
+    "path": "सेटिंग्स › थीम › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Lightness",
+    "path": "सेटिंग्स › थीम › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Dark",
+    "path": "सेटिंग्स › थीम › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "Light",
+    "path": "सेटिंग्स › थीम › Themes",
+    "route": "settings/Theme/ThemeSubtab"
+  },
+  {
+    "text": "भाषा",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "सहेजना",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "बदलाव अपने-आप सहेजें",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "रेडियल मेन्यू",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "रेडियल मेन्यू दिखाएँ",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "सेटिंग्स बैकअप",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "सेटिंग्स एक्सपोर्ट करें",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "सेटिंग्स इम्पोर्ट करें",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "ऑटोमैटिक बैकअप",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "Finder में दिखाएँ",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "डायग्नोस्टिक फ़ाइल",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "डायग्नोस्टिक फ़ाइल बनाएँ",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "लॉगिन पर शुरू करें",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "लॉग इन करने पर अपने-आप शुरू करें",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "Login Items खोलें",
+    "path": "सेटिंग्स › सिस्टम",
+    "route": "settings/System"
+  },
+  {
+    "text": "समस्या निवारण",
+    "path": "सेटिंग्स › समस्या निवारण",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "ड्राइवर रीस्टार्ट करें",
+    "path": "सेटिंग्स › समस्या निवारण",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "डायग्नोस्टिक रिपोर्ट",
+    "path": "सेटिंग्स › समस्या निवारण",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "डायग्नोस्टिक फ़ाइल बनाएँ",
+    "path": "सेटिंग्स › समस्या निवारण",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "अनुमतियाँ रीसेट करें",
+    "path": "सेटिंग्स › समस्या निवारण",
+    "route": "settings/Troubleshooting"
+  },
+  {
+    "text": "Trigger health warnings",
+    "path": "सेटिंग्स › डेवलपर › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Conflicting tablet driver detected",
+    "path": "सेटिंग्स › डेवलपर › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Running as administrator",
+    "path": "सेटिंग्स › डेवलपर › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tray icon can't be shown",
+    "path": "सेटिंग्स › डेवलपर › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Using an external driver",
+    "path": "सेटिंग्स › डेवलपर › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: mapped area partly off-screen",
+    "path": "सेटिंग्स › डेवलपर › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: custom display mapping",
+    "path": "सेटिंग्स › डेवलपर › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: using a custom config override",
+    "path": "सेटिंग्स › डेवलपर › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Tablet: pen isn't set up for drawing",
+    "path": "सेटिंग्स › डेवलपर › Warnings",
+    "route": "settings/Developer/WarningsSubtab"
+  },
+  {
+    "text": "Introduce config errors",
+    "path": "सेटिंग्स › डेवलपर › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Map active area partly off-screen",
+    "path": "सेटिंग्स › डेवलपर › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Push active area off-screen",
+    "path": "सेटिंग्स › डेवलपर › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Rotate active area to a non-standard angle",
+    "path": "सेटिंग्स › डेवलपर › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create a slightly-wrong calibration",
+    "path": "सेटिंग्स › डेवलपर › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Create off calibration",
+    "path": "सेटिंग्स › डेवलपर › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Break the pen for drawing (artist health check)",
+    "path": "सेटिंग्स › डेवलपर › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Turn off pen tip, pressure and tilt",
+    "path": "सेटिंग्स › डेवलपर › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing (asserted)",
+    "path": "सेटिंग्स › डेवलपर › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Pause settings editing",
+    "path": "सेटिंग्स › डेवलपर › Config errors",
+    "route": "settings/Developer/ConfigErrorsSubtab"
+  },
+  {
+    "text": "Force a tablet in the list",
+    "path": "सेटिंग्स › डेवलपर › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Add to tablet list",
+    "path": "सेटिंग्स › डेवलपर › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Clear",
+    "path": "सेटिंग्स › डेवलपर › Tablets",
+    "route": "settings/Developer/TabletsSubtab"
+  },
+  {
+    "text": "Tablet page extras",
+    "path": "सेटिंग्स › डेवलपर › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Filters tab",
+    "path": "सेटिंग्स › डेवलपर › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the JSON tab",
+    "path": "सेटिंग्स › डेवलपर › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the ‘Cut below input minimum’ pressure option",
+    "path": "सेटिंग्स › डेवलपर › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show card-role tags",
+    "path": "सेटिंग्स › डेवलपर › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Advanced page extras",
+    "path": "सेटिंग्स › डेवलपर › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Show the Diagnostics tab",
+    "path": "सेटिंग्स › डेवलपर › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Window size",
+    "path": "सेटिंग्स › डेवलपर › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Current size",
+    "path": "सेटिंग्स › डेवलपर › Interface",
+    "route": "settings/Developer/InterfaceSubtab"
+  },
+  {
+    "text": "Screenshots",
+    "path": "सेटिंग्स › डेवलपर › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Screenshot all pages",
+    "path": "सेटिंग्स › डेवलपर › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "Format",
+    "path": "सेटिंग्स › डेवलपर › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "On-page screenshot control",
+    "path": "सेटिंग्स › डेवलपर › Screenshots",
+    "route": "settings/Developer/ScreenshotsSubtab"
+  },
+  {
+    "text": "This app",
+    "path": "उन्नत › ड्राइवर",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Tablet App for Mac",
+    "path": "उन्नत › ड्राइवर",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not connected",
+    "path": "उन्नत › ड्राइवर",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Driver process",
+    "path": "उन्नत › ड्राइवर",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "not running",
+    "path": "उन्नत › ड्राइवर",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "ऐप विंडो बदलने का सुधार",
+    "path": "उन्नत › ड्राइवर",
+    "route": "advanced/Daemon"
+  },
+  {
+    "text": "Level",
+    "path": "उन्नत › कंसोल",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Auto-scroll",
+    "path": "उन्नत › कंसोल",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Driver not connected.",
+    "path": "उन्नत › कंसोल",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Copy",
+    "path": "उन्नत › कंसोल",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Clear",
+    "path": "उन्नत › कंसोल",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "No log messages yet.",
+    "path": "उन्नत › कंसोल",
+    "route": "advanced/Console"
+  },
+  {
+    "text": "Configurations folder",
+    "path": "उन्नत › कॉन्फ़िग",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Add tablet support",
+    "path": "उन्नत › कॉन्फ़िग",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "Check for more configs",
+    "path": "उन्नत › कॉन्फ़िग",
+    "route": "advanced/CustomTabletConfigs"
+  },
+  {
+    "text": "इंस्टॉल किए गए प्लगइन",
+    "path": "उन्नत › प्लगइन",
+    "route": "advanced/Plugins"
+  },
+  {
+    "text": "प्लगइन डायरेक्टरी उपलब्ध नहीं है (क्या ड्राइवर कनेक्ट है?)।",
+    "path": "उन्नत › प्लगइन",
+    "route": "advanced/Plugins"
+  },
+  {
+    "text": "सभी बटन",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "बंद",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "चालू",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "डिफ़ॉल्ट",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "बटन 1",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "बटन 2",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "बटन 3",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Space",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "बटन 4",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Control",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "बटन 5",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Shift",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "बटन 6",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Alt",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "बटन 7",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "बटन 8",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "ExpressKeys के बारे में",
+    "path": "टैबलेट › फ़ंक्शन › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
+    "text": "Touch Ring",
+    "path": "टैबलेट › फ़ंक्शन › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "बंद",
+    "path": "टैबलेट › फ़ंक्शन › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "चालू",
+    "path": "टैबलेट › फ़ंक्शन › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "रिंग को छुएँ",
+    "path": "टैबलेट › फ़ंक्शन › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "घड़ी की दिशा में",
+    "path": "टैबलेट › फ़ंक्शन › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "सेट नहीं है",
+    "path": "टैबलेट › फ़ंक्शन › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "चुनें कि यह क्या करे",
+    "path": "टैबलेट › फ़ंक्शन › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "घड़ी की उल्टी दिशा में",
+    "path": "टैबलेट › फ़ंक्शन › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "Touch Ring के बारे में",
+    "path": "टैबलेट › फ़ंक्शन › Touch Ring",
+    "route": "tablet/ToolFunctionsButton/WheelsTab"
+  },
+  {
+    "text": "झुकाव",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "झुकाव बंद करें",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "नोक का एहसास",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "इरेज़र का एहसास",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "नरम",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "सख़्त",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "कस्टमाइज़ करें",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "मौजूदा दबाव",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "क्लिक",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "पूरा",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "डबल क्लिक सुधार",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "बंद",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "डिफ़ॉल्ट",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "बड़ा",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "मैनुअल दबाव",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "जाँचने के लिए कोई बटन दबाएँ",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "इरेज़र",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "नोक",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "डिफ़ॉल्ट (मिटाएँ)",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "बटन 2",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Adaptive Binding (Button 1) में बदला गया",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ठीक करें",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "बटन 1",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "डिफ़ॉल्ट सेटिंग",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "कीबोर्ड सेटिंग्स",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "मूवमेंट",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "पोज़िशन स्मूदिंग",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "तेज़ कर्व ज़्यादा स्मूद",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "पेन इनपुट",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "पेन की नोक बंद करें",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "दबाव संवेदनशीलता बंद करें",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "कोई भी पेन बटन रेडियल मेन्यू नहीं खोलता",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "पेन बटन 2 इस्तेमाल करें",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "रेडियल मेन्यू की पारदर्शिता",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "रेडियल मेन्यू का आकार",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "रंग पैलेट का आकार",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "कोई भी पेन बटन रंग पैलेट नहीं खोलता",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "नोक के एहसास का विवरण",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Soft",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Hard",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Softness",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Pressure smoothing",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "raw —",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with raw pressure",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Draw with processed pressure",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Clear",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "Copy",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab/FeelDetails"
+  },
+  {
+    "text": "इरेज़र इनपुट",
+    "path": "टैबलेट › पेन › पेन › इरेज़र का एहसास",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "इरेज़र बंद करें",
+    "path": "टैबलेट › पेन › पेन › इरेज़र का एहसास",
+    "route": "tablet/ToolPenButton/EraserTab"
+  },
+  {
+    "text": "इरेज़र के एहसास का विवरण",
+    "path": "टैबलेट › पेन › पेन › इरेज़र का एहसास",
+    "route": "tablet/ToolPenButton/EraserTab/FeelDetails"
+  },
+  {
+    "text": "फ़्लोटिंग कीबोर्ड",
+    "path": "टैबलेट › पेन › कीबोर्ड",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "पेन बटन 1 दबाए रखने पर",
+    "path": "टैबलेट › पेन › कीबोर्ड",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "रेडियल मेन्यू स्लाइस",
+    "path": "टैबलेट › पेन › कीबोर्ड",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "कीबोर्ड का आकार",
+    "path": "टैबलेट › पेन › कीबोर्ड",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "कीबोर्ड की पारदर्शिता",
+    "path": "टैबलेट › पेन › कीबोर्ड",
+    "route": "tablet/ToolPenButton/KeyboardTab"
+  },
+  {
+    "text": "आकार",
+    "path": "टैबलेट › पेन › मैपिंग",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "घुमाव",
+    "path": "टैबलेट › पेन › मैपिंग",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "टैबलेट",
+    "path": "टैबलेट › पेन › मैपिंग",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "सक्रिय क्षेत्र",
+    "path": "टैबलेट › पेन › मैपिंग",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "क्षेत्र",
+    "path": "टैबलेट › पेन › मैपिंग",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "माप",
+    "path": "टैबलेट › पेन › मैपिंग",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "विकर्ण",
+    "path": "टैबलेट › पेन › मैपिंग",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "आस्पेक्ट रेशियो",
+    "path": "टैबलेट › पेन › मैपिंग",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "डिस्प्ले सेटिंग्स",
+    "path": "टैबलेट › पेन › मैपिंग",
+    "route": "tablet/ToolPenButton/MappingTab"
+  },
+  {
+    "text": "मॉडल",
+    "path": "टैबलेट › अन्य › जानकारी",
+    "route": "tablet/ToolMoreButton/AboutTab"
+  },
+  {
+    "text": "This tablet",
+    "path": "टैबलेट › अन्य › कैलिब्रेशन",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Not calibrated",
+    "path": "टैबलेट › अन्य › कैलिब्रेशन",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "The calibration screen opens on your tablet's mapped display",
+    "path": "टैबलेट › अन्य › कैलिब्रेशन",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Calibrate · 4 points",
+    "path": "टैबलेट › अन्य › कैलिब्रेशन",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "About calibration",
+    "path": "टैबलेट › अन्य › कैलिब्रेशन",
+    "route": "tablet/ToolMoreButton/CalibrationTab"
+  },
+  {
+    "text": "Hover limit",
+    "path": "टैबलेट › अन्य › होवर",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Off",
+    "path": "टैबलेट › अन्य › होवर",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "On",
+    "path": "टैबलेट › अन्य › होवर",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Max hover",
+    "path": "टैबलेट › अन्य › होवर",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "Near proximity only",
+    "path": "टैबलेट › अन्य › होवर",
+    "route": "tablet/ToolMoreButton/HoverTab"
+  },
+  {
+    "text": "No filters configured",
+    "path": "टैबलेट › अन्य › फ़िल्टर",
+    "route": "tablet/ToolMoreButton/FiltersTab"
+  }
+]

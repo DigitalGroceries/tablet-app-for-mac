@@ -101,8 +101,12 @@ public sealed class RingModeHud : IDisposable
 
     // Build H: shown for 2.5 s, then faded out over 0.3 s. Content opacity 0.4 ("60% transparent": the dark
     // panel and its text are both drawn at 40%).
-    private const double ContentOpacity = 0.4;
-    private static readonly TimeSpan ShowFor = TimeSpan.FromMilliseconds(2500);
+    // V30 build 3 (Zak 24 Nov, ZAK-LISTS L6.4, on the 'Saved' overlay: "I barely notice and read it as its also very fast";
+    // "Make all see through 5% more opaque"): every popup is drawn at 45%, and a confirmation stays 4.5 s. The touch ring
+    // popup keeps 2.5 s (it answers a turn of the ring the user is looking at).
+    internal const double ContentOpacity = 0.45;
+    internal static readonly TimeSpan ShowFor = TimeSpan.FromMilliseconds(2500);
+    internal static readonly TimeSpan ConfirmationShowFor = TimeSpan.FromMilliseconds(4500);
     private const int FadeSteps = 10;
     private static readonly TimeSpan FadeStep = TimeSpan.FromMilliseconds(30);
     private Border? _panel;
@@ -137,6 +141,9 @@ public sealed class RingModeHud : IDisposable
     /// the bounds (global points) of this app's own window that a confirmation belongs to: the active one (a dialog such
     /// as the radial menu editor) or else the visible, not minimised main window. Wired by App; null when none is up.</summary>
     public static Func<Rect?>? OwnWindowBounds { get; set; }
+
+    /// <summary>How long the last popup stays before it fades (tests only).</summary>
+    internal TimeSpan LastShownFor { get; private set; }
 
     /// <summary>The popup window once it exists (tests only: screenshots).</summary>
     internal Window? PopupWindow => _window;
@@ -173,6 +180,8 @@ public sealed class RingModeHud : IDisposable
             if (!_window.IsVisible) _window.Show();
             SetUpNativeWindow();
             _hideTimer!.Stop();
+            _hideTimer.Interval = header == RingHeader ? ShowFor : ConfirmationShowFor;
+            LastShownFor = _hideTimer.Interval;
             _hideTimer.Start();
             AppLog.Info($"{(header == RingHeader ? "Ring mode popup" : "Confirmation popup")}: \"{name}\" ({mode}/{count}) on {where}, {w:0}x{h:0} pt at {_window.Position.X},{_window.Position.Y}.");
         }

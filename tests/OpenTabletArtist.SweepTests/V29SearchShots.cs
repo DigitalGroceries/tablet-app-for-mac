@@ -63,6 +63,8 @@ public class V29SearchShots
     [InlineData("it")]
     [InlineData("sv")]
     [InlineData("pt-BR")]
+    [InlineData("hi")]      // Version 30
+    [InlineData("sw")]
     public void New_language_pages(string lang)
     {
         Localizer.SetPreference(lang);

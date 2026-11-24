@@ -4,6 +4,7 @@ using OpenTabletDriver.Desktop;
 using OpenTabletDriver.Desktop.Interop.Input;
 using OpenTabletDriver.Desktop.Profiles;
 using OtdInterop;
+using OpenTabletArtist.Domain;
 
 namespace OpenTabletArtist.Services;
 
@@ -47,6 +48,7 @@ public static class FactorySettingsMerge
             ApplyFactoryRingModes(profile);
             ApplyFactoryTipFeel(profile);
             ApplyFactoryHoldKeyboard(profile);
+            ApplyFactoryExpressKeys(profile);
         }
 
         SyncAllStashes(merged);
@@ -109,6 +111,32 @@ public static class FactorySettingsMerge
         var buttons = profile.BindingSettings?.PenButtons;
         if (buttons == null || buttons.Count < 1) return false;
         buttons[0] = Domain.HoldKeyboardBinding.Make();
+        return true;
+    }
+
+    /// <summary>V30 build 3 (ZAK-LISTS L6.8; Zak 24 Nov: "When the app is restored to factory settings the ExpressKeys are not setup
+    /// as they dont have factory settings setup. They should be setup after factory restore." His factory set, ~11:35: "1. Undo
+    /// (Command+Z) 2. Redo (Command+Shift+Z) 3. Brush (B} 4. Eye dropper tool 5. Move tool (V) 6. Pan /hand tool (Space)").
+    /// The eye dropper is I (Photoshop's key; he gave none); Space is held for as long as the ExpressKey is held (a key binding
+    /// presses on key down and lets go on key up), so it pans like Photoshop's hand tool.</summary>
+    public static readonly AuxCombo[] FactoryExpressKeys =
+    {
+        new(false, false, false, "Z", Cmd: true),   // 1 Undo
+        new(false, true, false, "Z", Cmd: true),    // 2 Redo
+        new(false, false, false, "B"),              // 3 Brush
+        new(false, false, false, "I"),              // 4 Eye dropper
+        new(false, false, false, "V"),              // 5 Move
+        new(false, false, false, "Space"),          // 6 Pan / hand (held)
+    };
+
+    /// <summary>After a factory restore the first ExpressKeys get <see cref="FactoryExpressKeys"/>; a tablet with fewer keys gets
+    /// them from the top, and keys after the sixth are left as the driver made them. Only the reset paths call this.</summary>
+    public static bool ApplyFactoryExpressKeys(Profile profile)
+    {
+        var aux = profile.BindingSettings?.AuxButtons;
+        if (aux == null || aux.Count == 0) return false;
+        for (int i = 0; i < Math.Min(aux.Count, FactoryExpressKeys.Length); i++)
+            aux[i] = AuxKeyBinding.MakeBinding(FactoryExpressKeys[i])!;
         return true;
     }
 

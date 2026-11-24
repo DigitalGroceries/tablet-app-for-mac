@@ -70,11 +70,12 @@ public class NotSetUpMarksTests
         var card = new TabletOverviewItemViewModel("T", true, "Detected", "CONNECTED", () => { }, () => Task.CompletedTask,
             keysNotSetUp: 2, openExpressKeys: () => opened++);
         Assert.True(card.HasKeysNotSetUp);
-        Assert.Equal("2 ExpressKeys not set up: choose what they do", card.KeysNotSetUpText);
+        Assert.Equal("2 ExpressKeys not set up: Choose what they do or restore to factory settings", card.KeysNotSetUpText);   // Zak 24 Nov (L6.1)
+        Assert.Equal("Forget this tablet", card.ForgetText);                                                                 // L6.2
         card.OpenExpressKeysCommand.Execute(null);
         Assert.Equal(1, opened);
         var one = new TabletOverviewItemViewModel("T", true, "Detected", null, () => { }, () => Task.CompletedTask, keysNotSetUp: 1);
-        Assert.Equal("1 ExpressKey not set up: choose what it does", one.KeysNotSetUpText);
+        Assert.Equal("1 ExpressKey not set up: Choose what it does or restore to factory settings", one.KeysNotSetUpText);
         var none = new TabletOverviewItemViewModel("T", true, "Detected", null, () => { }, () => Task.CompletedTask);
         Assert.False(none.HasKeysNotSetUp);
         Assert.Equal(0, MainViewModel.KeysNotSetUp(SettingsFor("TestTablet-NotSetUp-" + Guid.NewGuid().ToString("N")[..8], "A", "B").Profiles[0]));

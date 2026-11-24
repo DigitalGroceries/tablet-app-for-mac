@@ -97,38 +97,13 @@
                                         <TextBlock x:Name="KeysNotSetUpText" Text="{Binding KeysNotSetUpText}" FontSize="22" FontWeight="SemiBold"
                                                    TextWrapping="Wrap" Foreground="{DynamicResource CallToActionTextBrush}" />
                                     </Button>
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                                            VerticalAlignment="Center">
-                                    <!-- The row's actions behind one "…", as on the preset rows and the
-                                         daemon, VMulti and plugin cards (#row-actions). This was a lone
-                                         trash glyph, which made the only visible thing you could do to a
-                                         tablet the destructive one — and left opening its settings
-                                         discoverable solely by double-clicking the row, or by reading the
-                                         tooltip that says so.
-
-                                         Forget removes a remembered tablet, or resets a connected one to
-                                         defaults; the confirm dialog says which (#575). It keeps the error
-                                         color but as a NAMED item rather than a glyph you must hover to
-                                         identify.
-
-                                         Command bindings, not Click handlers: both commands are on the
-                                         row's own DataContext, which a flyout inherits — unlike the preset
-                                         rows, whose commands live on an ancestor a popup cannot walk to. -->
-                                    <c:IconButton Icon="{StaticResource IconDotsHorizontal}" Width="40" Height="40"
-                                                  ToolTip.Tip="More actions for this tablet"
-                                                  AutomationProperties.Name="More actions">
-                                        <c:IconButton.Flyout>
-                                            <MenuFlyout>
-                                                <MenuItem Header="Open tablet settings"
-                                                          Command="{Binding OpenCommand}" />
-                                                <Separator />
-                                                <MenuItem Header="Forget this tablet"
-                                                          Command="{Binding ForgetCommand}"
-                                                          Foreground="{DynamicResource ErrorBrush}" />
-                                            </MenuFlyout>
-                                        </c:IconButton.Flyout>
-                                    </c:IconButton>
+                                    <!-- V30 build 3 (Zak 24 Nov, ZAK-LISTS L6.2): the ••• menu beside the card sat over the big button. Its
+                                         only other item, Open tablet settings, is the Tablet tab; Forget this tablet stays here as its own
+                                         smaller, quieter red button under the big one, and still asks first (#575). -->
+                                    <Button x:Name="ForgetTabletButton" Theme="{StaticResource GhostButton}" Classes="dangerText"
+                                            Command="{Binding ForgetCommand}" Content="{Binding ForgetText}"
+                                            AutomationProperties.Name="{Binding ForgetText}"
+                                            HorizontalAlignment="Left" Margin="0,10,0,0" Padding="14,6" />
                                 </StackPanel>
                             </Grid>
                         </c:Entity>

@@ -11,7 +11,7 @@ namespace OpenTabletArtist.Services;
 
 /// <summary>Version 8: GUI string tables (JSON per language). British English is the source of truth;
 /// missing keys fall back to English. Preference key <see cref="PreferenceKey"/> stores "system" or a
-/// language code (en, es, de, fr, bg, ru, ja, zh-CN; from Version 29 also it, sv, pt-BR).</summary>
+/// language code (en, es, de, fr, bg, ru, ja, zh-CN; from Version 29 also it, sv, pt-BR; from Version 30 hi, sw).</summary>
 public static class Localizer
 {
     public const string PreferenceKey = "ui.language";
@@ -33,11 +33,14 @@ public static class Localizer
         ("it", "Italiano"),
         ("sv", "Svenska"),
         ("pt-BR", "Português (Brasil)"),
+        // Version 30 (Zak 24 Nov 2026): Hindi ("Indian") and Swahili, the most widely spoken African language.
+        ("hi", "हिन्दी"),
+        ("sw", "Kiswahili"),
     };
 
     static readonly HashSet<string> Supported = new(StringComparer.OrdinalIgnoreCase)
     {
-        "en", "es", "de", "fr", "bg", "ru", "ja", "zh-CN", "it", "sv", "pt-BR",
+        "en", "es", "de", "fr", "bg", "ru", "ja", "zh-CN", "it", "sv", "pt-BR", "hi", "sw",
     };
 
     static Dictionary<string, string> _en = new(StringComparer.Ordinal);
