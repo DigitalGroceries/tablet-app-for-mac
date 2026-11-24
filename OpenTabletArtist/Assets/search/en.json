@@ -835,12 +835,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "No pen button opens the radial menu",
+    "text": "Radial menu",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Use pen button 2",
+    "text": "On",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "No pen button opens the radial menu",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -851,6 +856,11 @@
   },
   {
     "text": "Radial Menu Size",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Colour palette",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },

@@ -835,12 +835,22 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Nessun pulsante della penna apre il menu radiale",
+    "text": "Menu radiale",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Usa il pulsante 2 della penna",
+    "text": "No",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Sì",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Nessun pulsante della penna apre il menu radiale",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -851,6 +861,11 @@
   },
   {
     "text": "Dimensioni menu radiale",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Tavolozza colori",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

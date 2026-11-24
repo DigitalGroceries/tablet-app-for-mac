@@ -18,6 +18,8 @@ public static class RadialMenuBinding
     public const string BindingTypeName = "OpenTabletArtist.Dynamics.RadialMenuBinding";
     public const string FilterTypeName = "OpenTabletArtist.Dynamics.RadialMenuFilter";
     public const string MenuProperty = "Menu";
+    /// <summary>V30 build 4: the plugin's NoPalette (pressing the button twice does not open the colour palette).</summary>
+    public const string NoPaletteProperty = "NoPalette";
 
     public static bool Is(PluginSettingStore? store) => store?.Path == BindingTypeName;
 
@@ -33,6 +35,18 @@ public static class RadialMenuBinding
     /// <summary>The menu in a radial-menu binding (the default menu when it has none or it can't be read).</summary>
     public static RadialMenuDef ReadMenu(PluginSettingStore? store) =>
         RadialMenuJson.Parse(ReadMenuJson(store));
+
+    /// <summary>V30 build 4: does pressing this radial-menu button twice open the colour palette? (Yes unless NoPalette is set.)</summary>
+    public static bool OpensPalette(PluginSettingStore? store) =>
+        Is(store) && !(store!.Settings?.FirstOrDefault(s => s.Property == NoPaletteProperty)?.GetValue<bool>() ?? false);
+
+    /// <summary>A copy of a radial-menu binding with the palette on or off (the menu kept).</summary>
+    public static PluginSettingStore WithPalette(PluginSettingStore store, bool palette)
+    {
+        var copy = Make(ReadMenuJson(store));
+        if (!palette) copy.Settings.Add(new PluginSetting(NoPaletteProperty, true));
+        return copy;
+    }
 
     public static string? ReadMenuJson(PluginSettingStore? store) =>
         Is(store) ? store!.Settings?.FirstOrDefault(s => s.Property == MenuProperty)?.GetValue<string>() : null;

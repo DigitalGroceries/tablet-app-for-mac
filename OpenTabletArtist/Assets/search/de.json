@@ -835,12 +835,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Keine Stift-Taste öffnet das Radialmenü",
+    "text": "Radialmenü",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Stift-Taste 2 verwenden",
+    "text": "Ein",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Keine Stift-Taste öffnet das Radialmenü",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -851,6 +856,11 @@
   },
   {
     "text": "Größe des Radialmenüs",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Farbpalette",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },

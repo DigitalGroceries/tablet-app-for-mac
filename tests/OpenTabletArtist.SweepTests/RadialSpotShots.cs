@@ -43,8 +43,7 @@ public class RadialSpotShots
         Settle(window);
         // the page scrolls in a short window: scroll the picture (and its line / button) into view
         var spot = view.FindControl<StackPanel>("RadialSpot")!;
-        var use = view.FindControl<Button>("RadialUseButton")!;
-        (use.IsEffectivelyVisible ? (Control)use : view.FindControl<TextBlock>("RadialSpotLine")!).BringIntoView();
+        view.FindControl<TextBlock>("RadialSpotLine")!.BringIntoView();   // V30 build 4: no "Use pen button 2" button any more
         Settle(window);
         spot.BringIntoView();   // V29 #180: no heading above the picture any more (Zak's mockup)
         Settle(window);

@@ -835,12 +835,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Ingen pennknapp öppnar radialmenyn",
+    "text": "Radialmeny",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Använd pennknapp 2",
+    "text": "På",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ingen pennknapp öppnar radialmenyn",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -851,6 +856,11 @@
   },
   {
     "text": "Radialmenyns storlek",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Färgpalett",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

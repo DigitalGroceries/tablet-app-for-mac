@@ -835,12 +835,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "कोई भी पेन बटन रेडियल मेन्यू नहीं खोलता",
+    "text": "रेडियल मेन्यू",
     "path": "टैबलेट › पेन › पेन",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "पेन बटन 2 इस्तेमाल करें",
+    "text": "चालू",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "कोई भी पेन बटन रेडियल मेन्यू नहीं खोलता",
     "path": "टैबलेट › पेन › पेन",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -851,6 +856,11 @@
   },
   {
     "text": "रेडियल मेन्यू का आकार",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "रंग पैलेट",
     "path": "टैबलेट › पेन › पेन",
     "route": "tablet/ToolPenButton/PenTab"
   },

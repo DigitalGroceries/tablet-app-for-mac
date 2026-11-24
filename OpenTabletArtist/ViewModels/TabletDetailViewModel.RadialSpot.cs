@@ -17,24 +17,20 @@ public partial class TabletDetailViewModel
     // The radial menu's picture sits in the middle of the Pen page (between the pen drawing and the Button cards) and opens the
     // radial menu editor for the selected table (All, or one application, or the selected pen) when it is clicked. The editor is the
     // one of Button › Change… › Radial menu (RadialMenuEditorDialog); the new menu goes in through ReplaceRadialMenuAsync, the same
-    // path as the radial menu's own pencil. With no pen button on the radial menu the picture is dimmed and offers "Use pen button 2".
+    // path as the radial menu's own pencil. V30 build 4 (Zak 24 Nov: "They should never be grayed out"): with no pen button on the
+    // radial menu the picture stays at full strength; its Off / On switch (TabletDetailViewModel.MenuSwitches.cs) says so.
 
     [ObservableProperty] private RadialMenuEditorViewModel? _radialPreview;
     [ObservableProperty] private string _radialSpotHeading = "";
     [ObservableProperty] private string _radialSpotLine = "";
-    [ObservableProperty] private string _radialUseButtonLabel = "";
     [ObservableProperty] private bool _hasRadialOpener;
-    [ObservableProperty] private bool _canUseRadialButton;
-
-    /// <summary>1 normally; the picture is dimmed while no pen button opens the radial menu.</summary>
-    public double RadialSpotOpacity => HasRadialOpener ? 1.0 : 0.35;
 
     /// <summary>True when no pen button of this table opens the radial menu.</summary>
     public bool NoRadialOpener => !HasRadialOpener;
     /// <summary>The picture opens the editor only when the page can write settings (a driver connection).</summary>
     public bool CanEditRadial => HasRadialOpener && _applyAction != null;
 
-    partial void OnHasRadialOpenerChanged(bool value) { OnPropertyChanged(nameof(NoRadialOpener)); OnPropertyChanged(nameof(RadialSpotOpacity)); OnPropertyChanged(nameof(CanEditRadial)); }
+    partial void OnHasRadialOpenerChanged(bool value) { OnPropertyChanged(nameof(NoRadialOpener)); OnPropertyChanged(nameof(CanEditRadial)); }
 
     private string? _radialOpenerJson;
 
@@ -53,8 +49,9 @@ public partial class TabletDetailViewModel
     public const double RadialSpotAreaSize = RadialPictureMax;
     [ObservableProperty] private double _radialPictureSize = RadialPictureMax;
 
-    /// <summary>The sliders only work when a pen button opens the menu and the page can write settings.</summary>
-    public bool CanEditRadialSliders => CanEditRadial;
+    /// <summary>The sliders work whenever the page can write settings (V30 build 4: never greyed out). With no pen button on the
+    /// menu a slider change stays in the picture and goes into the menu when its switch is turned on.</summary>
+    public bool CanEditRadialSliders => _applyAction != null;
 
     /// <summary>V29 #141: the floating keyboard's transparency and (#162) size: app-wide settings, in the Pen page's Floating keyboard
     /// section (#163).</summary>
@@ -293,12 +290,6 @@ public partial class TabletDetailViewModel
         }
     }
 
-    private static string FormatNumbered(string key, string english, int n) =>
-        Localizer.Te(key, english).Replace("{number}", n.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal);
-
-    /// <summary>The pen button "Use pen button N" would take: the second when the pen has two, else the first (0 = no buttons).</summary>
-    private int RadialUseButtonNumber() { int c = WorkingBindings().PenButtons?.Count ?? 0; return c >= 2 ? 2 : c; }
-
     /// <summary>Rebuild the picture, its line and the button from the selected table. Never throws; a failure is logged.</summary>
     internal void RefreshRadialSpot()
     {
@@ -306,21 +297,24 @@ public partial class TabletDetailViewModel
         {
             var bindings = WorkingBindings();
             var openers = new List<(int number, string json)>();
+            var paletteOpeners = new List<int>();
             for (int i = 0; i < (bindings.PenButtons?.Count ?? 0); i++)
                 if (RadialMenuBinding.Is(bindings.PenButtons![i]))
+                {
                     openers.Add((i + 1, RadialMenuBinding.ReadMenuJson(bindings.PenButtons[i]) ?? ""));
+                    if (RadialMenuBinding.OpensPalette(bindings.PenButtons[i])) paletteOpeners.Add(i + 1);
+                }
+            SyncMenuSwitches(bindings);   // V30 build 4
 
             RadialSpotHeading = Localizer.Te("radial_spot.heading", "Radial Menu Settings");
             HasRadialOpener = openers.Count > 0;
-            int use = RadialUseButtonNumber();
-            CanUseRadialButton = openers.Count == 0 && use > 0 && _applyAction != null;
-            RadialUseButtonLabel = use > 0 ? FormatNumbered("radial_spot.use_button", "Use pen button {number}", use) : "";
             OnPropertyChanged(nameof(CanEditRadial));
             // V29 #180 (Zak 21 Nov ~12:13: "You can replace the 'By default' text with what opens the menu if the user has chosen
             // something different. By default will stay if the user havent chosen a custom action."): the factory set-up is the
             // radial menu on pen button 2 alone; the colour palette opens with that same button pressed twice.
-            bool factory = openers.Count == 1 && openers[0].number == 2;
+            bool factory = openers.Count == 1 && openers[0].number == 2 && paletteOpeners.Count == 1;
             var numbers = string.Join(", ", openers.Select(o => o.number.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            var paletteNumbers = string.Join(", ", paletteOpeners.Select(n => n.ToString(System.Globalization.CultureInfo.InvariantCulture)));
             if (openers.Count > 0)
             {
                 _radialOpenerJson = openers[0].json;
@@ -329,7 +323,9 @@ public partial class TabletDetailViewModel
                     : Localizer.Te("radial_spot.opens_line", "Radial Menu opens with Pen Button {number}").Replace("{number}", numbers, StringComparison.Ordinal);
                 PaletteSpotLine = factory
                     ? Localizer.Te("palette_spot.default_line", "By default Colour Palette opens with Pen button 2 double click")
-                    : Localizer.Te("palette_spot.opens_line", "Colour Palette opens with Pen button {number} double click").Replace("{number}", numbers, StringComparison.Ordinal);
+                    : paletteOpeners.Count == 0
+                        ? Localizer.Te("palette_spot.none", "No pen button opens the colour palette")
+                        : Localizer.Te("palette_spot.opens_line", "Colour Palette opens with Pen button {number} double click").Replace("{number}", paletteNumbers, StringComparison.Ordinal);
             }
             else
             {
@@ -393,21 +389,4 @@ public partial class TabletDetailViewModel
         }
     }
 
-    /// <summary>"Use pen button 2": that pen button opens the radial menu (the default menu), like Change… › Radial menu.</summary>
-    [RelayCommand]
-    private async Task UseRadialButtonAsync()
-    {
-        try
-        {
-            int use = RadialUseButtonNumber();
-            if (use <= 0) { AppLog.Warn("Radial menu settings: this pen has no buttons to open the radial menu."); return; }
-            AppLog.Info($"Radial menu settings: pen button {use} set to open the radial menu.");
-            await ApplyPenSwitchBindingAsync(PenSwitchKind.PenButton, use, RadialMenuBinding.Make());
-            RefreshRadialSpot();
-        }
-        catch (Exception ex)
-        {
-            AppLog.Warn("Radial menu settings: could not set a pen button to open the radial menu.", ex);
-        }
-    }
 }

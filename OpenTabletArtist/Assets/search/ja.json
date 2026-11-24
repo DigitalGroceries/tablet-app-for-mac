@@ -910,12 +910,17 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "ラジアルメニューを開くペンボタンはありません",
+    "text": "ラジアルメニュー",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "ペンボタン 2 を使う",
+    "text": "オン",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "ラジアルメニューを開くペンボタンはありません",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -926,6 +931,11 @@
   },
   {
     "text": "ラジアルメニューのサイズ",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "カラーパレット",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },

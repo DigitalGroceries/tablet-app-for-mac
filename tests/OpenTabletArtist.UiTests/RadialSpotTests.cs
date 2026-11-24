@@ -25,7 +25,7 @@ using Xunit;
 namespace OpenTabletArtist.UiTests;
 
 /// <summary>TASKS #63 (Zak 20:53 / 21:00 / 21:02): Tablet › Pen › "Radial Menu Settings": the radial menu's picture on the right (label above it,
-/// nothing else above), the line + "Use pen button 2" and the Menu transparency / Menu size sliders below it; the pen buttons in the middle next to
+/// nothing else above), the line (V30 build 4: an Off / On switch above the corner instead of "Use pen button 2") and the Menu transparency / Menu size sliders below it; the pen buttons in the middle next to
 /// the pen drawing. Clicking the picture opens the radial menu editor; the sliders change the picture live and are kept by Save.</summary>
 public class RadialSpotTests
 {
@@ -118,49 +118,111 @@ public class RadialSpotTests
             Assert.True(In(line, view).Bottom <= In(sliders, view).Top + 0.5);          // the line, then the sliders, below the picture
             Assert.Null(view.FindControl<RadioButton>("RadialTab"));                    // no tab of its own
             Assert.Equal("By default Radial Menu opens with Pen Button 2", line.Text);   // V29 #180 (Zak 21 Nov)
-            Assert.False(Find<Button>(view, "RadialUseButton").IsEffectivelyVisible);
+            Assert.Null(view.FindControl<Button>("RadialUseButton"));   // V30 build 4: the switch does its job
             Assert.Equal(1.0, Find<Button>(view, "RadialSpotButton").Opacity);
             Assert.True(sliders.IsEnabled);
+            // V30 build 4 (Zak 24 Nov ~15:44-15:50): "Radial menu  Off (switch) On", outside, next to the square's top right corner.
+            var sw = Find<ToggleSwitch>(view, "RadialSwitch");
+            Assert.True(sw.IsChecked);
+            Assert.True(sw.IsEnabled);
+            var row = In(Find<StackPanel>(view, "RadialSwitchRow"), view); var square = In(Find<Grid>(view, "RadialSpotArea"), view);
+            Assert.True(row.Bottom <= square.Top + 0.5, $"switch row {row} is above the square {square}");
+            Assert.True(Math.Abs(row.Right - square.Right) < 2, $"switch row {row} ends at the square's right edge {square}");
+            Assert.Equal("Radial menu", Find<TextBlock>(view, "RadialSwitchLabel").Text);
+            Assert.True(Find<ToggleSwitch>(view, "PaletteSwitch").IsChecked);   // the factory menu opens the palette on a double press
         }
         finally { window.Close(); }
     }
 
+    /// <summary>V30 build 4 (Zak 24 Nov ~15:44: "They should never be grayed out. Use different way to show that they are not setup. Add a
+    /// label next to then, a swithch with On on one side and Off on the other. When the user turns the switch on the app should ask them
+    /// what buttons should open this menu."): nothing opens the radial menu - full strength, switch Off; On asks, Off gives the button back.</summary>
     [AvaloniaFact]
-    public async Task NothingOnTheRadialMenu_PictureDimmed_LineBelow_AndUsePenButton2Sets()
+    public async Task NothingOnTheRadialMenu_FullStrength_SwitchOff_OnAsksWhichButton_OffGivesItBack()
     {
         var profile = NewProfile(Name(), new PluginSettingStore?[] { null, AuxKeyBinding.MakeKeyBinding("E") });
         var (vm, view, window, _) = Open(profile);
         try
         {
             Assert.True(Find<StackPanel>(view, "RadialSpot").IsEffectivelyVisible);   // still shown
-            Assert.True(Find<Button>(view, "RadialSpotButton").Opacity < 0.6);        // dimmed
-            Assert.False(Find<Button>(view, "RadialSpotButton").IsEnabled);
-            Assert.Equal("No pen button opens the radial menu", Find<TextBlock>(view, "RadialSpotLine").Text);
-            Assert.False(Find<StackPanel>(view, "RadialSliders").IsEnabled);
-            var use = Find<Button>(view, "RadialUseButton");
-            Assert.True(use.IsEffectivelyVisible);
-            Assert.Equal("Use pen button 2", use.Content);
-            Assert.True(In(Find<Button>(view, "RadialSpotButton"), view).Bottom <= In(Find<TextBlock>(view, "RadialSpotLine"), view).Top + 0.5);
-
-            Assert.True(use.Command!.CanExecute(null));
-            use.Command.Execute(null);                  // what a click on the button runs
-            await Pump(100); Settle(window);
-
-            Assert.True(RadialMenuBinding.Is(profile.BindingSettings.PenButtons[1]));
-            Assert.Equal("By default Radial Menu opens with Pen Button 2", Find<TextBlock>(view, "RadialSpotLine").Text);
-            Assert.False(use.IsEffectivelyVisible);
-            Assert.Equal(1.0, Find<Button>(view, "RadialSpotButton").Opacity);
-            Assert.True(Find<Button>(view, "RadialSpotButton").IsEnabled);
+            Assert.Equal(1.0, Find<Button>(view, "RadialSpotButton").Opacity);        // never dimmed
+            Assert.Equal(1.0, Find<StackPanel>(view, "RadialSliders").Opacity);
             Assert.True(Find<StackPanel>(view, "RadialSliders").IsEnabled);
+            Assert.Equal(1.0, Find<StackPanel>(view, "PaletteSliders").Opacity);
+            Assert.Equal("No pen button opens the radial menu", Find<TextBlock>(view, "RadialSpotLine").Text);
+            Assert.Equal("No pen button opens the colour palette", Find<TextBlock>(view, "PaletteSpotLine").Text);
+            Assert.Null(view.FindControl<Button>("RadialUseButton"));
+            var sw = Find<ToggleSwitch>(view, "RadialSwitch");
+            Assert.False(sw.IsChecked);
+            Assert.False(Find<ToggleSwitch>(view, "PaletteSwitch").IsChecked);
+
+            // On: the page asks which pen button (Cancel leaves it off)
+            IReadOnlyList<string>? asked = null; string? title = null; int? answer = null;
+            vm.ChooseMenuButton = (t, _, c) => { title = t; asked = c; return Task.FromResult(answer); };
+            sw.IsChecked = true; await Pump(100); Settle(window);
+            Assert.Equal("Which pen button opens the radial menu?", title);
+            Assert.Equal(new[] { "Pen button 1", "Pen button 2" }, asked);
+            Assert.False(sw.IsChecked);                                         // cancelled: off again
+            Assert.True(AuxKeyBinding.ReadBinding(profile.BindingSettings.PenButtons[1]) is { IsBound: true });
+
+            answer = 1;                                                         // Pen button 2
+            sw.IsChecked = true; await Pump(100); Settle(window);
+            Assert.True(RadialMenuBinding.Is(profile.BindingSettings.PenButtons[1]));
+            Assert.True(sw.IsChecked);
+            Assert.Equal("By default Radial Menu opens with Pen Button 2", Find<TextBlock>(view, "RadialSpotLine").Text);
+            Assert.True(Find<Button>(view, "RadialSpotButton").IsEnabled);
+
+            // Off: pen button 2 does what it did before (E), not the radial menu
+            sw.IsChecked = false; await Pump(100); Settle(window);
+            Assert.False(RadialMenuBinding.Is(profile.BindingSettings.PenButtons[1]));
+            Assert.Equal(AuxKeyBinding.ReadBinding(AuxKeyBinding.MakeKeyBinding("E")), AuxKeyBinding.ReadBinding(profile.BindingSettings.PenButtons[1]));
+            Assert.False(sw.IsChecked);
+            Assert.Equal("No pen button opens the radial menu", Find<TextBlock>(view, "RadialSpotLine").Text);
+        }
+        finally { window.Close(); }
+    }
+
+    /// <summary>V30 build 4: the colour palette's own switch. Off keeps the radial menu and stops the double press opening the palette; On asks
+    /// which pen button (pressed twice) and gives that button the palette back.</summary>
+    [AvaloniaFact]
+    public async Task ThePaletteSwitch_OffKeepsTheMenu_OnAsksAndPutsItBack()
+    {
+        var profile = NewProfile(Name(), new PluginSettingStore?[] { null, Radial("Undo") });
+        var (vm, view, window, _) = Open(profile);
+        try
+        {
+            var pal = Find<ToggleSwitch>(view, "PaletteSwitch");
+            Assert.True(pal.IsChecked);
+            Assert.Equal("By default Colour Palette opens with Pen button 2 double click", Find<TextBlock>(view, "PaletteSpotLine").Text);
+            pal.IsChecked = false; await Pump(100); Settle(window);
+            Assert.True(RadialMenuBinding.Is(profile.BindingSettings.PenButtons[1]));        // the radial menu stays
+            Assert.False(RadialMenuBinding.OpensPalette(profile.BindingSettings.PenButtons[1]));
+            Assert.Equal("Undo", RadialMenuBinding.ReadMenu(profile.BindingSettings.PenButtons[1]).Slices[0].Label);
+            Assert.True(Find<ToggleSwitch>(view, "RadialSwitch").IsChecked);
+            Assert.Equal("No pen button opens the colour palette", Find<TextBlock>(view, "PaletteSpotLine").Text);
+
+            IReadOnlyList<string>? asked = null;
+            vm.ChooseMenuButton = (_, _, c) => { asked = c; return Task.FromResult<int?>(1); };
+            pal.IsChecked = true; await Pump(100); Settle(window);
+            Assert.Equal(new[] { "Pen button 1, pressed twice", "Pen button 2, pressed twice" }, asked);
+            Assert.True(RadialMenuBinding.OpensPalette(profile.BindingSettings.PenButtons[1]));
+            Assert.Equal("Undo", RadialMenuBinding.ReadMenu(profile.BindingSettings.PenButtons[1]).Slices[0].Label);
+            Assert.True(pal.IsChecked);
         }
         finally { window.Close(); }
     }
 
     [AvaloniaFact]
-    public void APenWithOneButton_OffersButton1()
+    public async Task APenWithOneButton_IsOfferedButton1()
     {
-        var (_, view, window, _) = Open(NewProfile(Name(), new PluginSettingStore?[] { null }));
-        try { Assert.Equal("Use pen button 1", Find<Button>(view, "RadialUseButton").Content); }
+        var (vm, view, window, _) = Open(NewProfile(Name(), new PluginSettingStore?[] { null }));
+        try
+        {
+            IReadOnlyList<string>? asked = null;
+            vm.ChooseMenuButton = (_, _, c) => { asked = c; return Task.FromResult<int?>(null); };
+            Find<ToggleSwitch>(view, "RadialSwitch").IsChecked = true; await Pump(100);
+            Assert.Equal(new[] { "Pen button 1" }, asked);
+        }
         finally { window.Close(); }
     }
 
@@ -556,7 +618,7 @@ public class RadialSpotTests
             // inside the spot the parts do not overlap each other either
             var rects = new[] { "RadialSpotButton", "RadialSpotLine", "RadialSliders" }.Select(n => In(Find<Control>(view, n), page)).ToList();
             for (int i = 0; i < rects.Count - 1; i++) Assert.True(rects[i].Bottom <= rects[i + 1].Top + 0.5, $"spot part {i} overlaps part {i + 1}: {rects[i]} / {rects[i + 1]}");
-            if (!hasMenu) { var useRect = In(Find<Button>(view, "RadialUseButton"), page); Assert.True(useRect.Bottom <= In(Find<StackPanel>(view, "RadialSliders"), page).Top + 0.5); }
+            Assert.True(In(Find<StackPanel>(view, "RadialSwitchRow"), page).Bottom <= In(Find<Grid>(view, "RadialSpotArea"), page).Top + 0.5);   // V30 build 4
             // the picture is never bigger than the largest menu (320 pt + the window's 4)
             Assert.True(Find<RadialMenuPie>(view, "RadialSpotPie").Bounds.Width <= TabletDetailViewModel.RadialPictureMax + 0.5);
             Assert.True(Find<Viewbox>(view, "RadialSpotViewbox").Bounds.Width <= TabletDetailViewModel.RadialPictureMax + 0.5);

@@ -8,9 +8,10 @@
              xmlns:views="using:OpenTabletArtist.Views">
 
     <UserControl.Styles>
+        <!-- V30 build 4 (Zak 24 Nov: "All the text in the black frame is not readable" in the light look): theme colours. -->
         <Style Selector="Border.penBasicsInset">
-            <Setter Property="Background" Value="#262626" />
-            <Setter Property="BorderBrush" Value="#4A4A4A" />
+            <Setter Property="Background" Value="{DynamicResource PenBasicsInsetBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PenBasicsInsetBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="2" />
             <Setter Property="BoxShadow" Value="inset 0 0 10 0 #33000000" />
@@ -68,7 +69,9 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
+                    <!-- V30 build 4 (Zak 24 Nov: "Again 2 designs of buttons"): Bd.raisedTab, so on the Lightness steps it is drawn
+                         like every other tab (Themes/Styles.axaml). -->
+                    <Border x:Name="Bd" Classes="raisedTab" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
                             CornerRadius="4" Padding="10,3">
                         <ContentPresenter Content="{TemplateBinding Content}" FontSize="12" FontWeight="SemiBold"
                                           Foreground="{TemplateBinding Foreground}" />
@@ -1893,11 +1896,22 @@
                     <StackPanel x:Name="PenRightColumn" Grid.Column="2" Spacing="6" VerticalAlignment="Top" HorizontalAlignment="Left" MaxWidth="324">
                         <StackPanel x:Name="RadialSpot" Spacing="6">
                             <Viewbox x:Name="RadialSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center">
+                            <!-- V30 build 4 (Zak 24 Nov ~15:44-15:50): "a swithch with On on one side and Off on the other" beside a label, "in the
+                                 top right corner of the radial and palette menu ... Or outside next to that corner": just above the square's top
+                                 right corner, so it never covers the circle. Turning it on asks which pen button opens the menu. -->
+                            <StackPanel Width="324" Spacing="2">
+                            <StackPanel x:Name="RadialSwitchRow" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+                                <TextBlock x:Name="RadialSwitchLabel" Text="{Binding RadialSwitchLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBlock Text="{Binding MenuSwitchOffText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <ToggleSwitch x:Name="RadialSwitch" IsChecked="{Binding RadialSwitchOn, Mode=TwoWay}" IsEnabled="{Binding CanSwitchMenus}"
+                                              OnContent="" OffContent="" MinWidth="0" VerticalAlignment="Center"
+                                              AutomationProperties.Name="{Binding RadialSwitchLabel}" />
+                                <TextBlock Text="{Binding MenuSwitchOnText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                            </StackPanel>
                             <Grid x:Name="RadialSpotArea" Width="324" Height="324">
                                 <Button x:Name="RadialSpotButton" Classes="flat" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
                                         BorderThickness="0" Cursor="Hand" IsEnabled="{Binding CanEditRadial}" Click="OnRadialSpotClick"
-                                        AutomationProperties.Name="{Binding RadialSpotHeading}"
-                                        Opacity="{Binding RadialSpotOpacity}">
+                                        AutomationProperties.Name="{Binding RadialSpotHeading}">
                                     <Button.Styles>
                                         <Style Selector="Button#RadialSpotButton /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
                                         <Style Selector="Button#RadialSpotButton:disabled /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
@@ -1910,15 +1924,14 @@
                                     </Viewbox>
                                 </Button>
                             </Grid>
+                            </StackPanel>
                             </Viewbox>
                             <TextBlock x:Name="RadialCentreHint" Text="{Binding RadialPreview.CentreHint}" FontSize="12" TextWrapping="Wrap"
                                        TextAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
                                        IsVisible="{Binding RadialPreview.HasCentreHint}" />
                             <!-- Build 17 (Zak's list 1, item 8): starts exactly where "Radial Menu Size" starts. -->
                             <TextBlock x:Name="RadialSpotLine" Text="{Binding RadialSpotLine}" Classes="spotLine" HorizontalAlignment="Left" TextAlignment="Left" />
-                            <Button x:Name="RadialUseButton" Content="{Binding RadialUseButtonLabel}" Command="{Binding UseRadialButtonCommand}"
-                                    IsVisible="{Binding CanUseRadialButton}" HorizontalAlignment="Center" />
-                            <StackPanel x:Name="RadialSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}" Opacity="{Binding RadialSpotOpacity}">
+                            <StackPanel x:Name="RadialSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}">
                                 <TextBlock x:Name="RadialTransparencyTitle" Text="{Binding RadialTransparencyTitle}" Classes="spotTitle" />
                                 <Grid x:Name="RadialTransparencyRow" ColumnDefinitions="*,8,52,4,18">
                                     <!-- Build 17 (Zak's list 1, item 7): as long as the Radial Menu Size slider looks (its line ends at its
@@ -1947,11 +1960,21 @@
                         <!-- V29 #142, moved here from the old Eraser tab (V29 #180). -->
                         <StackPanel x:Name="PaletteSpot" Spacing="6" Margin="0,24,0,0"
                                     IsVisible="{Binding RadialPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
-                            <Viewbox x:Name="PaletteSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" MaxWidth="324" MaxHeight="324">
-                                <ctrl:ColourPaletteWheel x:Name="PaletteSpotWheel" Width="324" Height="324" MenuSize="{Binding RadialPreview.PaletteSize}" Menu="{Binding RadialPreview.PaletteMenu}"
-                                                         Opacity="{Binding RadialSpotOpacity}" />
+                            <Viewbox x:Name="PaletteSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" MaxWidth="324">
+                                <StackPanel Width="324" Spacing="2">
+                                    <!-- V30 build 4: the colour palette's own switch, as the radial menu's. -->
+                                    <StackPanel x:Name="PaletteSwitchRow" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+                                        <TextBlock x:Name="PaletteSwitchLabel" Text="{Binding PaletteSwitchLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                        <TextBlock Text="{Binding MenuSwitchOffText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <ToggleSwitch x:Name="PaletteSwitch" IsChecked="{Binding PaletteSwitchOn, Mode=TwoWay}" IsEnabled="{Binding CanSwitchMenus}"
+                                                      OnContent="" OffContent="" MinWidth="0" VerticalAlignment="Center"
+                                                      AutomationProperties.Name="{Binding PaletteSwitchLabel}" />
+                                        <TextBlock Text="{Binding MenuSwitchOnText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                    </StackPanel>
+                                    <ctrl:ColourPaletteWheel x:Name="PaletteSpotWheel" Width="324" Height="324" MenuSize="{Binding RadialPreview.PaletteSize}" Menu="{Binding RadialPreview.PaletteMenu}" />
+                                </StackPanel>
                             </Viewbox>
-                            <StackPanel x:Name="PaletteSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}" Opacity="{Binding RadialSpotOpacity}">
+                            <StackPanel x:Name="PaletteSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}">
                                 <TextBlock x:Name="PaletteSizeTitle" Text="{Binding PaletteSizeTitle}" Classes="spotTitle" />
                                 <Grid x:Name="PaletteSizeRow" ColumnDefinitions="*,8,52,4,18">
                                     <Slider x:Name="PaletteSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"

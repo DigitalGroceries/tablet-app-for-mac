@@ -905,12 +905,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "没有笔按键可以打开径向菜单",
+    "text": "径向菜单",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "使用笔按键 2",
+    "text": "没有笔按键可以打开径向菜单",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -921,6 +921,11 @@
   },
   {
     "text": "径向菜单大小",
+    "path": "数位板 › 笔 › 笔",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "调色板",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"
   },

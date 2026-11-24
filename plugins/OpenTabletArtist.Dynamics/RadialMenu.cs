@@ -35,6 +35,12 @@ public class RadialMenuBinding : IStateBinding
     [Property("Menu"), ToolTip("The menu, as JSON. Edit it in Tablet App for Mac.")]
     public string? Menu { set; get; }
 
+    /// <summary>V30 build 4 (Zak 24 Nov 2026: the colour palette gets its own Off / On switch on the Pen page): true = pressing this
+    /// button twice does not open the colour palette (two presses are two presses). False by default, so settings saved before
+    /// this keep the palette.</summary>
+    [Property("No colour palette"), ToolTip("Pressing this button twice does not open the colour palette.")]
+    public bool NoPalette { set; get; }
+
     [Resolved] public IVirtualKeyboard? Keyboard { set; get; }
     [Resolved] public IMouseButtonHandler? Pointer { set; get; }
 
@@ -258,7 +264,7 @@ public static class RadialMenuState
         {
             var now = Environment.TickCount64;
             // Zak 19 Nov: a double press of the SAME button (Grok's review: another button pressed quickly is two single presses).
-            bool quick = now - _lastPressAt <= DoublePressMs && _menuBeforePress is { } first && ReferenceEquals(first.Pressed, binding);
+            bool quick = !binding.NoPalette && now - _lastPressAt <= DoublePressMs && _menuBeforePress is { } first && ReferenceEquals(first.Pressed, binding);
             if (quick)
             {
                 // V29 #154 (Zak 20 Nov): the second press of a double press: the first press's menu change is undone and the
