@@ -402,6 +402,18 @@ public partial class TabletDetailView : UserControl, ITabbedContent
                 : Task.FromResult<int?>(null);
     }
 
+    private async void OnPaletteSpotClick(object? s, RoutedEventArgs e)
+    {
+        try
+        {
+            var vm = Vm;
+            if (vm == null) { AppLog.Warn("Colour palette settings: the page has no view model, so the window wasn't opened."); return; }
+            if (TopLevel.GetTopLevel(this) is not Window owner) { AppLog.Warn("Colour palette settings: no window to open it in."); return; }
+            await vm.EditPaletteAsync(json => PaletteEditorDialog.ShowAsync(owner, json));
+        }
+        catch (Exception ex) { AppLog.Warn("Colour palette settings: opening the palette window failed.", ex); }
+    }
+
     private async void OnRadialSpotClick(object? s, RoutedEventArgs e)
     {
         try

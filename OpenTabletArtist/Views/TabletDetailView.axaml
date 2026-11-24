@@ -1895,12 +1895,7 @@
                          button cards and the page's right edge, as in his mockup (the 24 gap and the page's 10 padding had put it ~5 px right). -->
                     <StackPanel x:Name="PenRightColumn" Grid.Column="2" Spacing="6" VerticalAlignment="Top" HorizontalAlignment="Left" MaxWidth="324">
                         <StackPanel x:Name="RadialSpot" Spacing="6">
-                            <Viewbox x:Name="RadialSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center">
-                            <!-- V30 build 4 (Zak 24 Nov ~15:44-15:50): "a swithch with On on one side and Off on the other" beside a label, "in the
-                                 top right corner of the radial and palette menu ... Or outside next to that corner": just above the square's top
-                                 right corner, so it never covers the circle. Turning it on asks which pen button opens the menu. -->
-                            <StackPanel Width="324" Spacing="2">
-                            <StackPanel x:Name="RadialSwitchRow" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+                            <StackPanel x:Name="RadialSwitchRow" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6" Margin="0,0,0,2">
                                 <TextBlock x:Name="RadialSwitchLabel" Text="{Binding RadialSwitchLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
                                 <TextBlock Text="{Binding MenuSwitchOffText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
                                 <ToggleSwitch x:Name="RadialSwitch" IsChecked="{Binding RadialSwitchOn, Mode=TwoWay}" IsEnabled="{Binding CanSwitchMenus}"
@@ -1908,6 +1903,12 @@
                                               AutomationProperties.Name="{Binding RadialSwitchLabel}" />
                                 <TextBlock Text="{Binding MenuSwitchOnText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
                             </StackPanel>
+                            <Viewbox x:Name="RadialSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center">
+                            <!-- V30 build 4 (Zak 24 Nov ~15:44-15:50): "a swithch with On on one side and Off on the other" beside a label, "in the
+                                 top right corner of the radial and palette menu ... Or outside next to that corner": just above the square's top
+                                 right corner, so it never covers the circle. Turning it on asks which pen button opens the menu. Build 5 (Zak's
+                                 screenshot, a narrower window): outside the Viewbox, so it keeps its size and is never cut off when the picture shrinks. -->
+                            <StackPanel Width="324" Spacing="2">
                             <Grid x:Name="RadialSpotArea" Width="324" Height="324">
                                 <Button x:Name="RadialSpotButton" Classes="flat" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
                                         BorderThickness="0" Cursor="Hand" IsEnabled="{Binding CanEditRadial}" Click="OnRadialSpotClick"
@@ -1960,18 +1961,29 @@
                         <!-- V29 #142, moved here from the old Eraser tab (V29 #180). -->
                         <StackPanel x:Name="PaletteSpot" Spacing="6" Margin="0,24,0,0"
                                     IsVisible="{Binding RadialPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                            <!-- V30 build 4: the colour palette's own switch, as the radial menu's. -->
+                            <StackPanel x:Name="PaletteSwitchRow" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6" Margin="0,0,0,2">
+                                <TextBlock x:Name="PaletteSwitchLabel" Text="{Binding PaletteSwitchLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBlock Text="{Binding MenuSwitchOffText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <ToggleSwitch x:Name="PaletteSwitch" IsChecked="{Binding PaletteSwitchOn, Mode=TwoWay}" IsEnabled="{Binding CanSwitchMenus}"
+                                              OnContent="" OffContent="" MinWidth="0" VerticalAlignment="Center"
+                                              AutomationProperties.Name="{Binding PaletteSwitchLabel}" />
+                                <TextBlock Text="{Binding MenuSwitchOnText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
+                            </StackPanel>
                             <Viewbox x:Name="PaletteSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" MaxWidth="324">
                                 <StackPanel Width="324" Spacing="2">
-                                    <!-- V30 build 4: the colour palette's own switch, as the radial menu's. -->
-                                    <StackPanel x:Name="PaletteSwitchRow" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
-                                        <TextBlock x:Name="PaletteSwitchLabel" Text="{Binding PaletteSwitchLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                        <TextBlock Text="{Binding MenuSwitchOffText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
-                                        <ToggleSwitch x:Name="PaletteSwitch" IsChecked="{Binding PaletteSwitchOn, Mode=TwoWay}" IsEnabled="{Binding CanSwitchMenus}"
-                                                      OnContent="" OffContent="" MinWidth="0" VerticalAlignment="Center"
-                                                      AutomationProperties.Name="{Binding PaletteSwitchLabel}" />
-                                        <TextBlock Text="{Binding MenuSwitchOnText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
-                                    </StackPanel>
-                                    <ctrl:ColourPaletteWheel x:Name="PaletteSpotWheel" Width="324" Height="324" MenuSize="{Binding RadialPreview.PaletteSize}" Menu="{Binding RadialPreview.PaletteMenu}" />
+                                    <!-- V30 build 5 (Zak 24 Nov ~17:43): click the palette, as the radial menu, to open its own window and pick your
+                                         own colours (PaletteEditorDialog). -->
+                                    <Button x:Name="PaletteSpotButton" Classes="flat" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                            HorizontalAlignment="Center" IsEnabled="{Binding CanEditRadialSliders}" Click="OnPaletteSpotClick"
+                                            AutomationProperties.Name="{Binding PaletteSpotTip}" ToolTip.Tip="{Binding PaletteSpotTip}">
+                                        <Button.Styles>
+                                            <Style Selector="Button#PaletteSpotButton /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+                                            <Style Selector="Button#PaletteSpotButton:disabled /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+                                            <Style Selector="Button#PaletteSpotButton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" /></Style>
+                                        </Button.Styles>
+                                        <ctrl:ColourPaletteWheel x:Name="PaletteSpotWheel" Width="324" Height="324" MenuSize="{Binding RadialPreview.PaletteSize}" Menu="{Binding RadialPreview.PaletteMenu}" />
+                                    </Button>
                                 </StackPanel>
                             </Viewbox>
                             <StackPanel x:Name="PaletteSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}">

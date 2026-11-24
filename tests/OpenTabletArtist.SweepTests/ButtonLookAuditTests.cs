@@ -38,7 +38,7 @@ public class ButtonLookAuditTests
     {
         if (c.Theme == null) return "-";
         foreach (var k in ThemeKeys)
-            if (Application.Current!.TryFindResource(k, out var r) && ReferenceEquals(r, c.Theme)) return k;
+            if (c.TryFindResource(k, out var r) && ReferenceEquals(r, c.Theme)) return k;   // the window's own themes too (ModifierToggle)
         if (c is Controls.IconButton) return "IconButton";
         return "other";
     }
@@ -151,6 +151,33 @@ public class ButtonLookAuditTests
         w.AllowCloseForQuit(); w.Close();
         (vm as IDisposable)?.Dispose();
         ed.Dispose();
+
+        // V30 build 5 (Zak 24 Nov 17:3x, his screenshot of Button 1's Change… window: "Keyboard, Media, Mouse, Scroll and Radial menu
+        // have no buttons yet"): the check opened every page but no window, so it missed that. The app's windows, each audited too.
+        async Task Dialog(Window d, string slug, Action? each = null)
+        {
+            d.Show(); await Settle(80);
+            all.AddRange(Looks(d, slug)); Shot(d, light, slug);
+            d.Close(); await Settle(20);
+        }
+        foreach (var (tab, set) in new (string, Action<BindingEditorViewModel>)[]
+                 {
+                     ("keyboard", v => v.IsKeyboardTab = true), ("media", v => v.IsMediaTab = true), ("mouse", v => v.IsMouseTab = true),
+                     ("scroll", v => v.IsScrollTab = true), ("radial", v => v.IsRadialTab = true),
+                 })
+        {
+            var bvm = new BindingEditorViewModel(AuxBinding.Unbound, "Button 1");
+            set(bvm);
+            await Dialog(new BindingEditorDialog(bvm) { Width = 900, Height = 600 }, $"dialog-change-{tab}");
+        }
+        await Dialog(new RadialMenuEditorDialog(new RadialMenuEditorViewModel(null, "Radial menu")) { Width = 900, Height = 760 }, "dialog-radial-editor");
+        await Dialog(new MenuButtonChoiceDialog("Which pen button opens the radial menu?", "Press that button and the radial menu opens where the pen is.",
+            new[] { "Pen button 1", "Pen button 2" }), "dialog-menu-button");
+        await Dialog(new PaletteEditorDialog(RadialMenuJson.Serialize(RadialMenuDefaults.Create(Localizer.Te))), "dialog-palette-editor");   // V30 build 5
+        await Dialog(new AutoStartDialog(), "dialog-autostart");
+        await Dialog(new SupportedTabletsDialog { Width = 900, Height = 700 }, "dialog-supported-tablets");
+        await Dialog(new HotkeyCaptureDialog(new HotkeyCaptureViewModel()) { Width = 900, Height = 600 }, "dialog-hotkey");
+        await Dialog(new ReportWindow(new ReportViewModel(() => (new List<string>(), Array.Empty<string>(), null), null, "shot")) { Width = 900, Height = 800 }, "dialog-report");
         return all;
     }
 
@@ -160,7 +187,7 @@ public class ButtonLookAuditTests
     /// Wacom-style picture tiles (tablet, tool, application), keyboard key caps, the red Forget / Delete buttons.</summary>
     static bool OwnLookOnPurpose(Look l) =>
         l.Fill is "clear" or "none"
-        || l.Theme is "LinkButton" or "IconButton" or "KeyCapButton" or "ModifierToggle" or "DeleteButton"
+        || l.Theme is "LinkButton" or "IconButton" or "KeyCapButton" or "ModifierToggle" or "DeleteButton" or "WacomTile"
         || (l.Theme == "other" && l.Kind == "RadioButton")
         || l.Classes.Split(' ').Any(c => c is "ringCentre" or "flat" or "pathLink" or "dangerText");
 

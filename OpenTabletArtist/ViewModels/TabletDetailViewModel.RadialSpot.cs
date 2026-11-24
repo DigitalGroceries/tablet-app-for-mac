@@ -349,12 +349,54 @@ public partial class TabletDetailViewModel
                 bool justMoved = Environment.TickCount64 - _spotLastEdit < SpotEditQuietMs;
                 if (same || justMoved) return;
             }
+            // V30 build 5: with nothing opening the radial menu, the picture of this table keeps what the user set in it (colours from
+            // the palette window, the sliders) until a switch is turned on - that is the menu the switch puts in.
+            if (RadialPreview != null && openers.Count == 0 && table == _spotTable) return;
             _spotTable = table;
             RadialPreview = new RadialMenuEditorViewModel(_radialOpenerJson, Localizer.Te("radial.title", "Radial menu"));
         }
         catch (Exception ex)
         {
             AppLog.Warn("Radial menu settings: could not refresh the picture from the selected table.", ex);
+        }
+    }
+
+    /// <summary>V30 build 5 (Zak 24 Nov ~17:43: "I want the same for the colour pallet under the radial menu. The users should be able to
+    /// click it and then go to fine tune it with the exaxt colour palletes they want"): the palette picture was clicked. The palette's
+    /// colours live in the radial menu (PaletteColours), so the window edits the menu shown in the pictures; Save goes to every pen
+    /// button holding that menu. With nothing on the radial menu yet, the new colours stay in the pictures and go in with the menu when
+    /// its switch is turned on. Returns true when colours changed. Every failure is logged.</summary>
+    internal async Task<bool> EditPaletteAsync(Func<string, Task<string?>> showEditor)
+    {
+        await FlushRadialSpotAsync();   // a slider change still waiting to be sent goes first
+        try
+        {
+            var shown = RadialPreview?.CurrentJson() ?? _radialOpenerJson;
+            if (shown == null) { AppLog.Warn("Colour palette settings: there is no menu picture to edit."); return false; }
+            var current = RadialCanonical(shown);
+            var result = await showEditor(current);
+            if (result == null || RadialCanonical(result) == current) return false;   // cancelled / unchanged
+            if (_radialOpenerJson != null)
+            {
+                if (_applyAction == null) { AppLog.Warn("Colour palette settings: the page is read-only (no driver connection), so the colours can't be saved."); return false; }
+                if (await ReplaceRadialMenuAsync(RadialCanonical(_radialOpenerJson), result))
+                {
+                    AppLog.Info("Colour palette settings: the palette's colours were changed (the footer's Save keeps them).");
+                    RefreshRadialSpot();
+                    return true;
+                }
+                AppLog.Warn("Colour palette settings: the change was NOT applied (no button of this table holds that menu any more, or the driver refused it).");
+                RefreshRadialSpot();
+                return false;
+            }
+            RadialPreview = new RadialMenuEditorViewModel(result, Localizer.Te("radial.title", "Radial menu"));
+            AppLog.Info("Colour palette settings: colours changed; nothing opens the radial menu yet, so they go in when its switch is turned on.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn("Colour palette settings: editing the colours failed.", ex);
+            return false;
         }
     }
 

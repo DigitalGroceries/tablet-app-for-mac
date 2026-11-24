@@ -34,9 +34,6 @@ public partial class TestView : UserControl
     void ApplyLanguage()
     {
         Localizer.EnsureLoaded();
-        if (LblPressureCurve != null) LblPressureCurve.Text = Localizer.T("scribble.pressure_curve");
-        if (LblPressureSmoothing != null) LblPressureSmoothing.Text = Localizer.T("scribble.pressure_smoothing");
-        if (LblPositionSmoothing != null) LblPositionSmoothing.Text = Localizer.T("scribble.position_smoothing");
         if (LblPointerOnly != null) LblPointerOnly.Text = Localizer.T("scribble.pointer_only_note");
         if (LblBrush != null) LblBrush.Text = Localizer.T("scribble.brush");
         if (BtnClear != null) BtnClear.Content = Localizer.T("scribble.clear");

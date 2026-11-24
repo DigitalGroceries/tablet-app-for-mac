@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -109,7 +110,9 @@ public class RadialSpotTests
             Assert.True(spot.IsEffectivelyVisible);
             // V29 #180 (Zak's Pen page mockup, 21 Nov): no title above the picture; the picture is the first (top) thing.
             Assert.Null(view.FindControl<TextBlock>("RadialSpotHeading"));
-            Assert.Same(Find<Viewbox>(view, "RadialSpotFit"), spot.Children[0]);
+            // V30 build 5 (Zak 24 Nov, build 4 test: "On" was cut off): the switch row sits above the scaling picture, not inside it.
+            Assert.Same(Find<StackPanel>(view, "RadialSwitchRow"), spot.Children[0]);
+            Assert.Same(Find<Viewbox>(view, "RadialSpotFit"), spot.Children[1]);
             var pie = Find<RadialMenuPie>(view, "RadialSpotPie");
             Assert.Equal("Zoomy", pie.Labels![0]);                        // this application's menu, not a fixed picture
             var line = Find<TextBlock>(view, "RadialSpotLine"); var sliders = Find<StackPanel>(view, "RadialSliders");
@@ -707,6 +710,159 @@ public class RadialSpotTests
             Settle(window);
             Assert.Equal("Drag to move the menu.", hint.Text);
             Assert.Empty(window.OwnedWindows.OfType<RadialMenuEditorDialog>());
+        }
+        finally { window.Close(); }
+    }
+    // ── V30 build 5: the colour palette window (Zak 24 Nov ~17:43) ─────────────────────────────────────────────
+
+    /// <summary>Zak 24 Nov ~17:43: "In Tablet / Pen when you click on the radial menu, it opens a popup window to set it up. I want the same
+    /// for the colour pallet under the radial menu. The users should be able to click it and then go to fine tune it with the exaxt colour
+    /// palletes they want": clicking the palette picture opens the palette window on the colours of this menu.</summary>
+    [AvaloniaFact]
+    public async Task ClickingThePalette_OpensThePaletteWindow_OnThisMenusColours()
+    {
+        var menu = RadialMenuDefaults.Create(Localizer.Te);
+        menu.PaletteColours = new Dictionary<string, string> { ["0"] = "#123456" };
+        var (vm, view, window, _) = Open(NewProfile(Name(), new PluginSettingStore?[] { null, RadialMenuBinding.Make(menu) }));
+        PaletteEditorDialog? dialog = null;
+        try
+        {
+            var button = Find<Button>(view, "PaletteSpotButton");
+            Assert.True(button.IsEffectivelyEnabled);
+            Assert.Equal("Click to choose your own colours", ToolTip.GetTip(button));
+            Assert.Same(Find<ColourPaletteWheel>(view, "PaletteSpotWheel"), button.Content);
+            button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));   // the real click handler
+            await PumpUntil(() => window.OwnedWindows.OfType<PaletteEditorDialog>().Any());
+            dialog = window.OwnedWindows.OfType<PaletteEditorDialog>().First();
+            Assert.Equal("Colour Palette Settings", dialog.Title);
+            Assert.Equal("#123456", ColourPalette.HexFor(dialog.Wheel.Menu!, 0));
+            Assert.Equal("Default colours", dialog.DefaultButton.Content);
+            Assert.Equal("Save", dialog.SaveButton.Content);
+        }
+        finally
+        {
+            dialog?.Close();
+            await Pump(60);
+            window.Close();
+        }
+    }
+
+    /// <summary>The window itself: a real click on a colour asks for a colour for THAT swatch; Save returns the menu with it; Default colours
+    /// puts every built-in colour back; Cancel returns nothing.</summary>
+    [AvaloniaFact]
+    public async Task PaletteWindow_ClickAColour_PickOne_Save_Default_Cancel()
+    {
+        _ = new ThemeViewModel();
+        var json = RadialMenuJson.Serialize(RadialMenuDefaults.Create(Localizer.Te));
+        var dialog = new PaletteEditorDialog(json);
+        (string hex, string name)? asked = null;
+        dialog.PickColour = (hex, name) => { asked = (hex, name); return Task.FromResult<string?>("#abcdef"); };
+        dialog.Show();
+        try
+        {
+            for (int i = 0; i < 4; i++) { Dispatcher.UIThread.RunJobs(); dialog.UpdateLayout(); }
+            var wheel = dialog.Wheel;
+            int size = wheel.MenuSize;
+            // find a point on swatch 5 the way the window does (from the centre of the wheel)
+            Point? onFive = null;
+            for (double y = 0; y < wheel.Bounds.Height && onFive == null; y += 2)
+                for (double x = 0; x < wheel.Bounds.Width; x += 2)
+                    if (ColourPalette.SwatchAt(x - wheel.Bounds.Width / 2, y - wheel.Bounds.Height / 2, size) == 5) { onFive = new Point(x, y); break; }
+            Assert.NotNull(onFive);
+            var at = wheel.TranslatePoint(onFive!.Value, dialog)!.Value;
+            dialog.MouseDown(at, MouseButton.Left);
+            dialog.MouseUp(at, MouseButton.Left);
+            await PumpUntil(() => asked != null);
+            Assert.Equal(ColourPalette.HexFor(RadialMenuJson.Parse(json), 5), asked!.Value.hex);
+            Assert.Equal(ColourPalette.NameOf(5), asked.Value.name);
+            await PumpUntil(() => ColourPalette.HexFor(dialog.Wheel.Menu!, 5) == "#ABCDEF");   // the picture shows it at once
+
+            dialog.SaveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            var saved = await dialog.Result;
+            Assert.NotNull(saved);
+            Assert.Equal("#ABCDEF", ColourPalette.HexFor(RadialMenuJson.Parse(saved!), 5));
+        }
+        finally { dialog.Close(); }
+
+        var d2 = new PaletteEditorDialog(json) { PickColour = (_, _) => Task.FromResult<string?>("#010203") };
+        d2.Show();
+        try
+        {
+            await d2.ChangeAsync(7);
+            Assert.Equal("#010203", ColourPalette.HexFor(d2.Wheel.Menu!, 7));
+            d2.DefaultButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Assert.Equal(ColourPalette.HexFor(RadialMenuJson.Parse(json), 7), ColourPalette.HexFor(d2.Wheel.Menu!, 7));
+            d2.SaveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Assert.Null(RadialMenuJson.Parse((await d2.Result)!).PaletteColours);
+        }
+        finally { d2.Close(); }
+
+        var d3 = new PaletteEditorDialog(json) { PickColour = (_, _) => Task.FromResult<string?>(null) };   // the picker's Cancel
+        d3.Show();
+        await d3.ChangeAsync(3);
+        Assert.Null(d3.Wheel.Menu!.PaletteColours);
+        d3.CancelButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Null(await d3.Result);
+    }
+
+    [AvaloniaFact]
+    public async Task APaletteChange_IsAppliedToTheSelectedTable_AndThePaletteShowsIt_CancelChangesNothing()
+    {
+        var tablet = Name();
+        var daemon = new FakeDaemonTransport { Settings = Document(tablet, 40, 50) };
+        daemon.GetSettingsHandler = async () => { await Task.Yield(); return daemon.Settings; };
+        var store = new MemorySettingsFileStore { Saved = Document(tablet, 40, 50) };
+        using var app = new AppSession(FakeSession.Over(daemon, store), new FakeLifecycle());
+        daemon.Reconnect();
+        await PumpUntil(() => app.CurrentSettings is not null);
+        var settings = app.CurrentSettings!;
+        var (vm, view, window, _) = Open(settings.Profiles[0], apply: app.ApplySettingsAsync, settings: settings);
+        try
+        {
+            string? seen = null;
+            Assert.False(await vm.EditPaletteAsync(j => { seen = j; return Task.FromResult<string?>(null); }));   // Cancel
+            Assert.False(app.HasUnsavedChanges);
+            Assert.NotNull(seen);
+            Assert.False(await vm.EditPaletteAsync(j => Task.FromResult<string?>(j)));                         // Save with no change
+            Assert.False(app.HasUnsavedChanges);
+
+            Assert.True(await vm.EditPaletteAsync(j =>
+            {
+                var m = RadialMenuJson.Parse(j); m.PaletteColours = new Dictionary<string, string> { ["0"] = "#FF00AA" };
+                return Task.FromResult<string?>(RadialMenuJson.Serialize(m));
+            }));
+            await PumpUntil(() => !app.SettingsBusy && app.SaveState != SettingsSaveState.Applying);
+            Settle(window);
+            Assert.Equal("#FF00AA", ColourPalette.HexFor(RadialMenuBinding.ReadMenu(app.CurrentSettings!.Profiles[0].BindingSettings.PenButtons[1]), 0));
+            Assert.Equal("#FF00AA", ColourPalette.HexFor(Find<ColourPaletteWheel>(view, "PaletteSpotWheel").Menu!, 0));
+            Assert.True(app.HasUnsavedChanges);                       // kept by the footer's Save
+        }
+        finally { window.Close(); }
+    }
+
+    /// <summary>Nothing opens the radial menu yet: the colours stay in the pictures (a refresh keeps them) and go in with the menu when the
+    /// radial menu's switch is turned on.</summary>
+    [AvaloniaFact]
+    public async Task PaletteColours_WithNothingOnTheRadialMenu_GoInWhenTheSwitchIsTurnedOn()
+    {
+        var applied = new List<Settings>();
+        var (vm, view, window, profile) = Open(NewProfile(Name(), new PluginSettingStore?[] { null, AuxKeyBinding.MakeKeyBinding("E") }),
+            apply: s => { applied.Add(s); return Task.FromResult(SettingsApplyOutcome.Live); });
+        try
+        {
+            Assert.False(Find<ToggleSwitch>(view, "RadialSwitch").IsChecked);
+            Assert.True(await vm.EditPaletteAsync(j =>
+            {
+                var m = RadialMenuJson.Parse(j); m.PaletteColours = new Dictionary<string, string> { ["2"] = "#0A0B0C" };
+                return Task.FromResult<string?>(RadialMenuJson.Serialize(m));
+            }));
+            Assert.Empty(applied);                                    // nothing to apply it to yet
+            vm.RefreshRadialSpot();
+            Assert.Equal("#0A0B0C", ColourPalette.HexFor(vm.RadialPreview!.PaletteMenu!, 2));   // a refresh keeps it
+            vm.ChooseMenuButton = (_, _, choices) => Task.FromResult<int?>(1);                  // "Pen button 2"
+            vm.RadialSwitchOn = true;
+            await PumpUntil(() => RadialMenuBinding.Is(profile.BindingSettings.PenButtons[1]));
+            Assert.Equal("#0A0B0C", ColourPalette.HexFor(RadialMenuBinding.ReadMenu(profile.BindingSettings.PenButtons[1]), 2));
         }
         finally { window.Close(); }
     }

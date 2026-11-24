@@ -6,21 +6,6 @@
              xmlns:views="using:OpenTabletArtist.Views">
 
     <UserControl.Styles>
-        <!-- Small accent chip listing an active dynamics aspect (#184), matching the banner's chip. -->
-        <Style Selector="Border.DynChip">
-            <Setter Property="Background" Value="{DynamicResource AccentMutedBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="Padding" Value="8,3" />
-            <Setter Property="Margin" Value="0,0,6,0" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style Selector="Border.DynChip > TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource TypeCaptionSize}" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-        </Style>
         <!-- Each readout row pairs a proportional label with a monospace value. The two fonts have
              different metrics (Consolas rides higher than the label font), so pin both to the top and
              nudge the mono value down (via Margin on .ReadoutValue below) to align their baselines. -->
@@ -44,19 +29,9 @@
                  was a two-column Grid with the active-tablet switcher on the right; that moved to the
                  shell top bar (#697), so the chips are the whole row now.
                  (Edit the pressure curve + smoothing on the Pen page's "pressure" tab.) -->
-            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,8,0,0">
-                <!-- The specific-aspect chips spell out exactly what's altering the pen; a generic
-                     "Dynamics on" pill was redundant with them, so it was removed. -->
-                <Border Classes="DynChip" IsVisible="{Binding CurveActive}">
-                    <TextBlock x:Name="LblPressureCurve" Text="Pressure curve" />
-                </Border>
-                <Border Classes="DynChip" IsVisible="{Binding PressureSmoothingActive}">
-                    <TextBlock x:Name="LblPressureSmoothing" Text="Pressure smoothing" />
-                </Border>
-                <Border Classes="DynChip" IsVisible="{Binding PositionSmoothingActive}">
-                    <TextBlock x:Name="LblPositionSmoothing" Text="Position smoothing" />
-                </Border>
-            </WrapPanel>
+            <!-- V30 build 5 (Zak 24 Nov 17:3x, of the "Pressure curve" tag: "not clickable, it doesnt do anything ... Are you sure this is
+                 a button?" then "remove it entirely"): the tags that said which pen settings change the scribbles (Pressure curve,
+                 Pressure smoothing, Position smoothing) are gone; boxed, they looked like buttons that did nothing. -->
 
             <!-- Pointer-only mode paints nothing, so active dynamics are invisible — warn (#183). -->
             <TextBlock x:Name="LblPointerOnly" Text="Pointer-only mode doesn't draw, so you won't see the dynamics above. Pick a pressure Mode to see them."

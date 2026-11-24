@@ -32,7 +32,7 @@ public sealed class PaletteColourDialog : Window
             Margin = new Thickness(20), Spacing = 14,
             Children =
             {
-                new TextBlock { Text = Title, FontWeight = FontWeight.SemiBold, FontSize = 16 },
+                // V30 build 5: no heading of its own; the window's title bar already says "Change this colour" (it said it twice)
                 new TextBlock { Text = swatchName, Opacity = 0.8 },
                 _picker,
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { cancel, save } },

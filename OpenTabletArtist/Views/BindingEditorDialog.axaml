@@ -103,21 +103,22 @@
             </Grid>
         </StackPanel>
 
-        <!-- Tab strip -->
-        <Border DockPanel.Dock="Top" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource DividerBrush}">
-            <StackPanel Orientation="Horizontal">
-                <RadioButton Classes="tab" Content="Keyboard" GroupName="type"
+        <!-- Tab strip. V30 build 5 (Zak 24 Nov 17:3x, his screenshot "Keyboard, Media, Mouse, Scroll and Radial menu have no buttons
+             yet"): the app's own tab look (PivotTab: raised, the chosen one lit), as on every page. -->
+        <Border DockPanel.Dock="Top" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource DividerBrush}" Padding="0,0,0,10">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <RadioButton Theme="{StaticResource PivotTab}" Content="Keyboard" GroupName="type"
                              IsChecked="{Binding IsKeyboardTab, Mode=TwoWay}" />
-                <RadioButton Classes="tab" Content="Media" GroupName="type"
+                <RadioButton Theme="{StaticResource PivotTab}" Content="Media" GroupName="type"
                              IsChecked="{Binding IsMediaTab, Mode=TwoWay}" />
-                <RadioButton Classes="tab" Content="Mouse" GroupName="type"
+                <RadioButton Theme="{StaticResource PivotTab}" Content="Mouse" GroupName="type"
                              IsChecked="{Binding IsMouseTab, Mode=TwoWay}" />
-                <RadioButton Classes="tab" Content="Scroll" GroupName="type"
+                <RadioButton Theme="{StaticResource PivotTab}" Content="Scroll" GroupName="type"
                              IsChecked="{Binding IsScrollTab, Mode=TwoWay}" />
-                <RadioButton Classes="tab" Content="{Binding RadialTabLabel}" GroupName="type"
+                <RadioButton Theme="{StaticResource PivotTab}" Content="{Binding RadialTabLabel}" GroupName="type"
                              IsVisible="{Binding ShowRadialTab}"
                              IsChecked="{Binding IsRadialTab, Mode=TwoWay}" />
-                <RadioButton Classes="tab" Content="{Binding TouchTabLabel}" GroupName="type"
+                <RadioButton Theme="{StaticResource PivotTab}" Content="{Binding TouchTabLabel}" GroupName="type"
                              IsVisible="{Binding ShowTouchTab}"
                              IsChecked="{Binding IsTouchTab, Mode=TwoWay}" />
             </StackPanel>

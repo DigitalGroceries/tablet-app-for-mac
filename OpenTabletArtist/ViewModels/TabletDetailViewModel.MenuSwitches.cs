@@ -32,6 +32,8 @@ public partial class TabletDetailViewModel
 
     public string RadialSwitchLabel => Localizer.Te("radial_spot.switch", "Radial menu");
     public string PaletteSwitchLabel => Localizer.Te("palette_spot.switch", "Colour palette");
+    /// <summary>V30 build 5: the palette picture's tooltip and name (it opens the palette window).</summary>
+    public string PaletteSpotTip => Localizer.Te("palette_editor.tip", "Click to choose your own colours");
     public string MenuSwitchOffText => Localizer.Te("tablet.switch.off", "Off");
     public string MenuSwitchOnText => Localizer.Te("tablet.switch.on", "On");
 
