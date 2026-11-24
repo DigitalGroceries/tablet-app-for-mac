@@ -754,6 +754,23 @@
             </Style>
         </ControlTheme>
 
+        <!-- V30 build 3 (the helper's review): the Lightness steps set these; Sakura, Dark Sakura and Custom don't, so these are the
+             fallback (app resources win over these). The raised-button resources have no fallback on purpose: those themes keep
+             their own button look. -->
+        <SolidColorBrush x:Key="DangerTextBrush" Color="#E4E4E4" />
+        <LinearGradientBrush x:Key="DangerFillBrush" StartPoint="50%,0%" EndPoint="50%,100%">
+            <GradientStop Color="#8A2828" Offset="0" />
+            <GradientStop Color="#5C1818" Offset="1" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="DangerFillHoverBrush" StartPoint="50%,0%" EndPoint="50%,100%">
+            <GradientStop Color="#9C3030" Offset="0" />
+            <GradientStop Color="#6A1C1C" Offset="1" />
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="DangerPressedBrush" Color="#5C1818" />
+        <SolidColorBrush x:Key="DangerBorderBrush" Color="#3A0E0E" />
+        <SolidColorBrush x:Key="AttentionBubbleBrush" Color="#FACC15" />
+        <SolidColorBrush x:Key="AttentionBubbleTextBrush" Color="#1C1600" />
+
         <!-- Delete Button (solid red — unmistakably destructive, #251) -->
         <ControlTheme x:Key="DeleteButton" TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource TextInverseBrush}" />
@@ -763,7 +780,7 @@
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border x:Name="Bd" Background="{DynamicResource ErrorBrush}" CornerRadius="{DynamicResource ButtonCornerRadius}"
+                    <Border x:Name="RaisedKeep" Background="{DynamicResource ErrorBrush}" CornerRadius="{DynamicResource ButtonCornerRadius}"
                             Padding="{TemplateBinding Padding}"
                             BorderBrush="{DynamicResource ErrorBrush}" BorderThickness="1">
                         <ContentPresenter Content="{Binding Content, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:TitleCaseConverter.Instance}}"
@@ -772,7 +789,7 @@
                     </Border>
                 </ControlTemplate>
             </Setter>
-            <Style Selector="^:pointerover /template/ Border#Bd">
+            <Style Selector="^:pointerover /template/ Border#RaisedKeep">
                 <Setter Property="Opacity" Value="0.88" />
             </Style>
         </ControlTheme>
@@ -1068,22 +1085,32 @@
          looks (ghost, accent, call to action, icon) keep their colours and get the outline and shadow (their Border is RaisedBd).
          Link-style buttons (.homeLink, .flat) stay flat. The colours come from LightnessService.RaisedResources; on the themes the
          Lightness slider doesn't drive, those keys are absent, the setters do nothing and the buttons keep their old look. -->
-    <Style Selector="Button:not(.homeLink):not(.flat):not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource ButtonRaisedFillBrush}" />
+    <!-- The helper's review (24 Nov): a plain button with a look of its own keeps it: .pathLink (reads as text), .ringCentre (the
+         ring's centre picture), .flat; .ownFill (the blue main button of the first-launch Setup window) keeps its fill and gets
+         the edge and shadow. -->
+    <Style Selector="Button:not(.homeLink):not(.flat):not(.pathLink):not(.ringCentre):not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="BorderBrush" Value="{DynamicResource ButtonRaisedBorderBrush}" />
         <Setter Property="BorderThickness" Value="{DynamicResource ButtonRaisedBorderThickness}" />
         <Setter Property="BoxShadow" Value="{DynamicResource ButtonRaisedShadow}" />
     </Style>
-    <Style Selector="Button:not(.homeLink):not(.flat):pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Style Selector="Button:not(.homeLink):not(.flat):not(.pathLink):not(.ringCentre):not(.ownFill):not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonRaisedFillBrush}" />
+    </Style>
+    <Style Selector="Button:not(.homeLink):not(.flat):not(.pathLink):not(.ringCentre):not(.ownFill):pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource ButtonRaisedFillHoverBrush}" />
+    </Style>
+    <Style Selector="Button:not(.homeLink):not(.flat):not(.pathLink):not(.ringCentre):pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="BorderBrush" Value="{DynamicResource ButtonRaisedBorderBrush}" />
     </Style>
-    <Style Selector="Button:not(.homeLink):not(.flat):pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Style Selector="Button:not(.homeLink):not(.flat):not(.pathLink):not(.ringCentre):not(.ownFill):pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource ButtonRaisedPressedBrush}" />
+    </Style>
+    <Style Selector="Button:not(.homeLink):not(.flat):not(.pathLink):not(.ringCentre):pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="BoxShadow" Value="{DynamicResource ButtonPressedShadow}" />
     </Style>
-    <!-- Ghost and icon buttons (RaisedBd) get the full raised look; accent and call-to-action buttons (RaisedKeep) keep their own
-         fill and get the edge and shadow. -->
+    <!-- Ghost buttons (RaisedBd) get the full raised look; accent, call-to-action and delete buttons (RaisedKeep) keep their own
+         fill and get the edge and shadow. Icon buttons (c:IconButton: the ••• and glyph buttons) stay borderless glyphs: a Button
+         style does not reach a subclass, and a glyph in a hit target is already plainly a control (#row-actions). -->
     <Style Selector="Button:not(:disabled) /template/ Border#RaisedBd, Button:not(:disabled) /template/ Border#RaisedKeep">
         <Setter Property="BoxShadow" Value="{DynamicResource ButtonRaisedShadow}" />
         <Setter Property="BorderThickness" Value="{DynamicResource ButtonRaisedBorderThickness}" />

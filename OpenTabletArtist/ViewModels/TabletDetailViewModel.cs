@@ -2998,12 +2998,13 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (!string.IsNullOrEmpty(SelectedAppBundleId) || !string.IsNullOrEmpty(SelectedPenKey)) return false;
         if (TipPressed || EraserPressed || DateTime.UtcNow - _lastPenDownUtc < DrawingQuietTime) return false;
         if (!IsAppInFront()) return false;
-        lock (UnsetUseShown)
-            if (!UnsetUseShown.Add($"{_profile.Tablet}:{id}")) return false;
-        // V30 build 3 (Zak 24 Nov, L6.3): only the key pressed last shows the bubble
+        // V30 build 3 (Zak 24 Nov, L6.3): only the key pressed last shows the bubble. It moves on every press of an empty key
+        // (also one pressed before: key 1, key 2, key 1 again puts it back on key 1); the page itself jumps only once per control.
         if (_lastJustUsed is { } before && !ReferenceEquals(before, b)) before.JustUsed = false;
         _lastJustUsed = b;
         b.JustUsed = true;
+        lock (UnsetUseShown)
+            if (!UnsetUseShown.Add($"{_profile.Tablet}:{id}")) return false;
         UnsetControlUsed?.Invoke(tab, b);
         return true;
     }

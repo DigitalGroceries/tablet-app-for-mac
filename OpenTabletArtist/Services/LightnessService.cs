@@ -202,7 +202,6 @@ public static class LightnessService
     public static Color SwitchOnFill(int step) => For(step).Dark ? SelectionFill(step) : G(0x30);
     public static Color SwitchOnKnob(int step) => For(step).Dark ? SelectionText : G(0xE4);
 
-    /// <summary>The hue, scaled darker (light steps) or towards white (dark steps) until it has 4.5:1 on BgElevated and BgBase.</summary>
     /// <summary>V30 build 3 (ZAK-LISTS L6.2, Zak 24 Nov: "Forget this tablet" as its own smaller, quieter red button): a deep red
     /// raised fill (top, bottom), its outline and hover fill. Red WORDS on the grey raised button could not reach 4.5:1 (the
     /// button's top is a mid grey), so the button is red and its word is the light on-accent grey (5:1 or more on both looks).</summary>
@@ -211,6 +210,7 @@ public static class LightnessService
         : (Color.FromRgb(0xA8, 0x30, 0x30), Color.FromRgb(0x7A, 0x1E, 0x1E), Color.FromRgb(0x5A, 0x14, 0x14), Color.FromRgb(0xB4, 0x36, 0x36), Color.FromRgb(0x86, 0x22, 0x22));
     public static Color DangerText(int step) => For(step).OnAccent;
 
+    /// <summary>The hue, scaled darker (light steps) or towards white (dark steps) until it has 4.5:1 on BgElevated and BgBase.</summary>
     private static Color Readable(Color hue, int step)
     {
         var p = For(step);

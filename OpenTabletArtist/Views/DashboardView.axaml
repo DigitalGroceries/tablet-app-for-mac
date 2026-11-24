@@ -52,8 +52,8 @@
                     <DataTemplate>
                         <!-- Double-click the card to open the tablet's settings (#tablet-card-mapping): the
                              per-card "edit" button was removed in favour of this, so the card is one clear
-                             target. The "…" menu offers the same thing by name, for anyone who would never
-                             think to double-click a row; it handles its own click. -->
+                             target. (V30 build 3: the "…" menu that named it is gone, Zak 24 Nov; the Tablet tab opens the
+                             same page, and Forget is its own button on the card.) -->
                         <c:Entity DoubleTapped="OnTabletCardDoubleTapped" Padding="0,14"
                                   ToolTip.Tip="Double-click to open this tablet's settings">
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">

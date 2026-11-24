@@ -84,6 +84,12 @@ public class PressToFindTests
         Assert.False(vm.AuxButtons[0].JustUsed);
         Assert.True(vm.AuxButtons[2].JustUsed);
         Assert.Equal("Not set up", vm.AuxButtons[0].NotSetUpText);
+        // the helper's review (24 Nov): key 1 pressed again takes the bubble back, though the page does not jump again
+        var jumps = 0; vm.UnsetControlUsed += (_, _) => jumps++;
+        Press(vm, false, false, false); Press(vm, true, false, false);
+        Assert.True(vm.AuxButtons[0].JustUsed);
+        Assert.False(vm.AuxButtons[2].JustUsed);
+        Assert.Equal(0, jumps);
     }
 
     [AvaloniaFact]

@@ -110,7 +110,7 @@ public sealed class SetupWindow : Window
         TextBlock Plain(string t) => new TextBlock { Text = t, FontSize = 16, TextWrapping = TextWrapping.Wrap, LineHeight = 24 }.Fg("TextSecondaryBrush");
         // #26 (Wacom comparison point 5): one plain line saying why macOS asks for this permission.
         TextBlock Why(string t) => new TextBlock { Text = t, FontSize = 14, TextWrapping = TextWrapping.Wrap, LineHeight = 20, Margin = new Thickness(0, 4, 0, 0) }.Fg("TextMutedBrush");
-        Button Main(string t, Action a) { var b = new Button { Content = t, FontSize = 16, Padding = new Thickness(18, 10), Background = B("#3D6BE0"), Foreground = B("#E4E4E4") }; b.Click += (_, _) => a(); return b; }
+        Button Main(string t, Action a) { var b = new Button { Content = t, FontSize = 16, Padding = new Thickness(18, 10), Background = B("#3D6BE0"), Foreground = B("#E4E4E4") }; b.Classes.Add("ownFill"); b.Click += (_, _) => a(); return b; }
         Button Second(string t, Action a) { var b = new Button { Content = t, FontSize = 14, Padding = new Thickness(14, 8) }; b.Click += (_, _) => a(); return b; }
         void Header(string title)
         {
