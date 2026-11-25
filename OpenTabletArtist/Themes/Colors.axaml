@@ -40,6 +40,10 @@
     <SolidColorBrush x:Key="AttentionTextBrush" Color="{StaticResource Attention}" />
     <SolidColorBrush x:Key="AttentionFillBrush" Color="Transparent" />
     <SolidColorBrush x:Key="SwitchOnFillBrush" Color="#D8D8D8" />
+    <!-- V31 (L7.8 / L7.9): defaults for a theme the palette does not drive; LightnessService sets them per step. -->
+    <SolidColorBrush x:Key="PenEndCircleBrush" Color="#3BE4E4E4" />
+    <SolidColorBrush x:Key="PenEndCircleSelectedBrush" Color="#D9E4E4E4" />
+    <SolidColorBrush x:Key="RadialPictureBackingBrush" Color="#00000000" />
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}" />
     <SolidColorBrush x:Key="ErrorMutedBrush" Color="{StaticResource ErrorMuted}" />
     <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource Info}" />

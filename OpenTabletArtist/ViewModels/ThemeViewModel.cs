@@ -46,7 +46,13 @@ public partial class ThemeViewModel : ObservableObject
     public int Lightness
     {
         get => LightnessService.Saved;
-        set { if (value == LightnessService.Saved) return; LightnessService.Set(value); OnPropertyChanged(); OnPropertyChanged(nameof(LightnessInput)); }
+        set
+        {
+            if (value == LightnessService.Saved) return;
+            LightnessService.Set(value);
+            if (IsSakura || IsDarkSakura || IsCustom) RefreshSkin();   // V31: a skin puts its own accent and cards back over the new step
+            OnPropertyChanged(); OnPropertyChanged(nameof(LightnessInput));
+        }
     }
     /// <summary>V29 #132 (Zak 18:23 asked for 1 to 100; 19:10 "Do whats more easy to understand and logical"): the app has 9
     /// lightness levels (chosen so every text stays readable), so the Lightness box numbers them 1 (darkest) to 9 (lightest),
@@ -61,7 +67,7 @@ public partial class ThemeViewModel : ObservableObject
         }
     }
 
-    public bool LightnessApplies => SelectedTheme is { } t && LightnessService.DrivesTheme(t.Id);
+    public bool LightnessApplies => SelectedTheme is { } t && (LightnessService.DrivesTheme(t.Id) || LightnessService.IsSkin(t.Id));   // V31 (L7.11): every theme
 
     public string SelectedDescription => SelectedTheme?.Description ?? "";
 
@@ -260,6 +266,7 @@ public partial class ThemeViewModel : ObservableObject
         OnPropertyChanged(nameof(SakuraBaseColor));
         if (value != null) ThemeService.Apply(value.Id);
         RefreshSkin(); // apply the new skin's overrides, clear the old skin's
+        OnPropertyChanged(nameof(Lightness)); OnPropertyChanged(nameof(LightnessInput));   // V31: each skin has its own step
     }
 
     partial void OnPetalsEnabledChanged(bool value) => AnimationSettings.PetalsEnabled = value;
@@ -298,7 +305,9 @@ public partial class ThemeViewModel : ObservableObject
         // GlassBg…). For the neutral themes put the lightness palette straight back; without this the theme
         // dictionary's light #CFCFCF accent and Fluent's white tick showed through (white tick on
         // Force proportions, white active-area outline and slider knob).
-        if (!(IsSakura || IsDarkSakura || IsCustom)) { LightnessService.ApplySaved(); return; }
+        // V31 (L7): the skins take the palette too (their own step and tint); their accent and cards are set below, on top of it.
+        LightnessService.ApplySaved();
+        if (!(IsSakura || IsDarkSakura || IsCustom)) return;
 
         // Highlight/accent scheme (#557): always for Custom (it has no theme-dictionary accent); for Sakura /
         // Dark Sakura only when the user picked a non-default accent, so the skins' hand-tuned default look
@@ -395,15 +404,9 @@ public partial class ThemeViewModel : ObservableObject
         app.Resources["RadioButtonCheckGlyphFillPointerOver"] = onAccentInk;
         app.Resources["RadioButtonCheckGlyphFillPressed"] = onAccentInk;
 
-        app.Resources["AccentButtonFillBrush"] = Gradient(light1, accent);
-        app.Resources["AccentButtonFillHoverBrush"] = Gradient(Lighten(accent, 0.22), light1);
-        // Accent buttons hard-coded white text, which is unreadable on a light accent (e.g. pink). Pick
-        // white or near-black by contrast instead, evaluated against the LIGHTEST stop the label ever sits
-        // on (the hover gradient's top, Lighten(accent, 0.22)) so it stays legible at rest and on hover.
-        // Both rest + hover use the same ink so the label color doesn't flip mid-interaction.
-        var buttonInk = new SolidColorBrush(ContrastingInk(Lighten(accent, 0.22)));
-        app.Resources["AccentButtonForegroundBrush"] = buttonInk;
-        app.Resources["AccentButtonForegroundHoverBrush"] = buttonInk;
+        // V31 (L7.5, Zak 25 Nov: in Rose "Save in the bottom bar is almost invisible"): the accent button (Save) is drawn as a raised
+        // button like every other since Version 30, so its word comes from the palette (LightnessService), not from the accent: a
+        // word picked for a pink fill was pale on the raised button's light fill.
         app.Resources["GlassBorderBrush"] = new SolidColorBrush(WithAlpha(accent, 0x40));
         app.Resources["CardShadow"] = new BoxShadows(new BoxShadow
         {

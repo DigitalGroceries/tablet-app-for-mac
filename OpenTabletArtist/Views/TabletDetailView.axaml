@@ -91,11 +91,11 @@
         <Style Selector="Border.penEndLabel">
             <Setter Property="Width" Value="76" /><Setter Property="Height" Value="76" /><Setter Property="CornerRadius" Value="38" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="#3BE4E4E4" /><Setter Property="BorderThickness" Value="3" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PenEndCircleBrush}" /><Setter Property="BorderThickness" Value="3" />
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style Selector="Border.penEndLabel.selected">
-            <Setter Property="BorderBrush" Value="#D9E4E4E4" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PenEndCircleSelectedBrush}" />
         </Style>
         <!-- A longer word in another language (Наконечник, Radierer) gets smaller instead of stretching the circle into an oval. -->
         <Style Selector="Border.penEndLabel > Viewbox">
@@ -1920,9 +1920,13 @@
                                         <Style Selector="Button#RadialSpotButton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource GlassBgHoverBrush}" /></Style>
                                     </Button.Styles>
                                     <Viewbox x:Name="RadialSpotViewbox" Stretch="Uniform" Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}">
-                                        <ctrl:RadialMenuPie x:Name="RadialSpotPie" Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}" IsHitTestVisible="True"
-                                                            Labels="{Binding RadialPreview.Labels}" SetFlags="{Binding RadialPreview.SetFlags}"
-                                                            SubmenuFlags="{Binding RadialPreview.SubmenuFlags}" Transparency="{Binding RadialPreview.Transparency}" />
+                                        <Panel Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}">
+                                            <!-- V31 (L7.9): on the light looks the see-through menu's picture sits on a dark disc (clear on the dark looks). -->
+                                            <Ellipse x:Name="RadialSpotBacking" Fill="{DynamicResource RadialPictureBackingBrush}" Margin="1" IsHitTestVisible="False" />
+                                            <ctrl:RadialMenuPie x:Name="RadialSpotPie" Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}" IsHitTestVisible="True"
+                                                                Labels="{Binding RadialPreview.Labels}" SetFlags="{Binding RadialPreview.SetFlags}"
+                                                                SubmenuFlags="{Binding RadialPreview.SubmenuFlags}" Transparency="{Binding RadialPreview.Transparency}" />
+                                        </Panel>
                                     </Viewbox>
                                 </Button>
                             </Grid>

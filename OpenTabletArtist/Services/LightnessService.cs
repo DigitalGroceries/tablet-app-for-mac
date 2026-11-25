@@ -32,17 +32,100 @@ public static class LightnessService
 
     public static event Action? Changed;
 
+    // ── V31 (ZAK-LISTS L7.1-L7.11, Zak 25 Nov 2026: "The theme sliders dont work properly if any other than the default factory
+    // theme is tried. I cant add any value in their boxes too."; Burgundy, Custom and Rose had unreadable tab words, buttons
+    // without their raised look, an invisible Save, washed-out switches) ──
+    // Until Version 30 only the grey themes were driven; Rose, Burgundy and Custom kept their own fixed colours, so the Lightness
+    // slider was greyed there and every colour added since (raised buttons, tabs, switches, the pen picture) was missing. Now
+    // every theme goes through the same palette. A skin keeps what makes it that skin - its backdrop, petals, cards and accent -
+    // and stays on its own side: Burgundy and Custom are dark (nine dark steps), Rose is light (nine light steps), because their
+    // backdrops are dark and light and the words on the window must stay readable. Their greys are tinted with the skin's accent.
+
+    /// <summary>Rose, Burgundy and Custom: the themes with a backdrop of their own.</summary>
+    public static bool IsSkin(string choice) => choice is ThemeService.Anime or ThemeService.DarkSakura or ThemeService.Custom;
+
+    /// <summary>Nine dark steps for the dark skins (Burgundy, Custom) and nine light ones for Rose; the light ones stop where
+    /// a control's hover grey reaches the lightest grey allowed (#E4).</summary>
+    public static readonly byte[] DarkSkinGreys = { 0x10, 0x14, 0x18, 0x1C, 0x20, 0x24, 0x28, 0x2C, 0x30 };
+    public static readonly byte[] LightSkinGreys = { 0x84, 0x89, 0x8E, 0x94, 0x99, 0x9E, 0xA4, 0xA9, 0xAE };
+
+    public static byte[] GreysFor(string theme) => theme switch
+    {
+        ThemeService.Anime => LightSkinGreys,
+        ThemeService.DarkSakura or ThemeService.Custom => DarkSkinGreys,
+        _ => BaseGreys,
+    };
+
+    /// <summary>The step a theme starts on: the grey themes on their darkest, Burgundy and Custom on the same window grey
+    /// (#181818), Rose on its lightest.</summary>
+    public static int DefaultStepFor(string theme) => theme switch
+    {
+        ThemeService.Anime => LightSkinGreys.Length - 1,
+        ThemeService.DarkSakura or ThemeService.Custom => 2,
+        _ => DefaultStep,
+    };
+
+    /// <summary>Each skin remembers its own step; the grey themes share one (the key since build R2).</summary>
+    public static string KeyFor(string theme) => IsSkin(theme) ? Key + ":" + theme : Key;
+
+    static string Theme => ThemeService.SavedChoice;
+
     public static int Saved
     {
-        get => int.TryParse(AppSettings.Get(Key), out var v) ? Math.Clamp(v, 0, Steps - 1) : DefaultStep;
+        get => int.TryParse(AppSettings.Get(KeyFor(Theme)), out var v) ? Math.Clamp(v, 0, Steps - 1) : DefaultStepFor(Theme);
     }
 
     public static void Set(int step)
     {
         step = Math.Clamp(step, 0, Steps - 1);
-        AppSettings.Set(Key, step.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        AppSettings.Set(KeyFor(Theme), step.ToString(System.Globalization.CultureInfo.InvariantCulture));
         ApplySaved();
     }
+
+    /// <summary>How strongly a skin's greys take its accent's hue (0 = plain grey).</summary>
+    public static double TintStrength(string theme) => theme switch
+    {
+        ThemeService.Anime => 0.20,
+        ThemeService.DarkSakura => 0.16,
+        ThemeService.Custom => 0.14,
+        _ => 0,
+    };
+
+    /// <summary>The colour a skin's greys lean towards: the accent chosen for that skin (Settings › Theme › Colours).</summary>
+    public static Color TintHue(string theme)
+    {
+        string hex = theme switch
+        {
+            ThemeService.Anime => SkinColorSettings.SakuraAccentHex,
+            ThemeService.DarkSakura => SkinColorSettings.DarkSakuraAccentHex,
+            ThemeService.Custom => CustomThemeSettings.AccentHex,
+            _ => "#808080",
+        };
+        return Color.TryParse(hex, out var c) ? c : Color.FromRgb(0xE0, 0x21, 0x8A);
+    }
+
+    /// <summary>A grey, leaned towards the skin's hue and brought back to the grey's own brightness (WCAG luminance), so every
+    /// contrast the palette was picked for still holds. Colours that are not grey (yellow, green, red) and the grey themes are
+    /// returned as they are. No channel goes above #E4.</summary>
+    public static Color Tint(Color c, string theme)
+    {
+        double k = TintStrength(theme);
+        if (k <= 0 || c.R != c.G || c.G != c.B) return c;
+        var h = TintHue(theme);
+        double r = c.R + (h.R - c.R) * k, g = c.G + (h.G - c.G) * k, b = c.B + (h.B - c.B) * k;
+        double want = Luminance(c);
+        double lo = 0, hi = 4;
+        Color best = c;
+        for (int i = 0; i < 24; i++)
+        {
+            double f = (lo + hi) / 2;
+            best = Color.FromArgb(c.A, Ch(r * f), Ch(g * f), Ch(b * f));
+            if (Luminance(best) < want) lo = f; else hi = f;
+        }
+        return best;
+        static byte Ch(double v) => (byte)Math.Clamp(Math.Round(v), 0, NoNearWhite.Max);
+    }
+    static Color T(Color c) => Tint(c, Theme);
 
     public sealed record Palette(bool Dark, Color Base, Color Elevated, Color Surface, Color Pane, Color Well,
         Color Control, Color Border, Color Divider, Color Text, Color TextSecondary, Color TextMuted, Color Canvas,
@@ -63,7 +146,7 @@ public static class LightnessService
 
     public static Palette For(int step)
     {
-        int g = BaseGreys[Math.Clamp(step, 0, Steps - 1)];
+        int g = GreysFor(Theme)[Math.Clamp(step, 0, Steps - 1)];
         bool dark = g < 0x80;
         var pane = G(g + PaneOff);
         var p = new Palette(dark,
@@ -188,7 +271,7 @@ public static class LightnessService
     {
         StartPoint = new RelativePoint(0.5, 0, RelativeUnit.Relative),
         EndPoint = new RelativePoint(0.5, 1, RelativeUnit.Relative),
-        GradientStops = { new GradientStop(top, 0), new GradientStop(bottom, 1) },
+        GradientStops = { new GradientStop(T(top), 0), new GradientStop(T(bottom), 1) },
     };
 
     /// <summary>The button's outline. Dark steps (Zak 24 Nov on Version 3: "In the dark GUI perhaps add a highlight line on the top
@@ -196,8 +279,9 @@ public static class LightnessService
     /// stands out from a dark window. An inset BoxShadow was tried first and is not drawn by the renderer (pixels unchanged).</summary>
     static IBrush Edge(int step, (Color Top, Color Bottom, Color Outline, Thickness Edge, string Shadow, string PressedShadow) r)
     {
-        if (!For(step).Dark) return new SolidColorBrush(r.Outline);
-        var hi = Shift(r.Top, 0x4C);
+        if (!For(step).Dark) return new SolidColorBrush(T(r.Outline));
+        var hi = T(Shift(r.Top, 0x4C));
+        r.Outline = T(r.Outline);
         return new LinearGradientBrush
         {
             StartPoint = new RelativePoint(0.5, 0, RelativeUnit.Relative),
@@ -215,10 +299,10 @@ public static class LightnessService
         {
             ("ButtonRaisedFillBrush", Shade(r.Top, r.Bottom)),
             ("ButtonRaisedFillHoverBrush", Shade(Shift(h, d), Shift(h, -(For(step).Control.R - r.Bottom.R)))),
-            ("ButtonRaisedPressedBrush", new SolidColorBrush(r.Bottom)),
+            ("ButtonRaisedPressedBrush", new SolidColorBrush(T(r.Bottom))),
             ("ButtonRaisedBorderBrush", Edge(step, r)),
             ("ButtonRaisedBorderThickness", r.Edge),
-            ("TabOnFillBrush", new SolidColorBrush(TabOnFill(step))), ("TabOnTextBrush", new SolidColorBrush(TabOnText(step))),
+            ("TabOnFillBrush", new SolidColorBrush(T(TabOnFill(step)))), ("TabOnTextBrush", new SolidColorBrush(TabOnText(step))),
             ("TabOffTextBrush", new SolidColorBrush(For(step).Text)),
             ("DangerFillBrush", Shade(Danger(step).Top, Danger(step).Bottom)),
             ("DangerFillHoverBrush", Shade(Danger(step).HoverTop, Danger(step).HoverBottom)),
@@ -287,6 +371,13 @@ public static class LightnessService
             ("AttentionFillBrush", AttentionFill(step)), ("SwitchOnFillBrush", SwitchOnFill(step)), ("ConnectedTextBrush", ConnectedText(step)),
             ("PenBasicsInsetBrush", PenBasicsInset(step)), ("PenBasicsInsetBorderBrush", PenBasicsInsetBorder(step)),
             ("DangerTextBrush", DangerText(step)),
+            // V31 (L7.8, Zak 25 Nov: in Rose "the pen picture's Eraser and Tip circles are missing"): the circles were a fixed light
+            // grey, invisible on a light page. Light on the dark steps (as before), dark on the light ones; the selected end stronger.
+            ("PenEndCircleBrush", p.Dark ? Color.FromArgb(0x3B, 0xE4, 0xE4, 0xE4) : Color.FromArgb(0x55, 0x14, 0x14, 0x14)),
+            ("PenEndCircleSelectedBrush", p.Dark ? Color.FromArgb(0xD9, 0xE4, 0xE4, 0xE4) : Color.FromArgb(0xE6, 0x14, 0x14, 0x14)),
+            // V31 (L7.9, Rose: "the radial menu is flat grey with pale words"): the radial menu is dark and see-through, so on a light
+            // page its picture washed out. On the light steps the picture sits on a dark disc, as the menu does over dark artwork.
+            ("RadialPictureBackingBrush", p.Dark ? Color.FromArgb(0, 0, 0, 0) : Color.FromRgb(0x14, 0x14, 0x14)),
             ("AttentionBubbleBrush", Attention), ("AttentionBubbleTextBrush", AttentionInk),   // L6.3: the same in both looks
             ("PenDiagramFillBrush", p.Dark ? G(0x4A) : G(0x5A)), ("PenDiagramButtonFillBrush", p.Dark ? G(0x5E) : G(0x70)),
             ("PenDiagramStrokeBrush", p.Dark ? G(0xB0) : G(0x20)),
@@ -315,18 +406,38 @@ public static class LightnessService
 
     private static readonly System.Collections.Generic.List<string> Applied = new();
 
-    /// <summary>Apply the saved step to the running app (or remove it for Sakura/Custom). Live; call on change.</summary>
+    /// <summary>What a skin keeps for itself: its accent (sliders, ticks, the accent button) and its translucent cards. The
+    /// Theme page sets these (ThemeViewModel.RefreshSkin); the palette leaves them alone.</summary>
+    static readonly System.Collections.Generic.HashSet<string> SkinOwned = new()
+    {
+        "Accent", "AccentBrush", "AccentMutedBrush", "NavActiveBrush",
+        "SystemAccentColor", "SystemAccentColorLight1", "SystemAccentColorDark1",
+        "GlassBg", "GlassBgBrush",
+    };
+
+    /// <summary>Apply the saved step to the running app. Live; call on change. The grey themes also get their light or dark
+    /// variant; a skin keeps its own variant and what is in <see cref="SkinOwned"/>.</summary>
     public static void ApplySaved()
     {
         if (Application.Current is not { } app) return;
         foreach (var k in Applied) app.Resources.Remove(k);
         Applied.Clear();
-        if (DrivesTheme(ThemeService.SavedChoice))
+        string theme = Theme;
+        bool skin = IsSkin(theme);
+        if (DrivesTheme(theme) || skin)
         {
             int step = Saved;
-            app.RequestedThemeVariant = For(step).Dark ? DarkVariant : LightVariant;
-            foreach (var (k, c) in Resources(step)) { app.Resources[k] = c; Applied.Add(k); }
-            foreach (var (k, c) in BrushResources(step)) { app.Resources[k] = new SolidColorBrush(c); Applied.Add(k); }
+            if (!skin) app.RequestedThemeVariant = For(step).Dark ? DarkVariant : LightVariant;
+            foreach (var (k, c) in Resources(step))
+            {
+                if (skin && SkinOwned.Contains(k)) continue;
+                app.Resources[k] = T(c); Applied.Add(k);
+            }
+            foreach (var (k, c) in BrushResources(step))
+            {
+                if (skin && SkinOwned.Contains(k)) continue;
+                app.Resources[k] = new SolidColorBrush(T(c)); Applied.Add(k);
+            }
             foreach (var (k, v) in RaisedResources(step, RaisedVariant)) { app.Resources[k] = v; Applied.Add(k); }
         }
         NoNearWhite.Apply(app);   // R12
