@@ -77,9 +77,16 @@ public static class LightnessService
 
     public static void Set(int step)
     {
+        Store(step);
+        ApplySaved();
+    }
+
+    /// <summary>Remembers the step for the theme in use without drawing it: for a skin, whose own refresh (accent and cards over
+    /// the palette, ThemeViewModel.RefreshSkin) draws the palette once itself.</summary>
+    public static void Store(int step)
+    {
         step = Math.Clamp(step, 0, Steps - 1);
         AppSettings.Set(KeyFor(Theme), step.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        ApplySaved();
     }
 
     /// <summary>How strongly a skin's greys take its accent's hue (0 = plain grey).</summary>
@@ -254,6 +261,38 @@ public static class LightnessService
     /// a deep shade, a light top edge, a thick dark bottom edge and a deeper shadow.</summary>
     public static (Color Top, Color Bottom, Color Outline, Thickness Edge, string Shadow, string PressedShadow) Raised(int step, int variant)
     {
+        var p = For(step);
+        var r = RaisedAsDrawnFor(step, variant);
+        if (!p.Dark) return r;
+        // V31 (ZAK-LISTS L7.12): a word must be readable where it really sits. Measured on the real pages (ReadabilityAudit):
+        // one line of text sits around the middle of its button, but the three lines of Home's big button start a fifth of the
+        // way down, where a shaded fill is still near its light top. On the darkest steps the light word had its 4.5:1 there
+        // (4.55 at step 1); on the higher dark steps the fill's top grew lighter while the word could not (nothing is brighter
+        // than #E4), down to 3.5:1 at Lightness 5. So the top of the shade is held back until the word has 4.5:1 a fifth of
+        // the way down. The darkest step is drawn exactly as before.
+        var top = r.Top;
+        double need = IsSkin(Theme) ? WordContrast + 0.1 : WordContrast;   // a skin's greys are tinted afterwards: room for the rounding
+        while (top.R > p.Control.R + 8 && Contrast(p.Text, ShadeAt(top, r.Bottom, WordBandTop)) < need) top = Shift(top, -1);
+        return (top, r.Bottom, r.Outline, r.Edge, r.Shadow, r.PressedShadow);
+    }
+
+    /// <summary>Where the words of a button can sit on its shaded fill, as a share of its height from the top: measured on the
+    /// real pages, the ink of a one-line button runs from about 0.27 to 0.75, that of Home's three-line button from 0.20.</summary>
+    public const double WordBandTop = 0.20, WordBandBottom = 0.80;
+    /// <summary>The palette's rule for text (WCAG AA). Checked a fifth of the way down the shade, which is a little above
+    /// where the worst of a word's ink really lies (measured: 4.84:1 for Home's big button at the darkest step, where this point
+    /// gives 4.55), so a skin's tint and rounding have room.</summary>
+    public const double WordContrast = 4.5;
+
+    /// <summary>The colour of a top-to-bottom shade at a share of its height.</summary>
+    public static Color ShadeAt(Color top, Color bottom, double share)
+    {
+        byte M(byte a, byte b) => (byte)Math.Round(a + (b - a) * share);
+        return Color.FromRgb(M(top.R, bottom.R), M(top.G, bottom.G), M(top.B, bottom.B));
+    }
+
+    static (Color Top, Color Bottom, Color Outline, Thickness Edge, string Shadow, string PressedShadow) RaisedAsDrawnFor(int step, int variant)
+    {
         var p = For(step); var c = p.Control;
         string A(string dark, string light) => p.Dark ? dark : light;
         return variant switch
@@ -308,6 +347,7 @@ public static class LightnessService
             ("DangerFillHoverBrush", Shade(Danger(step).HoverTop, Danger(step).HoverBottom)),
             ("DangerPressedBrush", new SolidColorBrush(Danger(step).Bottom)),
             ("DangerBorderBrush", new SolidColorBrush(Danger(step).Outline)),
+            ("TextControlPlaceholderOpacity", 1.0),
             ("ButtonRaisedShadow", BoxShadows.Parse(r.Shadow)),
             ("ButtonPressedShadow", BoxShadows.Parse(r.PressedShadow)),
         };
@@ -383,7 +423,9 @@ public static class LightnessService
             ("PenDiagramStrokeBrush", p.Dark ? G(0xB0) : G(0x20)),
             ("WacomPaneBrush", p.Pane), ("WacomTileWellBrush", p.Well), ("ScribbleCanvasBrush", p.Canvas),
             ("AccentBrush", Accent), ("AccentMutedBrush", accentMuted), ("NavActiveBrush", accentMuted),
-            ("AccentButtonFillBrush", accentMuted), ("AccentButtonForegroundBrush", p.Dark ? G(0xD8) : G(0x24)),
+            // V31 (L7.5 / L7.12): Save is drawn as a raised button like the others, so on the dark steps its word is the text colour
+            // (it was a slightly dimmer #D8, 3.6:1 on the raised fill at Lightness 5).
+            ("AccentButtonFillBrush", accentMuted), ("AccentButtonForegroundBrush", p.Dark ? p.Text : G(0x24)),
             ("AccentButtonFillHoverBrush", Accent), ("AccentButtonForegroundHoverBrush", p.OnAccent),
             ("SelectionFillBrush", SelectionFill(step)), ("SelectionTextBrush", SelectionText), ("SelectionBorderBrush", SelectionBorder(step)),
             ("CheckBoxCheckGlyphForegroundChecked", SelectionText), ("CheckBoxCheckGlyphForegroundCheckedPointerOver", SelectionText),
@@ -394,6 +436,10 @@ public static class LightnessService
             ("TextControlBackgroundFocused", p.Well), ("TextControlForeground", p.Text),
             ("TextControlForegroundPointerOver", p.Text), ("TextControlForegroundFocused", p.Text),
             ("TextControlBorderBrush", p.Border), ("TextControlBorderBrushPointerOver", p.Border), ("ButtonBorderBrush", p.Border), ("ComboBoxBorderBrush", p.Border),
+            // V31 (L7.12): the grey hint inside an empty box ("Setting search") measured 2.1:1 on every look; it is the quiet text
+            // colour now (3:1 or more on every surface), drawn at full strength (TextControlPlaceholderOpacity, RaisedResources).
+            ("TextControlPlaceholderForeground", p.TextMuted), ("TextControlPlaceholderForegroundPointerOver", p.TextMuted),
+            ("TextControlPlaceholderForegroundFocused", p.TextMuted),
             ("ComboBoxBackground", p.Control), ("ComboBoxBackgroundPointerOver", p.ControlHover),
             ("ComboBoxDropDownBackground", p.Elevated), ("ComboBoxForeground", p.Text),
             ("ButtonBackground", p.Control), ("ButtonBackgroundPointerOver", p.ControlHover), ("ButtonForeground", p.Text),

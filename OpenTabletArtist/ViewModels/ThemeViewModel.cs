@@ -49,8 +49,9 @@ public partial class ThemeViewModel : ObservableObject
         set
         {
             if (value == LightnessService.Saved) return;
-            LightnessService.Set(value);
-            if (IsSakura || IsDarkSakura || IsCustom) RefreshSkin();   // V31: a skin puts its own accent and cards back over the new step
+            // V31 (L7.11): a skin draws the new step once, in its own refresh (the palette, then its accent and cards over it)
+            if (IsSakura || IsDarkSakura || IsCustom) { LightnessService.Store(value); RefreshSkin(); }
+            else LightnessService.Set(value);
             OnPropertyChanged(); OnPropertyChanged(nameof(LightnessInput));
         }
     }
@@ -396,9 +397,9 @@ public partial class ThemeViewModel : ObservableObject
                      "CheckBoxCheckBackgroundStrokeCheckedPointerOver", "CheckBoxCheckBackgroundStrokeCheckedPressed" })
             app.Resources[k] = tickBox;
 
-        app.Resources["ToggleSwitchKnobFillOn"] = onAccentInk;
-        app.Resources["ToggleSwitchKnobFillOnPointerOver"] = onAccentInk;
-        app.Resources["ToggleSwitchKnobFillOnPressed"] = onAccentInk;
+        // V31 (L7.7, Zak 25 Nov on the Custom picture: "The On Off buttons are still invisible"): the knob of a switch that is On is
+        // NOT set here any more. The switch's track is the palette's (SwitchOnFillBrush, a light grey on the dark looks), and a knob
+        // picked to stand out from the ACCENT was light too: a light knob on a light track. The palette sets the knob with its track.
 
         app.Resources["RadioButtonCheckGlyphFill"] = onAccentInk;
         app.Resources["RadioButtonCheckGlyphFillPointerOver"] = onAccentInk;
