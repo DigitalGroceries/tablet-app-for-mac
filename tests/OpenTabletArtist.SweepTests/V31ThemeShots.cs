@@ -53,6 +53,7 @@ public class V31ThemeShots
     public async Task Home_and_pen_page_in_every_theme()
     {
         using var mac = UiPlatform.PretendMac();
+        var palettes = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<(byte R, byte G, byte B)>>();
         try
         {
             foreach (var (id, name) in Themes)
@@ -90,6 +91,15 @@ public class V31ThemeShots
                 view.FindControl<RadioButton>("ToolPenButton")!.IsChecked = true; await Settle(80);
                 view.FindControl<RadioButton>("PenTab")!.IsChecked = true; await Settle(150);
                 Save(w, $"{name}-2-pen");
+                // L7.10: the colour palette's own colours, to compare between the looks below
+                var wheel = view.FindControl<OpenTabletArtist.Controls.ColourPaletteWheel>("PaletteSpotWheel")!;
+                var frame = ReadabilityAudit.Capture(w);
+                var at = wheel.TranslatePoint(new Point(0, 0), w)!.Value;
+                var colours = new System.Collections.Generic.List<(byte R, byte G, byte B)>();
+                for (int y = (int)Math.Ceiling(at.Y); y < (int)(at.Y + wheel.Bounds.Height) && y < frame.H; y++)
+                    for (int x = (int)Math.Ceiling(at.X); x < (int)(at.X + wheel.Bounds.Width) && x < frame.W; x++)
+                        colours.Add(frame.At(x, y));
+                palettes[name] = colours;
 
                 vm.CurrentPage = vm.Settings; vm.Settings.SelectedTab = OpenTabletArtist.Domain.SettingsTab.Theme;
                 w.Height = 900; await Settle(200);
@@ -98,6 +108,26 @@ public class V31ThemeShots
             }
         }
         finally { Choose(ThemeService.Wacom); LightnessService.Set(0); }
+
+        // L7.10 (Zak's Custom and Rose screenshots, 25 Nov: does the colour palette look duller in these themes than in the
+        // factory theme?): the palette's colours are the artist's and must be the same in every look. Every coloured pixel of
+        // the picture on the Pen page is compared with the grey look's (the grey rim and the hub take the look's colours).
+        var first = palettes[Themes[0].Name];
+        int coloured = first.Count(c => Math.Max(c.R, Math.Max(c.G, c.B)) - Math.Min(c.R, Math.Min(c.G, c.B)) > 60);
+        Assert.True(coloured > 20000, $"only {coloured} coloured pixels found in the palette picture - is it drawn?");
+        foreach (var (_, name) in Themes.Skip(1))
+        {
+            var other = palettes[name];
+            Assert.True(other.Count == first.Count, $"{name}: the palette picture is {other.Count} pixels, the grey look's {first.Count}");
+            int differ = 0;
+            for (int i = 0; i < first.Count; i++)
+            {
+                var a = first[i]; var b = other[i];
+                if (Math.Max(a.R, Math.Max(a.G, a.B)) - Math.Min(a.R, Math.Min(a.G, a.B)) <= 60) continue;
+                if (Math.Abs(a.R - b.R) + Math.Abs(a.G - b.G) + Math.Abs(a.B - b.B) > 12) differ++;
+            }
+            Assert.True(differ == 0, $"{name}: {differ} of the palette's {coloured} coloured pixels differ from the grey look's");
+        }
     }
 
     static Avalonia.Media.Color Res(string key)
