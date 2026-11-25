@@ -993,8 +993,10 @@
         <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
     </Style>
     <!-- Base appearance: warning off-state -->
+    <!-- V31 (L7.12): the amber of the warning text, which every look keeps readable (WarningTextBrush); the plain amber dot
+         measured 1.03:1 on the light grey look - it could not be seen. -->
     <Style Selector="TextBlock.statusMarkWarn">
-        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WarningTextBrush}" />
     </Style>
     <!-- Success override for either base — muted, not green (#593). The check-mark/label carries "good". -->
     <Style Selector="TextBlock.statusMark.success, TextBlock.statusMarkWarn.success">
@@ -1006,7 +1008,7 @@
         <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
     </Style>
     <Style Selector="TextBlock.warning">
-        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WarningTextBrush}" />
     </Style>
     <Style Selector="TextBlock.neutral">
         <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
@@ -1113,6 +1115,12 @@
     </Style>
     <Style Selector="Button:not(.flat):not(.pathLink):not(.ringCentre):pressed /template/ ContentPresenter#PART_ContentPresenter, RepeatButton.wacomArrow:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="BoxShadow" Value="{DynamicResource ButtonPressedShadow}" />
+    </Style>
+    <!-- V31 (L7.12): a plain button marked .accent ("Start automatically" in the start-at-login question) is drawn raised like
+         the others since Version 30, but kept the light word meant for its old accent fill: on the light looks a light word
+         on a light button (1.14:1). Its word is the button word now. -->
+    <Style Selector="Button.accent:not(.ownFill):not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
     </Style>
     <!-- Ghost buttons (RaisedBd) get the full raised look; accent, call-to-action and delete buttons (RaisedKeep) keep their own
          fill and get the edge and shadow. Icon buttons (c:IconButton: the ••• and glyph buttons) stay borderless glyphs: a Button

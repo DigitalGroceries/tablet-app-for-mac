@@ -44,6 +44,8 @@ public class V31ThemeShots
         tvm.SelectedTheme = tvm.ThemeOptions.First(o => o.Id == id);
         ThemeService.Apply(id);
         Localizer.SetPreference("en");
+        // petals fall at random places; with OTA_NO_PETALS=1 two runs give the same picture, pixel for pixel (to compare a change)
+        if (Environment.GetEnvironmentVariable("OTA_NO_PETALS") == "1") tvm.PetalsEnabled = false;
         return tvm;
     }
 
@@ -196,7 +198,10 @@ public class V31ThemeShots
             foreach (var p in w.GetVisualDescendants().OfType<StackPanel>().Where(x => x.Children.OfType<Button>().Any(b => b.Name == "SaveButton"))) p.IsEnabled = true;
         }
         TakeInput(); await Settle(40);
+        double tall = w.Height;
+        w.Height = Math.Min(tall, 860); await Settle(40);   // Home and Settings fit a smaller window (a picture of it is quicker)
         await visit("home");
+        w.Height = tall;
 
         var details = (System.Collections.IDictionary)typeof(MainViewModel)
             .GetField("_tabletDetails", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(vm)!;
@@ -213,9 +218,11 @@ public class V31ThemeShots
         await visit("pen");
 
         vm.CurrentPage = vm.Settings; vm.Settings.SelectedTab = OpenTabletArtist.Domain.SettingsTab.Theme;
+        w.Height = Math.Min(tall, 900);
         await Settle(200);
         TakeInput(); await Settle(40);
         await visit("settings-theme");
+        w.Height = tall;
     }
 
     /// <summary>L7.12, the words: Home, Tablet › Pen and Settings › Theme (the pages of Zak's "Changes Needed" screenshots) in the

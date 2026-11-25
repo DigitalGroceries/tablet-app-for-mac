@@ -117,16 +117,36 @@ internal static class ReadabilityAudit
             if (w.InputHitTest(mid) is Visual hit && !ReferenceEquals(hit, t) && !t.GetVisualAncestors().Contains(hit) && !hit.GetVisualAncestors().Contains(t))
                 continue;
 
-            // the colour the word is drawn in: the pixels its ink covers fully (the strongest tenth of the differences)
+            // The colour of the word. Its own colour as it is set (a plain brush), with how see-through it and everything it
+            // sits in are: thin small letters never cover a whole pixel, so reading the colour back from the picture would make
+            // every small word look weaker than it is (WCAG too goes by the colour set). Only a word painted with something
+            // other than a plain colour is read from the picture: the pixels its ink covers best.
             var solid = ink.Where(p => p.D >= most * 0.85).ToList();
             byte Med(Func<(byte R, byte G, byte B), byte> ch) { var v = solid.Select(p => ch(shown.At(p.X, p.Y))).OrderBy(z => z).ToList(); return v[v.Count / 2]; }
-            var inkColour = (R: Med(c => c.R), G: Med(c => c.G), B: Med(c => c.B));
-            var fg = Col(inkColour);
+            var drawn = (R: Med(c => c.R), G: Med(c => c.G), B: Med(c => c.B));
+            Color? set = null; double alpha = 1;
+            if (t.Foreground is ISolidColorBrush sb)
+            {
+                set = sb.Color;
+                alpha = sb.Color.A / 255.0 * sb.Opacity * was[texts.IndexOf(t)];
+                foreach (var a in t.GetVisualAncestors()) alpha *= a.Opacity;
+                // a text that is not drawn at all (a see-through copy that only holds the room for the longest wording):
+                // the ink found here is the visible word over it, which is measured as its own text
+                if (alpha < 0.05) continue;
+            }
+            Color Over((byte R, byte G, byte B) under)
+            {
+                if (set is not { } c) return Col(drawn);
+                byte M(byte top, byte bottom) => (byte)Math.Round(bottom + (top - bottom) * alpha);
+                return Color.FromRgb(M(c.R, under.R), M(c.G, under.G), M(c.B, under.B));
+            }
 
             // what lies behind the body of the letters (half covered or more), worst tenth
             var body = ink.Where(p => p.D >= most * 0.5).ToList();
-            var ratios = body.Select(p => (C: LightnessService.Contrast(fg, Col(behind.At(p.X, p.Y))), p.X, p.Y)).OrderBy(z => z.C).ToList();
+            var ratios = body.Select(p => { var under = behind.At(p.X, p.Y); return (C: LightnessService.Contrast(Over(under), Col(under)), p.X, p.Y); })
+                .OrderBy(z => z.C).ToList();
             var worst = ratios[Math.Min(ratios.Count - 1, ratios.Count / 10)];
+            var inkColour = Over(behind.At(worst.X, worst.Y));
 
             var holder = t.GetVisualAncestors().OfType<Control>().FirstOrDefault(c => c is Button or ToggleButton);
             bool large = t.FontSize >= 24 || (t.FontSize >= 18.66 && (int)t.FontWeight >= (int)FontWeight.Bold);
@@ -136,8 +156,11 @@ internal static class ReadabilityAudit
                 top = (body.Min(p => p.Y) - htl.Y) / holder.Bounds.Height;
                 bottom = (body.Max(p => p.Y) + 1 - htl.Y) / holder.Bounds.Height;
             }
+            // a label with no letter or digit in it (× to close, + and -, a status dot ●) is a sign, not a word: 3:1, WCAG's
+            // line for what is drawn rather than written
+            bool sign = !text.Any(char.IsLetterOrDigit);
             words.Add(new Word(page, Short(text), Place(t), holder != null, large, worst.C,
-                holder != null && !large ? ControlWord : AnyWord, Hex(inkColour), Hex(behind.At(worst.X, worst.Y)), body.Count, top, bottom));
+                holder != null && !large && !sign ? ControlWord : AnyWord, $"#{inkColour.R:X2}{inkColour.G:X2}{inkColour.B:X2}", Hex(behind.At(worst.X, worst.Y)), body.Count, top, bottom));
         }
         return words;
     }

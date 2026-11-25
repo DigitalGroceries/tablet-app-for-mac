@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Styling;
 
@@ -162,7 +164,9 @@ public static class LightnessService
             Text: default, TextSecondary: default, TextMuted: default,
             Canvas: G(dark ? 0xA8 : Math.Min(g + 0x18, 0xE4)), Ink: G(0x22), OnAccent: G(0xE4))
         { ControlHover = G(g + HoverOff) };
-        Color[] surfaces = p.Layers;
+        // V31 (L7.12): and the tinted box of Advanced › Driver ("This app": the accent at a quarter strength over the window),
+        // the darkest surface a word sits on in the light looks - quiet text measured 2.94:1 there.
+        Color[] surfaces = p.Layers.Append(ShadeAt(p.Base, Accent, 0x40 / 255.0)).ToArray();
         return p with
         {
             Text = Pick(surfaces, dark, 4.5, dark ? 0xE0 : 0x10),
@@ -450,7 +454,11 @@ public static class LightnessService
         };
     }
 
-    private static readonly System.Collections.Generic.List<string> Applied = new();
+    /// <summary>The palette as it is applied now: ONE dictionary among the app's merged ones. V31: until Version 30 each of
+    /// its 120 colours was set on the app one by one, and every single change made every control on screen look its colours up
+    /// again - about 240 rounds for one move of the Lightness slider (4 s on the Pen page in a test window). Now a new dictionary is
+    /// built and swapped in: one round. A colour set directly on the app (a skin's accent, ThemeViewModel) still comes first, as before.</summary>
+    private static ResourceDictionary? _palette;
 
     /// <summary>What a skin keeps for itself: its accent (sliders, ticks, the accent button) and its translucent cards. The
     /// Theme page sets these (ThemeViewModel.RefreshSkin); the palette leaves them alone.</summary>
@@ -466,26 +474,25 @@ public static class LightnessService
     public static void ApplySaved()
     {
         if (Application.Current is not { } app) return;
-        foreach (var k in Applied) app.Resources.Remove(k);
-        Applied.Clear();
         string theme = Theme;
         bool skin = IsSkin(theme);
+        var palette = new ResourceDictionary();
         if (DrivesTheme(theme) || skin)
         {
             int step = Saved;
             if (!skin) app.RequestedThemeVariant = For(step).Dark ? DarkVariant : LightVariant;
             foreach (var (k, c) in Resources(step))
-            {
-                if (skin && SkinOwned.Contains(k)) continue;
-                app.Resources[k] = T(c); Applied.Add(k);
-            }
+                if (!(skin && SkinOwned.Contains(k))) palette[k] = T(c);
             foreach (var (k, c) in BrushResources(step))
-            {
-                if (skin && SkinOwned.Contains(k)) continue;
-                app.Resources[k] = new SolidColorBrush(T(c)); Applied.Add(k);
-            }
-            foreach (var (k, v) in RaisedResources(step, RaisedVariant)) { app.Resources[k] = v; Applied.Add(k); }
+                if (!(skin && SkinOwned.Contains(k))) palette[k] = new SolidColorBrush(T(c));
+            foreach (var (k, v) in RaisedResources(step, RaisedVariant)) palette[k] = v;
         }
+        // in place of the last palette (it keeps its place: after the app's own colour files, so it comes before them, and
+        // before NoNearWhite's dictionary, which stays last)
+        var merged = app.Resources.MergedDictionaries;
+        int at = _palette is null ? -1 : merged.IndexOf(_palette);
+        if (at >= 0) merged[at] = palette; else merged.Add(palette);
+        _palette = palette;
         NoNearWhite.Apply(app);   // R12
         Changed?.Invoke();
     }

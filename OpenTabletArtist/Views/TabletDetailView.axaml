@@ -1334,7 +1334,7 @@
                                                         AutomationProperties.Name="Ring centre button" />
                                             </Panel>
                                             <TextBlock x:Name="PlainRingReadout" Text="{Binding LiveReadout}" HorizontalAlignment="Center"
-                                                       FontSize="15" FontWeight="SemiBold" Foreground="#E4E4E4" MinHeight="20" TextAlignment="Center"
+                                                       FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" MinHeight="20" TextAlignment="Center"
                                                        Margin="0,8,0,0" />
                                         </StackPanel>
 

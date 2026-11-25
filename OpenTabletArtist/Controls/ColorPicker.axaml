@@ -37,7 +37,7 @@
             </Border>
             <TextBlock Text="{Binding #Root.Color, Converter={x:Static conv:ColorHexConverter.Instance}}"
                        FontFamily="{DynamicResource MonoFontFamily}"
-                       Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
             <PathIcon Data="{StaticResource IconChevronDown}" Width="10" Height="10"
                       VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
         </StackPanel>

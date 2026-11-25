@@ -17,7 +17,11 @@ namespace OpenTabletArtist.Services;
 public static class NoNearWhite
 {
     public const byte Max = 0xE4;
+    /// <summary>The app's own entries this class replaced (a skin's colour set directly on the app can only be shadowed where it is).</summary>
     private static readonly Dictionary<object, object> Applied = new();
+    /// <summary>Every other clamped colour, in ONE dictionary that is the last of the app's merged ones (V31: they were set on the
+    /// app one by one, and each change made every control look its colours up again; see LightnessService._palette).</summary>
+    private static ResourceDictionary? _clamps;
 
     public static bool IsTooBright(Color c) => c.A > 0x40 && c.R > Max && c.G > Max && c.B > Max;
 
@@ -31,11 +35,15 @@ public static class NoNearWhite
         foreach (var (k, v) in Applied)
             if (app.Resources.TryGetValue(k, out var cur) && ReferenceEquals(cur, v)) app.Resources.Remove(k);
         Applied.Clear();
+        var merged = app.Resources.MergedDictionaries;
+        if (_clamps != null) merged.Remove(_clamps);   // so every colour is read as it is, not as it was clamped last time
+        _clamps = null;
 
         var keys = new HashSet<object>();
         Collect(app.Resources, keys);
         foreach (var s in app.Styles) Collect(s, keys);
         var variant = app.ActualThemeVariant;
+        var clamps = new ResourceDictionary();
         foreach (var k in keys)
         {
             if (!app.TryGetResource(k, variant, out var v)) continue;
@@ -46,9 +54,12 @@ public static class NoNearWhite
                 _ => null,
             };
             if (clamped is null) continue;
-            app.Resources[k] = clamped;
-            Applied[k] = clamped;
+            if (app.Resources.ContainsKey(k)) { app.Resources[k] = clamped; Applied[k] = clamped; }
+            else clamps[k] = clamped;
         }
+        if (clamps.Count == 0) return;
+        merged.Add(clamps);   // last = looked up first among the merged dictionaries
+        _clamps = clamps;
     }
 
     private static void Collect(object? node, HashSet<object> keys)

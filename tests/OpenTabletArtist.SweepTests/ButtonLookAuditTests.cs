@@ -80,37 +80,63 @@ public class ButtonLookAuditTests
         }
     }
 
-    static void Shot(Window w, bool light, string slug)
+    static void Shot(Window w, string look, string slug)
     {
-        for (int i = 0; i < 6; i++) { Pump(); w.UpdateLayout(); }
-        var d = Path.Combine(Dir, light ? "pages-light" : "pages-dark");
+        for (int i = 0; i < 2; i++) { Pump(2); w.UpdateLayout(); }
+        var d = Path.Combine(Dir, "pages-" + look);
         Directory.CreateDirectory(d);
         w.CaptureRenderedFrame()!.Save(Path.Combine(d, Slug(slug) + ".png"));
     }
 
-    static async Task<List<Look>> Walk(bool light)
+    /// <summary>What one walk through the app saw: every button and tab with its look, every word with its measured contrast
+    /// (<see cref="ReadabilityAudit"/>), and the fill of the tab you are on in that look.</summary>
+    internal sealed record Seen(List<Look> Looks, List<ReadabilityAudit.Word> Words, string TabOn);
+
+    /// <summary>The looks the audits walk through: the grey look dark and light, and (V31, ZAK-LISTS L7.3 / L7.12, Zak 25 Nov 2026:
+    /// in Burgundy, Custom and Rose "enabled tabs and buttons lose their raised button look") each skin at the step it starts on.
+    /// OTA_AUDIT_LOOKS=rose,custom walks only those (to repeat one look while fixing it).</summary>
+    internal static IEnumerable<(string Theme, int Step, string Name)> AuditLooks()
+    {
+        var all = new[]
+        {
+            (ThemeService.Wacom, 0, "dark"), (ThemeService.Wacom, 8, "light"),
+            (ThemeService.DarkSakura, LightnessService.DefaultStepFor(ThemeService.DarkSakura), "burgundy"),
+            (ThemeService.Anime, LightnessService.DefaultStepFor(ThemeService.Anime), "rose"),
+            (ThemeService.Custom, LightnessService.DefaultStepFor(ThemeService.Custom), "custom"),
+        };
+        var only = (Environment.GetEnvironmentVariable("OTA_AUDIT_LOOKS") ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return only.Length == 0 ? all : all.Where(l => only.Contains(l.Item3));
+    }
+
+    static async Task<Seen> Walk(string theme, int step, string look)
     {
         using var mac = UiPlatform.PretendMac();   // pages laid out as on Zak's Mac (the pen cards' Change… / Default)
         Hook();
-        _ = new ThemeViewModel();
-        ThemeService.Apply(ThemeService.Wacom);
-        LightnessService.Set(light ? 8 : 0);
-        Localizer.SetPreference("en");
+        V31ThemeShots.Choose(theme);
         var all = new List<Look>();
+        var words = new List<ReadabilityAudit.Word>();
+        void See(Window win, string slug)
+        {
+            all.AddRange(Looks(win, slug));
+            words.AddRange(ReadabilityAudit.Measure(win, $"{look} {slug}"));
+        }
 
         var w = new MainWindow { Width = 1130, Height = 900 };
         w.Show(); await Settle(150);
         var vm = (MainViewModel)w.DataContext!;
+        vm.Theme.SelectedTheme = vm.Theme.ThemeOptions.First(o => o.Id == theme); await Settle(60);
+        vm.Theme.Lightness = step; await Settle(60);
+        var tabOn = Application.Current!.TryFindResource("TabOnFillBrush", out var on) ? Describe(on as IBrush) : "?";
         foreach (var (slug, go) in vm.ScreenshotTargets())
         {
             go(); await Settle(100);
-            all.AddRange(Looks(w, slug));
-            Shot(w, light, slug);
+            See(w, slug);
+            Shot(w, look, slug);
         }
         vm.Settings.SelectedTab = SettingsTab.Theme; vm.NavigateCommand.Execute(vm.Settings); await Settle(80);
         foreach (var sub in new[] { "ThemeSubtab", "BackdropSubtab", "ColorsSubtab" })
             if (w.GetVisualDescendants().OfType<RadioButton>().FirstOrDefault(x => x.Name == sub) is { } rb)
-            { rb.IsChecked = true; await Settle(60); all.AddRange(Looks(w, $"settings-theme-{sub}")); }
+            { rb.IsChecked = true; await Settle(60); See(w, $"settings-theme-{sub}"); }
         // The Tablet pages inside the app window, as Zak sees them (Zak 24 Nov ~15:50: "Dont create mockup pictures that are different
         // from the app"): the nav row, the tablet switcher and a connected Wacom PTK-440 with factory settings (ZakTablet).
         var details = (System.Collections.IDictionary)typeof(MainViewModel)
@@ -138,16 +164,41 @@ public class ButtonLookAuditTests
             foreach (var tab in tabs)
             {
                 tab.IsChecked = true; await Settle(80);
-                all.AddRange(Looks(w, $"tablet-{Label(t)}-{Label(tab)}"));
-                Shot(w, light, $"tablet-{Label(t)}-{Label(tab)}");
+                See(w, $"tablet-{Label(t)}-{Label(tab)}");
+                Shot(w, look, $"tablet-{Label(t)}-{Label(tab)}");
                 if (Label(tab) == "Pen")
                 {
                     PenPageTabs.Select(view, "EraserTab"); await Settle(60);
-                    all.AddRange(Looks(w, $"tablet-{Label(t)}-{Label(tab)}-eraser"));
+                    See(w, $"tablet-{Label(t)}-{Label(tab)}-eraser");
                     PenPageTabs.Select(view, "TipTab"); await Settle(40);
                 }
             }
         }
+        // V31 (ZAK-LISTS L7.6, Zak 25 Nov 2026: in Rose the words of the 'Restore Factory Settings' button were almost invisible):
+        // the app's own question, opened inside the app window as the app opens it, with the words MainViewModel asks it with.
+        Helpers.InWindowSheet.MainOverride = () => w;
+        try
+        {
+            var asked = Helpers.Dialogs.ShowConfirmAsync(
+                Localizer.Te("save.factory.confirm_title", "Restore factory settings?"),
+                Localizer.Te("save.factory.confirm_body",
+                    "Your current settings will be replaced with the factory settings. "
+                    + "Your own saved default is kept, so you can still use Revert to default afterwards."),
+                Localizer.Te("save.factory.confirm_action", "Restore Factory Settings"),
+                Localizer.Te("app.cancel", "Cancel"),
+                parent: w, cancelIsDefault: true);
+            await Settle(200);
+            Assert.True(Helpers.InWindowSheet.IsOpen, "the 'Restore factory settings?' question did not open inside the window");
+            See(w, "sheet-restore-factory");
+            Shot(w, look, "sheet-restore-factory");
+            var cancel = Visible<Button>(w).FirstOrDefault(b => Label(b) == Localizer.Te("app.cancel", "Cancel"));
+            Assert.True(cancel != null, "no Cancel button in the 'Restore factory settings?' question");
+            cancel!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            await Settle(150);
+            Assert.False(await asked.WaitAsync(TimeSpan.FromSeconds(5)), "Cancel did not answer No");
+        }
+        finally { Helpers.InWindowSheet.MainOverride = null; }
+
         w.AllowCloseForQuit(); w.Close();
         (vm as IDisposable)?.Dispose();
         ed.Dispose();
@@ -157,7 +208,7 @@ public class ButtonLookAuditTests
         async Task Dialog(Window d, string slug, Action? each = null)
         {
             d.Show(); await Settle(80);
-            all.AddRange(Looks(d, slug)); Shot(d, light, slug);
+            See(d, slug); Shot(d, look, slug);
             d.Close(); await Settle(20);
         }
         foreach (var (tab, set) in new (string, Action<BindingEditorViewModel>)[]
@@ -178,7 +229,7 @@ public class ButtonLookAuditTests
         await Dialog(new SupportedTabletsDialog { Width = 900, Height = 700 }, "dialog-supported-tablets");
         await Dialog(new HotkeyCaptureDialog(new HotkeyCaptureViewModel()) { Width = 900, Height = 600 }, "dialog-hotkey");
         await Dialog(new ReportWindow(new ReportViewModel(() => (new List<string>(), Array.Empty<string>(), null), null, "shot")) { Width = 900, Height = 800 }, "dialog-report");
-        return all;
+        return new Seen(all, words, tabOn);
     }
 
     static string Key(Look l) => $"{l.Fill} | shadow {(l.Shadow ? "yes" : "no")} | edge {l.Edge}";
@@ -195,30 +246,49 @@ public class ButtonLookAuditTests
     public async Task Button_look_inventory()
     {
         var lines = new List<string> { "# Every button and tab, by the look it is drawn with", "" };
+        var wordLines = new List<string> { "# Every word on every page and window, measured from the pixels (the weakest of each page)", "" };
         var odd = new List<string>();
-        foreach (var light in new[] { false, true })
+        var low = new List<string>();
+        try
         {
-            var looks = await Walk(light);
-            // Zak 24 Nov ("They are all over the app"): every enabled word button and tab is raised; the tab you are on is lit.
-            var tabOn = Describe(new SolidColorBrush(LightnessService.TabOnFill(light ? 8 : 0)));
-            foreach (var l in looks.Where(l => l.Enabled && !l.Raised && !OwnLookOnPurpose(l)))
-                if (!(l.Checked == true && l.Fill == tabOn && l.Shadow))
-                    odd.Add($"{(light ? "light" : "dark")} {l.Page}: {l.Kind} '{l.Label}' theme {l.Theme} [{l.Classes}] {l.Fill} shadow {l.Shadow}");
-            lines.Add($"## {(light ? "Light" : "Dark")} look - {looks.Count} buttons and tabs on {looks.Select(l => l.Page).Distinct().Count()} pages");
-            foreach (var g in looks.GroupBy(l => (l.Raised, l.Enabled, Kind: l.Kind == "RadioButton" || l.Kind == "ToggleButton" ? (l.Checked == true ? "tab on" : "tab off") : "button", l.Theme, Key(l)))
-                         .OrderBy(g => g.Key.Raised).ThenBy(g => g.Key.Theme))
+            foreach (var (theme, step, look) in AuditLooks())
             {
-                var labels = g.Select(l => l.Label).Distinct().Take(12);
-                var pages = g.Select(l => l.Page).Distinct().Take(6);
-                lines.Add($"- {(g.Key.Raised ? "RAISED" : "OTHER ")} {(g.Key.Enabled ? "on " : "OFF")} {g.Key.Kind,-7} theme {g.Key.Theme} classes [{string.Join(",", g.Select(l => l.Classes).Distinct().Take(4))}] {g.Key.Item5} x{g.Count()}");
-                lines.Add($"    labels: {string.Join(" | ", labels)}");
-                lines.Add($"    pages: {string.Join(" | ", pages)}");
+                var seen = await Walk(theme, step, look);
+                var looks = seen.Looks;
+                // Zak 24 Nov ("They are all over the app"): every enabled word button and tab is raised; the tab you are on is lit.
+                foreach (var l in looks.Where(l => l.Enabled && !l.Raised && !OwnLookOnPurpose(l)))
+                    if (!(l.Checked == true && l.Fill == seen.TabOn && l.Shadow))
+                        odd.Add($"{look} {l.Page}: {l.Kind} '{l.Label}' theme {l.Theme} [{l.Classes}] {l.Fill} shadow {l.Shadow}");
+                lines.Add($"## {look} - {looks.Count} buttons and tabs on {looks.Select(l => l.Page).Distinct().Count()} pages");
+                foreach (var g in looks.GroupBy(l => (l.Raised, l.Enabled, Kind: l.Kind == "RadioButton" || l.Kind == "ToggleButton" ? (l.Checked == true ? "tab on" : "tab off") : "button", l.Theme, Key(l)))
+                             .OrderBy(g => g.Key.Raised).ThenBy(g => g.Key.Theme))
+                {
+                    var labels = g.Select(l => l.Label).Distinct().Take(12);
+                    var pages = g.Select(l => l.Page).Distinct().Take(6);
+                    lines.Add($"- {(g.Key.Raised ? "RAISED" : "OTHER ")} {(g.Key.Enabled ? "on " : "OFF")} {g.Key.Kind,-7} theme {g.Key.Theme} classes [{string.Join(",", g.Select(l => l.Classes).Distinct().Take(4))}] {g.Key.Item5} x{g.Count()}");
+                    lines.Add($"    labels: {string.Join(" | ", labels)}");
+                    lines.Add($"    pages: {string.Join(" | ", pages)}");
+                }
+                lines.Add("");
+
+                // V31 (L7.12): and every word on every page and window can be read (a word on a button or tab 4.5:1, any other 3:1)
+                Assert.True(seen.Words.Count > 500, $"{look}: only {seen.Words.Count} words were measured - were the pages drawn?");
+                low.AddRange(seen.Words.Where(x => !x.Ok).Select(x => x.ToString()));
+                wordLines.Add($"## {look} - {seen.Words.Count} words on {seen.Words.Select(x => x.Page).Distinct().Count()} pages and windows, {seen.Words.Count(x => !x.Ok)} under their line");
+                foreach (var g in seen.Words.GroupBy(x => x.Page))
+                {
+                    var weakest = g.OrderBy(x => x.Contrast / x.Needed).First();
+                    wordLines.Add($"- {g.Key}: {g.Count()} words, weakest {weakest.Contrast:0.00}:1 (needs {weakest.Needed:0.0}) '{weakest.Text}'");
+                }
+                wordLines.Add("");
             }
-            lines.Add("");
         }
-        LightnessService.Set(0);
+        finally { V31ThemeShots.Choose(ThemeService.Wacom); LightnessService.Set(0); }
         Directory.CreateDirectory(Dir);
         File.WriteAllLines(Path.Combine(Dir, "button-looks.md"), lines);
+        wordLines.AddRange(low.Distinct().Select(x => "LOW " + x));
+        File.WriteAllLines(Path.Combine(Dir, "words-every-page.md"), wordLines);
         Assert.True(odd.Count == 0, "Not drawn with the shared raised look:\n" + string.Join("\n", odd.Distinct().Take(40)));
+        Assert.True(low.Count == 0, $"{low.Distinct().Count()} words cannot be read well enough:\n" + string.Join("\n", low.Distinct().Take(60)));
     }
 }
