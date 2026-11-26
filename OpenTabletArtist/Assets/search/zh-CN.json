@@ -605,6 +605,11 @@
     "route": "tablet/ToolFunctionsButton/ButtonsTab"
   },
   {
+    "text": "Set up my buttons",
+    "path": "数位板 › 功能 › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
     "text": "默认",
     "path": "数位板 › 功能 › ExpressKeys",
     "route": "tablet/ToolFunctionsButton/ButtonsTab"

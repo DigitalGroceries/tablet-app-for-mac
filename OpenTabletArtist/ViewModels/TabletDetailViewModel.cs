@@ -1860,6 +1860,82 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         _suppressAuxEnabledApply = false;
     }
 
+    // ── TASKS #212: step-by-step button mapping ("Set up my buttons") ──
+
+    /// <summary>Set by the page: shows the sheet and completes with the mapping to save (null = save nothing).</summary>
+    public Func<KeyMappingViewModel, Task<KeyOrderMap?>>? ShowKeyMapping { get; set; }
+
+    // Not null while the sheet is open: the driver's key reports go to it.
+    private KeyMappingViewModel? _keyMapping;
+
+    /// <summary>True while the "Set up my buttons" sheet is open.</summary>
+    public bool IsKeyMappingOpen => _keyMapping != null;
+
+    // Set while the sheet has the keys turned off, so that an app that stopped in the middle turns them on again.
+    private string KeyMapSuspendKey => $"KeyMapSuspended:{_profile.Tablet}";
+
+    [RelayCommand]
+    private Task SetUpMyButtons() => RunKeyMappingAsync();
+
+    /// <summary>
+    /// Opens the sheet, and saves what it returns for this tablet model. While it is open the keys do not do their
+    /// actions (team vote 23 Nov 2026): they are turned off the way the "All buttons" switch does it, their settings
+    /// kept, and turned on again when the sheet closes - only if they were on before. Returns true when a mapping was saved.
+    /// </summary>
+    internal async Task<bool> RunKeyMappingAsync()
+    {
+        if (_keyMapping != null || ShowKeyMapping == null || AuxButtons.Count == 0) return false;
+        var groups = KeyOrderStore.Load(_profile.Tablet)?.Groups;
+        var sheet = new KeyMappingViewModel(AuxButtons.Count, groups,
+            Intuos4Oled.IsUpsideDown(_profile.AbsoluteModeSettings?.Tablet?.Rotation ?? 0));
+        bool turnedOff = AuxButtonsEnabled && _applyAction != null;
+        _keyMapping = sheet;
+        bool saved = false;
+        try
+        {
+            if (turnedOff)
+            {
+                AppSettings.Set(KeyMapSuspendKey, "true");
+                await SetAllButtonsAsync(false);
+            }
+            if (await ShowKeyMapping(sheet) is { HasAny: true } map)
+            {
+                KeyOrderStore.Save(_profile.Tablet, map);
+                saved = true;
+            }
+        }
+        finally
+        {
+            _keyMapping = null;
+            if (turnedOff)
+            {
+                await SetAllButtonsAsync(true);
+                AppSettings.Remove(KeyMapSuspendKey);
+            }
+            else RebuildAuxButtonsFromWorking();   // SetAllButtonsAsync rebuilds the list itself
+        }
+        return saved;
+    }
+
+    private async Task SetAllButtonsAsync(bool on)
+    {
+        _suppressAuxEnabledApply = true;
+        AuxButtonsEnabled = on;
+        _suppressAuxEnabledApply = false;
+        await SetAuxButtonsEnabledAsync(on);
+    }
+
+    /// <summary>The app stopped while the sheet had the keys turned off (a crash, a forced quit): they were not turned
+    /// off by the user, so they are turned on again. True when that was needed.</summary>
+    internal async Task<bool> RestoreKeysAfterBrokenMappingAsync()
+    {
+        if (AppSettings.Get(KeyMapSuspendKey) != "true") return false;
+        AppSettings.Remove(KeyMapSuspendKey);
+        if (_applyAction == null || AuxButtonsEnabled) return false;
+        await SetAllButtonsAsync(true);
+        return true;
+    }
+
     /// <summary>The aux stores to display: the live profile when enabled, else the stash (so a
     /// suspended set is still visible) falling back to the profile.</summary>
     private PluginSettingStoreCollection EffectiveAuxStores()
@@ -2973,10 +3049,13 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     // Light up each aux-button card while its physical button is held (express-key live highlight).
     private void OnAuxButtons(bool[] states)
     {
+        // TASKS #212: while "Set up my buttons" is open the presses belong to the sheet, and nothing jumps to a key's card.
+        var mapping = _keyMapping;
+        mapping?.OnKeys(states);
         for (int i = 0; i < AuxButtons.Count; i++)
         {
             bool down = i < states.Length && states[i];
-            if (down && !AuxButtons[i].IsPressed) NoticeUnsetUse(AuxButtons[i], $"key:{i}", TabletDetailTab.ExpressKeys);
+            if (mapping == null && down && !AuxButtons[i].IsPressed) NoticeUnsetUse(AuxButtons[i], $"key:{i}", TabletDetailTab.ExpressKeys);
             AuxButtons[i].IsPressed = down;
         }
     }

@@ -565,6 +565,11 @@
     "route": "tablet/ToolFunctionsButton/ButtonsTab"
   },
   {
+    "text": "Set up my buttons",
+    "path": "Tablette › Fonctions › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
     "text": "Par défaut",
     "path": "Tablette › Fonctions › ExpressKeys",
     "route": "tablet/ToolFunctionsButton/ButtonsTab"

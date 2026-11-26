@@ -520,6 +520,11 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         {
             Vm.UnsetControlUsed += OnUnsetControlUsed;
             Vm.IsAppInFront = () => TopLevel.GetTopLevel(this) is Window { IsActive: true };
+            // TASKS #212: "Set up my buttons" opens as a sheet in this window; keys a broken run left off come back on.
+            Vm.ShowKeyMapping = sheet => TopLevel.GetTopLevel(this) is Window w
+                ? KeyMappingDialog.ShowAsync(w, sheet)
+                : System.Threading.Tasks.Task.FromResult<OpenTabletArtist.Domain.KeyOrderMap?>(null);
+            _ = Vm.RestoreKeysAfterBrokenMappingAsync();
         }
         // Version 16: the page re-opens on the Pen tile (its XAML default), but PenToolActive lives on the view
         // model and still held the last visit's Functions or More choice, so the Pen / Eraser / Mapping tabs
@@ -551,7 +556,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     {
         base.OnDetachedFromVisualTree(e);
         if (Vm != null) Vm.TabRequested -= OnTabRequested;
-        if (Vm != null) { Vm.UnsetControlUsed -= OnUnsetControlUsed; Vm.IsAppInFront = () => false; }
+        if (Vm != null) { Vm.UnsetControlUsed -= OnUnsetControlUsed; Vm.IsAppInFront = () => false; Vm.ShowKeyMapping = null; }
         if (PerAppBindingRuntime.Shared is { } runtime) runtime.PenSeen -= OnPenSeen;
         if (_screens != null) { _screens.Changed -= OnScreensChanged; _screens = null; }
         ButtonsTab.IsCheckedChanged -= OnLiveTabChanged;

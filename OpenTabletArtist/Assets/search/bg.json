@@ -550,6 +550,11 @@
     "route": "tablet/ToolFunctionsButton/ButtonsTab"
   },
   {
+    "text": "Set up my buttons",
+    "path": "Таблет › Функции › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
     "text": "По подразбиране",
     "path": "Таблет › Функции › ExpressKeys",
     "route": "tablet/ToolFunctionsButton/ButtonsTab"

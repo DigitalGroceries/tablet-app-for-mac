@@ -565,6 +565,11 @@
     "route": "tablet/ToolFunctionsButton/ButtonsTab"
   },
   {
+    "text": "Set up my buttons",
+    "path": "Tavoletta › Funzioni › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
     "text": "Predefinito",
     "path": "Tavoletta › Funzioni › ExpressKeys",
     "route": "tablet/ToolFunctionsButton/ButtonsTab"

@@ -1213,9 +1213,14 @@
                      row's "…" close to the label it belongs to. -->
                 <!-- Build N.1: Wacom-like layout — an original drawn tablet edge on the left with a key per row and a
                      line from each key to its row (no Wacom artwork). The key lights while held on the tablet. -->
-                <Button x:Name="KeysDefaultButton" Content="Default" HorizontalAlignment="Right" Margin="0,0,0,8"
-                        Click="OnKeysDefault" IsVisible="{Binding ShowAuxControls}" IsEnabled="{Binding AuxButtonsEnabled}"
-                        ToolTip.Tip="Clear every ExpressKey action (no action). Asks first." />
+                <!-- TASKS #212: "Set up my buttons" (the step-by-step mapping) on the left, Default on the right. -->
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8" IsVisible="{Binding ShowAuxControls}">
+                    <Button x:Name="SetUpButtonsButton" Content="Set up my buttons" Command="{Binding SetUpMyButtonsCommand}"
+                            ToolTip.Tip="Show the app where each key sits on your tablet, one key at a time. The keys are then listed in that order." />
+                    <Button x:Name="KeysDefaultButton" Grid.Column="2" Content="Default"
+                            Click="OnKeysDefault" IsEnabled="{Binding AuxButtonsEnabled}"
+                            ToolTip.Tip="Clear every ExpressKey action (no action). Asks first." />
+                </Grid>
                 <Grid x:Name="ExpressKeysDiagram" IsVisible="{Binding !NoAuxButtons}" Width="600" HorizontalAlignment="Left">
                     <Border Width="64" HorizontalAlignment="Left" CornerRadius="14,0,0,14" BorderThickness="2,2,0,2"
                             BorderBrush="{DynamicResource TextMutedBrush}" Background="{DynamicResource GlassBgBrush}" />

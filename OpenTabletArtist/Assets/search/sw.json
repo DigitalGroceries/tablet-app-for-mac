@@ -565,6 +565,11 @@
     "route": "tablet/ToolFunctionsButton/ButtonsTab"
   },
   {
+    "text": "Set up my buttons",
+    "path": "Kibao › Vitendo › ExpressKeys",
+    "route": "tablet/ToolFunctionsButton/ButtonsTab"
+  },
+  {
     "text": "Chaguo-msingi",
     "path": "Kibao › Vitendo › ExpressKeys",
     "route": "tablet/ToolFunctionsButton/ButtonsTab"
