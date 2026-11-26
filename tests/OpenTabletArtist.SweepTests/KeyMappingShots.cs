@@ -156,6 +156,37 @@ public class KeyMappingShots
         }
     }
 
+    /// <summary>Part 9: the sheet in long languages - while it runs (with a remark) and on its last screen with the
+    /// Wacom offer - to see that no text is cut and the buttons fit.</summary>
+    [AvaloniaTheory]
+    [InlineData("de")]
+    [InlineData("ru")]
+    [InlineData("bg")]
+    [InlineData("fr")]
+    [InlineData("ja")]
+    public void The_sheet_in_a_long_language(string code)
+    {
+        Directory.CreateDirectory(Dir);
+        using var mac = UiPlatform.PretendMac();
+        _ = new ThemeViewModel();
+        Localizer.SetPreference(code);
+        try
+        {
+            const string tablet = "Wacom PTK-640";
+            var vm = new KeyMappingViewModel(8, null, false, KeyLayouts.For(tablet, 8), factory: WacomFactoryKeys.For(tablet, 8, false));
+            var sheet = new KeyMappingDialog(vm);
+            sheet.Show();
+            Tap(vm, 8, 0); Tap(vm, 8, 0);                    // the "already did" remark
+            RadialSpotShots.Settle(sheet);
+            sheet.CaptureRenderedFrame()!.Save($"{Dir}/key-mapping-lang-{code}-running.png");
+            for (int k = 1; k < 8; k++) Tap(vm, 8, k);
+            RadialSpotShots.Settle(sheet);
+            sheet.CaptureRenderedFrame()!.Save($"{Dir}/key-mapping-lang-{code}-end.png");
+            sheet.Close();
+        }
+        finally { Localizer.SetPreference("en"); }
+    }
+
     [AvaloniaFact]
     public void The_ExpressKeys_page_with_a_saved_order()
     {
