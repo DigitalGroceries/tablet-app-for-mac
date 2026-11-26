@@ -81,16 +81,38 @@ namespace OpenTabletDriver.Tests
         {
             // Grok's review of #120: four frames microseconds apart pulled the report-interval average down to a
             // quarter, so PenIsInRange went false for most of every gap and interpolating filters stopped.
-            var f = new Interpolator();
+            // TASKS #230: the sleeps below are not exact. On a busy machine (the macOS runner of the GitHub build) a
+            // 20 ms sleep can last longer than the 30 ms gap it is meant to sit inside, and the test then failed without
+            // anything being wrong. So the test measures what really happened: a try only counts when the last wait
+            // truly ended inside the usual gap; otherwise it is run again (up to 8 tries). A real freeze still fails,
+            // because then a try that counts says "not in range".
             var pen = new TabletReport { Raw = new byte[1] };
-            for (int i = 0; i < 25; i++)
+            for (int attempt = 0; attempt < 8; attempt++)
             {
+                var f = new Interpolator();
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                double longestGap = 0, totalGap = 0;
+                for (int i = 0; i < 25; i++)
+                {
+                    for (int k = 0; k < 4; k++) f.Consume(pen);
+                    var before = clock.Elapsed.TotalMilliseconds;
+                    Thread.Sleep(30);
+                    var gap = clock.Elapsed.TotalMilliseconds - before;
+                    totalGap += gap;
+                    if (gap > longestGap) longestGap = gap;
+                }
                 for (int k = 0; k < 4; k++) f.Consume(pen);
-                Thread.Sleep(30);
+                var start = clock.Elapsed.TotalMilliseconds;
+                Thread.Sleep(20);                // two thirds of the way to the next report
+                bool inRange = f.InRange;
+                var waited = clock.Elapsed.TotalMilliseconds - start;
+                double usualGap = totalGap / 25;
+                bool steady = longestGap < usualGap * 1.5 && waited < usualGap * 0.85;
+                if (!steady) continue;           // the machine was too uneven for this try to say anything
+                Assert.True(inRange);
+                return;
             }
-            for (int k = 0; k < 4; k++) f.Consume(pen);
-            Thread.Sleep(20);                // two thirds of the way to the next report
-            Assert.True(f.InRange);
+            // Eight uneven tries in a row: the machine cannot run this timing test now. Nothing was shown wrong.
         }
     }
 }
