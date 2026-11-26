@@ -293,7 +293,7 @@
                                 SmallChange="{TemplateBinding SmallChange}"
                                 LargeChange="{TemplateBinding LargeChange}"
                                 Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
-                        <!-- V29 #140 (Zak 19 Nov): the readout is a box you can type a value into (read on Enter or when you leave it). -->
+                        <!-- V29 #140 (Digital Groceries 19 Nov): the readout is a box you can type a value into (read on Enter or when you leave it). -->
                         <TextBox Grid.Column="2" x:Name="PART_Value"
                                  Width="{TemplateBinding ValueWidth}" MinWidth="52"
                                  IsVisible="{TemplateBinding ShowValue}" HorizontalContentAlignment="Right" FontWeight="SemiBold"
@@ -553,10 +553,10 @@
             </Style>
         </ControlTheme>
 
-        <!-- Call-to-action Button (V30, Zak 23 Nov 2026 on Home's "ExpressKeys not set up" line: "That deserves a huge button").
+        <!-- Call-to-action Button (V30, Digital Groceries 23 Nov 2026 on Home's "ExpressKeys not set up" line: "That deserves a huge button").
              For the few things a user must not miss. The theme's text colour is its fill and the page colour its text, so it is
              light on the dark themes and dark on the light ones (no fixed colours, rules R2/R6). Big type; the text wraps. -->
-        <!-- V30 build 4 (Zak 24 Nov, his screenshot of build 3: "The huge white square doesnt even look like a clickable button"):
+        <!-- V30 build 4 (Digital Groceries 24 Nov, his screenshot of build 3: "The huge white square doesnt even look like a clickable button"):
              the same raised button as the rest (Border RaisedBd: fill, edge, shadow, pushed in when pressed), only bigger. On the
              themes the Lightness slider doesn't drive it is a ghost-coloured button with the page's text colour. -->
         <ControlTheme x:Key="CallToActionButton" TargetType="Button">
@@ -923,7 +923,7 @@
         <Setter Property="FontSize" Value="{DynamicResource TypeDetailSize}" />
         <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
     </Style>
-    <!-- V30 build 4 (Zak 24 Nov: "change the word CONNECTED to be in green"): Home's status line while the tablet is connected. -->
+    <!-- V30 build 4 (Digital Groceries 24 Nov: "change the word CONNECTED to be in green"): Home's status line while the tablet is connected. -->
     <Style Selector="TextBlock.Detail.connected">
         <Setter Property="Foreground" Value="{DynamicResource ConnectedTextBrush}" />
         <Setter Property="FontWeight" Value="Bold" />
@@ -1084,11 +1084,11 @@
         <Setter Property="BorderBrush" Value="{DynamicResource SelectionBorderBrush}" />
     </Style>
 
-    <!-- V30 (ZAK-LISTS L6.5, Zak 24 Nov 2026: "All of our app buttons need to look a bit more 3D now they all look like speech
+    <!-- V30 (task list L6.5, Digital Groceries 24 Nov 2026: "All of our app buttons need to look a bit more 3D now they all look like speech
          bubbles"): every button stands up from the window - an outline, a soft top-to-bottom shade and a small shadow - and looks
          pushed in while pressed. Plain buttons (the theme's own template, PART_ContentPresenter) get all three; the app's own button
          looks (ghost, accent, call to action, icon) keep their colours and get the outline and shadow (their Border is RaisedBd).
-         Link-style buttons (.flat) stay flat. V30 build 4 (Zak 24 Nov: "we have 3 different designs for buttons?"): Home's link
+         Link-style buttons (.flat) stay flat. V30 build 4 (Digital Groceries 24 Nov: "we have 3 different designs for buttons?"): Home's link
          tiles (.homeLink) and the Wacom rows' &lt; &gt; arrows are raised too. The colours come from LightnessService.RaisedResources; on the themes the
          Lightness slider doesn't drive, those keys are absent, the setters do nothing and the buttons keep their old look. -->
     <!-- The helper's review (24 Nov): a plain button with a look of its own keeps it: .pathLink (reads as text), .ringCentre (the
@@ -1134,7 +1134,7 @@
         <Setter Property="Background" Value="{DynamicResource ButtonRaisedPressedBrush}" />
     </Style>
     <!-- A .danger icon button (delete a config) turns solid red under the pointer, as the .danger theme says. A .dangerText word
-         button (Forget this tablet, L6.2, Zak 24 Nov: "smaller, quieter red button") is a deep red raised button with a light word
+         button (Forget this tablet, L6.2, Digital Groceries 24 Nov: "smaller, quieter red button") is a deep red raised button with a light word
          (red words on a grey button can't reach 4.5:1); these come after the raised styles so they win. -->
     <Style Selector="Button.danger:pointerover /template/ Border#RaisedBd">
         <Setter Property="Background" Value="{DynamicResource ErrorBrush}" />
@@ -1156,7 +1156,7 @@
         <Setter Property="BoxShadow" Value="{DynamicResource ButtonPressedShadow}" />
     </Style>
 
-    <!-- V30 build 4 (Zak 24 Nov, screenshots of Scribble, Tablet › Pen and Settings: "Again 2 designs of buttons", "They are all
+    <!-- V30 build 4 (Digital Groceries 24 Nov, screenshots of Scribble, Tablet › Pen and Settings: "Again 2 designs of buttons", "They are all
          over the app"): tabs are buttons too. Every tab (the top row, sub-page rows, side rails, Tip Feel / Eraser Feel; their
          Border is Bd.raisedTab) is drawn like a raised button; the tab you are on is lit (TabOnFillBrush: light on the dark
          steps, dark on the light ones, where a light tab would not stand out from the light buttons). Only the Lightness steps

@@ -15,7 +15,7 @@ using Avalonia.VisualTree;
 
 namespace OpenTabletArtist.Helpers;
 
-/// <summary>Version 19 (Zak's rule: no popup windows). Shows what used to be a separate dialog window as a
+/// <summary>Version 19 (Digital Groceries' rule: no popup windows). Shows what used to be a separate dialog window as a
 /// sheet inside the main window. The dialog object is still built as before (so its code, bindings, results and
 /// Close() calls are unchanged); only its content is moved into the main window's <c>SheetHost</c> layer.
 /// Falls back to a normal window when there is no main window to host it (tests, very early start).</summary>
@@ -38,7 +38,7 @@ public static class InWindowSheet
     /// <summary>True when a sheet is open in the main window.</summary>
     public static bool IsOpen => _stack.Count > 0;
 
-    // ── V29 #167 (Zak 20 Nov ~09:46: "I cant record report file because when recording is happening the radial menu settings are
+    // ── V29 #167 (Digital Groceries 20 Nov ~09:46: "I cant record report file because when recording is happening the radial menu settings are
     // not available because the app is held in recording mode"): while Record the problem runs, the report sheet steps aside so
     // the whole app can be used, and a small bar at the bottom of the window says it is recording and has Stop recording. ──
     static readonly Dictionary<Window, (Panel Host, Control Sheet)> _sheets = new();

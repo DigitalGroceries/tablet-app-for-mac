@@ -98,7 +98,7 @@ public partial class BindingEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(RadialSummary));
     }
 
-    // V29 #163 (Zak 20 Nov ~09:10): putting the floating keyboard on a slice moved from here (V29 #143) to the Pen page's
+    // V29 #163 (Digital Groceries 20 Nov ~09:10): putting the floating keyboard on a slice moved from here (V29 #143) to the Pen page's
     // Floating keyboard section (FloatingKeyboardPlacement).
 
     // ── Touch on/off (V28 #77) ─────────────────────────────────────────────────

@@ -5,7 +5,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>Version 14 (Zak, 26 Oct 2026): "The app should show the choice between stable and beta versions for
+/// <summary>Version 14 (Digital Groceries, 26 Oct 2026): "The app should show the choice between stable and beta versions for
 /// download." The update check reads all releases and offers a newer stable version, a newer BETA (a GitHub
 /// pre-release, not tested yet), and — for someone running a BETA — going back to the stable version.</summary>
 public class BuildV14UpdateChoiceTests

@@ -25,7 +25,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>TASKS #63 (Zak 20:53 / 21:00 / 21:02): Tablet › Pen › "Radial Menu Settings": the radial menu's picture on the right (label above it,
+/// <summary>TASKS #63 (Digital Groceries 20:53 / 21:00 / 21:02): Tablet › Pen › "Radial Menu Settings": the radial menu's picture on the right (label above it,
 /// nothing else above), the line (V30 build 4: an Off / On switch above the corner instead of "Use pen button 2") and the Menu transparency / Menu size sliders below it; the pen buttons in the middle next to
 /// the pen drawing. Clicking the picture opens the radial menu editor; the sliders change the picture live and are kept by Save.</summary>
 public class RadialSpotTests
@@ -108,9 +108,9 @@ public class RadialSpotTests
         {
             var spot = Find<StackPanel>(view, "RadialSpot");
             Assert.True(spot.IsEffectivelyVisible);
-            // V29 #180 (Zak's Pen page mockup, 21 Nov): no title above the picture; the picture is the first (top) thing.
+            // V29 #180 (Digital Groceries' Pen page mockup, 21 Nov): no title above the picture; the picture is the first (top) thing.
             Assert.Null(view.FindControl<TextBlock>("RadialSpotHeading"));
-            // V30 build 5 (Zak 24 Nov, build 4 test: "On" was cut off): the switch row sits above the scaling picture, not inside it.
+            // V30 build 5 (Digital Groceries 24 Nov, build 4 test: "On" was cut off): the switch row sits above the scaling picture, not inside it.
             Assert.Same(Find<StackPanel>(view, "RadialSwitchRow"), spot.Children[0]);
             Assert.Same(Find<Viewbox>(view, "RadialSpotFit"), spot.Children[1]);
             var pie = Find<RadialMenuPie>(view, "RadialSpotPie");
@@ -120,11 +120,11 @@ public class RadialSpotTests
             Assert.True(In(btn, view).Bottom <= In(line, view).Top + 0.5);
             Assert.True(In(line, view).Bottom <= In(sliders, view).Top + 0.5);          // the line, then the sliders, below the picture
             Assert.Null(view.FindControl<RadioButton>("RadialTab"));                    // no tab of its own
-            Assert.Equal("By default Radial Menu opens with Pen Button 2", line.Text);   // V29 #180 (Zak 21 Nov)
+            Assert.Equal("By default Radial Menu opens with Pen Button 2", line.Text);   // V29 #180 (Digital Groceries 21 Nov)
             Assert.Null(view.FindControl<Button>("RadialUseButton"));   // V30 build 4: the switch does its job
             Assert.Equal(1.0, Find<Button>(view, "RadialSpotButton").Opacity);
             Assert.True(sliders.IsEnabled);
-            // V30 build 4 (Zak 24 Nov ~15:44-15:50): "Radial menu  Off (switch) On", outside, next to the square's top right corner.
+            // V30 build 4 (Digital Groceries 24 Nov ~15:44-15:50): "Radial menu  Off (switch) On", outside, next to the square's top right corner.
             var sw = Find<ToggleSwitch>(view, "RadialSwitch");
             Assert.True(sw.IsChecked);
             Assert.True(sw.IsEnabled);
@@ -137,7 +137,7 @@ public class RadialSpotTests
         finally { window.Close(); }
     }
 
-    /// <summary>V30 build 4 (Zak 24 Nov ~15:44: "They should never be grayed out. Use different way to show that they are not setup. Add a
+    /// <summary>V30 build 4 (Digital Groceries 24 Nov ~15:44: "They should never be grayed out. Use different way to show that they are not setup. Add a
     /// label next to then, a swithch with On on one side and Off on the other. When the user turns the switch on the app should ask them
     /// what buttons should open this menu."): nothing opens the radial menu - full strength, switch Off; On asks, Off gives the button back.</summary>
     [AvaloniaFact]
@@ -336,7 +336,7 @@ public class RadialSpotTests
 
     // ── the sliders ──────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>v27 (Zak 16:05): the Menu transparency and Menu size boxes line up (same left edge, same width) and the sliders are
+    /// <summary>v27 (Digital Groceries 16:05): the Menu transparency and Menu size boxes line up (same left edge, same width) and the sliders are
     /// the same length; only transparency has the % sign (the size is a step from 1 to 50, not a percentage).</summary>
     [AvaloniaFact]
     public void TheTwoNumberBoxes_LineUp_AndTheSliderLinesEndTogether()
@@ -350,7 +350,7 @@ public class RadialSpotTests
             var t = tBox.TranslatePoint(new Point(0, 0), view)!.Value; var z = sBox.TranslatePoint(new Point(0, 0), view)!.Value;
             Assert.Equal(t.X, z.X, 1);
             Assert.Equal(tBox.Bounds.Width, sBox.Bounds.Width, 1);
-            // build 17 (Zak's list 1, item 7): the transparency slider is half a knob shorter, so its line ends where the size
+            // build 17 (Digital Groceries' list 1, item 7): the transparency slider is half a knob shorter, so its line ends where the size
             // slider's line ends at 10 (under the knob's centre); V29List1Tests.Item7 checks that against the knob itself
             Assert.Equal(sSlider.Bounds.Width - 10, tSlider.Bounds.Width, 1);
         }
@@ -365,7 +365,7 @@ public class RadialSpotTests
         {
             var slider = Find<Slider>(view, "RadialTransparencySlider"); var box = Find<TextBox>(view, "RadialTransparencyBox");
             var pie = Find<RadialMenuPie>(view, "RadialSpotPie");
-            Assert.Equal(0, slider.Minimum); Assert.Equal(60, slider.Maximum);   // v27 (Zak 16:01): 60% is the maximum
+            Assert.Equal(0, slider.Minimum); Assert.Equal(60, slider.Maximum);   // v27 (Digital Groceries 16:01): 60% is the maximum
             Assert.Equal(40, (int)slider.Value); Assert.Equal("40", box.Text);
 
             slider.Value = 10; Settle(window);
@@ -404,15 +404,15 @@ public class RadialSpotTests
         {
             var slider = Find<Slider>(view, "RadialSizeSlider"); var number = Find<TextBox>(view, "RadialSizeBox");
             var box = Find<Viewbox>(view, "RadialSpotViewbox");
-            Assert.Equal(RadialMenuDef.MaxSizeStep, (int)slider.Maximum);   // v27 (Zak 16:07): the size is set from 1 to 10
+            Assert.Equal(RadialMenuDef.MaxSizeStep, (int)slider.Maximum);   // v27 (Digital Groceries 16:07): the size is set from 1 to 10
             Assert.Equal(RadialMenuDef.MaxSize, 50);
-            Assert.Equal(320, 2 * RadialMenuGeometry.OuterRadius(RadialMenuDef.MaxSize), 3);   // the picture in Zak's screenshot: 320 pt across
+            Assert.Equal(320, 2 * RadialMenuGeometry.OuterRadius(RadialMenuDef.MaxSize), 3);   // the picture in Digital Groceries' screenshot: 320 pt across
             Assert.Equal(320, 2 * RadialMenuGeometry.OuterRadius(100), 3);                     // nothing bigger, whatever number is stored
             Assert.Equal("10", number.Text);
             double large = box.Width;
             Assert.Equal(TabletDetailViewModel.RadialPictureMax, large, 1);
             var sliders = Find<StackPanel>(view, "RadialSliders"); var spot = Find<StackPanel>(view, "RadialSpot");
-            AssertRealSize(view, vm.RadialPreview!.Size);                   // v27 (Zak 16:35): the picture is the menu's real size
+            AssertRealSize(view, vm.RadialPreview!.Size);                   // v27 (Digital Groceries 16:35): the picture is the menu's real size
             // measured inside the radial column, so a page scroll (focusing the number box scrolls it into view) does not count as a move
             double slidersTop = In(sliders, spot).Top, slidersLeft = In(sliders, spot).Left;
 
@@ -485,7 +485,7 @@ public class RadialSpotTests
         finally { window.Close(); }
     }
 
-    /// <summary>V29 #166 (Zak 20 Nov ~09:45: "The transparency and the size is out of synk and jump on different values than what I
+    /// <summary>V29 #166 (Digital Groceries 20 Nov ~09:45: "The transparency and the size is out of synk and jump on different values than what I
     /// put them"): a page refresh after an apply used to build new sliders even when nothing differed, so a slider being dragged
     /// jumped. The picture and its sliders stay the same objects while they already show the stored menu.</summary>
     [AvaloniaFact]
@@ -597,7 +597,7 @@ public class RadialSpotTests
     [InlineData(1100, 720, false)]
     [InlineData(900, 600, false)]
     [InlineData(1500, 1000, true)]
-    [InlineData(1046, 1365, true)]    // Zak's window in his 16:39 screenshot
+    [InlineData(1046, 1365, true)]    // Digital Groceries' window in his 16:39 screenshot
     public async Task Fits_NothingOverlaps_AndThePenButtonTestStillWorks(double w, double h, bool hasMenu)
     {
         var profile = NewProfile(Name(), new PluginSettingStore?[] { null, hasMenu ? Radial("A") : AuxKeyBinding.MakeKeyBinding("E") });
@@ -626,14 +626,14 @@ public class RadialSpotTests
             Assert.True(Find<RadialMenuPie>(view, "RadialSpotPie").Bounds.Width <= TabletDetailViewModel.RadialPictureMax + 0.5);
             Assert.True(Find<Viewbox>(view, "RadialSpotViewbox").Bounds.Width <= TabletDetailViewModel.RadialPictureMax + 0.5);
             Assert.Equal(TabletDetailViewModel.RadialSpotAreaSize, Find<Grid>(view, "RadialSpotArea").Width);
-            // v27 (Zak 16:39): in Zak's window size and larger the picture is the real size; only a narrower window shrinks the square to fit
+            // v27 (Digital Groceries 16:39): in Digital Groceries' window size and larger the picture is the real size; only a narrower window shrinks the square to fit
             if (w >= 1046 && hasMenu) AssertRealSize(view, vm.RadialPreview!.Size);
             // a short window scrolls instead of squeezing; scrolled down, the sliders are reachable
             page.ScrollToEnd(); Settle(window);
             Assert.True(In(Find<StackPanel>(view, "RadialSliders"), page).Bottom <= page.Viewport.Height + 0.5 + page.Extent.Height, "sliders unreachable");
 
             // the pen button test works as before: holding button 2 changes the line and lights the badge
-            Assert.Equal("PRESS A BUTTON TO TEST IT", test.Text);   // V29 #180: Zak's capitals, and the tip and eraser count too
+            Assert.Equal("PRESS A BUTTON TO TEST IT", test.Text);   // V29 #180: Digital Groceries' capitals, and the tip and eraser count too
             vm.PenButton2Pressed = true; Settle(window);
             Assert.Equal("BUTTON 2 PRESSED.", test.Text);
             Assert.Equal("Button 2 pressed.", vm.PenButtonTestText);
@@ -713,9 +713,9 @@ public class RadialSpotTests
         }
         finally { window.Close(); }
     }
-    // ── V30 build 5: the colour palette window (Zak 24 Nov ~17:43) ─────────────────────────────────────────────
+    // ── V30 build 5: the colour palette window (Digital Groceries 24 Nov ~17:43) ─────────────────────────────────────────────
 
-    /// <summary>Zak 24 Nov ~17:43: "In Tablet / Pen when you click on the radial menu, it opens a popup window to set it up. I want the same
+    /// <summary>Digital Groceries 24 Nov ~17:43: "In Tablet / Pen when you click on the radial menu, it opens a popup window to set it up. I want the same
     /// for the colour pallet under the radial menu. The users should be able to click it and then go to fine tune it with the exaxt colour
     /// palletes they want": clicking the palette picture opens the palette window on the colours of this menu.</summary>
     [AvaloniaFact]

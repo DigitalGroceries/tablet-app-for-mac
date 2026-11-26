@@ -115,7 +115,7 @@ public partial class RingModesEditor : ObservableObject
         }
     }
 
-    // ---- V29 #158 (Zak 20 Nov): the centre button's own menu, "Next mode" first (the factory choice) ----------------------
+    // ---- V29 #158 (Digital Groceries 20 Nov): the centre button's own menu, "Next mode" first (the factory choice) ----------------------
     /// <summary>One choice of the centre button's menu; <see cref="Centre"/> null = "Keyboard shortcut…" (typed in the box).</summary>
     public sealed record CentreItem(Func<string> Label, RingCentre? Centre);
 
@@ -418,7 +418,7 @@ public partial class RingModeRow : ObservableObject
         _ => RingMode.SpeedOfDegrees(_step),
     };
 
-    /// <summary>Zak 9 Nov: what turning the ring does in this mode and where it works, in one or two plain
+    /// <summary>Digital Groceries 9 Nov: what turning the ring does in this mode and where it works, in one or two plain
     /// sentences. The app-specific tip is the separate <see cref="ModeSetup"/> line.</summary>
     public string ModeNote => !Enabled ? Localizer.Te("tablet.ring.note.nothing",
             "The ring does nothing in this mode, and the centre button skips it.") : Action switch
@@ -437,7 +437,7 @@ public partial class RingModeRow : ObservableObject
         _ => "",
     };
 
-    /// <summary>Zak 9 Nov: the app setting a smooth mode needs, on its own "Setup:" line. Empty for keys.</summary>
+    /// <summary>Digital Groceries 9 Nov: the app setting a smooth mode needs, on its own "Setup:" line. Empty for keys.</summary>
     public string ModeSetup => !Enabled ? "" : Action switch
     {
         RingAction.SmoothRotate => Localizer.Te("tablet.ring.setup.rotate",
@@ -534,7 +534,7 @@ public partial class RingModeRow : ObservableObject
         if (changed) _ = _changed();
     }
 
-    /// <summary>V29 #153 (Zak 20 Nov: "The Brightness and all other functions should be available to choose from the menu
+    /// <summary>V29 #153 (Digital Groceries 20 Nov: "The Brightness and all other functions should be available to choose from the menu
     /// called Keystroke ... so the need of extra app window goes away"): actions with a ready pair of keys, picked straight
     /// from the Function menu. Underneath they are the Keys action with these keys (so the driver needs nothing new).</summary>
     public sealed record KeyPreset(string Key, string English, AuxCombo Clockwise, AuxCombo CounterClockwise)
@@ -564,7 +564,7 @@ public partial class RingModeRow : ObservableObject
         // Version 26 (#35, Maxime): a plain mouse-wheel scroll in every app, like Wacom's Touch Ring "Scroll".
         Localizer.Te("tablet.ring.fn.scroll", "Scroll"),
     }.Concat(Presets.Select(p => p.Name))
-        // V29 #158 (Zak 20 Nov: "If anyone wants to turn off ... the touch ring just let them choose 'Do nothing'"): last, so the
+        // V29 #158 (Digital Groceries 20 Nov: "If anyone wants to turn off ... the touch ring just let them choose 'Do nothing'"): last, so the
         // indices above keep their meaning. It is the mode's Off (the old "On" tick box): the ring does nothing, the centre skips it.
         .Append(Localizer.Te("tablet.ring.fn.nothing", "Do nothing")).ToList();
 

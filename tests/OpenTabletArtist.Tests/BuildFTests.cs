@@ -68,7 +68,7 @@ public class BuildFTests
         Assert.Same(btn, w.WheelButtons[0]);
     }
 
-    // V29 #158 (Zak 20 Nov: one switch, one menu): the Touch Ring modes switch is gone, so its two tests (flip back when nothing
+    // V29 #158 (Digital Groceries 20 Nov: one switch, one menu): the Touch Ring modes switch is gone, so its two tests (flip back when nothing
     // could be applied, stay on when applied) went with it; RingModeLayoutTests covers what replaced it.
 
     private sealed class FixedDisplays(params DisplayInfo[] displays) : IDisplayEnumerator

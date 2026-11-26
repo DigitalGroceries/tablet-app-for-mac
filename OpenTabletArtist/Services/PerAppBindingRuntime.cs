@@ -202,7 +202,7 @@ public sealed class PerAppBindingRuntime : IDisposable
                 var app = PerAppBindingStore.Find(tablet, bundleId);
                 if (app is null) return;
                 bindings = PerAppBindingStore.CloneBindings(app.Bindings);
-                // TASKS #15 (Zak, option B): Double Click Fix is per app; an app without its own value uses All's.
+                // TASKS #15 (Digital Groceries, option B): Double Click Fix is per app; an app without its own value uses All's.
                 bindings.DoubleClickFix = EffectiveDoubleClickFix(bindings.DoubleClickFix,
                     StashedAllBindings(tablet)?.DoubleClickFix ?? profile.BindingSettings.DoubleClickFix);
             }

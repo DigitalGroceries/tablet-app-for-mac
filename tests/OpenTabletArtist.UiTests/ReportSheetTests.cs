@@ -91,10 +91,10 @@ public class ReportSheetTests
             await vm.SendFileCommand.ExecuteAsync(null);
             Dispatcher.UIThread.RunJobs();
 
-            // Version 29 (Zak, 17 Nov 2026): the email box is empty, so the sheet asks first and saves nothing yet.
+            // Version 29 (Digital Groceries, 17 Nov 2026): the email box is empty, so the sheet asks first and saves nothing yet.
             var sheet0 = mw.GetVisualDescendants().OfType<Border>().First(b => b.Name == "Sheet");
             Assert.True(sheet0.GetVisualDescendants().OfType<StackPanel>().First(p => p.Name == "ReportEmailAsk").IsVisible);
-            // V29 #156 (Zak 20 Nov): the question takes the buttons' place, framed, so it can't be missed.
+            // V29 #156 (Digital Groceries 20 Nov): the question takes the buttons' place, framed, so it can't be missed.
             Assert.True(sheet0.GetVisualDescendants().OfType<Border>().First(b => b.Name == "ReportEmailAskFrame").IsVisible);
             Assert.False(sheet0.GetVisualDescendants().OfType<StackPanel>().First(p => p.Name == "ReportButtons").IsVisible);
             Assert.False(File.Exists(target));
@@ -117,13 +117,13 @@ public class ReportSheetTests
             Assert.Equal("Open upload page", buttons["ReportOpenUpload"]);
             Assert.Equal("Done", buttons["ReportDone"]);                       // V30 #200 (vote A3)
 
-            // V30 #200 (Zak 23 Nov: "the list of the steps numbered one under another"): 3 numbered steps, the file to drag
+            // V30 #200 (Digital Groceries 23 Nov: "the list of the steps numbered one under another"): 3 numbered steps, the file to drag
             // in step 2, and the upload service is never named.
             var steps = saved.GetVisualDescendants().OfType<Grid>().Where(g => (g.Name ?? "").StartsWith("ReportStep")).Select(g => g.Name).ToList();
             Assert.Equal(new[] { "ReportStep1", "ReportStep2", "ReportStep3" }, steps);
             var words = saved.GetVisualDescendants().OfType<TextBlock>().Select(b => b.Text ?? "").ToList();
             Assert.Contains("Click Open upload page. A web page opens in your browser, and Finder shows your report file.", words);
-            // V30 #200 A6 (Zak 23 Nov 17:42): the email address shows only after "The page doesn't open?"
+            // V30 #200 A6 (Digital Groceries 23 Nov 17:42): the email address shows only after "The page doesn't open?"
             var wontOpen = saved.GetVisualDescendants().OfType<Button>().First(b => b.Name == "ReportPageWontOpen");
             Assert.True(wontOpen.IsEffectivelyVisible);
             Assert.False(saved.GetVisualDescendants().OfType<StackPanel>().First(p => p.Name == "ReportEmailFallback").IsVisible);
@@ -205,9 +205,9 @@ public class ReportSheetTests
     }
 
     [AvaloniaFact]
-    public void Email_box_is_near_the_top_with_Zaks_line_and_follows_the_view_model()
+    public void Email_box_is_near_the_top_with_Digital_Groceries_line_and_follows_the_view_model()
     {
-        // Version 25 (Zak, 6 Nov 2026): optional "Your email", above the problem/recommendation choice.
+        // Version 25 (Digital Groceries, 6 Nov 2026): optional "Your email", above the problem/recommendation choice.
         var mw = new MainWindow { Width = 900, Height = 700 };
         mw.Show();
         Dispatcher.UIThread.RunJobs();

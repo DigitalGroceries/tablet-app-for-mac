@@ -48,7 +48,7 @@ public partial class ThemeViewModel : ObservableObject
         get => LightnessService.Saved;
         set { if (value == LightnessService.Saved) return; LightnessService.Set(value); OnPropertyChanged(); OnPropertyChanged(nameof(LightnessInput)); }
     }
-    /// <summary>V29 #132 (Zak 18:23 asked for 1 to 100; 19:10 "Do whats more easy to understand and logical"): the app has 9
+    /// <summary>V29 #132 (Digital Groceries 18:23 asked for 1 to 100; 19:10 "Do whats more easy to understand and logical"): the app has 9
     /// lightness levels (chosen so every text stays readable), so the Lightness box numbers them 1 (darkest) to 9 (lightest),
     /// one number per slider position: what is typed is exactly what is shown.</summary>
     public string LightnessInput

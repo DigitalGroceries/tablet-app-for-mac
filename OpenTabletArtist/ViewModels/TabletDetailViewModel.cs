@@ -1435,7 +1435,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         PersistDoubleClickFix(display);
     }
 
-    /// <summary>TASKS #15 (Zak, option B): the slider edits the selected profile's own copy (All, an app or a pen).</summary>
+    /// <summary>TASKS #15 (Digital Groceries, option B): the slider edits the selected profile's own copy (All, an app or a pen).</summary>
     private Task<bool> PersistDoubleClickFix(int display) =>
         ApplyBindingMutationAsync(b =>
         {
@@ -1443,7 +1443,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             b.TipDoubleClickDistance = DoubleClickState.DefaultMoveTolerance;
         });
 
-    /// <summary>Zak 9 Nov: the "Default" label under the Double Click Fix slider is a button. It gives the
+    /// <summary>Digital Groceries 9 Nov: the "Default" label under the Double Click Fix slider is a button. It gives the
     /// selected profile its own value of 50 (Default), even when it already showed 50 from All.</summary>
     [RelayCommand]
     private async Task ResetDoubleClickFix()
@@ -1932,7 +1932,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _wheelEnabled = true;
     private bool _suppressWheelEnabledApply;
 
-    /// <summary>TASKS #29 (Zak, 10 Nov 2026): the main switch's label follows the tablet, in Wacom's words and
+    /// <summary>TASKS #29 (Digital Groceries, 10 Nov 2026): the main switch's label follows the tablet, in Wacom's words and
     /// capitals: "Touch Ring" (one ring, Intuos4 PTK-440), "Touch Rings" (two, Cintiq 24HD), "Touch Strip" /
     /// "Touch Strips" for the tablets with touch strips (Intuos3, Cintiq 21UX/22HD). Never "wheel".</summary>
     public bool HasSeveralRings => Wheels.Count > 1;
@@ -2017,7 +2017,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             var ws = ringOn ? wheels[w] : offRings[wi + 1];
             canEdit = allCanEdit && ringOn;
             // Version 16 BETA 2: "Clockwise" is OTD's ClockwiseRotation. OTD fires it for a rising ring position,
-            // which is a clockwise turn on Wacom rings (Zak's PTK-440: the readout and every ring mode in
+            // which is a clockwise turn on Wacom rings (Digital Groceries' PTK-440: the readout and every ring mode in
             // Photoshop, Affinity and PhotoCraft showed it; the Intuos Pro 2017 ring, which counts the other way,
             // is mirrored by its report parser since Version 16). Up to Version 16 BETA 1 the rows were swapped,
             // after upstream OpenTabletArtist's Intuos Pro, so every ring mode ran backwards. Plain keys set
@@ -2045,7 +2045,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
                     (_, bind) => ApplyWheelButtonAsync(wi, bi, bind)));
             }
             // Wacom-style ring modes (needs the ring button to switch them).
-            // V29 #158 (Zak 20 Nov: one switch, one menu): a ring is always shown as its modes, with the centre button's own menu.
+            // V29 #158 (Digital Groceries 20 Nov: one switch, one menu): a ring is always shown as its modes, with the centre button's own menu.
             // A ring still set up with plain rows moves into mode 1 once (same keys, same pace, centre unchanged); one whose
             // plain rows hold something a mode can't send keeps them.
             bool hasCentre = ws.WheelButtons.Count > 0;
@@ -2135,7 +2135,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         RefreshWheels();
     }
 
-    /// <summary>V29 #158 (Zak 20 Nov: "plain-ring users move into mode 1"): the ring's plain Clockwise / Anticlockwise keys
+    /// <summary>V29 #158 (Digital Groceries 20 Nov: "plain-ring users move into mode 1"): the ring's plain Clockwise / Anticlockwise keys
     /// become mode 1 and its centre button keeps what it did, so the ring does exactly what it did before; the page then
     /// shows it like every other ring. Latched per table and ring, so it can't loop.</summary>
     private async Task MovePlainRingIntoModeOneAsync(int wheelIndex, RingMode modeOne, RingCentre centre)
@@ -2188,7 +2188,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         count <= 1 ? Localizer.Te("tablet.ring.one", "Touch Ring")
         : Localizer.Te("tablet.ring.n", "Touch Ring {number}").Replace("{number}", (index + 1).ToString());
 
-    /// <summary>TASKS #29 (Zak, 10 Nov 2026): one ring's / strip's own On/Off. Off keeps its settings aside
+    /// <summary>TASKS #29 (Digital Groceries, 10 Nov 2026): one ring's / strip's own On/Off. Off keeps its settings aside
     /// (<see cref="WheelOffStore"/>) and empties the ring in the profile; On puts them back. Refused while the main
     /// switch is Off (the switch is greyed then), so the two never clash: the main switch never changes a ring's
     /// own On/Off, and a ring works only when both are On.</summary>
@@ -2679,7 +2679,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         set => Softness = Math.Clamp(-value, SoftnessMin, SoftnessMax);
     }
 
-    /// <summary>V29 #130 (Zak 18:17): the Tip Feel / Eraser Feel number box, 1 (Soft) to 100 (Firm); 50 is the straight curve.
+    /// <summary>V29 #130 (Digital Groceries 18:17): the Tip Feel / Eraser Feel number box, 1 (Soft) to 100 (Firm); 50 is the straight curve.
     /// Typed values are read when the box is left or Enter is pressed; anything that isn't a number puts the real value back.</summary>
     public string TipFeelInput
     {
@@ -2998,7 +2998,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (!string.IsNullOrEmpty(SelectedAppBundleId) || !string.IsNullOrEmpty(SelectedPenKey)) return false;
         if (TipPressed || EraserPressed || DateTime.UtcNow - _lastPenDownUtc < DrawingQuietTime) return false;
         if (!IsAppInFront()) return false;
-        // V30 build 3 (Zak 24 Nov, L6.3): only the key pressed last shows the bubble. It moves on every press of an empty key
+        // V30 build 3 (Digital Groceries 24 Nov, L6.3): only the key pressed last shows the bubble. It moves on every press of an empty key
         // (also one pressed before: key 1, key 2, key 1 again puts it back on key 1); the page itself jumps only once per control.
         if (_lastJustUsed is { } before && !ReferenceEquals(before, b)) before.JustUsed = false;
         _lastJustUsed = b;

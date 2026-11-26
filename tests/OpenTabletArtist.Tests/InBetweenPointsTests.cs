@@ -15,7 +15,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>#40 (Zak): smooth in-between pen points for fast curves.</summary>
+/// <summary>#40 (Digital Groceries): smooth in-between pen points for fast curves.</summary>
 public class InBetweenPointsTests
 {
     private static Vector2 OnCircle(double deg, float r = 100) =>

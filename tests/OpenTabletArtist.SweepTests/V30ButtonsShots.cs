@@ -26,7 +26,7 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V30 (Zak 23 Nov 19:1x, test build 1: the Home line was small dark text he "would have never seen let alone try to
+/// <summary>V30 (Digital Groceries 23 Nov 19:1x, test build 1: the Home line was small dark text he "would have never seen let alone try to
 /// click it"; "That deserves a huge button"): pictures of the Home button, an ExpressKeys card with nothing on it, and the
 /// report's "The page doesn't open?" button, dark theme, for a look before the next test build. Written to $OTA_SHOTS_DIR.</summary>
 public class V30ButtonsShots
@@ -73,7 +73,7 @@ public class V30ButtonsShots
         var b = view.GetVisualDescendants().OfType<Button>().First(x => x.Name == "KeysNotSetUpLink");
         Assert.True(b.IsEffectivelyVisible);
         Assert.True(b.Bounds.Height >= 50, $"the button is {b.Bounds.Height} high");
-        // L6.2 (Zak 24 Nov): no ••• menu on the card any more; Forget is its own smaller red button under the big one
+        // L6.2 (Digital Groceries 24 Nov): no ••• menu on the card any more; Forget is its own smaller red button under the big one
         Assert.DoesNotContain(view.GetVisualDescendants().OfType<OpenTabletArtist.Controls.IconButton>(),
             x => (AutomationProperties.GetName(x) ?? "") == "More actions");
         var forget = view.GetVisualDescendants().OfType<Button>().First(x => x.Name == "ForgetTabletButton");
@@ -99,12 +99,12 @@ public class V30ButtonsShots
         if (view.FindControl<ToggleButton>("ToolFunctionsButton") is { } f) f.IsChecked = true;
         Dispatcher.UIThread.RunJobs();
         view.FindControl<RadioButton>("ButtonsTab")!.IsChecked = true;
-        // The second look Zak asked to be bold yellow: a key with nothing on it that was just pressed (Button 3).
+        // The second look Digital Groceries asked to be bold yellow: a key with nothing on it that was just pressed (Button 3).
         vm.AuxButtons[2].JustUsed = true;
         Save(w, "expresskeys-not-set-up" + Sfx);
         var marks = view.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Name == "NotSetUpMark" && t.IsEffectivelyVisible).Select(t => t.Text).ToList();
         Assert.Contains("Not set up", marks);
-        // L6.3 (Zak 24 Nov): the just-used line is a speech bubble with much bigger type, not the small mark
+        // L6.3 (Digital Groceries 24 Nov): the just-used line is a speech bubble with much bigger type, not the small mark
         Assert.DoesNotContain("You just used this. It does nothing yet.", marks);
         var bubble = view.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Name == "JustUsedText" && t.IsEffectivelyVisible);
         Assert.Equal("You just used this. It does nothing yet.", bubble.Text);
@@ -139,13 +139,13 @@ public class V30ButtonsShots
         finally { InWindowSheet.MainOverride = null; mw.Close(); }
     }
 
-    /// <summary>V30 build 4 (Zak 24 Nov 2026, his screenshot of build 3's Home: "we have 3 different designs for buttons?";
+    /// <summary>V30 build 4 (Digital Groceries 24 Nov 2026, his screenshot of build 3's Home: "we have 3 different designs for buttons?";
     /// "The huge white square doesnt even look like a clickable button"; "change the word CONNECTED to be in green"):
     /// the whole Home page as he sees it, dark and light, with one tablet that has 6 keys not set up.</summary>
     [AvaloniaFact]
-    public void Home_whole_page_for_Zak()
+    public void Home_whole_page_for_Digital_Groceries()
     {
-        using var mac = UiPlatform.PretendMac();   // as on Zak's Mac
+        using var mac = UiPlatform.PretendMac();   // as on Digital Groceries' Mac
         try
         {
             foreach (var light in new[] { false, true })
@@ -200,10 +200,10 @@ public class V30ButtonsShots
         w.Close();
     }
 
-    /// <summary>ZAK-LISTS L6.5 (Zak 24 Nov 2026: "Ok lets see your mockup for 3D buttons. Make 3 versions to choose from?"): the same
+    /// <summary>task list L6.5 (Digital Groceries 24 Nov 2026: "Ok lets see your mockup for 3D buttons. Make 3 versions to choose from?"): the same
     /// pages with the three raised-button strengths, dark and light.</summary>
     [AvaloniaFact]
-    public async Task Raised_button_versions_for_Zak()
+    public async Task Raised_button_versions_for_Digital_Groceries()
     {
         var before = LightnessService.RaisedVariant;
         try

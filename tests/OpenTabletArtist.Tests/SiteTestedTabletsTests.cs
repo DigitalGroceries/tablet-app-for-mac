@@ -6,7 +6,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>The owner's rule (25 Nov 2026): wherever we say what the app was tested with, we name every tablet it was
+/// <summary>Digital Groceries' rule (25 Nov 2026): wherever we say what the app was tested with, we name every tablet it was
 /// tested with, ours and the ones people using the app have told us work. The manual and the README have named them since
 /// Version 30, but the first lines of the website's Home still said "Tested with a Wacom Intuos4", and at the first
 /// correction only the list lower on that page was changed, not that sentence: nothing made anyone look at every place.
@@ -14,7 +14,7 @@ namespace OpenTabletArtist.Tests;
 /// The list is kept in ONE place: the table under "Tested system and tablet" in the app's manual. This suite fails while
 /// any other place that says what the app was tested with does not name every tablet in that table: the README's table,
 /// the manual's first lines, the website's Home, its llms.txt and its Help page. On Home the sentence at the top names
-/// the families only ("Intuos5": the owner, 26 Nov 2026, the family is enough there) and the sentence under the list
+/// the families only ("Intuos5": Digital Groceries, 26 Nov 2026, the family is enough there) and the sentence under the list
 /// lower down gives every tablet with its model number. To add a tablet: add its row to the manual's table, then follow
 /// the failing tests.</summary>
 public class SiteTestedTabletsTests
@@ -132,7 +132,7 @@ public class SiteTestedTabletsTests
     static bool Names(string text, string family) => Regex.IsMatch(text, @"(?<![A-Za-z0-9])" + Regex.Escape(family) + @"(?![A-Za-z0-9])");
 
     /// <summary>The sentence a visitor reads first: the paragraph at the top of Home that says what the app was tested with.
-    /// The owner's rule for it (26 Nov 2026): the family is enough there ("Intuos5"), no sizes; the sizes and model numbers
+    /// Digital Groceries' rule for it (26 Nov 2026): the family is enough there ("Intuos5"), no sizes; the sizes and model numbers
     /// are lower on the page for whoever wants to check their own tablet. So this sentence must name the family of every
     /// tablet in the list, and must not go back to naming sizes.</summary>
     [Fact]

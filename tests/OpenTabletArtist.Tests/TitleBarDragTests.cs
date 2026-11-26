@@ -5,7 +5,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 #164 (Zak 20 Nov, report 12:01): the app's window moves with the pen and every mouse drag, also when the Mac's own
+/// <summary>V29 #164 (Digital Groceries 20 Nov, report 12:01): the app's window moves with the pen and every mouse drag, also when the Mac's own
 /// drag doesn't start; Grok's review: moves by the pointer's distance from the grabbed spot, hands back to a late Mac drag.</summary>
 public class TitleBarDragTests
 {
@@ -71,7 +71,7 @@ public class TitleBarDragTests
         Assert.False(d.Pressed);
     }
 
-    // ── V29 #176 (Zak 20 Nov, build 9): the window stuck at the edge between his screens. His layout: the MacBook's screen, the TV above it.
+    // ── V29 #176 (Digital Groceries 20 Nov, build 9): the window stuck at the edge between his screens. His layout: the MacBook's screen, the TV above it.
     private static readonly TitleBarDrag.ScreenArea Mac = new(new PixelRect(0, 0, 1496, 967), new PixelRect(0, 37, 1496, 930));
     private static readonly TitleBarDrag.ScreenArea Tv = new(new PixelRect(-200, -1080, 1920, 1080), new PixelRect(-200, -1055, 1920, 1055));
     private static readonly TitleBarDrag.ScreenArea[] Both = { Mac, Tv };

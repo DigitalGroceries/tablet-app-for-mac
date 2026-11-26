@@ -7,7 +7,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>Team rule 7.12 (wording), checked here so nobody has to remember it (team rule 0.7, Zak 19 Nov 2026):
+/// <summary>Team rule 7.12 (wording), checked here so nobody has to remember it (team rule 0.7, Digital Groceries 19 Nov 2026):
 /// the English texts never say "daemon" (say "driver"), and always write "Touch Ring(s)" and "Touch Strip(s)" with two
 /// capitals, never "touch ring" or "Touch ring".</summary>
 public class WordingRulesTests

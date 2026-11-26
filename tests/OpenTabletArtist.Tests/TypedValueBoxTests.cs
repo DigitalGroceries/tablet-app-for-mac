@@ -7,7 +7,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 #140 (Zak 19 Nov 18:37: every slider gets a box to type its value), #130 (Tip / Eraser Feel 1 to 100) and #132
+/// <summary>V29 #140 (Digital Groceries 19 Nov 18:37: every slider gets a box to type its value), #130 (Tip / Eraser Feel 1 to 100) and #132
 /// (Theme Lightness).</summary>
 public class TypedValueBoxTests
 {
@@ -102,7 +102,7 @@ public class BrightnessKeyTests
     }
 }
 
-/// <summary>V29 #143 (Zak's build 3 test, 'No floating keyboard menu'): the keyboard goes on the menu in one click; V29 #163 moved the
+/// <summary>V29 #143 (Digital Groceries' build 3 test, 'No floating keyboard menu'): the keyboard goes on the menu in one click; V29 #163 moved the
 /// row from the pen button's Radial menu tab to the Pen page's Floating keyboard section (FloatingKeyboardPlacement).</summary>
 public class KeyboardOnTheMenuTests
 {

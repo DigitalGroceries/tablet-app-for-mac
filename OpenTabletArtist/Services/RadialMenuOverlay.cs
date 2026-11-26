@@ -32,7 +32,7 @@ public sealed class RadialMenuOverlay : IDisposable
 
     /// <summary>Same files the plugin uses (RadialMenuState.StateFilePath / OffFlagPath).</summary>
     public static string StateFilePath { get; } = Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-menu");
-    /// <summary>V29 #154 (Zak 20 Nov: the radial menu and the colour palette can be open at the same time): the palette has its
+    /// <summary>V29 #154 (Digital Groceries 20 Nov: the radial menu and the colour palette can be open at the same time): the palette has its
     /// own window, fed by its own state file and answering through its own command file (RadialMenuState.Palette*FilePath).</summary>
     public static string PaletteStateFilePath { get; set; } = Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-palette");
     public static string PaletteCommandFilePath { get; set; } = Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-palette-cmd");
@@ -128,7 +128,7 @@ public sealed class RadialMenuOverlay : IDisposable
     private MenuState? _shown;
     private long _lastLiveLog;
 
-    /// <summary>v27 (Zak 13 Nov 16:02): a menu that is already open on screen follows the Menu transparency and Menu size
+    /// <summary>v27 (Digital Groceries 13 Nov 16:02): a menu that is already open on screen follows the Menu transparency and Menu size
     /// sliders at once, not only after it is closed and opened again. When the open menu is the same menu (the same
     /// slices) as <paramref name="previewMenuJson"/>, the driver is told to use it now; the driver writes its state and the
     /// window follows, so the pen measures taps on the same size as the picture shows. Nothing happens when no menu is
@@ -148,7 +148,7 @@ public sealed class RadialMenuOverlay : IDisposable
             if (st.Editing || st.Confirm || st.Busy) return false;
             if (!SameSlices(st.Menu, previewMenuJson)) return false;
             var preview = RadialMenuJson.Parse(previewMenuJson);
-            // V29 #155 (Zak 20 Nov): an open colour palette follows its own size slider live too (its transparency is fixed).
+            // V29 #155 (Digital Groceries 20 Nov): an open colour palette follows its own size slider live too (its transparency is fixed).
             if (st.IsPalette ? preview.PaletteSize == st.Size
                              : preview.Size == st.Size && preview.Transparency == st.Transparency) return true;
             Send(RadialMenuCommand.MenuChanged, menu: previewMenuJson);
@@ -167,7 +167,7 @@ public sealed class RadialMenuOverlay : IDisposable
         }
     }
 
-    /// <summary>V29 #161 (Zak 20 Nov ~09:10: "The update to keyboard did not update on the already opened radial menu"): a
+    /// <summary>V29 #161 (Digital Groceries 20 Nov ~09:10: "The update to keyboard did not update on the already opened radial menu"): a
     /// button's radial menu was changed in its Change… window (e.g. Put the keyboard there). An open menu (or palette) that
     /// shows the menu as it was before gets the new one at once, so it doesn't need closing and opening again. A menu opened
     /// from another button (other slices) is left alone. UI thread.</summary>
@@ -368,7 +368,7 @@ public sealed class RadialMenuOverlay : IDisposable
 
     private static bool Differs(double a, double b) => a > 0 && b > 0 && Math.Abs(a - b) > 0.01;
 
-    /// <summary>V29 #174 (Zak 20 Nov, build 8 screenshots): moved by the app to a screen of another scale (his Retina screen is 2, the TV 1),
+    /// <summary>V29 #174 (Digital Groceries 20 Nov, build 8 screenshots): moved by the app to a screen of another scale (his Retina screen is 2, the TV 1),
     /// the menu's window kept the old screen's scale and drew twice too big (a quarter showing) or too small. Avalonia has the same kind of
     /// bug for windows moved by code (issue #13917). So the window is made again whenever the menu goes to a screen of another scale.
     /// Nothing listens to the old window's Closed/Closing, so closing it doesn't close the menu; the hint bubble is a window of its own.</summary>
@@ -432,7 +432,7 @@ public sealed class RadialMenuOverlay : IDisposable
             _window.Position = new PixelPoint((int)Math.Round(st.X - d / 2), (int)Math.Round(st.Y - d / 2));
             _window.Width = d;
             _window.Height = d;
-            // Zak 20 Nov: on the other screen it "fixes itself as long as you continue clicking" - it only needed a fresh drawing. While a
+            // Digital Groceries 20 Nov: on the other screen it "fixes itself as long as you continue clicking" - it only needed a fresh drawing. While a
             // mouse drag carries it across (the window can't be made again mid-drag), it is redrawn now and once more after the Mac has
             // told the window about its new screen.
             if (moving && Differs(scale, _lastScale))
@@ -450,7 +450,7 @@ public sealed class RadialMenuOverlay : IDisposable
                 _paletteWheel!.MenuSize = st.Size;
                 _paletteWheel.Editing = st.Editing;
                 _paletteWheel.Menu = string.IsNullOrEmpty(st.Menu) ? null : RadialMenuJson.Parse(st.Menu);
-                _paletteWheel.LastColour = AppSettings.Get(ColourPalette.LastColourKey);   // Zak 20:21: the middle dot
+                _paletteWheel.LastColour = AppSettings.Get(ColourPalette.LastColourKey);   // Digital Groceries 20:21: the middle dot
                 _paletteWheel.Highlight = HighlightNow();
             }
             else if (!ReferenceEquals(_window.Content, _pie)) _window.Content = _pie;
@@ -532,7 +532,7 @@ public sealed class RadialMenuOverlay : IDisposable
             {
                 // V29 #142: a swatch: set it in the app in front where that app allows it (Photoshop), and always copy its code.
                 var picked = ColourPick.Apply(u.Keys, u.Label, _window);
-                // Zak 19 Nov 20:21: the middle dot shows the colour just picked, also the next time the palette opens.
+                // Digital Groceries 19 Nov 20:21: the middle dot shows the colour just picked, also the next time the palette opens.
                 if (ColourPalette.IsHex(u.Keys))
                 {
                     var hex = u.Keys!.ToUpperInvariant();

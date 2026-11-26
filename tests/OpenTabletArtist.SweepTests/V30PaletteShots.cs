@@ -22,8 +22,8 @@ using static OpenTabletArtist.SweepTests.Sweep;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V30 build 5 pictures for Zak (24 Nov ~17:43: "In Tablet / Pen when you click on the radial menu, it opens a popup window to
-/// set it up. I want the same for the colour pallet under the radial menu."). As his app (Zak ~15:50: "Dont create mockup pictures that
+/// <summary>V30 build 5 pictures for Digital Groceries (24 Nov ~17:43: "In Tablet / Pen when you click on the radial menu, it opens a popup window to
+/// set it up. I want the same for the colour pallet under the radial menu."). As his app (Digital Groceries ~15:50: "Dont create mockup pictures that
 /// are different from the app"): the app window, Mac layout, a connected PTK-440 with factory settings, real mouse clicks.
 /// 1 the Pen page, 2 the palette window after clicking the palette, 3 the colour picker after clicking one colour,
 /// 4 the palette window with that colour changed, 5 the Pen page after Save.</summary>
@@ -48,7 +48,7 @@ public class V30PaletteShots
     }
 
     [AvaloniaFact]
-    public async Task Palette_window_for_Zak()
+    public async Task Palette_window_for_Digital_Groceries()
     {
         foreach (var light in new[] { false, true })
         {
@@ -68,13 +68,13 @@ public class V30PaletteShots
                 var vm = (MainViewModel)w.DataContext!;
                 var details = (System.Collections.IDictionary)typeof(MainViewModel)
                     .GetField("_tabletDetails", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(vm)!;
-                var ed = ZakTablet.Page();
+                var ed = DigitalGroceriesTablet.Page();
                 ed.ShowHeader = false;
-                details[ZakTablet.Name] = ed;
-                vm.TabletPage.SetTablets(new[] { (ZakTablet.Name, true) });
+                details[DigitalGroceriesTablet.Name] = ed;
+                vm.TabletPage.SetTablets(new[] { (DigitalGroceriesTablet.Name, true) });
                 vm.CurrentPage = vm.TabletPage;
                 await Settle(150);
-                // no driver in this test window: the page takes input as it does on Zak's Mac (see ButtonLookAuditTests)
+                // no driver in this test window: the page takes input as it does on Digital Groceries' Mac (see ButtonLookAuditTests)
                 foreach (var host in w.GetVisualDescendants().OfType<TransitioningContentControl>()) host.IsEnabled = true;
                 foreach (var b in w.GetVisualDescendants().OfType<Button>().Where(x => x.Name is "SaveButton" or "SaveAsDefaultButton" or "RevertToDefaultButton"))
                     b.IsEnabled = true;
@@ -86,7 +86,7 @@ public class V30PaletteShots
 
                 var paletteButton = view.FindControl<Button>("PaletteSpotButton")!;
                 var wheelOnPage = view.FindControl<ColourPaletteWheel>("PaletteSpotWheel")!;
-                // scroll the page so the whole palette shows, as Zak would to reach it
+                // scroll the page so the whole palette shows, as Digital Groceries would to reach it
                 var sv = wheelOnPage.GetVisualAncestors().OfType<ScrollViewer>().First();
                 var bottom = wheelOnPage.TranslatePoint(new Point(0, wheelOnPage.Bounds.Height), sv)!.Value.Y;
                 if (bottom > sv.Viewport.Height - 12) sv.Offset = new Vector(sv.Offset.X, sv.Offset.Y + bottom - sv.Viewport.Height + 24);
@@ -115,7 +115,7 @@ public class V30PaletteShots
                 await Settle(60);
                 await Click(w, Centre(picker.FindControl<Button>("Trigger")!, w));          // open its wheel, swatches and hex code
                 Save(w, "palette-3-colour-picker" + sfx);
-                // V30 build 6 (Zak's build 5 screenshot 21:22): the open drop-down must not cover Cancel or Save
+                // V30 build 6 (Digital Groceries' build 5 screenshot 21:22): the open drop-down must not cover Cancel or Save
                 var flyoutRoot = w.GetVisualDescendants().OfType<Avalonia.Controls.FlyoutPresenter>().FirstOrDefault(f => f.IsEffectivelyVisible);
                 Assert.NotNull(flyoutRoot);
                 var fr = new Rect(flyoutRoot!.TranslatePoint(new Point(0, 0), w)!.Value, flyoutRoot.Bounds.Size);

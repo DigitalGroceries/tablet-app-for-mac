@@ -8,7 +8,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>Version 29 (#157, Zak 20 Nov 08:41): the app icon showed coloured noise in Finder's list view
+/// <summary>Version 29 (#157, Digital Groceries 20 Nov 08:41): the app icon showed coloured noise in Finder's list view
 /// and in Force Quit while the big preview was fine. The icon file kept its 16 px and 32 px pictures as PNG
 /// in the icp4/icp5/icp6 slots, which macOS does not decode. Apple's iconutil stores those two sizes as
 /// ic04/ic05 "ARGB" (tools/make_icns.py writes them that way). These tests read the shipped icon files.</summary>

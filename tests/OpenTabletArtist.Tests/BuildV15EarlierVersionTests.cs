@@ -8,7 +8,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>Version 15 (Zak, 27 Oct 2026): "All versions stable or beta should allow the users to downgrade to an
+/// <summary>Version 15 (Digital Groceries, 27 Oct 2026): "All versions stable or beta should allow the users to downgrade to an
 /// earlier version." The update check also lists the two stable versions before the running one (BETAs are never
 /// offered as a way back), and the swap script stops the old app's driver so the earlier version starts clean.</summary>
 public class BuildV15EarlierVersionTests

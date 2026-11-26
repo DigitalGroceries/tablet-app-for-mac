@@ -12,7 +12,7 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>TASKS #60: pictures of the radial menu editor in the main window at 1100x720 (Zak's size), 900x600 and a large window.
+/// <summary>TASKS #60: pictures of the radial menu editor in the main window at 1100x720 (Digital Groceries' size), 900x600 and a large window.
 /// Output: $OTA_SHOTS/radial-editor-fit-*.png or /workspace.</summary>
 public class RadialEditorFitShots
 {

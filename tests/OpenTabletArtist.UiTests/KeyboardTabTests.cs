@@ -15,7 +15,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>V29 #177 (Zak 20 Nov 18:52: "Should we move the Floating keyboard menu to its own tab / button in between the
+/// <summary>V29 #177 (Digital Groceries 20 Nov 18:52: "Should we move the Floating keyboard menu to its own tab / button in between the
 /// Eraser and Mapping buttons so all 4 tabs have menu of somewhat the same size?" ... "Do it"): the floating keyboard's
 /// settings live on their own Keyboard tab, and the Pen tab keeps a link to it under pen button 1.</summary>
 public class KeyboardTabTests
@@ -47,7 +47,7 @@ public class KeyboardTabTests
             var keyboard = view.FindControl<RadioButton>("KeyboardTab")!;
             var row = (Panel)keyboard.Parent!;
             // Mapping is hidden in this test (no tablet area), so check the order of the pen tabs as written.
-            // V29 #180 (Zak's mockup 21 Nov): no Eraser tab any more; it must not come back.
+            // V29 #180 (Digital Groceries' mockup 21 Nov): no Eraser tab any more; it must not come back.
             var pens = new[] { "PenTab", "KeyboardTab", "MappingTab" };
             var order = row.Children.OfType<RadioButton>().Select(r => r.Name).Where(n => pens.Contains(n)).ToList();
             Assert.Equal(pens, order);
@@ -111,7 +111,7 @@ public class KeyboardTabTests
         finally { window.Close(); }
     }
 
-    /// <summary>Zak 20 Nov ~20:05 ("if 'Keyboard settings...' is clickable it needs to be a button") and ~20:07 (the tick
+    /// <summary>Digital Groceries 20 Nov ~20:05 ("if 'Keyboard settings...' is clickable it needs to be a button") and ~20:07 (the tick
     /// next to "Default setting" looks like a checkbox): a real button, and no tick on any pen card.</summary>
     [AvaloniaFact]
     public void KeyboardSettings_IsARealButton_AndNoPenCardHasATick()
@@ -127,7 +127,7 @@ public class KeyboardTabTests
         finally { w.Close(); }
     }
 
-    /// <summary>Zak 20 Nov ~20:10: the radial menu editor says "Radial menu" once (its window title), not three times.</summary>
+    /// <summary>Digital Groceries 20 Nov ~20:10: the radial menu editor says "Radial menu" once (its window title), not three times.</summary>
     [AvaloniaFact]
     public void MenuEditor_SaysRadialMenuOnce()
     {

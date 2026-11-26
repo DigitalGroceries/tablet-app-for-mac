@@ -198,7 +198,7 @@ public static class DisplayMappingApplier
             || System.Math.Abs(abs.Tablet.X - x) > mm || System.Math.Abs(abs.Tablet.Y - y) > mm;
     }
 
-    /// <summary>V29 #126/#129 (Zak's test 19 Nov: a whole-desktop mapping made for an older monitor arrangement was "partly
+    /// <summary>V29 #126/#129 (Digital Groceries' test 19 Nov: a whole-desktop mapping made for an older monitor arrangement was "partly
     /// off-screen", and the Home "Fix" then put the pen on the built-in display only): true when the stored display area is
     /// wider or taller than every single display, so it was made for more than one screen.</summary>
     public static bool SpansSeveralDisplays(Profile profile, IReadOnlyList<DisplayInfo> displays)

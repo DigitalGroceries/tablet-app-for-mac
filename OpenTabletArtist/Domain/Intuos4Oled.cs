@@ -15,7 +15,7 @@ namespace OpenTabletArtist.Domain;
 /// is a port of the <c>wacom_scramble()</c> / gnome-settings-daemon <c>oled_scramble_icon()</c> encoder. The
 /// plain image before that is two pixels a byte, the left pixel in the high half, 0,0 at the top left.
 /// </para>
-/// <para>Not tested on real hardware here (Zak's PTK-440 has no screens); Brice tests it.</para>
+/// <para>Not tested on real hardware here (Digital Groceries' PTK-440 has no screens); Brice tests it.</para>
 /// </summary>
 public static class Intuos4Oled
 {

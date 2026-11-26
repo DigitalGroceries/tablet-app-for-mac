@@ -121,7 +121,7 @@ public partial class AboutViewModel : ObservableObject
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
     readonly string _versionNumber = AppVersionInfo.Number(InfoVersion);
 
-    /// <summary>Localised "Version N" for Home's About line; a test build says "Version 26 test" (Zak, 12 Nov 2026).</summary>
+    /// <summary>Localised "Version N" for Home's About line; a test build says "Version 26 test" (Digital Groceries, 12 Nov 2026).</summary>
     public string AppVersion => Services.Localizer.Tf("home.version", ("version", _versionNumber));
 
     /// <summary>"Version N." — a closing sentence for the About paragraph rather than a line or
@@ -180,7 +180,7 @@ public partial class AboutViewModel : ObservableObject
         if (await Views.UpdatePromptWindow.AskGoBackAsync(g.Label)) await Services.AppUpdateState.Shared.InstallAsync(g);
     }
 
-    /// <summary>Version 15 (Zak, 27 Oct 2026: "All versions stable or beta should allow the users to downgrade to
+    /// <summary>Version 15 (Digital Groceries, 27 Oct 2026: "All versions stable or beta should allow the users to downgrade to
     /// an earlier version"): checks GitHub if needed, then offers the earlier stable versions.</summary>
     [RelayCommand]
     private async Task ChooseEarlier()
@@ -192,11 +192,11 @@ public partial class AboutViewModel : ObservableObject
         if (await Views.UpdatePromptWindow.ChooseEarlierAsync(u.EarlierOffers) is { } r) await u.InstallAsync(r);
     }
 
-    /// <summary>Called on every launch (Version 26, Zak 10 Nov 2026: "check at every start of the app and not
+    /// <summary>Called on every launch (Version 26, Digital Groceries 10 Nov 2026: "check at every start of the app and not
     /// just once a week"). With "Update automatically" on, downloads then asks
     /// OK to install; otherwise asks before downloading. Version 14: only a newer stable version is offered
     /// this way (a BETA only to someone already running a BETA); other BETAs are a choice on Home.</summary>
-    /// <remarks>V29 (Zak, 20 Nov 2026: "The app shows a message on the Mac screen after every Mac boot saying that it checked for
+    /// <remarks>V29 (Digital Groceries, 20 Nov 2026: "The app shows a message on the Mac screen after every Mac boot saying that it checked for
     /// updates. Remove that. The login should be silent like all other Mac apps."): the launch check never shows "Checked for
     /// updates" (that line answers a click on Check for updates now), and at a login start (the app starts hidden) it opens no
     /// window either: a found update waits on Home ("Install Version N") until the user opens the app.</remarks>

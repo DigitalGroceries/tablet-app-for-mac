@@ -19,7 +19,7 @@ public class PortablePenSerialTests : IDisposable
     {
         Directory.CreateDirectory(Path.Combine(_tmp, "app")); Directory.CreateDirectory(Path.Combine(_tmp, "otd"));
         SettingsBundle.AppDataDir = () => Path.Combine(_tmp, "app"); SettingsBundle.OtdDataDir = () => Path.Combine(_tmp, "otd");
-        SettingsBundle.HomeDir = () => "/Users/zak";
+        SettingsBundle.HomeDir = () => "/Users/digitalgroceries";
     }
 
     public void Dispose()

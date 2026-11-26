@@ -92,7 +92,7 @@ public sealed class RadialMenuEditorDialog : Window
 
         // Heading
         var heading = new StackPanel { Spacing = 3, Margin = new Thickness(0, 0, 0, 14) };
-        // V29 #177 (Zak 20 Nov ~20:10: "there are 3 instances of the same text in this app page? It doesnt make any sense. Leave
+        // V29 #177 (Digital Groceries 20 Nov ~20:10: "there are 3 instances of the same text in this app page? It doesnt make any sense. Leave
         // just one 'Radial Menu'"): the window title says it; the big "Radial menu · <title>" line is gone.
         heading.Children.Add(new TextBlock
         {
@@ -199,7 +199,7 @@ public sealed class RadialMenuEditorDialog : Window
         body.Children.Add(right);
 
         // Footer: size, reset, save / cancel
-        // v27 test (Zak 16:07): the size is set from 1 to 10 (SizeStep); the saved size stays 1-50.
+        // v27 test (Digital Groceries 16:07): the size is set from 1 to 10 (SizeStep); the saved size stays 1-50.
         var size = new Slider { Minimum = RadialMenuDef.MinSizeStep, Maximum = RadialMenuDef.MaxSizeStep, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220 };
         size[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.SizeStep)) { Mode = BindingMode.TwoWay };
         Avalonia.Automation.AutomationProperties.SetName(size, vm.SizeCaption);
@@ -210,7 +210,7 @@ public sealed class RadialMenuEditorDialog : Window
         Put(new TextBlock { Text = vm.SizeSmall, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) }, 1);
         Put(size, 2);
         Put(new TextBlock { Text = vm.SizeLarge, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 0, 10, 0) }, 3);
-        // v27 (Zak): the size is a box you can type in, the same as Menu transparency and the Pen page.
+        // v27 (Digital Groceries): the size is a box you can type in, the same as Menu transparency and the Pen page.
         var sizeBox = new TextBox
         {
             Width = 52, MinWidth = 0, HorizontalContentAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center,
@@ -234,7 +234,7 @@ public sealed class RadialMenuEditorDialog : Window
         Put(new TextBlock { Text = vm.TransparencySolid, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 6, 6, 0) }, 1, 1);
         Put(transparency, 2, 1);
         Put(new TextBlock { Text = vm.TransparencyClear, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 6, 10, 0) }, 3, 1);
-        // The number is a box too (TASKS #59, Zak 18:21): type 0-100 and press Enter or leave the box; Up / Down change it by 1.
+        // The number is a box too (TASKS #59, Digital Groceries 18:21): type 0-100 and press Enter or leave the box; Up / Down change it by 1.
         var transparencyBox = new TextBox
         {
             Width = 52, MinWidth = 0, HorizontalContentAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center,

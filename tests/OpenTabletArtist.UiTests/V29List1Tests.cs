@@ -19,8 +19,8 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>Build 17 = Zak's pager task list 1 (21 Nov 2026 ~21:07, 9 Pen page fixes after testing build 16, plus his item 1 note
-/// ~21:15), checked against his mockup Zak_Mockup_Pen_App_Page.png. Each test names the item it proves.</summary>
+/// <summary>Build 17 = Digital Groceries' pager task list 1 (21 Nov 2026 ~21:07, 9 Pen page fixes after testing build 16, plus his item 1 note
+/// ~21:15), checked against his mockup Mockup_Pen_App_Page.png. Each test names the item it proves.</summary>
 public class V29List1Tests
 {
     private static Profile NewProfile()

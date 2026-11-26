@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace OpenTabletArtist.Services;
 
 /// <summary>Version 7: in-app updater. Checks GitHub Releases (public API, no token) every time the app starts (Version 26,
-/// Zak 10 Nov 2026; once a week before) and on request. Downloads the release zip, checks its SHA-256 against the release's SHA256SUMS, swaps the app in
+/// Digital Groceries 10 Nov 2026; once a week before) and on request. Downloads the release zip, checks its SHA-256 against the release's SHA256SUMS, swaps the app in
 /// /Applications after this app quits normally, and reopens it. Files this app downloads are not quarantined
 /// (it does not set LSFileQuarantineEnabled and is not sandboxed), so Gatekeeper does not ask again; and the
 /// app is ad-hoc signed (a self-signed certificate is refused by macOS at launch), so macOS may ask for the
@@ -39,7 +39,7 @@ public static class Updater
     /// <summary>Version 14: what the user can choose from. <see cref="Stable"/> is a newer stable version, or —
     /// when <see cref="StableIsGoBack"/> — the stable version a BETA user can go back to. <see cref="Beta"/> is a
     /// BETA newer than both the running app and the newest stable version.
-    /// Version 15 (Zak, 27 Oct 2026: "All versions stable or beta should allow the users to downgrade to an
+    /// Version 15 (Digital Groceries, 27 Oct 2026: "All versions stable or beta should allow the users to downgrade to an
     /// earlier version"): <see cref="Earlier"/> holds the stable versions older than the running app, newest
     /// first, at most <see cref="EarlierCount"/> (the same two the website links to). Not counted in
     /// <see cref="Any"/>: an earlier version is never announced as an update.</summary>

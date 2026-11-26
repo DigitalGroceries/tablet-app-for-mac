@@ -15,7 +15,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>TASKS #57 (Zak 17:27): the "Smoother fast curves" switch would not stay on. Cause: its filter
+/// <summary>TASKS #57 (Digital Groceries 17:27): the "Smoother fast curves" switch would not stay on. Cause: its filter
 /// (OpenTabletArtist.Dynamics.InBetweenFilter) was missing from <see cref="ProfileFilterMaintenance"/>'s list of this
 /// app's own filters, so the "only approved filters run" rule (#465, run on every send to the app's own daemon)
 /// switched it off again as a foreign plugin filter, and the profile came back with Enable=false.</summary>

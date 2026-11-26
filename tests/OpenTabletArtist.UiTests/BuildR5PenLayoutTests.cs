@@ -33,11 +33,11 @@ public class BuildR5PenLayoutTests
         var cards = tablet.GetVisualDescendants().OfType<PenSwitchCard>().Where(c => c.IsEffectivelyVisible).ToList();
         Assert.All(cards, c => Assert.DoesNotContain("hero", c.Classes));   // R12: all headings one size
         var diagram = tablet.GetVisualDescendants().OfType<PenDiagram>().First(d => d.IsEffectivelyVisible);
-        // V29 #177 (Zak's mockup 20 Nov): the drawing and its "Pen tip" label are one centred column; the tip's card shows
+        // V29 #177 (Digital Groceries' mockup 20 Nov): the drawing and its "Pen tip" label are one centred column; the tip's card shows
         // only when the tip is not on its default.
-        var column = tablet.FindControl<Panel>("PenDiagramColumn")!;   // build 17 (Zak's list 1): circles over the pen's ends
+        var column = tablet.FindControl<Panel>("PenDiagramColumn")!;   // build 17 (Digital Groceries' list 1): circles over the pen's ends
         Assert.Same(column, diagram.Parent);
-        // V29 #180 (Zak's mockup 21 Nov): the round Eraser label on top, the drawing, the round Tip label underneath.
+        // V29 #180 (Digital Groceries' mockup 21 Nov): the round Eraser label on top, the drawing, the round Tip label underneath.
         double Top(Control c) => c.TranslatePoint(new Point(0, 0), column)!.Value.Y;
         Assert.True(Top(tablet.FindControl<Border>("EraserEndLabel")!) < Top(diagram));
         Assert.True(Top(diagram) < Top(tablet.FindControl<Border>("TipEndLabel")!));

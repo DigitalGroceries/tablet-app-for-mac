@@ -8,7 +8,7 @@ using Avalonia.Media;
 
 namespace OpenTabletArtist.Views;
 
-/// <summary>V30 build 4 (Zak 24 Nov 2026: "When the user turns the switch on the app should ask them what buttons should open this
+/// <summary>V30 build 4 (Digital Groceries 24 Nov 2026: "When the user turns the switch on the app should ask them what buttons should open this
 /// menu"): a small dialog with a question, a line under it and one button per choice ("Pen button 1", "Pen button 2"...), plus Cancel.
 /// The result is the index of the chosen button, or null for Cancel or closing the window.</summary>
 public sealed class MenuButtonChoiceDialog : AppWindow

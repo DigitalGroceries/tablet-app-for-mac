@@ -103,7 +103,7 @@
             </Grid>
         </StackPanel>
 
-        <!-- Tab strip. V30 build 5 (Zak 24 Nov 17:3x, his screenshot "Keyboard, Media, Mouse, Scroll and Radial menu have no buttons
+        <!-- Tab strip. V30 build 5 (Digital Groceries 24 Nov 17:3x, his screenshot "Keyboard, Media, Mouse, Scroll and Radial menu have no buttons
              yet"): the app's own tab look (PivotTab: raised, the chosen one lit), as on every page. -->
         <Border DockPanel.Dock="Top" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource DividerBrush}" Padding="0,0,0,10">
             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -211,7 +211,7 @@
                                 Value="{Binding GestureSpeed}" AutomationProperties.Name="Speed"
                                 ToolTip.Tip="{Binding SpeedTip}" />
                         <TextBlock Grid.Column="2" Text="{Binding SpeedFastLabel}" VerticalAlignment="Center" />
-                        <!-- V29 #140 (Zak): type the speed, 1 to 100. -->
+                        <!-- V29 #140 (Digital Groceries): type the speed, 1 to 100. -->
                         <TextBox x:Name="GestureSpeedBox" Grid.Column="3" Width="52" MinWidth="0" HorizontalContentAlignment="Right" VerticalAlignment="Center"
                                  FontWeight="SemiBold" MaxLength="6" Text="{Binding GestureSpeedInput, UpdateSourceTrigger=LostFocus}"
                                  AutomationProperties.Name="Speed value" />
@@ -222,7 +222,7 @@
             <!-- Media (consumer keys — stored as keyboard bindings, no modifiers). -->
             <StackPanel Spacing="7" IsVisible="{Binding IsMediaTab}">
                 <TextBlock Text="Media key" Classes="caption" />
-                <!-- V29 #150 (Zak 20 Nov): two columns, so the last key no longer sits on the dialog's footer line. -->
+                <!-- V29 #150 (Digital Groceries 20 Nov): two columns, so the last key no longer sits on the dialog's footer line. -->
                 <Grid x:Name="MediaKeysGrid" ColumnDefinitions="Auto,Auto" ColumnSpacing="48">
                     <StackPanel Grid.Column="0" Spacing="6">
                         <RadioButton x:Name="MediaMute" Content="Mute" GroupName="md"

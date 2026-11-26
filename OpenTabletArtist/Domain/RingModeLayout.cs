@@ -40,7 +40,7 @@ public static partial class RingModeBinding
         wheel != null && wheel.WheelButtons.Count > 0 && wheel.WheelButtons[0] == null
         && wheel.ClockwiseRotation == null && wheel.CounterClockwiseRotation == null;
 
-    /// <summary>V29 #158 (Zak 20 Nov: one switch, one menu): the ring is shown as its modes, with no plain Clockwise /
+    /// <summary>V29 #158 (Digital Groceries 20 Nov: one switch, one menu): the ring is shown as its modes, with no plain Clockwise /
     /// Anticlockwise rows: its turns are driven by modes, its centre button switches modes, or its turns do nothing.
     /// A ring whose plain rows hold something modes can't show (set up in OpenTabletDriver) keeps the plain rows.</summary>
     public static bool IsModesLayout(WheelBindingSettings? wheel) =>

@@ -10,7 +10,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>Version 29 (Zak, 17 Nov 2026; TASKS #85): Advanced › Daemon has "App window switching fix", Off by default.
+/// <summary>Version 29 (Digital Groceries, 17 Nov 2026; TASKS #85): Advanced › Daemon has "App window switching fix", Off by default.
 /// While it is On the app keeps the driver's flag file; Off removes it. The driver only runs its app activator while the
 /// file is there (OpenTabletDriver AppWindowSwitchingFixTests).</summary>
 public class AppSwitchFixTests

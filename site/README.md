@@ -14,7 +14,7 @@ build, commit on gh-pages. Edit the site here, not by hand on gh-pages, so the t
 A correction to the website's words is published the same day (build, commit on gh-pages). It does not wait for the
 next version of the app: the website is not part of the app.
 
-Three things the app's own tests keep right (`tests/OpenTabletArtist.Tests/Site*Tests.cs`), each a rule of the owner's:
+Three things the app's own tests keep right (`tests/OpenTabletArtist.Tests/Site*Tests.cs`), each a rule of Digital Groceries:
 
 - **Home says what is new in the current version only** (26 Nov 2026). What older versions had is on a page of its own:
   at a new STABLE the notes of the version before move to Releases, which has every version; they do not move down the

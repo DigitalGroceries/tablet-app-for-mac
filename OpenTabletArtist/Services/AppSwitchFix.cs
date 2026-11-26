@@ -4,9 +4,9 @@ using System.IO;
 namespace OpenTabletArtist.Services;
 
 /// <summary>
-/// Version 29 (Zak, 17 Nov 2026; TASKS #85): the "App window switching fix" switch, Off by default.
+/// Version 29 (Digital Groceries, 17 Nov 2026; TASKS #85): the "App window switching fix" switch, Off by default.
 /// While it is On, the driver asks macOS to bring the app under the pen to the front before a pen click
-/// (OpenTabletDriver.Desktop.Interop.Input.MacOSAppActivator). Zak's recordings showed macOS does that by itself,
+/// (OpenTabletDriver.Desktop.Interop.Input.MacOSAppActivator). Digital Groceries' recordings showed macOS does that by itself,
 /// while the activator, where it runs, holds every click back about a second (mtr8080's report), so it is Off unless
 /// a user needs it. The driver can't read the app's settings: the app keeps a flag file for it, the same way as the
 /// radial menu's off file. File there = On; no file = Off (OpenTabletDriver.Desktop.Interop.Input.AppWindowSwitchingFix).

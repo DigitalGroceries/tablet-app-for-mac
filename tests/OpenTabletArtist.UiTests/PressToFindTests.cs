@@ -75,7 +75,7 @@ public class PressToFindTests
     [AvaloniaFact]
     public void Only_the_key_pressed_last_shows_the_bubble()
     {
-        // V30 build 3 (Zak 24 Nov, L6.3): two empty keys pressed one after the other - only the second still says it
+        // V30 build 3 (Digital Groceries 24 Nov, L6.3): two empty keys pressed one after the other - only the second still says it
         var vm = Vm(null, null, null);
         vm.IsAppInFront = () => true;
         Press(vm, true, false, false); Press(vm, false, false, false);

@@ -29,7 +29,7 @@ internal sealed class RadialMenuToast
     /// <paramref name="radius"/>. <paramref name="hold"/> keeps it until <see cref="HideHint"/>; otherwise it hides itself.</summary>
     public void Show(string text, double cx, double cy, double radius, bool hold) => Place(text, cx, cy, radius, hold, log: true);
 
-    /// <summary>V29 #169 (Zak 20 Nov ~09:56: "The text 'Tap the colour to change' got separated from the palette and stuck hanging on
+    /// <summary>V29 #169 (Digital Groceries 20 Nov ~09:56: "The text 'Tap the colour to change' got separated from the palette and stuck hanging on
     /// the desktop until I closed the palette"): the text follows its menu or palette when that is moved (by the mouse or the pen),
     /// with no new log line for every step of the move.</summary>
     public void Follow(double cx, double cy, double radius)
@@ -93,7 +93,7 @@ internal sealed class RadialMenuToast
             FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = UiColors.SoftWhiteBrush, TextAlignment = TextAlignment.Center,
             MaxWidth = 320, TextWrapping = TextWrapping.Wrap,
         };
-        // v27 (Zak 13 Nov: the hint was "too transparent"): fully solid, with a light edge so it stands out on dark work
+        // v27 (Digital Groceries 13 Nov: the hint was "too transparent"): fully solid, with a light edge so it stands out on dark work
         // too. It never follows the menu's own transparency.
         _box = new Border
         {

@@ -60,7 +60,7 @@
                                     TickPlacement="BottomRight"
                                     ToolTip.Tip="How light the app looks. Applies at once." />
                             <TextBlock Text="Light" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
-                            <!-- V29 #132/#140 (Zak): type the lightness, 1 (darkest) to 9 (lightest), one number per slider position. -->
+                            <!-- V29 #132/#140 (Digital Groceries): type the lightness, 1 (darkest) to 9 (lightest), one number per slider position. -->
                             <TextBox x:Name="LightnessBox" Width="52" MinWidth="0" HorizontalContentAlignment="Right" VerticalAlignment="Center"
                                      FontWeight="SemiBold" MaxLength="6" Text="{Binding LightnessInput, UpdateSourceTrigger=LostFocus}"
                                      ToolTip.Tip="1 is the darkest, 9 the lightest."

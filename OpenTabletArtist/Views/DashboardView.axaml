@@ -52,7 +52,7 @@
                     <DataTemplate>
                         <!-- Double-click the card to open the tablet's settings (#tablet-card-mapping): the
                              per-card "edit" button was removed in favour of this, so the card is one clear
-                             target. (V30 build 3: the "…" menu that named it is gone, Zak 24 Nov; the Tablet tab opens the
+                             target. (V30 build 3: the "…" menu that named it is gone, Digital Groceries 24 Nov; the Tablet tab opens the
                              same page, and Forget is its own button on the card.) -->
                         <c:Entity DoubleTapped="OnTabletCardDoubleTapped" Padding="0,14"
                                   ToolTip.Tip="Double-click to open this tablet's settings">
@@ -78,7 +78,7 @@
                                          this tablet was last seen. A timestamp is context, not something
                                          you read the card for; and a connected tablet has no timestamp, so
                                          this line used to go blank and the card lost a row. -->
-                                    <!-- V30 build 4 (Zak 24 Nov: "change the word CONNECTED to be in green"): green while connected
+                                    <!-- V30 build 4 (Digital Groceries 24 Nov: "change the word CONNECTED to be in green"): green while connected
                                          (ConnectedTextBrush, readable on the dark and light steps); the last-seen time keeps its grey. -->
                                     <TextBlock x:Name="TabletStatusText" Text="{Binding StatusDetail}" Margin="0,6,0,0" Classes="Detail" Classes.connected="{Binding IsDetected}" FontSize="22" LetterSpacing="1"
                                                IsVisible="{Binding HasStatusDetail}"
@@ -87,8 +87,8 @@
                                     <TextBlock x:Name="TabletNotFoundHint" Text="{Binding NotFoundHint}" Margin="0,4,0,0" FontSize="16"
                                                Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"
                                                IsVisible="{Binding !IsDetected}" />
-                                    <!-- V30 #200 B2 (Zak 23 Nov 2026; team vote): keys with nothing on them, said on Home with a button
-                                         straight to the ExpressKeys page. Zak 23 Nov 19:1x (test build 1): the first version was a small
+                                    <!-- V30 #200 B2 (Digital Groceries 23 Nov 2026; team vote): keys with nothing on them, said on Home with a button
+                                         straight to the ExpressKeys page. Digital Groceries 23 Nov 19:1x (test build 1): the first version was a small
                                          dark text link he "would have never seen let alone try to click it" - "That deserves a huge
                                          button". So: a call-to-action button (light on dark), big type, as wide as the card's text. -->
                                     <!-- The text is its own TextBlock with local size and colour: the app's TextBlock style would
@@ -99,7 +99,7 @@
                                         <TextBlock x:Name="KeysNotSetUpText" Text="{Binding KeysNotSetUpText}" FontSize="22" FontWeight="SemiBold"
                                                    TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}" />
                                     </Button>
-                                    <!-- V30 build 3 (Zak 24 Nov, ZAK-LISTS L6.2): the ••• menu beside the card sat over the big button. Its
+                                    <!-- V30 build 3 (Digital Groceries 24 Nov, task list L6.2): the ••• menu beside the card sat over the big button. Its
                                          only other item, Open tablet settings, is the Tablet tab; Forget this tablet stays here as its own
                                          smaller, quieter red button under the big one, and still asks first (#575). -->
                                     <Button x:Name="ForgetTabletButton" Theme="{StaticResource GhostButton}" Classes="dangerText"

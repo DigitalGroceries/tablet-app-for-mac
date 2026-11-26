@@ -6,7 +6,7 @@ using Avalonia.Controls;
 namespace OpenTabletArtist.Services;
 
 /// <summary>
-/// V29 #176 (Zak 20 Nov, build 9: the app's window got stuck at the edge between his screens while a Finder window crossed; the
+/// V29 #176 (Digital Groceries 20 Nov, build 9: the app's window got stuck at the edge between his screens while a Finder window crossed; the
 /// report showed the Mac's own drag not starting in all 17 drags). Avalonia asks macOS for the drag with the last mouse press it
 /// recorded; Grok's review: when that isn't the press being handled right now, the drag doesn't start or starts late. Here the
 /// press macOS is handling at this moment is used, and only when it really is this window's left press at the same time as the

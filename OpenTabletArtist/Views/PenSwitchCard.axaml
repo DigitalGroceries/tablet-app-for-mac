@@ -16,7 +16,7 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        <!-- V29 (Zak 16 Nov 16:11, missed until 19 Nov): the action is shown in FULL ('Radial menu: Undo, Redo, Copy…',
+        <!-- V29 (Digital Groceries 16 Nov 16:11, missed until 19 Nov): the action is shown in FULL ('Radial menu: Undo, Redo, Copy…',
              'Default (eraser)'): the box wraps onto more lines instead of cutting the text. It keeps one width (146, the card's
              240 minus the 84 heading and 10 gap) so every card lines up and the Radial Menu Settings picture keeps its real size. -->
         <Style Selector="TextBlock.penHeading.shout">
@@ -69,10 +69,10 @@
         </Style>
     </UserControl.Styles>
 
-    <!-- v27 (Zak 16:39): 240 wide (was 300). Every row is at most 220 (heading 84 + 10 + value box 126; Change… 104 + 12 + Default 104),
+    <!-- v27 (Digital Groceries 16:39): 240 wide (was 300). Every row is at most 220 (heading 84 + 10 + value box 126; Change… 104 + 12 + Default 104),
          so nothing on screen moves; the 60 points freed on the right let the Radial Menu Settings picture sit at its real size where the
-         open menu was in Zak's screenshot. "Modified to X" wraps a little earlier. -->
-    <!-- V29 (Zak 16 Nov 16:11): the card sits right next to the pen drawing (left-aligned). -->
+         open menu was in Digital Groceries' screenshot. "Modified to X" wraps a little earlier. -->
+    <!-- V29 (Digital Groceries 16 Nov 16:11): the card sits right next to the pen drawing (left-aligned). -->
     <StackPanel Spacing="12" Width="240" HorizontalAlignment="Left">
         <!-- Heading, with the current action on the same line for side buttons ("BUTTON 2:  Right click"). -->
         <!-- R14 (the user's mock-up): the button's current action in a dark value box. The heading column has a fixed
@@ -80,7 +80,7 @@
         <StackPanel Orientation="Horizontal" Spacing="10">
             <TextBlock Classes="penHeading" Text="{Binding SectionLabel}" MinWidth="84"
                        IsVisible="{Binding !#CardRoot.Shout}" />
-            <!-- V29 #180 (Zak's mockup 21 Nov: "BUTTON 2", "BUTTON 1"; ~12:14 "These are all caps because they need to catch the
+            <!-- V29 #180 (Digital Groceries' mockup 21 Nov: "BUTTON 2", "BUTTON 1"; ~12:14 "These are all caps because they need to catch the
                  user attention first"): the Pen page's cards show the heading in capitals, heavier. -->
             <TextBlock x:Name="ShoutHeading" Classes="penHeading shout" MinWidth="84"
                        Text="{Binding SectionLabel, Converter={x:Static conv:UpperCaseConverter.Instance}}"
@@ -88,8 +88,8 @@
             <Border x:Name="ValueBox" Classes="penValueBox" IsVisible="{Binding ShowChooseAction}">
                 <TextBlock Classes="penValue" Text="{Binding CurrentPlainLabel}" HorizontalAlignment="Center" />
             </Border>
-            <!-- V29 #177 (Zak 20 Nov ~20:18: "It would read better if the text is on one line and not two ... 'Pen Tip Default
-                 Setting'"): the default status sits on the heading's line, as plain text (no tick, Zak ~20:08). -->
+            <!-- V29 #177 (Digital Groceries 20 Nov ~20:18: "It would read better if the text is on one line and not two ... 'Pen Tip Default
+                 Setting'"): the default status sits on the heading's line, as plain text (no tick, Digital Groceries ~20:08). -->
             <TextBlock x:Name="LblDefaultSetting" Classes="working" Text="Default setting" IsVisible="{Binding IsRecommended}"
                        AutomationProperties.Name="Default setting"
                        ToolTip.Tip="This input uses its default action. This is not a hardware test." />

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>V29 #142 (Zak 19 Nov 18:50-19:35): the colour palette - a second radial menu on the same pen button (double press), an
+/// <summary>V29 #142 (Digital Groceries 19 Nov 18:50-19:35): the colour palette - a second radial menu on the same pen button (double press), an
 /// artist's colour wheel; a tap sets the colour in Photoshop and copies its code everywhere.</summary>
 public class ColourPaletteUiTests
 {
@@ -50,7 +50,7 @@ public class ColourPaletteUiTests
             Assert.Single(scripts);                                       // no script for other apps
             Assert.Equal("#174E7A copied", overlay.Toast.Text);
 
-            // Zak 19 Nov 20:21: the middle dot shows the last colour picked, and still does after the palette is opened again.
+            // Digital Groceries 19 Nov 20:21: the middle dot shows the last colour picked, and still does after the palette is opened again.
             var wheel = Assert.IsType<ColourPaletteWheel>(overlay.MenuWindow!.Content);
             Assert.Equal("#174E7A", wheel.LastColour);
             Assert.Equal("#174E7A", AppSettings.Get(ColourPalette.LastColourKey));

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Makes the website's Language menu list exactly the languages the app has.
 
-The owner's rule (26 Nov 2026): the website's Language menu always lists the languages the app has.
+Digital Groceries' rule (26 Nov 2026): the website's Language menu always lists the languages the app has.
 (Version 29 added Italian, Swedish and Brazilian Portuguese to the app, Version 30 Hindi and Swahili; the website's menu
 still listed the first eight.)
 

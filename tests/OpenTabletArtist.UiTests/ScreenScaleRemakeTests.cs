@@ -8,7 +8,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>V29 #174 (Zak 20 Nov, build 8: the radial menu and the palette drew twice too big or too small after moving between his
+/// <summary>V29 #174 (Digital Groceries 20 Nov, build 8: the radial menu and the palette drew twice too big or too small after moving between his
 /// Retina screen and the TV, and "fix themselves as long as you continue clicking"): a menu, palette or keyboard that goes to a screen of
 /// another scale gets a new window made for that screen.</summary>
 [Collection("FloatingKeyboardFiles")]

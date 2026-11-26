@@ -11,7 +11,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 #158 (Zak 20 Nov): one Touch Ring switch and one menu. No "Touch Ring modes" switch or plain rows: every ring is
+/// <summary>V29 #158 (Digital Groceries 20 Nov): one Touch Ring switch and one menu. No "Touch Ring modes" switch or plain rows: every ring is
 /// its modes, the centre button has its own menu (Next mode first), "Do nothing" is in every menu, shortcuts are typed in place,
 /// and a ring that used the plain rows moves into mode 1 doing exactly what it did.</summary>
 public class RingModeLayoutTests

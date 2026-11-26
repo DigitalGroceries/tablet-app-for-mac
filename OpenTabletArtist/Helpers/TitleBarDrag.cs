@@ -5,7 +5,7 @@ using Avalonia;
 namespace OpenTabletArtist.Helpers;
 
 /// <summary>
-/// V29 #164 (Zak 20 Nov, build 7 report 12:01: the app's window didn't move when dragged by its top edge with the pen, and only
+/// V29 #164 (Digital Groceries 20 Nov, build 7 report 12:01: the app's window didn't move when dragged by its top edge with the pen, and only
 /// about half the time with the mouse, while other apps' windows moved). The window has no Mac title bar of its own: a thin strip
 /// asks macOS to drag it (Window.BeginMoveDrag). On macOS that request uses the last mouse press Avalonia recorded and silently
 /// does nothing without a usable one (Avalonia PR #21827). So the Mac's drag is still asked for first, and when the window hasn't
@@ -82,7 +82,7 @@ public sealed class TitleBarDrag
     public readonly record struct ScreenArea(PixelRect Bounds, PixelRect Work);
 
     /// <summary>
-    /// V29 #176 (Zak 20 Nov, build 9: "sometimes the app window gets stuck at the end of the first screen and does not get dragged to
+    /// V29 #176 (Digital Groceries 20 Nov, build 9: "sometimes the app window gets stuck at the end of the first screen and does not get dragged to
     /// the next one", while a Finder window of the same size always crossed). A window the app moves with code still belongs to its
     /// screen, and macOS pushes it back below that screen's menu bar, so it can't creep across an edge the way the Mac's own drag
     /// does (Grok's review). So: on the same screen the window never goes above the usable area (no fight with macOS); once the

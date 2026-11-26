@@ -17,7 +17,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>V29 #170 (Zak 20 Nov ~10:05: "I have a menu in front of me = I should be able to control it the same no matter what app
+/// <summary>V29 #170 (Digital Groceries 20 Nov ~10:05: "I have a menu in front of me = I should be able to control it the same no matter what app
 /// is open"; no switch). His Photoshop and Affinity tables carried their own radial menu and palette, so the Pen page's sliders changed
 /// only All's copy while the pen opened Photoshop's. Now the tablet has ONE menu in every table.</summary>
 public class OneRadialMenuTests

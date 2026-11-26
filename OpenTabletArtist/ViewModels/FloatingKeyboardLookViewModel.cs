@@ -5,7 +5,7 @@ using OpenTabletArtist.Services;
 
 namespace OpenTabletArtist.ViewModels;
 
-/// <summary>V29 #141 (Zak 19 Nov 18:46: "It will be good if the floating keyboard can be transparency adjusted"): the Keyboard
+/// <summary>V29 #141 (Digital Groceries 19 Nov 18:46: "It will be good if the floating keyboard can be transparency adjusted"): the Keyboard
 /// transparency slider and its number box in the radial menu settings. One setting for the whole app (the keyboard is the same for
 /// every tablet); an open keyboard follows at once.</summary>
 public partial class FloatingKeyboardLookViewModel : ObservableObject
@@ -20,7 +20,7 @@ public partial class FloatingKeyboardLookViewModel : ObservableObject
         });
     }
 
-    // ── V29 #163 (Zak 20 Nov ~09:10): the Floating keyboard section of the Pen page ──
+    // ── V29 #163 (Digital Groceries 20 Nov ~09:10): the Floating keyboard section of the Pen page ──
     public string Heading => Localizer.Te("keyboard.section", "Floating keyboard");
     public string Intro => Localizer.Te("keyboard.section_intro",
         "A small keyboard that floats over your work, so you can type with the pen. Drag its top bar to move it, and its bottom-right corner to make it bigger or smaller.");

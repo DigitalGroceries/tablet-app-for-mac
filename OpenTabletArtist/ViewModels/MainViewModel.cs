@@ -78,7 +78,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>V28 #80 (Daniel; agreed by Claude and Devin): every edit already works on the driver, but only Save keeps
     /// it after a driver restart, which a Wacom user doesn't expect. While there are unsaved changes, one quiet line
     /// under the status says so. A help line, not a feedback prompt.</summary>
-    /// V28 #80 Option A (Zak 16 Nov): with auto-save on (the default) changes are saved by themselves, so the line only
+    /// V28 #80 Option A (Digital Groceries 16 Nov): with auto-save on (the default) changes are saved by themselves, so the line only
     /// shows for someone who switched auto-save off.
     public bool ShowUnsavedHint => AutoSave.ShowSaveHint(AutoSave.Enabled, _session.SaveState, AutoSaveHeld);
     public string UnsavedHint => Localizer.Te("save.status.unsaved_hint", "Your changes work now. Click Save to keep them after a restart.");
@@ -224,7 +224,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _dialogs = dialogs;
         _session.ResolveUnsavedChanges = ResolveUnsavedSettingsAsync;
         AppUpdateState.Shared.PrepareForOlderVersion = PrepareRingsForOlderVersionAsync;
-        // Zak (2 Nov): thank donors while an app update downloads.
+        // Digital Groceries (2 Nov): thank donors while an app update downloads.
         Views.UpdatePromptWindow.WireDownloadNote(AppUpdateState.Shared);
 
         // Stopping or restarting a daemon this app didn't start asks first (#613, option 2). Wired here
@@ -291,7 +291,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         RefreshDefaultButtons();
         _session.SettingsReplaced += RefreshDefaultButtons;
         _session.PropertyChanged += OnSessionPropertyChangedForDefaults;
-        // V28 #80 Option A (Zak 16 Nov): save every change by itself, like the Wacom app.
+        // V28 #80 Option A (Digital Groceries 16 Nov): save every change by itself, like the Wacom app.
         _autoSaveTimer = new Avalonia.Threading.DispatcherTimer { Interval = AutoSave.Delay };
         _autoSaveTimer.Tick += OnAutoSaveTick;
         _autoSaveGate.Observe(_session.SaveState);
@@ -800,7 +800,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             if (_perAppBindings is not null)
                 await _perAppBindings.EnsureAllOnDaemonAsync();
             var saved = await _session.SaveSettingsAsync();
-            // Save can leave live == disk while still differing from the user default (Zak: DCF 50→60).
+            // Save can leave live == disk while still differing from the user default (Digital Groceries: DCF 50→60).
             RefreshDefaultButtons();
             OnPropertyChanged(nameof(FooterStatusText));
             return saved;
@@ -920,7 +920,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // Snapshot before the daemon wipe: ResetSettings only rebuilds connected tablets, so a
         // not-detected tablet's Double Click Fix would otherwise stay in the open editor / All stash.
         var before = _session.CurrentSettings is { } prior ? SettingsCodec.Clone(prior) : null;
-        // Build 7 (Zak, 10 Nov 2026: "Restore factory settings ... stays to the custom value"): the session's
+        // Build 7 (Digital Groceries, 10 Nov 2026: "Restore factory settings ... stays to the custom value"): the session's
         // RestoreFactoryAsync holds SettingsBusy itself and refuses while it is already held, and this method used
         // to set it first, so every restore failed (app.log: "Factory restore failed (ApplyFailed)" three times).
         // Take the busy flag only after the session has finished its own part.

@@ -10,7 +10,7 @@ using DriverKeys = OpenTabletArtist.Dynamics.FloatingKeyboardKeys;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 #141 (Zak 19 Nov 2026): the floating keyboard the radial menu's Keyboard slice shows. The app writes each tapped key
+/// <summary>V29 #141 (Digital Groceries 19 Nov 2026): the floating keyboard the radial menu's Keyboard slice shows. The app writes each tapped key
 /// to a small file; the driver presses it in the app in front, once, in order, and only while the keyboard is on screen.</summary>
 [Collection("FloatingKeyboardFiles")]
 public class FloatingKeyboardTests : IDisposable
@@ -53,7 +53,7 @@ public class FloatingKeyboardTests : IDisposable
         foreach (var letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ") Assert.Contains(all, k => k.Value == letter.ToString());
         foreach (var v in new[] { "Space", "Enter", "Backspace", "Escape", "Tab", "Up", "Down", "Left", "Right", "D0", "D9", "Grave", "Backslash" })
             Assert.Contains(all, k => k.Value == v);
-        // Zak 20 Nov (build 7): Caps Lock where a Mac has it, and a Shift at each end of the Z row (Del is gone).
+        // Digital Groceries 20 Nov (build 7): Caps Lock where a Mac has it, and a Shift at each end of the Z row (Del is gone).
         Assert.Equal(new[] { "Caps", "Shift", "Shift", "Ctrl", "Alt", "Cmd" }, all.Where(k => k.IsModifier).Select(k => k.Value));
         Assert.Equal("Caps", rows[2][0].Value);
         Assert.Equal("Shift", rows[3][^1].Value);
@@ -136,7 +136,7 @@ public class FloatingKeyboardTests : IDisposable
         Assert.Equal("A", kb.Tap(key("A")));
     }
 
-    /// <summary>Zak 20 Nov (build 7): "doesnt have upper case but shows as upper case letters only" and no Caps Lock.</summary>
+    /// <summary>Digital Groceries 20 Nov (build 7): "doesnt have upper case but shows as upper case letters only" and no Caps Lock.</summary>
     [Fact]
     public void LettersShowLowerCase_ShiftAndCapsLockMakeCapitals_CapsStaysOn()
     {

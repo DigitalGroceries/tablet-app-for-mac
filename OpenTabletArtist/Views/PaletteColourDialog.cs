@@ -9,7 +9,7 @@ using OpenTabletArtist.Services;
 namespace OpenTabletArtist.Views;
 
 /// <summary>
-/// V29 #142 (Zak ~20:05: the palette's pencil changes a swatch to your own colour): a small sheet with the app's colour picker (hue
+/// V29 #142 (Digital Groceries ~20:05: the palette's pencil changes a swatch to your own colour): a small sheet with the app's colour picker (hue
 /// wheel, curated swatches and a hex field) for one swatch. Save returns "#RRGGBB"; Cancel returns null.
 /// </summary>
 public sealed class PaletteColourDialog : Window
@@ -34,7 +34,7 @@ public sealed class PaletteColourDialog : Window
             {
                 // V30 build 5: no heading of its own; the window's title bar already says "Change this colour" (it said it twice)
                 new TextBlock { Text = swatchName, Opacity = 0.8 },
-                // V30 build 6 (Zak's build 5 screenshot 24 Nov 21:22: the picker's drop-down opened over Cancel): the colour box and
+                // V30 build 6 (Digital Groceries' build 5 screenshot 24 Nov 21:22: the picker's drop-down opened over Cancel): the colour box and
                 // Cancel / Save on one row, so the drop-down opens below them and covers neither.
                 PickerRow(_picker, cancel, save),
             },

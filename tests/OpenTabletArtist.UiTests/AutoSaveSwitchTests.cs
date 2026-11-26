@@ -9,7 +9,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>V28 #80 Option A (Zak, 16 Nov 2026): Settings › System has "Save changes automatically", on by default,
+/// <summary>V28 #80 Option A (Digital Groceries, 16 Nov 2026): Settings › System has "Save changes automatically", on by default,
 /// and the switch changes the remembered choice both ways.</summary>
 public class AutoSaveSwitchTests
 {

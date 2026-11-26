@@ -18,7 +18,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>Zak 9 Nov: About ExpressKeys and the Touch ring notes in plain English; About ExpressKeys uses the
+/// <summary>Digital Groceries 9 Nov: About ExpressKeys and the Touch ring notes in plain English; About ExpressKeys uses the
 /// empty right half of the page instead of a squeezed 300 px column.</summary>
 public class V26HelpTextTests
 {

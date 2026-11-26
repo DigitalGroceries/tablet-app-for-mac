@@ -9,7 +9,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>v27 (Zak 13 Nov 16:02-16:03): a radial menu that is already open on screen follows the Menu transparency and Menu size
+/// <summary>v27 (Digital Groceries 13 Nov 16:02-16:03): a radial menu that is already open on screen follows the Menu transparency and Menu size
 /// sliders at once (it used to keep the old look until it was closed and opened again). The app tells the driver to use the
 /// changed menu, so the driver's own state (and the pen's tap ring) matches what the window shows.</summary>
 public class RadialLiveLookTests
@@ -65,7 +65,7 @@ public class RadialLiveLookTests
     [AvaloniaFact]
     public void AnOpenColourPalette_FollowsItsSizeSlider_AtOnce()
     {
-        // V29 #155 (Zak 20 Nov): the palette's size used to change only the next time it opened.
+        // V29 #155 (Digital Groceries 20 Nov): the palette's size used to change only the next time it opened.
         var (overlay, dir, old) = Start();
         try
         {
@@ -110,7 +110,7 @@ public class RadialLiveLookTests
         Assert.Equal(3, vm.Split("RadialMenuOverlay.ShowLookLive(CurrentJson())").Length - 1);   // size, transparency and (V29 #155) palette size
     }
 
-    // ── V29 #161 (Zak 20 Nov ~09:10: "The update to keyboard did not update on the already opened radial menu") ──
+    // ── V29 #161 (Digital Groceries 20 Nov ~09:10: "The update to keyboard did not update on the already opened radial menu") ──
 
     private static RadialMenuDef WithKeyboardOn(int slice)
     {

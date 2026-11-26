@@ -27,7 +27,7 @@
             <TextBlock Grid.Row="1" Grid.Column="1" Text="Fast" FontSize="12" HorizontalAlignment="Right"
                        Foreground="{DynamicResource TextSecondaryBrush}" />
         </Grid>
-        <!-- Zak 9 Nov: one plain note on what turning the ring does and where, then the app setting it
+        <!-- Digital Groceries 9 Nov: one plain note on what turning the ring does and where, then the app setting it
              needs on its own "Setup:" line. -->
         <TextBlock x:Name="ModeNoteText" Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding ModeNote}" FontSize="12" TextWrapping="Wrap"
                    Margin="0,4,0,0" MaxWidth="640" HorizontalAlignment="Left"

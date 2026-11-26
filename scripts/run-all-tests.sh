@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs all 6 test suites and fails if any test fails (Zak, 16 Nov 2026: the team must never again miss a failing
+# Runs all 6 test suites and fails if any test fails (Digital Groceries, 16 Nov 2026: the team must never again miss a failing
 # suite). The same suites run on GitHub (.github/workflows/build.yml); scripts/pack-macos-linux.sh runs this first.
 # Usage: scripts/run-all-tests.sh
 set -uo pipefail

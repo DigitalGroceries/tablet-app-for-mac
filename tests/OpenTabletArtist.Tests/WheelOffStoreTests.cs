@@ -8,7 +8,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>TASKS #29 (Zak, 10 Nov 2026): each Touch Ring / Touch Strip has its own On/Off that never clashes with
+/// <summary>TASKS #29 (Digital Groceries, 10 Nov 2026): each Touch Ring / Touch Strip has its own On/Off that never clashes with
 /// the main switch: a ring works only when both are On, and the main switch never changes a ring's own state.</summary>
 public class WheelOffStoreTests
 {

@@ -150,7 +150,7 @@ internal static class MacDesktop
         // NSWindowCollectionBehaviorCanJoinAllSpaces (1) | Stationary (16) | IgnoresCycle (64) | FullScreenAuxiliary (256)
         if (ObjCGuard.RespondsTo(nsWindow, ObjCSelectors.SetCollectionBehavior))
             SendNUInt(nsWindow, sel_registerName(ObjCSelectors.SetCollectionBehavior), (nuint)(1 | 16 | 64 | 256));
-        // v27 (Zak): the window itself must be non-opaque with a clear backing, or turning the menu see-through
+        // v27 (Digital Groceries): the window itself must be non-opaque with a clear backing, or turning the menu see-through
         // only shows a dark window background instead of the user's work.
         if (ObjCGuard.RespondsTo(nsWindow, ObjCSelectors.SetOpaque))
             SendBool(nsWindow, sel_registerName(ObjCSelectors.SetOpaque), false);

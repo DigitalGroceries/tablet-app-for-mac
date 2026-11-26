@@ -8,7 +8,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>V29 #168 (Zak 20 Nov ~09:50: "when I add a value and press enter the slider does not go to the type value until I click
+/// <summary>V29 #168 (Digital Groceries 20 Nov ~09:50: "when I add a value and press enter the slider does not go to the type value until I click
 /// save"): Enter in a number box applies the typed value at once, as the manual says.</summary>
 public partial class EnterCommitsBoxesTests
 {

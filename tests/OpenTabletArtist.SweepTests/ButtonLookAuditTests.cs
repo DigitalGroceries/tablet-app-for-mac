@@ -20,7 +20,7 @@ using static OpenTabletArtist.SweepTests.Sweep;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V30 build 4 (Zak 24 Nov 2026, screenshots of Home, Scribble, Tablet › Pen and Settings: "we have 3 different designs
+/// <summary>V30 build 4 (Digital Groceries 24 Nov 2026, screenshots of Home, Scribble, Tablet › Pen and Settings: "we have 3 different designs
 /// for buttons?", "Again 2 designs of buttons", "They are all over the app. I will not send you all"): opens every page, lists
 /// every button and tab with the look it is drawn with (fill, edge, shadow), dark and light, and writes the list to
 /// button-looks.md in OTA_SHOTS_DIR. The audit below fails when a word button or tab is not drawn with the shared raised look.</summary>
@@ -90,7 +90,7 @@ public class ButtonLookAuditTests
 
     static async Task<List<Look>> Walk(bool light)
     {
-        using var mac = UiPlatform.PretendMac();   // pages laid out as on Zak's Mac (the pen cards' Change… / Default)
+        using var mac = UiPlatform.PretendMac();   // pages laid out as on Digital Groceries' Mac (the pen cards' Change… / Default)
         Hook();
         _ = new ThemeViewModel();
         ThemeService.Apply(ThemeService.Wacom);
@@ -111,19 +111,19 @@ public class ButtonLookAuditTests
         foreach (var sub in new[] { "ThemeSubtab", "BackdropSubtab", "ColorsSubtab" })
             if (w.GetVisualDescendants().OfType<RadioButton>().FirstOrDefault(x => x.Name == sub) is { } rb)
             { rb.IsChecked = true; await Settle(60); all.AddRange(Looks(w, $"settings-theme-{sub}")); }
-        // The Tablet pages inside the app window, as Zak sees them (Zak 24 Nov ~15:50: "Dont create mockup pictures that are different
-        // from the app"): the nav row, the tablet switcher and a connected Wacom PTK-440 with factory settings (ZakTablet).
+        // The Tablet pages inside the app window, as Digital Groceries sees them (Digital Groceries 24 Nov ~15:50: "Dont create mockup pictures that are different
+        // from the app"): the nav row, the tablet switcher and a connected Wacom PTK-440 with factory settings (DigitalGroceriesTablet).
         var details = (System.Collections.IDictionary)typeof(MainViewModel)
             .GetField("_tabletDetails", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(vm)!;
-        var ed = ZakTablet.Page();
+        var ed = DigitalGroceriesTablet.Page();
         ed.ShowHeader = false;
-        details[ZakTablet.Name] = ed;
-        vm.TabletPage.SetTablets(new[] { (ZakTablet.Name, true) });
+        details[DigitalGroceriesTablet.Name] = ed;
+        vm.TabletPage.SetTablets(new[] { (DigitalGroceriesTablet.Name, true) });
         vm.CurrentPage = vm.TabletPage;
         w.Height = 1500;
         await Settle(150);
         // This test window has no driver, so the app greys the page and the Save row (MainViewModel.PageInputEnabled,
-        // CanEditSettings). Zak's app has one: for pictures that match it, they take input here as they do on his Mac.
+        // CanEditSettings). Digital Groceries' app has one: for pictures that match it, they take input here as they do on his Mac.
         foreach (var host in w.GetVisualDescendants().OfType<TransitioningContentControl>()) host.IsEnabled = true;
         foreach (var name in new[] { "SaveButton", "SaveAsDefaultButton", "RevertToDefaultButton", "FactoryButton", "RestoreFactoryButton" })
             foreach (var b in w.GetVisualDescendants().OfType<Button>().Where(x => x.Name == name)) b.IsEnabled = true;
@@ -152,7 +152,7 @@ public class ButtonLookAuditTests
         (vm as IDisposable)?.Dispose();
         ed.Dispose();
 
-        // V30 build 5 (Zak 24 Nov 17:3x, his screenshot of Button 1's Change… window: "Keyboard, Media, Mouse, Scroll and Radial menu
+        // V30 build 5 (Digital Groceries 24 Nov 17:3x, his screenshot of Button 1's Change… window: "Keyboard, Media, Mouse, Scroll and Radial menu
         // have no buttons yet"): the check opened every page but no window, so it missed that. The app's windows, each audited too.
         async Task Dialog(Window d, string slug, Action? each = null)
         {
@@ -199,7 +199,7 @@ public class ButtonLookAuditTests
         foreach (var light in new[] { false, true })
         {
             var looks = await Walk(light);
-            // Zak 24 Nov ("They are all over the app"): every enabled word button and tab is raised; the tab you are on is lit.
+            // Digital Groceries 24 Nov ("They are all over the app"): every enabled word button and tab is raised; the tab you are on is lit.
             var tabOn = Describe(new SolidColorBrush(LightnessService.TabOnFill(light ? 8 : 0)));
             foreach (var l in looks.Where(l => l.Enabled && !l.Raised && !OwnLookOnPurpose(l)))
                 if (!(l.Checked == true && l.Fill == tabOn && l.Shadow))

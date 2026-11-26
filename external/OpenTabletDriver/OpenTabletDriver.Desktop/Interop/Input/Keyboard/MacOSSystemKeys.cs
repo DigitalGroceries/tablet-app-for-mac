@@ -11,7 +11,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
     /// The Mac's brightness keys have no key code: a Mac keyboard sends them as "system-defined" events
     /// (NX_KEYTYPE_BRIGHTNESS_UP 2 / _DOWN 3, subtype 8), the same way as its media keys.
     ///
-    /// Zak's test of build 4 (20 Nov): posting that event always changed the built-in screen, while his keyboard changes
+    /// Digital Groceries' test of build 4 (20 Nov): posting that event always changed the built-in screen, while his keyboard changes
     /// the screen of the window he last clicked (and Control + brightness the other screen). So a press now:
     ///  1. picks the screen the Mac's own key would: the screen holding the frontmost normal window, else the pointer's
     ///     screen, else the main screen (<see cref="PickDisplay"/>);
@@ -19,7 +19,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
     ///     16 brightness steps, when that screen answers it (loaded at run time with dlopen/dlsym; any missing piece
     ///     falls back to step 3, never a crash; the rules for a screen that doesn't answer are in <see cref="DirectBrightness"/>);
     ///  3. with Control held, the other screen instead (<see cref="OtherDisplay"/>), the way the Mac's Control + brightness
-    ///     works (Zak's build 5 test: a posted key never follows the screen in front, so this is done directly too);
+    ///     works (Digital Groceries' build 5 test: a posted key never follows the screen in front, so this is done directly too);
     ///  4. when a screen can't be changed directly, posts the key event as before: with Control, the Control flag and no
     ///     place of its own (macOS picks); without, placed on the chosen screen.
     /// The screen is looked up at most every 300 ms, so a fast turn doesn't make the pen stutter. Our own windows (radial
@@ -142,7 +142,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         /// <summary>
         /// Which screen a brightness press should change, the way the Mac's own key does: the screen that holds most of
         /// the frontmost normal window (the window last clicked), else the screen under the pointer, else the main screen.
-        /// A "window" that covers two or more whole screens is Finder's desktop (Zak's build 6 report, 20 Nov 08:50: he
+        /// A "window" that covers two or more whole screens is Finder's desktop (Digital Groceries' build 6 report, 20 Nov 08:50: he
         /// clicked the desktop on the built-in screen, macOS called the desktop the focused window, 0,-2160 3992x3160, and
         /// the TV changed): then the pointer's screen counts, since that is where the desktop was clicked.
         /// </summary>
@@ -184,7 +184,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
         }
 
         /// <summary>
-        /// V29 #87 (Zak 20 Nov: "Ctrl + brightness on my own keyboard dims the Sony TV if the Mac screen is on focus or dims
+        /// V29 #87 (Digital Groceries 20 Nov: "Ctrl + brightness on my own keyboard dims the Sony TV if the Mac screen is on focus or dims
         /// the [Mac] screen if the Sony is on focus"): the screen Control + brightness changes. From the built-in screen: the
         /// external screen under the pointer, else the first external one. From an external screen: the built-in one, else
         /// another screen (the pointer's first). 0 when there is no other screen.
@@ -226,7 +226,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
                 if (down)
                 {
                     var (display, why, centre) = CachedTarget();
-                    // Control means "the other screen", as on the Mac's own keyboard (Zak's test of build 5: a posted key
+                    // Control means "the other screen", as on the Mac's own keyboard (Digital Groceries' test of build 5: a posted key
                     // can't follow the screen in front, so the other screen is changed directly too). If that can't be
                     // done, the key goes with the Control flag and no place of its own, so macOS picks the screen itself.
                     _lastTargetCentre = control ? null : centre;
@@ -360,7 +360,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
             {
                 LogOnce($"Brightness: couldn't list the screens ({e.Message})", LogLevel.Warning);
             }
-            // V29 #87, build 5 (Zak: always the Sony; the report showed the window-list guess picking it every time): ask macOS
+            // V29 #87, build 5 (Digital Groceries: always the Sony; the report showed the window-list guess picking it every time): ask macOS
             // which window has the keyboard focus, as accessibility tools do; the window list is only the fallback.
             var front = FocusedWindow(out var owner);
             if (front == null) { front = FrontWindow(out owner); if (front != null) owner += " (window list)"; }
@@ -372,7 +372,7 @@ namespace OpenTabletDriver.Desktop.Interop.Input.Keyboard
                 if (id == display) { var c = b.Centre; centre = new CGPoint { X = c.X, Y = c.Y }; }
             _cachedDisplays = displays;
             _cachedPointer = pointer;
-            // V29 #87, build 5 (Zak: always the Sony): say everything the choice was made from, so a report shows it.
+            // V29 #87, build 5 (Digital Groceries: always the Sony): say everything the choice was made from, so a report shows it.
             static string B(Box b) => $"{b.X:0},{b.Y:0} {b.W:0}x{b.H:0}";
             var scene = "Brightness: screens " + string.Join("; ", displays.Select(d => $"{d.Item1} {Kind(d.Item1)} at {B(d.Item2)}"))
                 + $"; main {main}; front window " + (front is Box f ? $"'{owner}' at {B(f)}" : "none")

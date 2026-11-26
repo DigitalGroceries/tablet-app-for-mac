@@ -10,7 +10,7 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>Zak 19 Nov ~20:13 / 20:21: "a central smaller circle that changes into the current colour chosen" - the palette's middle
+/// <summary>Digital Groceries 19 Nov ~20:13 / 20:21: "a central smaller circle that changes into the current colour chosen" - the palette's middle
 /// dot shows the last colour picked, is an empty ring before the first pick, and leaves the four centre buttons' icons clear.</summary>
 public class PaletteDotTests
 {

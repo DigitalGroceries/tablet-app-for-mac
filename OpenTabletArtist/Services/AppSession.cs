@@ -1560,7 +1560,7 @@ public partial class AppSession : ObservableObject, IConnectionState, ISettingsC
         return (await ApplySettingsAsync(settings)).IsLive;
     }
 
-    /// <summary>V29 #126/#129 (Zak's V29 test, 19 Nov 18:06-18:15): the Home "Fix" for a mapping that is partly off-screen. His
+    /// <summary>V29 #126/#129 (Digital Groceries' V29 test, 19 Nov 18:06-18:15): the Home "Fix" for a mapping that is partly off-screen. His
     /// whole-desktop mapping had been made for an older monitor arrangement; mapping it to the primary display put the pen on the
     /// built-in screen only. A mapping that spanned several screens now becomes All displays (today's whole desktop) and is
     /// remembered, so it follows monitor changes from then on; any other mapping goes to the primary display as before.</summary>

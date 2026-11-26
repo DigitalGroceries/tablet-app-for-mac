@@ -10,7 +10,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 #149 (Zak 20 Nov, design 1: one Touch Ring switch; On shows the plain Clockwise / Anticlockwise /
+/// <summary>V29 #149 (Digital Groceries 20 Nov, design 1: one Touch Ring switch; On shows the plain Clockwise / Anticlockwise /
 /// Centre button rows at once, already filled in after a factory restore; Wacom's 4 modes stay an optional extra) and
 /// #150 (the rows showed "BrightnessUp").</summary>
 public class RingPlainRowsTests
@@ -75,7 +75,7 @@ public class RingPlainRowsTests
     }
 }
 
-/// <summary>V29 #153 (Zak 20 Nov): Volume, Brightness and Previous / next track picked straight from a ring mode's Function
+/// <summary>V29 #153 (Digital Groceries 20 Nov): Volume, Brightness and Previous / next track picked straight from a ring mode's Function
 /// menu, no key window.</summary>
 public class RingFunctionPresetTests
 {

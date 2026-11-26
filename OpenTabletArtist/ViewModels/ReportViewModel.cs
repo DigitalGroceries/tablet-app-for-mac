@@ -18,7 +18,7 @@ namespace OpenTabletArtist.ViewModels;
 /// opened, is added unless the user unticks it; "Add screenshots…" adds more pictures. Both buttons make the usual
 /// diagnostic zip (serial numbers and user name removed) plus the pictures and the user's text.
 /// Version 23 (owner's request, 4 Nov 2026): "Send with file" asked where to save the zip, then said where it is
-/// and which address to email it to. Version 24 (Zak, 5 Nov 2026): after saving, the sheet says where the file is
+/// and which address to email it to. Version 24 (Digital Groceries, 5 Nov 2026): after saving, the sheet says where the file is
 /// and offers Open upload page (Digital Groceries' Dropbox file request). The page itself asks for name and email;
 /// the app no longer asks for an email. "Send with GitHub account" is unchanged: it saves the zip on the Desktop,
 /// shows it in Finder and opens a pre-filled GitHub issue (the same no-token way as the Diagnostics page's report).
@@ -57,7 +57,7 @@ public partial class ReportViewModel : ObservableObject
 
     [ObservableProperty] private string _description = "";
 
-    /// <summary>Version 25 (Zak, 6 Nov 2026): optional "Your email". The free Dropbox plan hides the uploader's email,
+    /// <summary>Version 25 (Digital Groceries, 6 Nov 2026): optional "Your email". The free Dropbox plan hides the uploader's email,
     /// so the app asks again. It goes into report.txt only with "Send with file"; never into the GitHub issue and
     /// never into app.log. Blank is fine.</summary>
     [ObservableProperty] private string _email = "";
@@ -94,7 +94,7 @@ public partial class ReportViewModel : ObservableObject
     public string RecordLabel => IsRecording
         ? Localizer.Te("report.record.stop", "Stop recording")
         : Localizer.Te("report.record.start", "Record the problem");
-    /// <summary>"How to report" (Zak, 17 Nov 2026): a short guide at the top of the report so users record a
+    /// <summary>"How to report" (Digital Groceries, 17 Nov 2026): a short guide at the top of the report so users record a
     /// problem in a way the team can read (repeat it 3 to 5 times; for clicks, mouse first, then pen).</summary>
     [ObservableProperty] private bool _isHowToOpen;
 
@@ -183,7 +183,7 @@ public partial class ReportViewModel : ObservableObject
     public string DescriptionHint => Localizer.Te("report.text_hint", "Optional");
     public string EmailLabel => Localizer.Te("report.email_label", "Your email");
     public string EmailHelp => Localizer.Te("report.email_help", DefaultEmailHelp);
-    /// <summary>Zak's exact words (6 Nov 2026).</summary>
+    /// <summary>Digital Groceries' exact words (6 Nov 2026).</summary>
     public const string DefaultEmailHelp = "Leave your email so we can help you better in fixing your issue";
     public string EmailHint => Localizer.Te("report.email_hint", "Optional · only with Send with file");
     public string WindowPictureLabel => Localizer.Te("report.window_picture", "Add this picture of the app window");
@@ -198,9 +198,9 @@ public partial class ReportViewModel : ObservableObject
     public string SaveDialogTitle => Localizer.Te("report.save_title", "Save the report file");
     public string SavedTitle => Localizer.Te("report.saved_title", "Report saved");
 
-    // V30 #200 (Zak 23 Nov 2026: "Try and make it simpler and easier to understand ... include the list of the steps numbered
+    // V30 #200 (Digital Groceries 23 Nov 2026: "Try and make it simpler and easier to understand ... include the list of the steps numbered
     // one under another"; team vote A1, A3, A5): the saved message is now 3 big numbered steps, a file to drag, and a Done
-    // button. Zak 23 Nov: never name the upload service ("Dropbox") - agent K thought he needed an account and never tried.
+    // button. Digital Groceries 23 Nov: never name the upload service ("Dropbox") - agent K thought he needed an account and never tried.
     public string StepsIntro => Localizer.Te("report.steps_intro", "Send it to us in 3 steps:");
     public string Step1 => Localizer.Te("report.step1", "Click Open upload page. A web page opens in your browser.");
     public string Step2 => Localizer.Te("report.step2", "On that page, click Add files and choose your report file:");
@@ -278,7 +278,7 @@ public partial class ReportViewModel : ObservableObject
     private async Task SendFile()
     {
         if (PickSaveFile == null) return;
-        // Version 29 (Zak, 17 Nov 2026): with the email box empty, ask first - never block. Andrea's upload came with
+        // Version 29 (Digital Groceries, 17 Nov 2026): with the email box empty, ask first - never block. Andrea's upload came with
         // no email and Dropbox shows us none, so we couldn't answer.
         if (AskForEmail && !_sendWithoutEmail && string.IsNullOrWhiteSpace(Email))
         {
@@ -351,7 +351,7 @@ public partial class ReportViewModel : ObservableObject
     }
 
     /// <summary>"Open upload page" on the saved message (the team's upload page). The message stays open: the job is done only
-    /// when the file is on the page (V30 #200, vote A3). V30 #200 A2 (team vote; Zak 23 Nov 17:42 "Yes, open Finder too", which
+    /// when the file is on the page (V30 #200, vote A3). V30 #200 A2 (team vote; Digital Groceries 23 Nov 17:42 "Yes, open Finder too", which
     /// replaces his 4 Nov "message only"): Finder also shows the report file, ready to drag onto the page.</summary>
     [RelayCommand]
     private void OpenUpload()
@@ -363,7 +363,7 @@ public partial class ReportViewModel : ObservableObject
         AppLog.Info("Report: opened the upload page and showed the file in Finder; the steps stay on screen until Done.");
     }
 
-    // ── V30 #200 A6 (Devin's vote; Zak 23 Nov 17:42 "Yes, show the email", which makes an exception to his 5 Nov "Dropbox only"):
+    // ── V30 #200 A6 (Devin's vote; Digital Groceries 23 Nov 17:42 "Yes, show the email", which makes an exception to his 5 Nov "Dropbox only"):
     // when the upload page doesn't open (no internet, a blocked site), the user can email the file instead. The address shows
     // only after "The page doesn't open?" is clicked, as on the website.
 
@@ -374,7 +374,7 @@ public partial class ReportViewModel : ObservableObject
     /// <summary>Set by the window: puts text on the Mac's clipboard.</summary>
     public Func<string, Task>? CopyText { get; set; }
 
-    /// <summary>The public feedback address (Zak 27 Oct 2026: no name in it; the website shows it only when its button is clicked).</summary>
+    /// <summary>The public feedback address (Digital Groceries 27 Oct 2026: no name in it; the website shows it only when its button is clicked).</summary>
     public string FeedbackEmail => DiagnosticBundle.FeedbackEmail;
     public string PageWontOpenLabel => Localizer.Te("report.page_wont_open", "The page doesn't open?");
     public string EmailFallbackText => Localizer.Te("report.email_fallback",

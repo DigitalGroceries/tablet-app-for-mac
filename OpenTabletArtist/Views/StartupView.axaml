@@ -18,7 +18,7 @@
             </StackPanel>
         </c:Section>
 
-        <!-- V28 #80 Option A (Zak 16 Nov): changes are saved by themselves, like the Wacom app. -->
+        <!-- V28 #80 Option A (Digital Groceries 16 Nov): changes are saved by themselves, like the Wacom app. -->
         <c:Section Title="{Binding AutoSaveSectionTitle}">
             <c:ToggleSetting x:Name="AutoSaveToggle" Label="{Binding AutoSaveLabel}"
                              Description="{Binding AutoSaveDescription}"

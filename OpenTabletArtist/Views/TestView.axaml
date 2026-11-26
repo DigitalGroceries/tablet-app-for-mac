@@ -29,7 +29,7 @@
                  was a two-column Grid with the active-tablet switcher on the right; that moved to the
                  shell top bar (#697), so the chips are the whole row now.
                  (Edit the pressure curve + smoothing on the Pen page's "pressure" tab.) -->
-            <!-- V30 build 5 (Zak 24 Nov 17:3x, of the "Pressure curve" tag: "not clickable, it doesnt do anything ... Are you sure this is
+            <!-- V30 build 5 (Digital Groceries 24 Nov 17:3x, of the "Pressure curve" tag: "not clickable, it doesnt do anything ... Are you sure this is
                  a button?" then "remove it entirely"): the tags that said which pen settings change the scribbles (Pressure curve,
                  Pressure smoothing, Position smoothing) are gone; boxed, they looked like buttons that did nothing. -->
 

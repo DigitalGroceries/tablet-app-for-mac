@@ -44,7 +44,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     public int Selected { get => GetValue(SelectedProperty); set => SetValue(SelectedProperty, value); }
     /// <summary>0 (solid) to 100 (clear): how see-through the whole menu is — slices, labels, icons, ring and highlight.
     /// 100% still leaves <see cref="RadialMenuDef.MinVisibleOpacity"/> so the menu stays usable. The Pen page preview and
-    /// the on-screen menu both follow this (v27, Zak 21:49).</summary>
+    /// the on-screen menu both follow this (v27, Digital Groceries 21:49).</summary>
     public int Transparency { get => GetValue(TransparencyProperty); set => SetValue(TransparencyProperty, value); }
     /// <summary>Editor only: clicking a slice raises <see cref="SliceClicked"/>.</summary>
     public bool Interactive { get => GetValue(InteractiveProperty); set => SetValue(InteractiveProperty, value); }
@@ -71,7 +71,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
 
     public RadialMenuPie()
     {
-        // v27 (Zak 13 Nov 15:44: "an ovoid artefact in the palm of the hand icon"): without this, Avalonia applies the
+        // v27 (Digital Groceries 13 Nov 15:44: "an ovoid artefact in the palm of the hand icon"): without this, Avalonia applies the
         // control's Opacity to each shape on its own, so wherever two shapes overlap (a finger over the palm, the two
         // strokes of the X, the arrow head on its arc, text over a slice) the overlap shows brighter. With full opacity
         // handling the whole menu is drawn first and then faded as one picture.
@@ -148,7 +148,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
     }
 
     /// <summary>The centre's four quarter buttons with their icons (X, pencil, open hand, circular arrow). Shared with the colour
-    /// palette (V29 #142, Zak: the same buttons look the same on both menus).</summary>
+    /// palette (V29 #142, Digital Groceries: the same buttons look the same on both menus).</summary>
     internal static void DrawCentreQuarters(DrawingContext ctx, Point c, double inner, int highlight, bool editing,
         IBrush centreBack, IBrush highlightFill, IBrush selectedFill, IPen edge, IPen divider)
     {
@@ -167,7 +167,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
         }
         ctx.DrawGeometry(null, divider, cross);
 
-        // TASKS #59 (Zak 18:21): the four icons have the same visual size (one square box, QuarterIconBox of the inner
+        // TASKS #59 (Digital Groceries 18:21): the four icons have the same visual size (one square box, QuarterIconBox of the inner
         // radius) and sit centred on the centroid of their quarter, away from the dividing lines. Each icon is drawn in
         // its own units, its real bounds (strokes included) are measured, and it is then scaled and moved so those bounds
         // fill the box centred on the quarter's centroid.
@@ -266,7 +266,7 @@ public sealed class RadialMenuPie : Control, Avalonia.Rendering.ICustomHitTest
         double k = box / Math.Max(b.Width, b.Height);
         Point T(Point p) => new(at.X + (p.X - b.Center.X) * k, at.Y + (p.Y - b.Center.Y) * k);
 
-        // v27 (Zak 13 Nov 15:44, "an ovoid artefact in the palm of the hand icon"): an icon is several overlapping shapes
+        // v27 (Digital Groceries 13 Nov 15:44, "an ovoid artefact in the palm of the hand icon"): an icon is several overlapping shapes
         // (fingers over the palm, the two strokes of the X, the arrow head on its arc). When the menu is see-through each
         // shape was faded on its own, so every overlap showed brighter. Each icon is now ONE outline (all its light parts
         // joined, its dark cuts taken out) and drawn once; the dark cuts are drawn once on their own, beside it.

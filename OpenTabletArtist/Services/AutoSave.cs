@@ -3,7 +3,7 @@ using System;
 namespace OpenTabletArtist.Services;
 
 /// <summary>
-/// V28 #80 Option A. Zak, 16 Nov 2026: "let the app always save and restore the last session settings like the
+/// V28 #80 Option A. Digital Groceries, 16 Nov 2026: "let the app always save and restore the last session settings like the
 /// Wacom". Every change already reaches the driver at once; with this on, it is also saved by itself a moment later,
 /// so it is still there after a restart and "Unsaved changes" no longer waits for the Save button.
 /// On by default. Settings › System has a switch for anyone who prefers to keep changes only when they press Save.

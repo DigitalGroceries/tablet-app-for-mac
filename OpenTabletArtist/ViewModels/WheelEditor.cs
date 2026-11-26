@@ -66,7 +66,7 @@ public partial class WheelEditor : ObservableObject
     /// <summary>The ring picture only makes sense for a ring.</summary>
     public bool IsRing => !IsStrip;
 
-    // ── TASKS #29 (Zak, 10 Nov 2026): this ring's / strip's own On/Off ──────────────────────────────
+    // ── TASKS #29 (Digital Groceries, 10 Nov 2026): this ring's / strip's own On/Off ──────────────────────────────
     // Shown only on a tablet with two or more rings or strips (with one, the main switch is the same thing).
     // The ring works only when the main switch AND this switch are On (Services.WheelOffStore.Works); while the
     // main switch is Off this switch is greyed (CanToggleOn false) and keeps its own state.

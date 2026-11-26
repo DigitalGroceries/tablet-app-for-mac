@@ -10,7 +10,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>V30 #200 B5 (Zak 23 Nov 2026: a troubleshooting/FAQ button; team vote: small, on the existing Help page, Fix it only
+/// <summary>V30 #200 B5 (Digital Groceries 23 Nov 2026: a troubleshooting/FAQ button; team vote: small, on the existing Help page, Fix it only
 /// where the app can really fix it, no new window): the manual's "Something doesn't work?" answers end with in-app buttons.</summary>
 public class HelpFixesTests
 {

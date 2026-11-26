@@ -6,7 +6,7 @@ using OpenTabletArtist.Domain;
 namespace OpenTabletArtist.Services;
 
 /// <summary>
-/// V29 #171 (Zak 20 Nov: "The floating keyboard should check what location keyboard the mac is using, is it GB or US or qwerty or
+/// V29 #171 (Digital Groceries 20 Nov: "The floating keyboard should check what location keyboard the mac is using, is it GB or US or qwerty or
 /// something else and show the same input"): reads the Mac's selected keyboard layout (the input source in the menu bar, e.g. British
 /// or Bulgarian – QWERTY) and what each key types in it, with Apple's Text Input Sources and UCKeyTranslate (the same data the Mac's
 /// Keyboard Viewer draws), and the keyboard's shape (ISO or ANSI) with KBGetLayoutType(LMGetKbdType()). Main thread only. Returns

@@ -14,7 +14,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>TASKS #60 (Zak, 12 Nov): in the radial menu editor at his window size (1100x720) the pie was cut off at the bottom
+/// <summary>TASKS #60 (Digital Groceries, 12 Nov): in the radial menu editor at his window size (1100x720) the pie was cut off at the bottom
 /// (the lowest slice half hidden behind the Menu size / transparency row). The editor is a sheet inside the main window, so its
 /// height is the window height minus a margin: the pie now scales down to the free space (with a minimum, below which the
 /// area scrolls), and the size / transparency row never overlaps it.</summary>

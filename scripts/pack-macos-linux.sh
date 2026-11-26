@@ -11,7 +11,7 @@
 #   Version names are simple (the owner, 4 Nov 2026): "Version 23 BETA", then "Version 23"; no BETA numbers.
 #   Apple silicon only: no Intel builds (the owner, 4 Nov 2026).
 #   (Older numbered BETAs: BETA=2 gives "-beta2".)
-#   Test build for Zak: TEST=yes scripts/pack-macos-linux.sh 26 /tmp/b8 arm64  (About says "Version 26 test").
+#   Test build for Digital Groceries: TEST=yes scripts/pack-macos-linux.sh 26 /tmp/b8 arm64  (About says "Version 26 test").
 set -euo pipefail
 VER=${1:?version, e.g. 14}
 OUT=${2:?output folder}
@@ -20,12 +20,12 @@ ARCHES=${*:-arm64}
 BETA=${BETA:-0}
 INFO=$VER
 case "$BETA" in 0|no|"") ;; yes) INFO="$VER-beta" ;; *) INFO="$VER-beta$BETA" ;; esac
-# Unpublished test build for Zak: TEST=yes gives "26-test", and Home's About line says "Version 26 test".
-# Zak, 4 and 12 Nov 2026: a version name is one number, or one number and one word; test builds never carry a build
+# Unpublished test build for Digital Groceries: TEST=yes gives "26-test", and Home's About line says "Version 26 test".
+# Digital Groceries, 4 and 12 Nov 2026: a version name is one number, or one number and one word; test builds never carry a build
 # number (the team counts builds in its own notes, not in the app). Never publish a test build.
 TEST=${TEST:-}
 [ -z "$TEST" ] || { [ "$BETA" = 0 ] || [ "$BETA" = no ] || [ -z "$BETA" ] || { echo "TEST and BETA can't be used together." >&2; exit 1; }; INFO="$VER-test"; }
-# Zak, 16 Nov 2026: no release without every test suite passing. Only an unpublished TEST build may skip them.
+# Digital Groceries, 16 Nov 2026: no release without every test suite passing. Only an unpublished TEST build may skip them.
 if [ -z "$TEST" ]; then
   "$(dirname "$0")/run-all-tests.sh" || { echo "Tests failed: no release is packed. Fix them first." >&2; exit 1; }
 else
@@ -115,21 +115,21 @@ PY
   EXPECT_ROOT=${EXPECT_ROOT:-5dac9c397c7eebde1924465a1d9cedf905ce98b9}
   if [ "$EXPECT_ROOT" != any ] && ! "$RC" print-signature-info "$M/OpenTabletArtist" 2>/dev/null | grep -q "certificate root = H\"$EXPECT_ROOT\""; then
     echo "WRONG SIGNING KEY: the app is not signed with certificate root $EXPECT_ROOT. macOS would see a new app and" >&2
-    echo "drop Zak's permissions. Use the key from Team/Files/important-backups/tablet-app-signing-2026-10-30.tar.gz." >&2
+    echo "drop Digital Groceries' permissions. Use the key from Team/Files/important-backups/tablet-app-signing-2026-10-30.tar.gz." >&2
     exit 1
   fi
 done
 (cd "$OUT" && sha256sum Tablet-App-for-Mac*.zip > SHA256SUMS && cat SHA256SUMS)
 if [ -z "$TEST" ]; then
   # 19 Nov 2026 (TEAM-RULES 7.7 and 0.7: nothing left to memory): a release build names the release-flow steps.
-  echo "NEXT (TEAM-RULES 7.7, release flow): only after Zak has tested the test build. Publish as DigitalGroceries in Chrome"
+  echo "NEXT (TEAM-RULES 7.7, release flow): only after Digital Groceries has tested the test build. Publish as DigitalGroceries in Chrome"
   echo "(no AI line), then answer every user in T7 Team/USERS-AWAITING-REPLY.md whose item is in Version $VER, on the"
   echo "channel they used (name the version, how to update, what to try), and take them off that list."
 fi
 if [ -n "$TEST" ]; then
-  # 19 Nov 2026 (TEAM-RULES 5.6; Claude twice left a test build out of Zak's TEST folder): say the next step here.
+  # 19 Nov 2026 (TEAM-RULES 5.6; Claude twice left a test build out of Digital Groceries' TEST folder): say the next step here.
   echo "NEXT (TEAM-RULES 5.6): copy the zip to the T7 as Team/v$VER/Tablet-App-for-Mac-$VER-test.zip, then run"
   echo "  python3 \"/Volumes/4TB T7/AI/Team/Files/switchboard/switchboard.py\" deliver-test --as <You> --file <that zip>"
-  echo "It puts the app, unzipped, alone in /Volumes/4TB T7/TEST, keeps the old one and updates CATALOG.md. Then tell Zak."
+  echo "It puts the app, unzipped, alone in /Volumes/4TB T7/TEST, keeps the old one and updates CATALOG.md. Then tell Digital Groceries."
 fi
 echo PACKDONE

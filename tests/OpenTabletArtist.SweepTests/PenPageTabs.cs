@@ -4,7 +4,7 @@ using OpenTabletArtist.Views;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V29 #180 (Zak's Pen page mockup, 21 Nov 2026): the Eraser tab became the Pen page's "Eraser Feel" switch. Tests written
+/// <summary>V29 #180 (Digital Groceries' Pen page mockup, 21 Nov 2026): the Eraser tab became the Pen page's "Eraser Feel" switch. Tests written
 /// for the two tabs open them through here: "EraserTab" = the Pen tab with the eraser's settings shown.</summary>
 internal static class PenPageTabs
 {

@@ -112,7 +112,7 @@ public static class LightnessService
     /// (BgElevated) and the window (BgBase). The plain amber had about 1.6:1 on the light steps.</summary>
     public static Color WarningText(int step) => Readable(Warning, step);
 
-    /// <summary>V30 (Zak 23 Nov 2026: "These warning texts must be in bold yellow"): the yellow of a control with nothing on
+    /// <summary>V30 (Digital Groceries 23 Nov 2026: "These warning texts must be in bold yellow"): the yellow of a control with nothing on
     /// it ("Not set up"), kept readable on every step the same way as <see cref="WarningText"/>.</summary>
     public static readonly Color Attention = Color.FromRgb(0xFA, 0xCC, 0x15);
     /// <summary>The dark ink on the yellow highlight (light steps).</summary>
@@ -126,7 +126,7 @@ public static class LightnessService
 
     /// <summary>A switch that is On. Dark steps: a light track with a black knob. Light steps: the light track vanished into
     /// the light window (only the knob showed, test build 2 check, 23 Nov 2026), so the track is dark and the knob light.</summary>
-    /// <summary>V30 build 4 (Zak 24 Nov 2026: "change the word CONNECTED to be in green"): Home's CONNECTED, in bold. Green, made
+    /// <summary>V30 build 4 (Digital Groceries 24 Nov 2026: "change the word CONNECTED to be in green"): Home's CONNECTED, in bold. Green, made
     /// lighter (dark steps) or darker (light steps) until it reads on the window and on a pane: 4.5:1 on the dark steps; on the
     /// mid-grey light steps 4.5:1 is only reached by a green so dark it reads as black, so there it is large bold text (22 px
     /// bold, WCAG "large text") at 3:1 or better.</summary>
@@ -147,10 +147,10 @@ public static class LightnessService
         static byte Mix(byte a, byte b, double f) => (byte)Math.Round(a + (b - a) * f);
     }
 
-    /// <summary>V30 build 4 (Zak 24 Nov 2026: "Again 2 designs of buttons"): tabs are drawn as raised buttons; the tab you are on
+    /// <summary>V30 build 4 (Digital Groceries 24 Nov 2026: "Again 2 designs of buttons"): tabs are drawn as raised buttons; the tab you are on
     /// is lit. Dark steps: the light selection fill with dark text, as before. Light steps: dark with light text, because a
     /// light tab would not stand out among light raised buttons.</summary>
-    /// <summary>V30 build 4 (Zak 24 Nov 2026, the light-look picture of Tablet › Pen: "All the text in the black frame is not
+    /// <summary>V30 build 4 (Digital Groceries 24 Nov 2026, the light-look picture of Tablet › Pen: "All the text in the black frame is not
     /// readable"): the Movement / Pen input inset was a fixed #262626 on every look. Dark steps keep it; light steps use the window
     /// grey (darker than the pane around it, and a surface the text colours are picked for), with the step's border.</summary>
     public static Color PenBasicsInset(int step) => For(step).Dark ? G(0x26) : For(step).Base;
@@ -159,10 +159,10 @@ public static class LightnessService
     public static Color TabOnFill(int step) => For(step).Dark ? SelectionFill(step) : G(0x30);
     public static Color TabOnText(int step) => For(step).Dark ? SelectionText : G(0xE4);
 
-    /// <summary>V30 (ZAK-LISTS L6.5, Zak 24 Nov 2026: "All of our app buttons need to look a bit more 3D now they all look like
+    /// <summary>V30 (task list L6.5, Digital Groceries 24 Nov 2026: "All of our app buttons need to look a bit more 3D now they all look like
     /// speech bubbles"): a raised button - an outline, a soft top-to-bottom shade and a small shadow; pressed, it looks pushed in.
-    /// Three strengths were drawn for Zak to choose from; <see cref="RaisedVariant"/> is the one in use.</summary>
-    public static int RaisedVariant { get; set; } = 3;   // Zak 24 Nov: Version 3 for light and dark
+    /// Three strengths were drawn for Digital Groceries to choose from; <see cref="RaisedVariant"/> is the one in use.</summary>
+    public static int RaisedVariant { get; set; } = 3;   // Digital Groceries 24 Nov: Version 3 for light and dark
 
     static Color Shift(Color c, int by) => G(Math.Clamp(c.R + by, 0, 0xE4));
 
@@ -191,7 +191,7 @@ public static class LightnessService
         GradientStops = { new GradientStop(top, 0), new GradientStop(bottom, 1) },
     };
 
-    /// <summary>The button's outline. Dark steps (Zak 24 Nov on Version 3: "In the dark GUI perhaps add a highlight line on the top
+    /// <summary>The button's outline. Dark steps (Digital Groceries 24 Nov on Version 3: "In the dark GUI perhaps add a highlight line on the top
     /// line of the buttons"): the top edge is a light line that fades into the dark outline down the sides, so the button's top
     /// stands out from a dark window. An inset BoxShadow was tried first and is not drawn by the renderer (pixels unchanged).</summary>
     static IBrush Edge(int step, (Color Top, Color Bottom, Color Outline, Thickness Edge, string Shadow, string PressedShadow) r)
@@ -232,7 +232,7 @@ public static class LightnessService
     public static Color SwitchOnFill(int step) => For(step).Dark ? SelectionFill(step) : G(0x30);
     public static Color SwitchOnKnob(int step) => For(step).Dark ? SelectionText : G(0xE4);
 
-    /// <summary>V30 build 3 (ZAK-LISTS L6.2, Zak 24 Nov: "Forget this tablet" as its own smaller, quieter red button): a deep red
+    /// <summary>V30 build 3 (task list L6.2, Digital Groceries 24 Nov: "Forget this tablet" as its own smaller, quieter red button): a deep red
     /// raised fill (top, bottom), its outline and hover fill. Red WORDS on the grey raised button could not reach 4.5:1 (the
     /// button's top is a mid grey), so the button is red and its word is the light on-accent grey (5:1 or more on both looks).</summary>
     public static (Color Top, Color Bottom, Color Outline, Color HoverTop, Color HoverBottom) Danger(int step) => For(step).Dark

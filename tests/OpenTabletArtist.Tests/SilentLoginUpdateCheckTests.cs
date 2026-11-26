@@ -5,7 +5,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 (Zak, 20 Nov 2026): "The app shows a message on the Mac screen after every Mac boot saying that it checked for
+/// <summary>V29 (Digital Groceries, 20 Nov 2026): "The app shows a message on the Mac screen after every Mac boot saying that it checked for
 /// updates. Remove that. The login should be silent like all other Mac apps." The update check at a launch shows no
 /// "Checked for updates" line, and at a login start it opens no window: a found update waits on Home.</summary>
 public class SilentLoginUpdateCheckTests

@@ -8,7 +8,7 @@ using OpenTabletDriver.Plugin.Platform.Keyboard;
 namespace OpenTabletArtist.Dynamics;
 
 /// <summary>
-/// V29 #141 (Zak 19 Nov 2026: "add the option where the user can add a floating keyboard to the radial pen menu so they can type
+/// V29 #141 (Digital Groceries 19 Nov 2026: "add the option where the user can add a floating keyboard to the radial pen menu so they can type
 /// using the pen"). The app draws the keyboard; this presses its keys in the app in front, because the app itself can't. While the
 /// app keeps <see cref="FloatingKeyboardFiles.OpenFlag"/>, the key file is looked at every <see cref="PollMs"/> ms and every new key
 /// in it is pressed once, in order. Polling starts when the radial menu's Keyboard slice is used, or when the filter sees the

@@ -16,7 +16,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>V29 #180 (Zak 21 Nov: "1 Can you make them two different setting values?"), the page side of the eraser's own
+/// <summary>V29 #180 (Digital Groceries 21 Nov: "1 Can you make them two different setting values?"), the page side of the eraser's own
 /// feel, as Grok asked in his 13:27 review: an older profile, a tablet switch, the live dot, and the "opens with" lines.</summary>
 public class EraserFeelVmTests
 {

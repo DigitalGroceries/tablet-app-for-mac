@@ -9,7 +9,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V30 build 3 (ZAK-LISTS L6.8, Zak 24 Nov): after Restore factory settings the ExpressKeys get Zak's factory set instead
+/// <summary>V30 build 3 (task list L6.8, Digital Groceries 24 Nov): after Restore factory settings the ExpressKeys get Digital Groceries' factory set instead
 /// of staying "Not set up": Undo, Redo, Brush (B), Eye dropper (I), Move (V), Pan (Space, held).</summary>
 public class FactoryExpressKeysTests
 {
@@ -27,7 +27,7 @@ public class FactoryExpressKeysTests
     }
 
     [Fact]
-    public void Six_keys_get_Zaks_factory_set_in_order()
+    public void Six_keys_get_Digital_Groceries_factory_set_in_order()
     {
         var merged = FactorySettingsMerge.Apply(null, new Settings { Profiles = new ProfileCollection { Profile("Wacom PTK-440", 6) } });
         var aux = Assert.Single(merged.Profiles).BindingSettings.AuxButtons;

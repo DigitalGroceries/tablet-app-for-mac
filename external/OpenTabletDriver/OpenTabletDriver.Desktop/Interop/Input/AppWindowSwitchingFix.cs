@@ -4,9 +4,9 @@ using System.IO;
 namespace OpenTabletDriver.Desktop.Interop.Input
 {
     /// <summary>
-    /// Version 29 (Zak, 17 Nov 2026; TASKS #85): "App window switching fix" on the app's Advanced page, Off by default.
+    /// Version 29 (Digital Groceries, 17 Nov 2026; TASKS #85): "App window switching fix" on the app's Advanced page, Off by default.
     /// Only while it is On does a pen click first ask macOS to activate the app under the pen
-    /// (<see cref="MacOSAppActivator"/>). Zak's recordings showed macOS brings the window forward by itself
+    /// (<see cref="MacOSAppActivator"/>). Digital Groceries' recordings showed macOS brings the window forward by itself
     /// (~0.1 s after the tip lifts), while the activator, where it runs, holds every click back about 1 second.
     /// The app writes <see cref="FlagPath"/> while the switch is On (the same way as the radial-menu-off file);
     /// no file means Off.

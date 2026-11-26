@@ -2,7 +2,7 @@ using System;
 
 namespace OpenTabletArtist.Services;
 
-/// <summary>V30 #200 B5 (Zak 23 Nov 2026: a troubleshooting/FAQ button; team vote: small, on the existing Help page, Fix it only
+/// <summary>V30 #200 B5 (Digital Groceries 23 Nov 2026: a troubleshooting/FAQ button; team vote: small, on the existing Help page, Fix it only
 /// where the app can really fix it, no new window): the manual's "Something doesn't work?" answers end with an in-app button,
 /// written in manual.md as a line of its own, <c>[Text](app:action)</c>. The manual window draws it as a button; the website and
 /// the PDF leave the line out. The main window's view model registers <see cref="Run"/> for the actions that need it.</summary>

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>Version 19 BETA 3 (Zak: Add application showed white with pale text): in-window dialogs take the app
+/// <summary>Version 19 BETA 3 (Digital Groceries: Add application showed white with pale text): in-window dialogs take the app
 /// theme, also when the dialog window's own theme (macOS) is the opposite. Saves screenshots and checks contrast.</summary>
 public class V19SheetThemeShots
 {

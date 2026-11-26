@@ -233,7 +233,7 @@ namespace OpenTabletDriver.Desktop.Profiles
             new PluginSettingStore("OpenTabletArtist.Dynamics.RadialMenuBinding",
                 new System.Collections.ObjectModel.ObservableCollection<PluginSetting>()) { Enable = true };
 
-        /// <summary>V29 #160 (Zak 20 Nov): the default for pen button 1 is the app's "click, hold for keyboard" binding: a quick press
+        /// <summary>V29 #160 (Digital Groceries 20 Nov): the default for pen button 1 is the app's "click, hold for keyboard" binding: a quick press
         /// right-clicks when let go, holding it shows or hides the floating keyboard. No settings means its defaults (Right, 500 ms).</summary>
         private static PluginSettingStore HoldForKeyboardDefaultButton1() =>
             new PluginSettingStore("OpenTabletArtist.Dynamics.HoldForKeyboardBinding",

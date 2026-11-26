@@ -19,7 +19,7 @@ public class ImportPreferenceWriteFailureTests : IDisposable
     {
         Directory.CreateDirectory(Otd); Directory.CreateDirectory(Path.Combine(_tmp, "app"));
         SettingsBundle.AppDataDir = () => Path.Combine(_tmp, "app"); SettingsBundle.OtdDataDir = () => Otd;
-        SettingsBundle.HomeDir = () => "/Users/zak";
+        SettingsBundle.HomeDir = () => "/Users/digitalgroceries";
     }
 
     public void Dispose()

@@ -17,7 +17,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>V30 #200 B2 (Zak 23 Nov 2026: users don't know "their tablets buttons, wheels and strips wouldnt do anything until
+/// <summary>V30 #200 B2 (Digital Groceries 23 Nov 2026: users don't know "their tablets buttons, wheels and strips wouldnt do anything until
 /// they are setup"; team vote: do this first): a key with nothing on it says "Not set up" and offers to choose, instead of a
 /// quiet "Do nothing". A key that does something, and a key turned Off, show no mark.</summary>
 public class NotSetUpMarksTests
@@ -70,7 +70,7 @@ public class NotSetUpMarksTests
         var card = new TabletOverviewItemViewModel("T", true, "Detected", "CONNECTED", () => { }, () => Task.CompletedTask,
             keysNotSetUp: 2, openExpressKeys: () => opened++);
         Assert.True(card.HasKeysNotSetUp);
-        Assert.Equal("2 ExpressKeys not set up: Click this button to choose what they do or restore to factory settings", card.KeysNotSetUpText);   // Zak 24 Nov (L6.1)
+        Assert.Equal("2 ExpressKeys not set up: Click this button to choose what they do or restore to factory settings", card.KeysNotSetUpText);   // Digital Groceries 24 Nov (L6.1)
         Assert.Equal("Forget this tablet", card.ForgetText);                                                                 // L6.2
         card.OpenExpressKeysCommand.Execute(null);
         Assert.Equal(1, opened);
@@ -99,7 +99,7 @@ public class NotSetUpMarksTests
     [AvaloniaFact]
     public void The_marks_can_be_seen_bold_yellow_text_and_real_buttons()
     {
-        // Zak 23 Nov 2026 (test build 1): the Home line was small dark text he "would have never seen let alone try to click it"
+        // Digital Groceries 23 Nov 2026 (test build 1): the Home line was small dark text he "would have never seen let alone try to click it"
         // ("That deserves a huge button"); on the cards: "These warning texts must be in bold yellow".
         var s = SettingsFor("TestTablet-NotSetUp-" + Guid.NewGuid().ToString("N")[..8], "A", null);
         var vm = new TabletDetailViewModel(s.Profiles[0], s, applyAction: _ => Task.FromResult(SettingsApplyOutcome.Live));

@@ -17,7 +17,7 @@ namespace OpenTabletArtist.Services;
 public sealed record OfflineSetupOffer(string Connected, string Chosen);
 
 /// <summary>
-/// TASKS #76 (Version 28, agreed with Zak 14 Nov): the whole app is usable with no tablet plugged in. The user picks
+/// TASKS #76 (Version 28, agreed with Digital Groceries 14 Nov): the whole app is usable with no tablet plugged in. The user picks
 /// their model from the built-in catalog (or a sample tablet), the app saves a normal OpenTabletDriver profile for it,
 /// and every page works on that remembered tablet; the driver uses those settings the moment that model is plugged in.
 /// If a different model is plugged in, the app offers to copy what the two share (pen and screen mapping).
@@ -28,7 +28,7 @@ public sealed record OfflineSetupOffer(string Connected, string Chosen);
 /// </remarks>
 public static class OfflineTablet
 {
-    /// <summary>The sample tablet: the Intuos4 S the app was built for and is tested with (Zak's own).</summary>
+    /// <summary>The sample tablet: the Intuos4 S the app was built for and is tested with (Digital Groceries' own).</summary>
     public const string SampleTablet = "Wacom PTK-440";
 
     private const string MarkPrefix = "SetUpBeforeConnecting:";

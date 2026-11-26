@@ -12,7 +12,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>"How to report" (Zak, 17 Nov 2026): a short guide at the top of the report window.</summary>
+/// <summary>"How to report" (Digital Groceries, 17 Nov 2026): a short guide at the top of the report window.</summary>
 public class ReportHowToTests
 {
     static (List<string>, IReadOnlyList<string>, string?) Inputs() => (new List<string>(), Array.Empty<string>(), null);

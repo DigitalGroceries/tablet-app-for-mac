@@ -8,7 +8,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>TASKS #85 (Zak 17 Nov 2026): Record the problem also records the mouse and the pen's clicks, so a
+/// <summary>TASKS #85 (Digital Groceries 17 Nov 2026): Record the problem also records the mouse and the pen's clicks, so a
 /// mouse click and a pen click on the same windows can be compared.</summary>
 public class ClickLogTests
 {

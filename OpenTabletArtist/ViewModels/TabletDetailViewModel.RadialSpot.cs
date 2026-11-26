@@ -13,11 +13,11 @@ namespace OpenTabletArtist.ViewModels;
 
 public partial class TabletDetailViewModel
 {
-    // ── Tablet › Pen: "Radial Menu Settings" (TASKS #63, Zak 20:53) ─────────────────────────────────────
+    // ── Tablet › Pen: "Radial Menu Settings" (TASKS #63, Digital Groceries 20:53) ─────────────────────────────────────
     // The radial menu's picture sits in the middle of the Pen page (between the pen drawing and the Button cards) and opens the
     // radial menu editor for the selected table (All, or one application, or the selected pen) when it is clicked. The editor is the
     // one of Button › Change… › Radial menu (RadialMenuEditorDialog); the new menu goes in through ReplaceRadialMenuAsync, the same
-    // path as the radial menu's own pencil. V30 build 4 (Zak 24 Nov: "They should never be grayed out"): with no pen button on the
+    // path as the radial menu's own pencil. V30 build 4 (Digital Groceries 24 Nov: "They should never be grayed out"): with no pen button on the
     // radial menu the picture stays at full strength; its Off / On switch (TabletDetailViewModel.MenuSwitches.cs) says so.
 
     [ObservableProperty] private RadialMenuEditorViewModel? _radialPreview;
@@ -34,7 +34,7 @@ public partial class TabletDetailViewModel
 
     private string? _radialOpenerJson;
 
-    // ── Menu transparency and Menu size under the picture (TASKS #63, Zak 20:59) ─────────────────────────
+    // ── Menu transparency and Menu size under the picture (TASKS #63, Digital Groceries 20:59) ─────────────────────────
     // The sliders are the editor's own view model (RadialPreview: Transparency, TransparencyInput, Size), so the number box, clamping, "40%",
     // comma / dot and Up / Down behave exactly as in the editor. A change shows in the picture at once and is applied to the table a moment
     // later (one apply per drag, not one per tick) through ReplaceRadialMenuAsync; the footer's Save keeps it like the rest of the page.
@@ -42,7 +42,7 @@ public partial class TabletDetailViewModel
     /// <summary>How long after the last slider change the menu is sent to the driver.</summary>
     internal static TimeSpan RadialApplyDelay { get; set; } = TimeSpan.FromMilliseconds(250);
 
-    /// <summary>v27 (Zak 16:35): the picture is the menu at its real size, the same edge as the menu window (2 x outer radius + 4):
+    /// <summary>v27 (Digital Groceries 16:35): the picture is the menu at its real size, the same edge as the menu window (2 x outer radius + 4):
     /// 324 points at the largest menu (<see cref="RadialMenuDef.MaxDiameter"/> 320), smaller with the size slider.</summary>
     public const double RadialPictureMax = RadialMenuDef.MaxDiameter + 4;
     /// <summary>The fixed square kept for the picture on the page: the largest picture (the button around it has no padding).</summary>
@@ -57,7 +57,7 @@ public partial class TabletDetailViewModel
     /// section (#163).</summary>
     public FloatingKeyboardLookViewModel KeyboardLook { get; } = new();
 
-    // ── V29 #163 (Zak 20 Nov ~09:10, screenshot "Put the keyboard settings menu and how it is triggered here"): the Floating keyboard
+    // ── V29 #163 (Digital Groceries 20 Nov ~09:10, screenshot "Put the keyboard settings menu and how it is triggered here"): the Floating keyboard
     // section under Movement / Pen input. Its slice row puts the keyboard on a slice of the radial menu shown above (the menu of the
     // first pen button that opens it), through ReplaceRadialMenuAsync like the sliders, so an open menu shows it at once (#161).
     [ObservableProperty] private IReadOnlyList<string> _keyboardSlots = Array.Empty<string>();
@@ -65,7 +65,7 @@ public partial class TabletDetailViewModel
     /// <summary>"The keyboard is on slice 7." when it is on one, or why the row can't be used.</summary>
     [ObservableProperty] private string _keyboardStatus = "";
 
-    // ── V29 #160 (Zak 20 Nov ~09:18-09:24): what holding pen button 1 does, in the Floating keyboard section. ──
+    // ── V29 #160 (Digital Groceries 20 Nov ~09:18-09:24): what holding pen button 1 does, in the Floating keyboard section. ──
     /// <summary>"Open the keyboard" (0, factory: a quick press right-clicks when let go) or "Right-click only" (1: the
     /// button's Default, held down like a mouse button). -1 while pen button 1 does something else (set with Change…).</summary>
     [ObservableProperty] private int _holdChoice = -1;
@@ -82,7 +82,7 @@ public partial class TabletDetailViewModel
     public string HoldCaption => Localizer.Te("keyboard.hold_caption", "Holding pen button 1");
     public string HoldNote => Localizer.Te("keyboard.hold_note", "A quick press right-clicks. Holding it about half a second opens or closes the keyboard.");
     public string HoldOtherNote => Localizer.Te("keyboard.hold_other", "Pen button 1 does something else now (set with Change…). Pick one here to change it.");
-    /// <summary>Under the pen tip's "Default setting" (Zak's words, with long press).</summary>
+    /// <summary>Under the pen tip's "Default setting" (Digital Groceries' words, with long press).</summary>
     public string PenTipHoldLine => Localizer.Te("tablet.pen.hold_keyboard_note", "Long press Button 1 to open Keyboard");
     public bool HoldIsOther => HasPenButton1 && HoldChoice < 0;
     public bool CanChooseHold => HasPenButton1 && _applyAction != null;
@@ -157,7 +157,7 @@ public partial class TabletDetailViewModel
         OnPropertyChanged(nameof(CanPutKeyboard));
     }
 
-    /// <summary>V29 (Zak 20 Nov: "Put the keyboard there" was confusing): picking a choice puts the keyboard on that slice (or takes it
+    /// <summary>V29 (Digital Groceries 20 Nov: "Put the keyboard there" was confusing): picking a choice puts the keyboard on that slice (or takes it
     /// off the menu) at once.</summary>
     partial void OnKeyboardSlotChanged(int value)
     {
@@ -309,7 +309,7 @@ public partial class TabletDetailViewModel
             RadialSpotHeading = Localizer.Te("radial_spot.heading", "Radial Menu Settings");
             HasRadialOpener = openers.Count > 0;
             OnPropertyChanged(nameof(CanEditRadial));
-            // V29 #180 (Zak 21 Nov ~12:13: "You can replace the 'By default' text with what opens the menu if the user has chosen
+            // V29 #180 (Digital Groceries 21 Nov ~12:13: "You can replace the 'By default' text with what opens the menu if the user has chosen
             // something different. By default will stay if the user havent chosen a custom action."): the factory set-up is the
             // radial menu on pen button 2 alone; the colour palette opens with that same button pressed twice.
             bool factory = openers.Count == 1 && openers[0].number == 2 && paletteOpeners.Count == 1;
@@ -338,7 +338,7 @@ public partial class TabletDetailViewModel
             // The picture: this menu, or the starting menu (dimmed by the page) when nothing opens one. A slider change that is still on its
             // way to the driver is never thrown away by a refresh: the sliders keep what the user set.
             if (_spotDirty && RadialPreview != null && openers.Count > 0) return;
-            // V29 #166 (Zak 20 Nov ~09:45: "The transparency and the size is out of synk and jump on different values than what I
+            // V29 #166 (Digital Groceries 20 Nov ~09:45: "The transparency and the size is out of synk and jump on different values than what I
             // put them"): a refresh that arrives while the user is still moving a slider (an earlier value was just applied, the
             // next one not yet) rebuilt the sliders from the stored menu, so they jumped back. The picture is kept when it already
             // shows the stored menu, or when a slider moved in the last moment (the pending apply brings the two together).
@@ -361,7 +361,7 @@ public partial class TabletDetailViewModel
         }
     }
 
-    /// <summary>V30 build 5 (Zak 24 Nov ~17:43: "I want the same for the colour pallet under the radial menu. The users should be able to
+    /// <summary>V30 build 5 (Digital Groceries 24 Nov ~17:43: "I want the same for the colour pallet under the radial menu. The users should be able to
     /// click it and then go to fine tune it with the exaxt colour palletes they want"): the palette picture was clicked. The palette's
     /// colours live in the radial menu (PaletteColours), so the window edits the menu shown in the pictures; Save goes to every pen
     /// button holding that menu. With nothing on the radial menu yet, the new colours stay in the pictures and go in with the menu when

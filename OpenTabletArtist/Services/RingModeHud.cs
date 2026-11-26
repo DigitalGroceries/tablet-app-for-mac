@@ -101,7 +101,7 @@ public sealed class RingModeHud : IDisposable
 
     // Build H: shown for 2.5 s, then faded out over 0.3 s. Content opacity 0.4 ("60% transparent": the dark
     // panel and its text are both drawn at 40%).
-    // V30 build 3 (Zak 24 Nov, ZAK-LISTS L6.4, on the 'Saved' overlay: "I barely notice and read it as its also very fast";
+    // V30 build 3 (Digital Groceries 24 Nov, task list L6.4, on the 'Saved' overlay: "I barely notice and read it as its also very fast";
     // "Make all see through 5% more opaque"): every popup is drawn at 45%, and a confirmation stays 4.5 s. The touch ring
     // popup keeps 2.5 s (it answers a turn of the ring the user is looking at).
     internal const double ContentOpacity = 0.45;
@@ -137,7 +137,7 @@ public sealed class RingModeHud : IDisposable
             Show(0, 0, message, header, "✓", overOwnWindow: true);
         });
 
-    /// <summary>v27 (Zak 13 Nov 15:52: pressing Save showed "Settings saved" over the Claude window, the last app in front):
+    /// <summary>v27 (Digital Groceries 13 Nov 15:52: pressing Save showed "Settings saved" over the Claude window, the last app in front):
     /// the bounds (global points) of this app's own window that a confirmation belongs to: the active one (a dialog such
     /// as the radial menu editor) or else the visible, not minimised main window. Wired by App; null when none is up.</summary>
     public static Func<Rect?>? OwnWindowBounds { get; set; }

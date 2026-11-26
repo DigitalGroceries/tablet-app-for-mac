@@ -18,7 +18,7 @@
     <Color x:Key="SuccessMuted">#1A10B981</Color>
     <Color x:Key="Warning">#F59E0B</Color>
     <Color x:Key="WarningMuted">#1AF59E0B</Color>
-    <!-- V30 (Zak 23 Nov 2026: "These warning texts must be in bold yellow"): a control with nothing on it ("Not set up").
+    <!-- V30 (Digital Groceries 23 Nov 2026: "These warning texts must be in bold yellow"): a control with nothing on it ("Not set up").
          Yellow, not the amber of Warning. LightnessService replaces the text brush per step so it keeps 4.5:1. -->
     <Color x:Key="Attention">#FACC15</Color>
     <Color x:Key="Error">#EF4444</Color>
@@ -87,7 +87,7 @@
 
         <!-- ===== Light ===== -->
         <ResourceDictionary x:Key="Light">
-            <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
+            <!-- V30 build 4: Home's CONNECTED in green (Digital Groceries 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#15803D" />
             <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#D0D0D0" />
             <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#A0A0A0" />
@@ -159,7 +159,7 @@
         <!-- Build O pane brushes (Light) — placed in the Light dictionary above via this marker. -->
         <!-- ===== Dark ===== -->
         <ResourceDictionary x:Key="Dark">
-            <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
+            <!-- V30 build 4: Home's CONNECTED in green (Digital Groceries 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#4ADE80" />
             <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#262626" />
             <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#4A4A4A" />
@@ -234,7 +234,7 @@
              control resources) resolves from the Light theme. Cards stay translucent so the sakura
              backdrop shows through; the page-menu bar gets its own pink translucent gradient. -->
         <ResourceDictionary x:Key="{x:Static svc:ThemeService.AnimeVariant}">
-            <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
+            <!-- V30 build 4: Home's CONNECTED in green (Digital Groceries 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#15803D" />
             <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#D0D0D0" />
             <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#A0A0A0" />
@@ -354,7 +354,7 @@
              same cherry-blossom backdrop as Sakura, dimmed by a dark scrim so it reads moody instead of
              bright behind the dark glass panels. -->
         <ResourceDictionary x:Key="{x:Static svc:ThemeService.DarkSakuraVariant}">
-            <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
+            <!-- V30 build 4: Home's CONNECTED in green (Digital Groceries 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#4ADE80" />
             <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#262626" />
             <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#4A4A4A" />
@@ -452,7 +452,7 @@
              resolves dark and text stays light over a photo. Panels stay translucent so the backdrop
              shows through. -->
         <ResourceDictionary x:Key="{x:Static svc:ThemeService.CustomVariant}">
-            <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
+            <!-- V30 build 4: Home's CONNECTED in green (Digital Groceries 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#4ADE80" />
             <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#262626" />
             <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#4A4A4A" />
@@ -540,7 +540,7 @@
         <!-- ===== Build O: Wacom style (inherits Light) — light grey pane, white group boxes, blue selection.
              Original colour choices that echo a macOS preference pane; no Wacom artwork. ===== -->
         <ResourceDictionary x:Key="{x:Static svc:ThemeService.WacomVariant}">
-            <!-- V30 build 4: Home's CONNECTED in green (Zak 24 Nov); the Lightness steps set their own. -->
+            <!-- V30 build 4: Home's CONNECTED in green (Digital Groceries 24 Nov); the Lightness steps set their own. -->
             <SolidColorBrush x:Key="ConnectedTextBrush" Color="#15803D" />
             <SolidColorBrush x:Key="PenBasicsInsetBrush" Color="#D0D0D0" />
             <SolidColorBrush x:Key="PenBasicsInsetBorderBrush" Color="#A0A0A0" />
