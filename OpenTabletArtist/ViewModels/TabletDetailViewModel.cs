@@ -1887,7 +1887,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (_keyMapping != null || ShowKeyMapping == null || AuxButtons.Count == 0) return false;
         var groups = KeyOrderStore.Load(_profile.Tablet)?.Groups;
         var sheet = new KeyMappingViewModel(AuxButtons.Count, groups,
-            Intuos4Oled.IsUpsideDown(_profile.AbsoluteModeSettings?.Tablet?.Rotation ?? 0));
+            Intuos4Oled.IsUpsideDown(_profile.AbsoluteModeSettings?.Tablet?.Rotation ?? 0),
+            KeyLayouts.For(_profile.Tablet, AuxButtons.Count));
         bool turnedOff = AuxButtonsEnabled && _applyAction != null;
         _keyMapping = sheet;
         bool saved = false;

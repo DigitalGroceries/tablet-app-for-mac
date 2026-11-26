@@ -56,17 +56,39 @@ public sealed partial class KeyMappingViewModel : ObservableObject
     /// <param name="keyCount">How many ExpressKeys the tablet has.</param>
     /// <param name="groups">How many keys each group holds, top group first; null or empty = one group.</param>
     /// <param name="flipped">The tablet is turned round (left-handed use) while this runs.</param>
-    public KeyMappingViewModel(int keyCount, IEnumerable<int>? groups = null, bool flipped = false)
+    /// <param name="layout">Where the keys sit (<see cref="KeyLayouts.For"/>); null = the plain column. A layout with
+    /// another number of keys than <paramref name="keyCount"/> is not used.</param>
+    public KeyMappingViewModel(int keyCount, IEnumerable<int>? groups = null, bool flipped = false, KeyLayout? layout = null)
     {
         _keyCount = Math.Max(0, keyCount);
-        _groups = (groups ?? Array.Empty<int>()).ToArray();
-        _flipped = flipped;
+        if (layout is { Proven: true } proven && proven.KeyCount == _keyCount)
+        {
+            // A proven layout: the places are the tablet's own keys, in the tablet's own order, whichever way it is
+            // held. Turned round, the drawing is turned and the same keys are lit; the map is saved as not turned.
+            Layout = proven;
+            _groups = proven.GroupSizes.ToArray();
+            DrawTurned = flipped;
+            _flipped = false;
+        }
+        else
+        {
+            // The plain column: lit top to bottom as the tablet is held now (the map remembers that it was turned).
+            _groups = (groups ?? Array.Empty<int>()).ToArray();
+            Layout = KeyLayouts.Column(_keyCount, _groups);
+            _flipped = flipped;
+        }
         _session = new KeyMappingSession(_keyCount, _groups);
         Places = BuildPlaces();
         Refresh();
     }
 
     public IReadOnlyList<KeyMappingPlace> Places { get; }
+
+    /// <summary>What the sheet draws: spot N is place N.</summary>
+    public KeyLayout Layout { get; }
+
+    /// <summary>A proven layout with the tablet turned round: the sheet draws it turned half round.</summary>
+    public bool DrawTurned { get; }
 
     /// <summary>"Key 3 of 8".</summary>
     [ObservableProperty] private string _stepText = "";
@@ -213,11 +235,13 @@ public sealed partial class KeyMappingViewModel : ObservableObject
             .Replace("{number}", (_session.Place + 1).ToString(), StringComparison.Ordinal)
             .Replace("{count}", _keyCount.ToString(), StringComparison.Ordinal);
         var (group, groupCount) = _session.GroupOfPlace(_session.Place);
-        GroupText = groupCount > 1
-            ? T("keymap.group", "Group {number} of {count}")
-                .Replace("{number}", (group + 1).ToString(), StringComparison.Ordinal)
-                .Replace("{count}", groupCount.ToString(), StringComparison.Ordinal)
-            : "";
+        // A group's own name ("Above the ring") only when the tablet is not turned: turned, it would be wrong as seen.
+        GroupText = groupCount <= 1 ? ""
+            : !DrawTurned && group < Layout.GroupNames.Count && Layout.GroupNames.Count == groupCount
+                ? T(Layout.GroupNames[group].Key, Layout.GroupNames[group].English)
+                : T("keymap.group", "Group {number} of {count}")
+                    .Replace("{number}", (group + 1).ToString(), StringComparison.Ordinal)
+                    .Replace("{count}", groupCount.ToString(), StringComparison.Ordinal);
         Instruction = T("keymap.press", "Press the lit key on your tablet.");
     }
 
