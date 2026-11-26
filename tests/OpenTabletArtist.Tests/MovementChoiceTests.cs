@@ -12,7 +12,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>TASKS #55: the Pen page's Movement choice is always visible (Zak / Claude, 12 Nov 18:54), a saved Relative
+/// <summary>TASKS #55: the Pen page's Movement choice is always visible (Digital Groceries / Claude, 12 Nov 18:54), a saved Relative
 /// stays Relative (no fallback to Absolute), and Relative is called "Relative (slow / no mouse-like speed-up)". Position smoothing is 0-10.</summary>
 [Collection(DisplayEnumeratorCollection.Name)]
 public class MovementChoiceTests

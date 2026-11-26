@@ -34,7 +34,7 @@ public class BuildV1Tests
     }
 
     [AvaloniaTheory]
-    // V29 #180 (Zak's mockup): one name, "Manual Pressure", for the end whose settings are shown.
+    // V29 #180 (Digital Groceries' mockup): one name, "Manual Pressure", for the end whose settings are shown.
     [InlineData("PenTab", "ManualTipPressureFrame", "Manual Pressure")]
     [InlineData("EraserTab", "ManualEraserPressureFrame", "Manual Pressure")]
     public void ManualPressureFrame_IsShown_With50PercentDefault(string tab, string frame, string title)

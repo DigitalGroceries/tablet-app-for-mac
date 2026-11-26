@@ -47,7 +47,7 @@ public class RadialMenuModelTests
     {
         Assert.True(RadialMenuGeometry.OuterRadius(50) > RadialMenuGeometry.OuterRadius(1));
         Assert.Equal(160, RadialMenuGeometry.OuterRadius(50), 3);
-        // TASKS #63 (Zak 21:01): nothing is bigger than the largest size (50 = 320 pt across), whatever number is stored.
+        // TASKS #63 (Digital Groceries 21:01): nothing is bigger than the largest size (50 = 320 pt across), whatever number is stored.
         Assert.Equal(50, RadialMenuDef.MaxSize);
         Assert.Equal(RadialMenuDef.MaxDiameter, 2 * RadialMenuGeometry.OuterRadius(RadialMenuDef.MaxSize), 3);
         Assert.Equal(RadialMenuGeometry.OuterRadius(50), RadialMenuGeometry.OuterRadius(100), 3);
@@ -282,7 +282,7 @@ public class RadialMenuStateTests : IDisposable
     [Fact]
     public void Tap_RunsTheSlice_AndTheMenuStaysOpen_WithTheButtonUp()
     {
-        // V29 #131 (Zak 19 Nov): "The radial menu should never close if not closed by the user by clicking the X".
+        // V29 #131 (Digital Groceries 19 Nov): "The radial menu should never close if not closed by the user by clicking the X".
         var b = Binding();
         b.Press(null!, null!);
         b.Release(null!, null!);
@@ -385,7 +385,7 @@ public class RadialMenuStateTests : IDisposable
     [Fact]
     public void AClickSlice_TheMenuStepsAsideForTheClick_AndStaysOpen()
     {
-        // V29 #131 (Zak 19 Nov: "Just dont close it when non of this is engaged"): the app lets clicks through the menu while the
+        // V29 #131 (Digital Groceries 19 Nov: "Just dont close it when non of this is engaged"): the app lets clicks through the menu while the
         // Click slice clicks, then the menu takes clicks again.
         var m = RadialMenuDefaults.Create();
         m.Slices[2] = new RadialSlice { Label = "Right click", Action = RadialActions.Click, Click = "Right" };
@@ -418,12 +418,12 @@ public class RadialMenuStateTests : IDisposable
         Assert.False(RadialMenuState.IsOpen);
     }
 
-    // ── V29 #142 (Zak 19 Nov 19:35): a double press on the same pen button opens the colour palette or swaps ──
+    // ── V29 #142 (Digital Groceries 19 Nov 19:35): a double press on the same pen button opens the colour palette or swaps ──
 
     [Fact]
     public void DoublePress_OpensTheColourPalette_AndAnotherDoublePressClosesIt()
     {
-        // V29 #154 (Zak 20 Nov, Y): two quick presses open or close the palette; the menu is left as it was.
+        // V29 #154 (Digital Groceries 20 Nov, Y): two quick presses open or close the palette; the menu is left as it was.
         RadialMenuState.DoublePressMs = 400;
         var b = Binding();
         b.Press(null!, null!); b.Release(null!, null!);
@@ -476,7 +476,7 @@ public class RadialMenuStateTests : IDisposable
     [Fact]
     public void ThePaletteDraggedOverTheMenu_MovesBesideIt_AndIsOnTopForTaps()
     {
-        // Zak 20 Nov (build 8): "the app had difficulty deciding am I clicking on the radial menu or on the palette when they were
+        // Digital Groceries 20 Nov (build 8): "the app had difficulty deciding am I clicking on the radial menu or on the palette when they were
         // covering some portions of each other".
         RadialMenuState.DoublePressMs = 400;
         var b = Binding();
@@ -521,7 +521,7 @@ public class RadialMenuStateTests : IDisposable
     [Fact]
     public void QuickPressesOfTwoDifferentButtons_AreTwoSinglePresses()
     {
-        // Grok's review: Zak's double press is the SAME button pressed twice quickly.
+        // Grok's review: Digital Groceries' double press is the SAME button pressed twice quickly.
         RadialMenuState.DoublePressMs = 400;
         var a = Binding(); var b = Binding();
         a.Press(null!, null!); a.Release(null!, null!);
@@ -605,7 +605,7 @@ public class RadialMenuStateTests : IDisposable
     [Fact]
     public void PaletteMiddleDot_ATapDoesNothing_AndThePaletteStaysOpen()
     {
-        // Zak 19 Nov 20:21: the small middle circle only shows the last colour picked; tapping it does nothing.
+        // Digital Groceries 19 Nov 20:21: the small middle circle only shows the last colour picked; tapping it does nothing.
         RadialMenuState.DoublePressMs = 400;
         var b = Binding();
         b.Press(null!, null!); b.Release(null!, null!);
@@ -1172,7 +1172,7 @@ public class RadialMenuEditorTests
         Assert.Equal(320, vm.PreviewDiameter, 1);
         vm.Size = 100;                                    // even if something sets more, the menu and the number stay at the largest
         Assert.Equal(320, vm.PreviewDiameter, 1);
-        Assert.Equal("10", vm.SizeText);                  // v27 (Zak 16:07): shown as a step 1-10; 10 is the largest
+        Assert.Equal("10", vm.SizeText);                  // v27 (Digital Groceries 16:07): shown as a step 1-10; 10 is the largest
         Assert.Equal("10", vm.SizeInput);
         Assert.Equal(50, RadialMenuJson.Parse(vm.CurrentJson()).Size);
     }
@@ -1204,7 +1204,7 @@ public class RadialMenuEditorTests
     }
 
     [Theory]
-    // v27 (Zak 16:07): typed as a step 1-10; the saved size is 1-50 (step 5 = 23, 7 = 34, 3 = 12, 10 = 50).
+    // v27 (Digital Groceries 16:07): typed as a step 1-10; the saved size is 1-50 (step 5 = 23, 7 = 34, 3 = 12, 10 = 50).
     [InlineData("5", 23, "5")]
     [InlineData(" 7 ", 34, "7")]
     [InlineData("2,6", 12, "3")]
@@ -1238,7 +1238,7 @@ public class RadialMenuEditorTests
         Assert.Equal("7", vm.SizeInput);
     }
 
-    /// <summary>v27 test (Zak 13 Nov 16:07): "the menu size should go from 1 to 10 within the same values of 1 to 50".</summary>
+    /// <summary>v27 test (Digital Groceries 13 Nov 16:07): "the menu size should go from 1 to 10 within the same values of 1 to 50".</summary>
     [Fact]
     public void SizeSteps_1To10_SpanTheSameSizes_1To50_AndRoundTrip()
     {
@@ -1261,11 +1261,11 @@ public class RadialMenuEditorTests
     [Fact]
     public void OpacityFor_IsSolidAt0_AndKeepsAUsableFloorAt100()
     {
-        // v27 test (Zak 13 Nov 16:01): "60% should be the maximum" - the fading scale is unchanged, the limit is 60.
+        // v27 test (Digital Groceries 13 Nov 16:01): "60% should be the maximum" - the fading scale is unchanged, the limit is 60.
         Assert.Equal(0.10, RadialMenuDef.MinVisibleOpacity);
         Assert.Equal(60, RadialMenuDef.MaxTransparency);
         Assert.Equal(1.0, RadialMenuDef.OpacityFor(0));
-        Assert.Equal(0.46, RadialMenuDef.OpacityFor(60), 2);   // what Zak saw at 60% on the V27 test
+        Assert.Equal(0.46, RadialMenuDef.OpacityFor(60), 2);   // what Digital Groceries saw at 60% on the V27 test
         Assert.Equal(0.46, RadialMenuDef.OpacityFor(100), 2);  // stops at the limit
         Assert.Equal(0.64, RadialMenuDef.OpacityFor(40), 2);   // default 40% → 64% opaque (36% see-through)
         Assert.Equal(1.0, RadialMenuDef.OpacityFor(-5));
@@ -1313,7 +1313,7 @@ public class RadialMenuEditorTests
     [Fact]
     public void Transparency_DefaultsTo40_IsSavedWithTheMenu_AndResetBringsItBack()
     {
-        Assert.Equal(40, RadialMenuDef.DefaultTransparency);   // TASKS #59 (Zak 18:21): was 70
+        Assert.Equal(40, RadialMenuDef.DefaultTransparency);   // TASKS #59 (Digital Groceries 18:21): was 70
         Assert.Equal(40, RadialMenuDefaults.Create().Transparency);
         Assert.Equal(40, new RadialMenuDef().Transparency);
         var vm = new RadialMenuEditorViewModel(null, "x");

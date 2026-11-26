@@ -78,7 +78,7 @@ public static class UpdatePromptWindow
         return done.Task;
     }
 
-    /// <summary>Version 15 (Zak: "All versions stable or beta should allow the users to downgrade to an earlier
+    /// <summary>Version 15 (Digital Groceries: "All versions stable or beta should allow the users to downgrade to an earlier
     /// version"): one "Go back to Version N" button per earlier stable version, plus Not now.
     /// Returns the chosen release, or null.</summary>
     public static Task<Updater.Release?> ChooseEarlierAsync(System.Collections.Generic.IReadOnlyList<Updater.Release> earlier)
@@ -106,7 +106,7 @@ public static class UpdatePromptWindow
         return done.Task;
     }
 
-    /// <summary>Zak (2 Nov): while an app update downloads, a note in the window under the download status
+    /// <summary>Digital Groceries (2 Nov): while an app update downloads, a note in the window under the download status
     /// thanks everyone who donated. It closes by itself when the download ends.</summary>
     public const string DonorThanks = "We are grateful to all who donated and keep this project alive.";
     static Window? _downloadNote;
@@ -115,7 +115,7 @@ public static class UpdatePromptWindow
     {
         if (downloading && _downloadNote == null)
         {
-            // Zak (2 Nov mock-up): no title on the download sheet, only the close button; the thanks is the
+            // Digital Groceries (2 Nov mock-up): no title on the download sheet, only the close button; the thanks is the
             // first thing, and the download status sits small under the bar.
             var w = NewWindow("");
             w.Content = new StackPanel { Margin = new Thickness(24), Spacing = 14, Children = {
@@ -139,7 +139,7 @@ public static class UpdatePromptWindow
     /// <summary>Remembers the version that last ran, so the first run after an update can say thank you.</summary>
     public const string LastRunKey = "update.lastRunVersion";
 
-    /// <summary>Zak (2 Nov): the download is done by the OLD app, which (before Version 21) has no thank-you
+    /// <summary>Digital Groceries (2 Nov): the download is done by the OLD app, which (before Version 21) has no thank-you
     /// note. So the new version also thanks donors on its first run after an update. Pure, unit-tested:
     /// true when a different version ran before, or (no record yet) when the app has been used before.</summary>
     public static bool ShouldThankAfterUpdate(string? lastRun, string current, bool usedBefore) =>
@@ -192,7 +192,7 @@ public static class UpdatePromptWindow
         WindowStartupLocation = WindowStartupLocation.CenterScreen
     };
 
-    /// <summary>Zak (2 Nov mock-ups): the thanks is the main message, large and centred, shown once.</summary>
+    /// <summary>Digital Groceries (2 Nov mock-ups): the thanks is the main message, large and centred, shown once.</summary>
     static TextBlock Gratitude() => new TextBlock
     {
         Text = Localizer.Te("update.donor_thanks", DonorThanks).TrimEnd('.'), FontSize = 22, FontWeight = FontWeight.Bold,

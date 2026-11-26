@@ -7,7 +7,7 @@ using OpenTabletArtist.Domain;
 namespace OpenTabletArtist.Services;
 
 /// <summary>
-/// V29 #170 (Zak, 20 Nov: "I have a menu in front of me = I should be able to control it the same no matter what app
+/// V29 #170 (Digital Groceries, 20 Nov: "I have a menu in front of me = I should be able to control it the same no matter what app
 /// is open"): ONE radial menu and colour palette per tablet, with no switch. Every radial-menu binding in All, in every
 /// application's table and in every extra pen's table holds the same menu (slices, size, transparency, palette), so a
 /// slider, the pencil or a menu change works the same whatever app is in front. Before this, an application's table

@@ -12,7 +12,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 #180 (Zak 21 Nov: "1 Can you make them two different setting values?"): the tip and the eraser each have their own
+/// <summary>V29 #180 (Digital Groceries 21 Nov: "1 Can you make them two different setting values?"): the tip and the eraser each have their own
 /// feel curve. A profile written by an older app has no eraser curve: the eraser then keeps using the tip's curve.</summary>
 public class EraserCurveTests
 {

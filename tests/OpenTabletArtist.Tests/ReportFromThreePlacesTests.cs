@@ -96,7 +96,7 @@ public class ReportFromThreePlacesTests
     [Fact]
     public async Task The_email_address_shows_only_after_The_page_doesnt_open_and_can_be_copied()
     {
-        // V30 #200 A6 (Devin's vote; Zak 23 Nov 17:42 "Yes, show the email"): only when the upload page can't open.
+        // V30 #200 A6 (Devin's vote; Digital Groceries 23 Nov 17:42 "Yes, show the email"): only when the upload page can't open.
         var (vm, _, _, dir) = Make();
         SaveTo(vm, Path.Combine(dir, "r.zip"));
         vm.Email = "";
@@ -129,7 +129,7 @@ public class ReportFromThreePlacesTests
     [Fact]
     public async Task Send_with_file_asks_where_to_save_then_says_where_it_is_and_opens_nothing()
     {
-        // Version 24 (Zak, 5 Nov 2026): the button asks where to save, then says where the file is and
+        // Version 24 (Digital Groceries, 5 Nov 2026): the button asks where to save, then says where the file is and
         // how to upload it. No web page and no Finder until the user asks.
         var (vm, urls, revealed, dir) = Make();
         var chosen = Directory.CreateDirectory(Path.Combine(dir, "My reports")).FullName;
@@ -165,7 +165,7 @@ public class ReportFromThreePlacesTests
         Assert.DoesNotContain(DiagnosticBundle.FeedbackEmail, vm.SavedMessage);
         Assert.Equal("", vm.Status);
 
-        // Nothing opens Finder by itself; V30 #200 A2 (Zak 23 Nov 17:42 "Yes, open Finder too"): Open upload page opens the page
+        // Nothing opens Finder by itself; V30 #200 A2 (Digital Groceries 23 Nov 17:42 "Yes, open Finder too"): Open upload page opens the page
         // and shows the file in Finder.
         Assert.Empty(revealed);
         vm.OpenUploadCommand.Execute(null);
@@ -247,7 +247,7 @@ public class ReportFromThreePlacesTests
     {
         Assert.Equal("https://www.dropbox.com/request/9k5b0u782t79plarauv9", DiagnosticBundle.ReportUploadUrl);
         var vm = new ReportViewModel(Inputs, null, "test");
-        // V30 #200 (Zak 23 Nov): the note says what happens (a web page opens in your browser), never the service's name.
+        // V30 #200 (Digital Groceries 23 Nov): the note says what happens (a web page opens in your browser), never the service's name.
         Assert.Contains("a web page opens in your browser", vm.Note);
         Assert.Contains("You don't need an account", vm.Note);
         Assert.DoesNotContain("{email}", vm.Note);
@@ -368,7 +368,7 @@ public class ReportFromThreePlacesTests
         }
     }
 
-    /// <summary>Zak 23 Nov 2026 (TASKS #200): agent K read "Dropbox" in the report and thought he needed a Dropbox account, so
+    /// <summary>Digital Groceries 23 Nov 2026 (TASKS #200): agent K read "Dropbox" in the report and thought he needed a Dropbox account, so
     /// he never sent one. No text of the app names the upload service, in any language.</summary>
     [Fact]
     public void No_text_of_the_app_names_Dropbox_in_any_language()
@@ -387,7 +387,7 @@ public class ReportFromThreePlacesTests
     static string Root([System.Runtime.CompilerServices.CallerFilePath] string f = "") =>
         Path.GetFullPath(Path.Combine(Path.GetDirectoryName(f)!, "..", ".."));
 
-    // ---- Version 25 (Zak, 6 Nov 2026): the optional "Your email" box.
+    // ---- Version 25 (Digital Groceries, 6 Nov 2026): the optional "Your email" box.
 
     static string ReportTxt(string zip)
     {
@@ -397,7 +397,7 @@ public class ReportFromThreePlacesTests
     }
 
     [Fact]
-    public void Email_box_has_the_label_and_Zaks_exact_line()
+    public void Email_box_has_the_label_and_Digital_Groceries_exact_line()
     {
         var (vm, _, _, _) = Make();
         Assert.Equal("", vm.Email);   // optional: empty by default

@@ -32,7 +32,7 @@ public class BuildV3UiTests
         Dispatcher.UIThread.RunJobs(); w.UpdateLayout();
         var diagram = view.GetVisualDescendants().OfType<PenDiagram>().First(d => d.IsEffectivelyVisible);
         var b1 = diagram.FindControl<Border>("Badge1")!; var b2 = diagram.FindControl<Border>("Badge2")!;
-        Assert.Equal("Press a button to test it", vm.PenButtonTestText);   // V29 #180 (Zak's mockup)
+        Assert.Equal("Press a button to test it", vm.PenButtonTestText);   // V29 #180 (Digital Groceries' mockup)
         Assert.False(b1.Classes.Contains("pressed"));
 
         vm.OnPenButtons(new[] { false, true });

@@ -24,7 +24,7 @@ public static class AppVersionInfo
         // BETA has no number (the owner, 4 Nov 2026): "23-beta" reads "23 BETA".
         var m = System.Text.RegularExpressions.Regex.Match(v, @"^(\d+)-beta(\d*)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         if (m.Success) v = m.Groups[2].Value.Length > 0 ? $"{m.Groups[1].Value} BETA {m.Groups[2].Value}" : $"{m.Groups[1].Value} BETA";
-        // Test builds (Zak, 4 and 12 Nov 2026: a version name is one number, or one number and one word; a test build is
+        // Test builds (Digital Groceries, 4 and 12 Nov 2026: a version name is one number, or one number and one word; a test build is
         // the number followed by "test", never a build number): "26-test" reads "26 test", so Home says "Version 26 test".
         // An old numbered tag ("26-test8") reads the same.
         var t = System.Text.RegularExpressions.Regex.Match(v, @"^(\d+)-test\d*$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);

@@ -11,8 +11,8 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>v27 (Zak 21:49): Menu transparency fades the whole menu (slices, labels, icons, ring and highlight)
-/// so work behind shows through. 0% is solid; the slider stops at 60% (v27, Zak 16:01), which still leaves almost half of the menu
+/// <summary>v27 (Digital Groceries 21:49): Menu transparency fades the whole menu (slices, labels, icons, ring and highlight)
+/// so work behind shows through. 0% is solid; the slider stops at 60% (v27, Digital Groceries 16:01), which still leaves almost half of the menu
 /// so the menu stays usable. The Pen page preview uses the same pie, so it changes with the slider.</summary>
 public class RadialTransparencyTests
 {
@@ -50,7 +50,7 @@ public class RadialTransparencyTests
     public void WholeMenu_FollowsTheTransparency_WithAUsableFloor_AndThePreviewWouldMatch()
     {
         Assert.Equal(1.0, RadialMenuDef.OpacityFor(0));
-        Assert.Equal(60, RadialMenuDef.MaxTransparency);   // v27 test (Zak 16:01): "60% should be the maximum"
+        Assert.Equal(60, RadialMenuDef.MaxTransparency);   // v27 test (Digital Groceries 16:01): "60% should be the maximum"
         Assert.Equal(RadialMenuDef.OpacityFor(60), RadialMenuDef.OpacityFor(100));   // anything above 60 is 60
 
         var solid = Sample(0);
@@ -67,7 +67,7 @@ public class RadialTransparencyTests
         Assert.True(mid.Slice.R > solid.Slice.R + 40, $"40% slice {mid.Slice} vs solid {solid.Slice}");
         Assert.True(clear.Slice.R > mid.Slice.R + 15, $"60% slice {clear.Slice} vs 40% {mid.Slice}");
         Assert.True(clear.Slice.R > 120, $"60% slice should show the red window through: {clear.Slice}");
-        // Not invisible: at the 60% limit almost half of the grey remains (v27, Zak 16:01).
+        // Not invisible: at the 60% limit almost half of the grey remains (v27, Digital Groceries 16:01).
         Assert.True(clear.Slice.R < 200, $"60% slice is too see-through: {clear.Slice}");
 
         // The highlighted slice fades too, so the preview at 0% and 60% cannot look the same.

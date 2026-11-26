@@ -8,7 +8,7 @@ using Avalonia.Input.Platform;
 namespace OpenTabletArtist.Services;
 
 /// <summary>
-/// V29 #142 (Zak 19 Nov 19:34: "You decide what may work better"): what a tap on the colour palette does with its colour. In
+/// V29 #142 (Digital Groceries 19 Nov 19:34: "You decide what may work better"): what a tap on the colour palette does with its colour. In
 /// Photoshop the colour becomes the foreground (brush) colour at once, through Photoshop's own scripting (macOS asks the user once
 /// to let Tablet App for Mac control Photoshop). In every app the colour's code ("#RRGGBB") is copied, so it can be pasted into
 /// any colour box; and the palette stays on screen, so an app's own eyedropper can pick from it (Photoshop's Eyedropper can sample

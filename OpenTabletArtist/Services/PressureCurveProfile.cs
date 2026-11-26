@@ -73,7 +73,7 @@ public static class PressureCurveProfile
             S("ManualEraserPressure")?.GetValue<float>() ?? ManualPressure.DefaultValue);
     }
 
-    /// <summary>V29 #180 (Zak 21 Nov: "1 Can you make them two different setting values?"): the eraser end's own feel curve, or null
+    /// <summary>V29 #180 (Digital Groceries 21 Nov: "1 Can you make them two different setting values?"): the eraser end's own feel curve, or null
     /// when the profile has none (written by an older app: the eraser then uses the tip's curve).</summary>
     public static PressureCurveSettings? ReadEraserCurve(Profile? profile) => ReadEraserCurve(FindStore(profile?.Filters));
     public static PressureCurveSettings? ReadEraserCurve(Settings? settings, string tabletName) => ReadEraserCurve(FindStore(settings, tabletName));

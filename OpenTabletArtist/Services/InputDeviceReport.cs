@@ -30,7 +30,7 @@ public sealed record InputDriverItem(string Kind, string BundleId, string? Versi
 /// (no permission needed, fast, gives type, IDs and connection), <c>systemextensionsctl list</c>, <c>kextstat -l</c>
 /// and <c>ps</c> for known input tools. All parsing is in pure functions that take the command output as text, so
 /// they are unit-tested with sample output. Privacy: serial numbers, Bluetooth addresses, location IDs and the
-/// owner's name inside Bluetooth device names ("Zak's Magic Mouse") are never read or are removed.
+/// owner's name inside Bluetooth device names ("Jamie's Magic Mouse") are never read or are removed.
 /// </summary>
 public static class InputDeviceReport
 {
@@ -269,7 +269,7 @@ public static class InputDeviceReport
         };
     }
 
-    /// <summary>Bluetooth products are often named after the owner ("Zak’s Magic Mouse"): keep only the part after it.
+    /// <summary>Bluetooth products are often named after the owner ("Jamie’s Magic Mouse"): keep only the part after it.
     /// Also drops anything that looks like a MAC address.</summary>
     internal static string RemoveOwner(string s)
     {

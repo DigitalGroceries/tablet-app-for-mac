@@ -20,7 +20,7 @@ using static OpenTabletArtist.SweepTests.Sweep;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V30 build 4 (Zak 24 Nov 2026, screenshots of Home, Scribble, Tablet › Pen and Settings: "we have 3 different designs
+/// <summary>V30 build 4 (Digital Groceries 24 Nov 2026, screenshots of Home, Scribble, Tablet › Pen and Settings: "we have 3 different designs
 /// for buttons?", "Again 2 designs of buttons", "They are all over the app. I will not send you all"): opens every page, lists
 /// every button and tab with the look it is drawn with (fill, edge, shadow), dark and light, and writes the list to
 /// button-looks.md in OTA_SHOTS_DIR. The audit below fails when a word button or tab is not drawn with the shared raised look.</summary>
@@ -92,7 +92,7 @@ public class ButtonLookAuditTests
     /// (<see cref="ReadabilityAudit"/>), and the fill of the tab you are on in that look.</summary>
     internal sealed record Seen(List<Look> Looks, List<ReadabilityAudit.Word> Words, string TabOn);
 
-    /// <summary>The looks the audits walk through: the grey look dark and light, and (V31, ZAK-LISTS L7.3 / L7.12, Zak 25 Nov 2026:
+    /// <summary>The looks the audits walk through: the grey look dark and light, and (V31, task list L7.3 / L7.12, Digital Groceries 25 Nov 2026:
     /// in Burgundy, Custom and Rose "enabled tabs and buttons lose their raised button look") each skin at the step it starts on.
     /// OTA_AUDIT_LOOKS=rose,custom walks only those (to repeat one look while fixing it).</summary>
     internal static IEnumerable<(string Theme, int Step, string Name)> AuditLooks()
@@ -110,7 +110,7 @@ public class ButtonLookAuditTests
 
     static async Task<Seen> Walk(string theme, int step, string look)
     {
-        using var mac = UiPlatform.PretendMac();   // pages laid out as on Zak's Mac (the pen cards' Change… / Default)
+        using var mac = UiPlatform.PretendMac();   // pages laid out as on Digital Groceries' Mac (the pen cards' Change… / Default)
         Hook();
         V31ThemeShots.Choose(theme);
         var all = new List<Look>();
@@ -137,19 +137,19 @@ public class ButtonLookAuditTests
         foreach (var sub in new[] { "ThemeSubtab", "BackdropSubtab", "ColorsSubtab" })
             if (w.GetVisualDescendants().OfType<RadioButton>().FirstOrDefault(x => x.Name == sub) is { } rb)
             { rb.IsChecked = true; await Settle(60); See(w, $"settings-theme-{sub}"); }
-        // The Tablet pages inside the app window, as Zak sees them (Zak 24 Nov ~15:50: "Dont create mockup pictures that are different
-        // from the app"): the nav row, the tablet switcher and a connected Wacom PTK-440 with factory settings (ZakTablet).
+        // The Tablet pages inside the app window, as Digital Groceries sees them (Digital Groceries 24 Nov ~15:50: "Dont create mockup pictures that are different
+        // from the app"): the nav row, the tablet switcher and a connected Wacom PTK-440 with factory settings (DigitalGroceriesTablet).
         var details = (System.Collections.IDictionary)typeof(MainViewModel)
             .GetField("_tabletDetails", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(vm)!;
-        var ed = ZakTablet.Page();
+        var ed = DigitalGroceriesTablet.Page();
         ed.ShowHeader = false;
-        details[ZakTablet.Name] = ed;
-        vm.TabletPage.SetTablets(new[] { (ZakTablet.Name, true) });
+        details[DigitalGroceriesTablet.Name] = ed;
+        vm.TabletPage.SetTablets(new[] { (DigitalGroceriesTablet.Name, true) });
         vm.CurrentPage = vm.TabletPage;
         w.Height = 1500;
         await Settle(150);
         // This test window has no driver, so the app greys the page and the Save row (MainViewModel.PageInputEnabled,
-        // CanEditSettings). Zak's app has one: for pictures that match it, they take input here as they do on his Mac.
+        // CanEditSettings). Digital Groceries' app has one: for pictures that match it, they take input here as they do on his Mac.
         foreach (var host in w.GetVisualDescendants().OfType<TransitioningContentControl>()) host.IsEnabled = true;
         foreach (var name in new[] { "SaveButton", "SaveAsDefaultButton", "RevertToDefaultButton", "FactoryButton", "RestoreFactoryButton" })
             foreach (var b in w.GetVisualDescendants().OfType<Button>().Where(x => x.Name == name)) b.IsEnabled = true;
@@ -174,7 +174,7 @@ public class ButtonLookAuditTests
                 }
             }
         }
-        // V31 (ZAK-LISTS L7.6, Zak 25 Nov 2026: in Rose the words of the 'Restore Factory Settings' button were almost invisible):
+        // V31 (task list L7.6, Digital Groceries 25 Nov 2026: in Rose the words of the 'Restore Factory Settings' button were almost invisible):
         // the app's own question, opened inside the app window as the app opens it, with the words MainViewModel asks it with.
         Helpers.InWindowSheet.MainOverride = () => w;
         try
@@ -203,7 +203,7 @@ public class ButtonLookAuditTests
         (vm as IDisposable)?.Dispose();
         ed.Dispose();
 
-        // V30 build 5 (Zak 24 Nov 17:3x, his screenshot of Button 1's Change… window: "Keyboard, Media, Mouse, Scroll and Radial menu
+        // V30 build 5 (Digital Groceries 24 Nov 17:3x, his screenshot of Button 1's Change… window: "Keyboard, Media, Mouse, Scroll and Radial menu
         // have no buttons yet"): the check opened every page but no window, so it missed that. The app's windows, each audited too.
         async Task Dialog(Window d, string slug, Action? each = null)
         {
@@ -255,7 +255,7 @@ public class ButtonLookAuditTests
             {
                 var seen = await Walk(theme, step, look);
                 var looks = seen.Looks;
-                // Zak 24 Nov ("They are all over the app"): every enabled word button and tab is raised; the tab you are on is lit.
+                // Digital Groceries 24 Nov ("They are all over the app"): every enabled word button and tab is raised; the tab you are on is lit.
                 foreach (var l in looks.Where(l => l.Enabled && !l.Raised && !OwnLookOnPurpose(l)))
                     if (!(l.Checked == true && l.Fill == seen.TabOn && l.Shadow))
                         odd.Add($"{look} {l.Page}: {l.Kind} '{l.Label}' theme {l.Theme} [{l.Classes}] {l.Fill} shadow {l.Shadow}");

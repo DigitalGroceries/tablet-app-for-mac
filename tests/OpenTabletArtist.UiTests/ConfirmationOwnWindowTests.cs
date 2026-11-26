@@ -9,7 +9,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>v27 (Zak 13 Nov 15:52): pressing Save showed "Settings saved" centred over the Claude window (the last other
+/// <summary>v27 (Digital Groceries 13 Nov 15:52): pressing Save showed "Settings saved" centred over the Claude window (the last other
 /// app in front). A confirmation for one of our own buttons is centred on our own window; ring-mode popups still follow
 /// the frontmost app (Photoshop).</summary>
 public class ConfirmationOwnWindowTests
@@ -37,7 +37,7 @@ public class ConfirmationOwnWindowTests
     [AvaloniaFact]
     public void Popups_are_45_percent_and_a_confirmation_stays_4_5_seconds()
     {
-        // V30 build 3 (Zak 24 Nov, L6.4): "Make all see through 5% more opaque"; the 'Saved' overlay was too fast to read.
+        // V30 build 3 (Digital Groceries 24 Nov, L6.4): "Make all see through 5% more opaque"; the 'Saved' overlay was too fast to read.
         Assert.Equal(0.45, RingModeHud.ContentOpacity, 3);
         var hud = new RingModeHud();
         RingModeHud.OwnWindowBounds = () => new Rect(300, 200, 1100, 720);

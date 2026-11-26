@@ -6,7 +6,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>The owner's rule (26 Nov 2026): the website's Language menu always lists the languages the app has. Version 29
+/// <summary>Digital Groceries' rule (26 Nov 2026): the website's Language menu always lists the languages the app has. Version 29
 /// gave the app Italian, Swedish and Brazilian Portuguese and Version 30 Hindi and Swahili, and each time the website's menu
 /// was left with its first eight: nothing made anyone look. Now this suite fails while the website's menu (every page of
 /// site/src, and the list its script builds the menu from) is not exactly <see cref="Localizer.Languages"/>: the same

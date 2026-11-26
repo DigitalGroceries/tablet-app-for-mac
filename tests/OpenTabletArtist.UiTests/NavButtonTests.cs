@@ -33,7 +33,7 @@ public class NavButtonTests
 
     private static Border Bd(RadioButton r) => r.GetVisualDescendants().OfType<Border>().First(b => b.Name == "Bd");
     private static TextBlock Word(RadioButton r) => r.GetVisualDescendants().OfType<TextBlock>().First(b => b.Name == "Word");
-    // V30 build 4 (Zak 24 Nov: "Again 2 designs of buttons"): on the Lightness steps tabs are raised buttons, so a fill or edge
+    // V30 build 4 (Digital Groceries 24 Nov: "Again 2 designs of buttons"): on the Lightness steps tabs are raised buttons, so a fill or edge
     // can be a gradient; compared by description.
     private static string Paint(IBrush? b) => b switch
     {

@@ -76,7 +76,7 @@ public class PerAppAllStashTests
     }
 }
 
-/// <summary>TASKS #15: per-app / per-pen Double Click Fix storage (Zak, 9 Nov, test build 3).</summary>
+/// <summary>TASKS #15: per-app / per-pen Double Click Fix storage (Digital Groceries, 9 Nov, test build 3).</summary>
 public class DoubleClickFixPerAppStoreTests
 {
     private static string Tablet => "TestTablet-DcfStore-" + Guid.NewGuid().ToString("N")[..8];

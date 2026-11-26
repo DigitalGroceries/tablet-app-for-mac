@@ -13,7 +13,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>Version 29 (Zak, 17 Nov): "Setting search" under Home's tab row, from Home's left edge to
+/// <summary>Version 29 (Digital Groceries, 17 Nov): "Setting search" under Home's tab row, from Home's left edge to
 /// Advanced's right edge, "Find any setting or function" under it; typing lists matches with their paths; a
 /// click opens the page and briefly marks the setting; it searches in the app's language.</summary>
 [Collection(nameof(SettingSearchIndexCollection))]

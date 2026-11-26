@@ -120,7 +120,7 @@ public partial class MainWindow : Window
 
     // The client area is extended under the title bar (#titlebar), so the top strip is our own drag
     // handle: left-drag moves the window; double-click toggles maximize (standard title-bar behaviour).
-    // V29 #164: when the Mac's drag doesn't start (pen presses, and about half the mouse presses on Zak's Mac), the app moves the
+    // V29 #164: when the Mac's drag doesn't start (pen presses, and about half the mouse presses on Digital Groceries' Mac), the app moves the
     // window itself (see Helpers.TitleBarDrag; Grok's review: no capture until the app takes over, moves heard on the whole window,
     // a stale press cleared, only a normal-size window).
     private readonly TitleBarDrag _titleDrag = new();
@@ -165,7 +165,7 @@ public partial class MainWindow : Window
         {
             if (MacWindowDrag.TryStart(this, e.Timestamp, out var note))
             {
-                // Build 10 (Zak 16:54: "Now it doesnt work half the time"): macOS took every request but moved the window only about half
+                // Build 10 (Digital Groceries 16:54: "Now it doesnt work half the time"): macOS took every request but moved the window only about half
                 // the time, and the app's backup had been switched off for these presses. The backup stays on: it takes over when the real
                 // window hasn't moved after a few pixels. A release the Mac's drag swallows is caught by the real button state on each move.
                 AppLog.Info($"Window drag: the Mac's own drag was asked for with this press ({note}) (#176).");
@@ -286,7 +286,7 @@ public partial class MainWindow : Window
         {
             var real = RealPosition();
             AppLog.Info($"Window drag by the app ended at {real.X},{real.Y} (Position {Position.X},{Position.Y}, scale {RenderScaling:0.##}).");
-            // #176 build 12: no snapping across screens any more (it made the window jump; Zak, build 11: "jittery").
+            // #176 build 12: no snapping across screens any more (it made the window jump; Digital Groceries, build 11: "jittery").
         }
         if (byApp) pointer?.Capture(null);
     }

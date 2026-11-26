@@ -11,7 +11,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>TASKS #56 (Zak 17:12): when settings go back to the defaults, pen button 2 is the Radial menu (with its
+/// <summary>TASKS #56 (Digital Groceries 17:12): when settings go back to the defaults, pen button 2 is the Radial menu (with its
 /// filter in the profile) and the radial menu switch is on. Button 1 and the other bindings are untouched.</summary>
 public class FactoryRadialButtonTests
 {

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>V29 #141 (Zak 19 Nov 2026): the radial menu's Keyboard slice shows and hides a compact floating keyboard under the menu;
+/// <summary>V29 #141 (Digital Groceries 19 Nov 2026): the radial menu's Keyboard slice shows and hides a compact floating keyboard under the menu;
 /// its transparency follows the setting at once.</summary>
 public class FloatingKeyboardUiTests
 {
@@ -94,7 +94,7 @@ public class FloatingKeyboardUiTests
         }
     }
 
-    /// <summary>V29 #162 (Zak 20 Nov ~09:10: "the keyboard is microscopic"): an open keyboard follows the Keyboard size at once.</summary>
+    /// <summary>V29 #162 (Digital Groceries 20 Nov ~09:10: "the keyboard is microscopic"): an open keyboard follows the Keyboard size at once.</summary>
     [AvaloniaFact]
     public void Size_FollowsTheSetting_AtOnce()
     {

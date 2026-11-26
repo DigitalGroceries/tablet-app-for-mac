@@ -15,7 +15,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>TASKS #198 (Zak 22 Nov 2026, screenshot 13:30 and his words: "The mismatch of Bulgarian and English came after I
+/// <summary>TASKS #198 (Digital Groceries 22 Nov 2026, screenshot 13:30 and his words: "The mismatch of Bulgarian and English came after I
 /// repetedly switched between the two languages ... it did not redraw all text in the changed language GUI before I have
 /// restarted the app."): every text on the Pen page follows a language change at once.</summary>
 public class V29LanguageSwitchTests

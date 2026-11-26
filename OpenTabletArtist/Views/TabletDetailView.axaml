@@ -8,7 +8,7 @@
              xmlns:views="using:OpenTabletArtist.Views">
 
     <UserControl.Styles>
-        <!-- V30 build 4 (Zak 24 Nov: "All the text in the black frame is not readable" in the light look): theme colours. -->
+        <!-- V30 build 4 (Digital Groceries 24 Nov: "All the text in the black frame is not readable" in the light look): theme colours. -->
         <Style Selector="Border.penBasicsInset">
             <Setter Property="Background" Value="{DynamicResource PenBasicsInsetBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource PenBasicsInsetBorderBrush}" />
@@ -53,7 +53,7 @@
                 </ControlTemplate>
             </Setter>
         </Style>
-        <!-- V29 #180 (Zak's Pen page mockup, 21 Nov): the pieces of the merged Pen page. -->
+        <!-- V29 #180 (Digital Groceries' Pen page mockup, 21 Nov): the pieces of the merged Pen page. -->
         <Style Selector="Border.wacomBox">
             <Setter Property="Background" Value="{DynamicResource WacomPaneBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}" />
@@ -69,7 +69,7 @@
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <ControlTemplate>
-                    <!-- V30 build 4 (Zak 24 Nov: "Again 2 designs of buttons"): Bd.raisedTab, so on the Lightness steps it is drawn
+                    <!-- V30 build 4 (Digital Groceries 24 Nov: "Again 2 designs of buttons"): Bd.raisedTab, so on the Lightness steps it is drawn
                          like every other tab (Themes/Styles.axaml). -->
                     <Border x:Name="Bd" Classes="raisedTab" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
                             CornerRadius="4" Padding="10,3">
@@ -83,7 +83,7 @@
             <Setter Property="Background" Value="#E4E4E4" />
             <Setter Property="Foreground" Value="#000000" />
         </Style>
-        <!-- V29 build 17 (Zak's pager task list 1, 21 Nov ~21:07, items 1-5 + his item 1 note ~21:15): the round Eraser / Tip
+        <!-- V29 build 17 (Digital Groceries' pager task list 1, 21 Nov ~21:07, items 1-5 + his item 1 note ~21:15): the round Eraser / Tip
              labels are bullseye targets around the part of the pen they set up (the eraser cap, the tip), so the drawing shows which
              end the page's settings are for. Always hollow, perfectly round and see-through, so the pen stays visible under them;
              the end whose Feel button is selected (Tip Feel / Eraser Feel) has the more opaque circle. They don't light when the
@@ -123,7 +123,7 @@
             <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextWrapping" Value="Wrap" /><Setter Property="TextAlignment" Value="Center" />
         </Style>
-        <!-- The radial menu's / palette's lines and slider titles (bold, Zak's mockup). -->
+        <!-- The radial menu's / palette's lines and slider titles (bold, Digital Groceries' mockup). -->
         <Style Selector="TextBlock.spotLine">
             <Setter Property="FontSize" Value="12" /><Setter Property="FontWeight" Value="Bold" /><Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="TextAlignment" Value="Center" /><Setter Property="HorizontalAlignment" Value="Center" />
@@ -240,8 +240,8 @@
                                    TextWrapping="Wrap" />
                         <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" IsVisible="{Binding ShowSummary}"
                                    Foreground="{DynamicResource TextSecondaryBrush}" />
-                        <!-- V30 #200 B2: nothing on this key yet - say so, and offer to choose. Zak 23 Nov (test build 1): grey small links are not seen,
-                             so the line is bold yellow (AttentionTextBrush) (Zak 19:23: 'These warning texts must be in bold yellow') and Choose is a real button. -->
+                        <!-- V30 #200 B2: nothing on this key yet - say so, and offer to choose. Digital Groceries 23 Nov (test build 1): grey small links are not seen,
+                             so the line is bold yellow (AttentionTextBrush) (Digital Groceries 19:23: 'These warning texts must be in bold yellow') and Choose is a real button. -->
                         <StackPanel Orientation="Vertical" Spacing="6" Margin="0,4,0,0" IsVisible="{Binding IsNotSetUp}">
                             <!-- Light steps: dark ink on a yellow highlight (AttentionFillBrush; transparent on dark steps, where the text itself is yellow). -->
                             <Border Background="{DynamicResource AttentionFillBrush}" CornerRadius="4" Padding="6,2" Margin="-6,0,0,0" HorizontalAlignment="Left"
@@ -249,7 +249,7 @@
                                 <TextBlock x:Name="NotSetUpMark" Text="{Binding NotSetUpText}" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
                                            Foreground="{DynamicResource AttentionTextBrush}" />
                             </Border>
-                            <!-- V30 build 3 (Zak 24 Nov, ZAK-LISTS L6.3): "You just used this. It does nothing yet." is a yellow SPEECH BUBBLE with much
+                            <!-- V30 build 3 (Digital Groceries 24 Nov, task list L6.3): "You just used this. It does nothing yet." is a yellow SPEECH BUBBLE with much
                                  bigger type, its tail pointing left at the key's number; only the key pressed last shows it (TabletDetailViewModel.NoticeUnsetUse). -->
                             <Grid x:Name="JustUsedBubble" ColumnDefinitions="Auto,*" IsVisible="{Binding JustUsed}" Margin="-16,2,0,4" HorizontalAlignment="Left">
                                 <Path Grid.Column="0" Data="M 16,0 L 0,13 L 16,26 Z" Fill="{DynamicResource AttentionBubbleBrush}" VerticalAlignment="Center" Margin="0,0,-1,0" />
@@ -306,7 +306,7 @@
                             <TextBlock x:Name="NotSetUpMark" Text="{Binding NotSetUpText}" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"
                                        Foreground="{DynamicResource AttentionTextBrush}" />
                         </Border>
-                        <!-- V30 build 3 (Zak 24 Nov, ZAK-LISTS L6.3): "You just used this. It does nothing yet." is a yellow SPEECH BUBBLE with much
+                        <!-- V30 build 3 (Digital Groceries 24 Nov, task list L6.3): "You just used this. It does nothing yet." is a yellow SPEECH BUBBLE with much
                              bigger type, its tail pointing left at the key's number; only the key pressed last shows it (TabletDetailViewModel.NoticeUnsetUse). -->
                         <Grid x:Name="JustUsedBubble" ColumnDefinitions="Auto,*" IsVisible="{Binding JustUsed}" Margin="-16,2,0,4" HorizontalAlignment="Left">
                             <Path Grid.Column="0" Data="M 16,0 L 0,13 L 16,26 Z" Fill="{DynamicResource AttentionBubbleBrush}" VerticalAlignment="Center" Margin="0,0,-1,0" />
@@ -336,7 +336,7 @@
                 </ctrl:IconButton>
             </Grid>
         </DataTemplate>
-        <!-- V29 #158 (Zak 20 Nov: keyboard shortcuts are set in place, no extra window): a ring mode's direction and its
+        <!-- V29 #158 (Digital Groceries 20 Nov: keyboard shortcuts are set in place, no extra window): a ring mode's direction and its
              shortcut box. Click the box, press the keys; Backspace empties it; the × clears it too. DataContext: a ButtonBinding. -->
         <DataTemplate x:Key="RingKeysRow">
             <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="8" Margin="0,4">
@@ -623,7 +623,7 @@
                 </RadioButton>
                 <RadioButton Content="pen" x:Name="PenTab" IsChecked="True" IsVisible="{Binding PenToolActive}"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
-                <!-- V29 #177 (Zak 20 Nov ~18:52: "Should we move the Floating keyboard menu to its own tab / button in between the Eraser
+                <!-- V29 #177 (Digital Groceries 20 Nov ~18:52: "Should we move the Floating keyboard menu to its own tab / button in between the Eraser
                      and Mapping buttons so all 4 tabs have menu of somewhat the same size?" ... "Do it"). -->
                 <RadioButton Content="keyboard" x:Name="KeyboardTab" IsVisible="{Binding PenToolActive}"
                              Theme="{StaticResource PivotTab}" Margin="0,3,8,3" />
@@ -803,7 +803,7 @@
                                            Foreground="{DynamicResource TextMutedBrush}" />
                                 <Slider Grid.Column="1" Minimum="10" Maximum="100" MinWidth="120"
                                         Value="{Binding ActiveAreaSizePercent}" VerticalAlignment="Center" />
-                                <!-- V29 #140 (Zak): type the size, 10 to 100 %. -->
+                                <!-- V29 #140 (Digital Groceries): type the size, 10 to 100 %. -->
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                     <TextBox x:Name="MapSizeBox" Width="58" MinWidth="0" HorizontalContentAlignment="Right" VerticalAlignment="Center"
                                              FontWeight="SemiBold" MaxLength="7" Text="{Binding ActiveAreaSizeInput, UpdateSourceTrigger=LostFocus}"
@@ -1165,7 +1165,7 @@
                       IsVisible="{Binding #ButtonsTab.IsChecked}">
             <!-- The key list keeps a definite width (so a row's "…" stays near its label), and the About
                  text fills the rest of the page beside it, capped at a readable line length (about 70
-                 characters). Zak 9 Nov: the old 300 px About column sat squeezed in a corner, or dropped
+                 characters). Digital Groceries 9 Nov: the old 300 px About column sat squeezed in a corner, or dropped
                  under the list, while half the page stayed empty. When the window is too narrow for both,
                  the code-behind (LayoutExpressKeysPage) moves About under the list at the list's width. -->
             <Grid x:Name="ExpressKeysPage" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="40" RowSpacing="28">
@@ -1230,7 +1230,7 @@
             </StackPanel>
 
             <!-- What express keys are, for anyone who opened this tab unsure. Hidden when the tablet has
-                 none: explaining keys you do not have is noise. Zak 9 Nov: plain, short sentences. -->
+                 none: explaining keys you do not have is noise. Digital Groceries 9 Nov: plain, short sentences. -->
             <StackPanel x:Name="AboutExpressKeys" Grid.Column="1" MaxWidth="520" HorizontalAlignment="Left"
                         VerticalAlignment="Top" IsVisible="{Binding !NoAuxButtons}">
                 <TextBlock x:Name="LblAboutExpressKeys" Classes="Display section" Text="About ExpressKeys" Margin="0,0,0,8" />
@@ -1319,7 +1319,7 @@
                                                     <Binding Path="!RingModes.IsOn" FallbackValue="True" />
                                                 </MultiBinding>
                                             </StackPanel.IsVisible>
-                                            <!-- V29 #150 (Zak 20 Nov: "the touch ring shouldnt look like that when its On"): the same bright
+                                            <!-- V29 #150 (Digital Groceries 20 Nov: "the touch ring shouldnt look like that when its On"): the same bright
                                                  ring picture as the modes page (ring, centre button, live position, readout under it); here
                                                  the centre button is only drawn, its action is the Centre button row. -->
                                             <Panel x:Name="PlainRingPicture" Width="150" Height="150" HorizontalAlignment="Center">
@@ -1353,7 +1353,7 @@
                                                             ContentTemplate="{StaticResource WheelBindingRow}" />
                                             </StackPanel>
 
-                                            <!-- V29 #158 (Zak 20 Nov): the centre button's own menu, Next mode first (the factory choice);
+                                            <!-- V29 #158 (Digital Groceries 20 Nov): the centre button's own menu, Next mode first (the factory choice);
                                                  Do nothing turns it off; Keyboard shortcut… shows a box to press the keys in. -->
                                             <StackPanel x:Name="RingCentrePanel" Spacing="4" Margin="0,8"
                                                         IsVisible="{Binding RingModes.IsOn, FallbackValue=False}">
@@ -1406,7 +1406,7 @@
                                          modes, each sending its own keys per direction (brush size, zoom, …). -->
                                     <!-- Version 16: touch strips have no ring modes (no centre button). -->
                                     <Border Classes="wheelRowDivider" Margin="0,10,0,0" IsVisible="{Binding IsRing}" />
-                                    <!-- V29 #158 (Zak 20 Nov: one switch, one menu): the Touch Ring modes switch is gone; the centre button's
+                                    <!-- V29 #158 (Digital Groceries 20 Nov: one switch, one menu): the Touch Ring modes switch is gone; the centre button's
                                          menu above says whether the modes switch, and Do nothing turns a mode off. -->
                                     <CheckBox x:Name="ChkShowTouchRing" Content="Show Touch Ring setting (on-screen mode display)"
                                               IsChecked="{Binding RingModes.ShowOnScreen}"
@@ -1504,7 +1504,7 @@
             <StackPanel x:Name="AboutTouchRing" Width="340" HorizontalAlignment="Right" VerticalAlignment="Top">
                 <TextBlock x:Name="LblAboutTouchRing" Classes="Display section" Text="About the Touch Ring" Margin="0,0,0,8" />
                 <StackPanel Spacing="10">
-                    <!-- Zak 9 Nov: plain, short sentences. -->
+                    <!-- Digital Groceries 9 Nov: plain, short sentences. -->
                     <TextBlock x:Name="LblRingAboutTurns" TextWrapping="Wrap"
                                Text="Clockwise and anticlockwise turns can do different things. So can the centre button." />
                     <TextBlock x:Name="LblRingAboutDial" TextWrapping="Wrap"
@@ -1633,7 +1633,7 @@
              drawn pen on the right, Default bottom right). Tip Feel is OTA's pressure curve (Softness, mirrored);
              Customise… opens the full curve editor. Double Click Fix is Version 25 (0 = off, 50 = 1 mm, 100 = 2 mm).
              OTD still has no tilt-sensitivity curve, so tilt is on/off only. ===== -->
-        <!-- ===== V29 #180 (Zak's Pen page mockup, 21 Nov 2026: "Zak_Mockup_Pen_App_Page.png", T7 AI/Team/v29 Gui/PS.psd) =====
+        <!-- ===== V29 #180 (Digital Groceries' Pen page mockup, 21 Nov 2026: "Mockup_Pen_App_Page.png", T7 AI/Team/v29 Gui/PS.psd) =====
              The Eraser tab is merged into this page. "Tip Feel | Eraser Feel" swaps the left column and the input box between the
              two pen ends ("Clicking Pen button brings the user to the pen settings and clicking the eraser button brings the user in
              eraser settings menu"); the middle (the eraser's Change…, BUTTON 2, BUTTON 1, Default setting, Keyboard settings…) is
@@ -1665,7 +1665,7 @@
                             <Border x:Name="PenFeelBox" Classes="wacomBox">
                                 <Panel>
                                     <StackPanel x:Name="TipFeelPanel" Spacing="4" IsVisible="{Binding TipSettingsShown}">
-                                        <!-- V29 #130/#140 (Zak): a typed value 1 (Soft) to 100 (Firm) beside the slider, like Double Click Fix. -->
+                                        <!-- V29 #130/#140 (Digital Groceries): a typed value 1 (Soft) to 100 (Firm) beside the slider, like Double Click Fix. -->
                                         <Grid x:Name="TipFeelRow" ColumnDefinitions="*,6,48" RowDefinitions="Auto,Auto">
                                         <Slider x:Name="TipFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
                                         TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
@@ -1688,7 +1688,7 @@
                                         <TextBlock x:Name="LblPenFull" Grid.Column="1" Text="Full" FontSize="12" HorizontalAlignment="Right" /></Grid>
                                     </StackPanel>
                                     <StackPanel x:Name="EraserFeelPanel" Spacing="4" IsVisible="{Binding EraserSettingsShown}">
-                                        <!-- V29 #180: the eraser's own curve (Zak 21 Nov: "1 Can you make them two different setting values?"). -->
+                                        <!-- V29 #180: the eraser's own curve (Digital Groceries 21 Nov: "1 Can you make them two different setting values?"). -->
                                         <Grid x:Name="EraserFeelRow" ColumnDefinitions="*,6,48" RowDefinitions="Auto,Auto">
                                         <Slider x:Name="EraserFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding EraserFeel}"
                                         TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
@@ -1735,7 +1735,7 @@
                                      word shrinks only if it still does not fit. -->
                                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
                                     <TextBlock x:Name="PenDoubleClickOff" Text="Off" FontSize="12" VerticalAlignment="Center" />
-                                    <!-- Zak 9 Nov: "Default" is a button: one click sets the selected profile to 50. Same
+                                    <!-- Digital Groceries 9 Nov: "Default" is a button: one click sets the selected profile to 50. Same
                                          theme Button as the pen buttons' Default (PenSwitchCard penAction), in a compact size
                                          so the Off / Default / Large row keeps its height. -->
                                     <Button x:Name="PenDoubleClickDefaultButton" Grid.Column="1" HorizontalAlignment="Center"
@@ -1756,7 +1756,7 @@
                                            Foreground="{DynamicResource TextMutedBrush}" />
                             </StackPanel>
                         </HeaderedContentControl>
-                        <!-- Version 1: the pressure used while pressure sensitivity is off ("Manual Pressure", Zak's mockup), one per pen end. -->
+                        <!-- Version 1: the pressure used while pressure sensitivity is off ("Manual Pressure", Digital Groceries' mockup), one per pen end. -->
                         <HeaderedContentControl x:Name="ManualTipPressureFrame" Classes="wacomGroup" Header="Manual Pressure" IsVisible="{Binding TipSettingsShown}">
                             <StackPanel Spacing="4">
                                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
@@ -1795,7 +1795,7 @@
 
                     <!-- Middle: the pen drawing with its round Eraser / Tip labels, and the shared pen buttons. -->
                     <Grid x:Name="PenMiddle" Grid.Column="2" RowDefinitions="Auto,Auto" VerticalAlignment="Top">
-                        <!-- Build 17 (Zak's list 1, item 6): the heading runs from the pen to the right edge of the button cards, as in his mockup;
+                        <!-- Build 17 (Digital Groceries' list 1, item 6): the heading runs from the pen to the right edge of the button cards, as in his mockup;
                              TabletDetailView.LayoutPenPage sets its left edge, width and font size. -->
                         <Grid x:Name="PenButtonTestRow" Margin="0,0,0,12" HorizontalAlignment="Left"
                               IsVisible="{Binding HasPenButtons}">
@@ -1820,10 +1820,10 @@
                         <!-- V29 #180: the drawing and the cards; the test line above takes this width and wraps (Grok 21 Nov:
                              the capitals in fr, bg, ru, sv and pt-BR were wider than the column and moved the right column). -->
                         <Grid x:Name="PenMiddleBody" Grid.Row="1" ColumnDefinitions="Auto,20,Auto" HorizontalAlignment="Left">
-                        <!-- Build 17 (Zak's list 1, items 3-5): the circles sit over the pen's ends like a bullseye: the Eraser circle
+                        <!-- Build 17 (Digital Groceries' list 1, items 3-5): the circles sit over the pen's ends like a bullseye: the Eraser circle
                              round the eraser cap, the Tip circle round the point, the words just beyond the pen as in his mockup. The
                              pen drawing is 64 x 360 (eraser cap from 0, point at 351); the circles' centres are 17 above the cap and 16
-                             below the point, measured on Zak_Mockup_Pen_App_Page.png. -->
+                             below the point, measured on Mockup_Pen_App_Page.png. -->
                         <Panel x:Name="PenDiagramColumn" Width="80" Height="460" HorizontalAlignment="Center" VerticalAlignment="Top">
                             <views:PenDiagram x:Name="PenDrawing" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,55,0,0" />
                             <Border x:Name="EraserEndLabel" Classes="penEndLabel" Classes.selected="{Binding EraserSettingsShown}"
@@ -1836,7 +1836,7 @@
                             </Border>
                         </Panel>
                         <StackPanel x:Name="PenCardsColumn" Grid.Column="2" Spacing="24" HorizontalAlignment="Left">
-                            <!-- The eraser end's action beside the Eraser label: Change… and its current action (Zak's mockup). -->
+                            <!-- The eraser end's action beside the Eraser label: Change… and its current action (Digital Groceries' mockup). -->
                             <StackPanel x:Name="EraserActionRow" Orientation="Horizontal" Spacing="12" Margin="0,18,0,10">
                                 <Button x:Name="EraserChangeButton" Classes="penEndAction" Content="Change…"
                                         Command="{Binding PenEraserRow.ChooseActionCommand}" IsVisible="{Binding PenEraserRow.ShowChooseAction, FallbackValue=False}"
@@ -1890,9 +1890,9 @@
                         <views:PenBasicsPanel ForEraser="{Binding EraserSettingsShown}" />
                     </Border>
                 </Grid>
-                    <!-- Right: the radial menu and, under it, the colour palette (Zak's mockup), each with its size and its line. The pictures
+                    <!-- Right: the radial menu and, under it, the colour palette (Digital Groceries' mockup), each with its size and its line. The pictures
                          keep the v27 rule: the menu at its real size in a fixed square, so nothing moves while a slider is dragged. -->
-                    <!-- Build 17 (Zak's list 1, item 9): TabletDetailView.LayoutPenPage centres this column exactly between the right edge of the
+                    <!-- Build 17 (Digital Groceries' list 1, item 9): TabletDetailView.LayoutPenPage centres this column exactly between the right edge of the
                          button cards and the page's right edge, as in his mockup (the 24 gap and the page's 10 padding had put it ~5 px right). -->
                     <StackPanel x:Name="PenRightColumn" Grid.Column="2" Spacing="6" VerticalAlignment="Top" HorizontalAlignment="Left" MaxWidth="324">
                         <StackPanel x:Name="RadialSpot" Spacing="6">
@@ -1905,9 +1905,9 @@
                                 <TextBlock Text="{Binding MenuSwitchOnText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
                             </StackPanel>
                             <Viewbox x:Name="RadialSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center">
-                            <!-- V30 build 4 (Zak 24 Nov ~15:44-15:50): "a swithch with On on one side and Off on the other" beside a label, "in the
+                            <!-- V30 build 4 (Digital Groceries 24 Nov ~15:44-15:50): "a swithch with On on one side and Off on the other" beside a label, "in the
                                  top right corner of the radial and palette menu ... Or outside next to that corner": just above the square's top
-                                 right corner, so it never covers the circle. Turning it on asks which pen button opens the menu. Build 5 (Zak's
+                                 right corner, so it never covers the circle. Turning it on asks which pen button opens the menu. Build 5 (Digital Groceries'
                                  screenshot, a narrower window): outside the Viewbox, so it keeps its size and is never cut off when the picture shrinks. -->
                             <StackPanel Width="324" Spacing="2">
                             <Grid x:Name="RadialSpotArea" Width="324" Height="324">
@@ -1935,12 +1935,12 @@
                             <TextBlock x:Name="RadialCentreHint" Text="{Binding RadialPreview.CentreHint}" FontSize="12" TextWrapping="Wrap"
                                        TextAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
                                        IsVisible="{Binding RadialPreview.HasCentreHint}" />
-                            <!-- Build 17 (Zak's list 1, item 8): starts exactly where "Radial Menu Size" starts. -->
+                            <!-- Build 17 (Digital Groceries' list 1, item 8): starts exactly where "Radial Menu Size" starts. -->
                             <TextBlock x:Name="RadialSpotLine" Text="{Binding RadialSpotLine}" Classes="spotLine" HorizontalAlignment="Left" TextAlignment="Left" />
                             <StackPanel x:Name="RadialSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}">
                                 <TextBlock x:Name="RadialTransparencyTitle" Text="{Binding RadialTransparencyTitle}" Classes="spotTitle" />
                                 <Grid x:Name="RadialTransparencyRow" ColumnDefinitions="*,8,52,4,18">
-                                    <!-- Build 17 (Zak's list 1, item 7): as long as the Radial Menu Size slider looks (its line ends at its
+                                    <!-- Build 17 (Digital Groceries' list 1, item 7): as long as the Radial Menu Size slider looks (its line ends at its
                                          knob's centre at 10), so half a knob shorter. -->
                                     <Slider x:Name="RadialTransparencySlider" Minimum="0" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True"
                                             Value="{Binding RadialPreview.Transparency, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0"
@@ -1977,7 +1977,7 @@
                             </StackPanel>
                             <Viewbox x:Name="PaletteSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" MaxWidth="324">
                                 <StackPanel Width="324" Spacing="2">
-                                    <!-- V30 build 5 (Zak 24 Nov ~17:43): click the palette, as the radial menu, to open its own window and pick your
+                                    <!-- V30 build 5 (Digital Groceries 24 Nov ~17:43): click the palette, as the radial menu, to open its own window and pick your
                                          own colours (PaletteEditorDialog). -->
                                     <Button x:Name="PaletteSpotButton" Classes="flat" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand"
                                             HorizontalAlignment="Center" IsEnabled="{Binding CanEditRadialSliders}" Click="OnPaletteSpotClick"
@@ -2016,7 +2016,7 @@
                       IsVisible="{Binding #KeyboardTab.IsChecked}">
             <Border Classes="wacomPane" HorizontalAlignment="Stretch">
             <StackPanel Spacing="10">
-                <!-- V29 #163 (Zak 20 Nov ~09:10, screenshot "Put the keyboard settings menu and how it is triggered here"): the floating
+                <!-- V29 #163 (Digital Groceries 20 Nov ~09:10, screenshot "Put the keyboard settings menu and how it is triggered here"): the floating
                      keyboard's own section under Movement / Pen input: what opens it on the left, how it looks on the right (the
                      transparency row moved here from the radial menu's sliders; #162 adds its size). -->
                 <Border x:Name="FloatingKeyboardBox" Classes="penBasicsInset" Padding="16">
@@ -2025,14 +2025,14 @@
                                    FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
                         <TextBlock x:Name="FloatingKeyboardIntro" Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding KeyboardLook.Intro}"
                                    TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,0,12" />
-                        <!-- Zak 20 Nov (build 7): "The keyboard should be shown in that menu the way the radial menu is shown on the top
+                        <!-- Digital Groceries 20 Nov (build 7): "The keyboard should be shown in that menu the way the radial menu is shown on the top
                              part of the app page": the keyboard itself, at its size and transparency, with the Mac's layout. -->
                         <ctrl:KeyboardPreview x:Name="FloatingKeyboardPicture" Grid.Row="2" Grid.ColumnSpan="3" HorizontalAlignment="Center"
                                               Margin="0,0,0,16" IsHitTestVisible="False"
                                               SizePercent="{Binding KeyboardLook.Size}" Transparency="{Binding KeyboardLook.Transparency}"
                                               AutomationProperties.Name="Floating keyboard picture" />
                         <StackPanel x:Name="FloatingKeyboardOpens" Grid.Row="3" Spacing="6">
-                            <!-- V29 #160 (Zak 20 Nov ~09:18-09:24): pen button 1 held opens the keyboard (factory) or drags. -->
+                            <!-- V29 #160 (Digital Groceries 20 Nov ~09:18-09:24): pen button 1 held opens the keyboard (factory) or drags. -->
                             <StackPanel x:Name="KeyboardHoldRow" Spacing="6" IsVisible="{Binding HasPenButton1}" Margin="0,0,0,10">
                                 <TextBlock Text="{Binding HoldCaption}" FontSize="12" />
                                 <ComboBox x:Name="KeyboardHoldBox" ItemsSource="{Binding HoldChoices}" SelectedIndex="{Binding HoldChoice, Mode=TwoWay}"
@@ -2043,7 +2043,7 @@
                                            Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HoldIsOther}" />
                             </StackPanel>
                             <TextBlock Text="{Binding KeyboardLook.SliceCaption}" FontSize="12" />
-                            <!-- Zak 20 Nov (build 7): the 'Put the keyboard there' button was confusing; choosing a slice puts it there. -->
+                            <!-- Digital Groceries 20 Nov (build 7): the 'Put the keyboard there' button was confusing; choosing a slice puts it there. -->
                             <ComboBox x:Name="KeyboardSlotBox" ItemsSource="{Binding KeyboardSlots}" SelectedIndex="{Binding KeyboardSlot, Mode=TwoWay}"
                                       MinWidth="220" IsEnabled="{Binding CanPutKeyboard}" AutomationProperties.Name="Slice for the keyboard" />
                             <TextBlock x:Name="KeyboardSlotStatus" Text="{Binding KeyboardStatus}" FontSize="12" TextWrapping="Wrap"

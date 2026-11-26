@@ -4,7 +4,7 @@ using Avalonia;
 namespace OpenTabletArtist.Helpers;
 
 /// <summary>
-/// V29 #176 (Zak 20 Nov, builds 9-11 on macOS 27.2.1: the app's window "doesnt work half the time" and "gets stuck and jittery in
+/// V29 #176 (Digital Groceries 20 Nov, builds 9-11 on macOS 27.2.1: the app's window "doesnt work half the time" and "gets stuck and jittery in
 /// between the two screens", while Finder's windows always move). macOS 27.2 has a regression: -[NSWindow performWindowDragWithEvent:]
 /// is intermittent for apps that draw their own title bar (it fails or starts seconds late), while Finder and Safari are fine.
 /// Reported by Warp (warpdotdev/warp#16508, Apple FB25207761) with A/B data: moving the window by hand from the drag events worked

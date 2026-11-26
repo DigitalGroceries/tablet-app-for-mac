@@ -99,7 +99,7 @@ public partial class ButtonBinding : ObservableObject
     /// <summary>False disables the Edit button (read-only host, or button mapping suspended).</summary>
     public bool CanEdit { get; }
 
-    /// <summary>V30 #200 B2 (Zak 23 Nov 2026: users "wouldnt know their tablets buttons, wheels and strips wouldnt do anything
+    /// <summary>V30 #200 B2 (Digital Groceries 23 Nov 2026: users "wouldnt know their tablets buttons, wheels and strips wouldnt do anything
     /// until they are setup"; team vote: do this first): nothing is on this control, so its card says so and offers to
     /// choose, instead of a quiet "Do nothing".</summary>
     public bool IsNotSetUp => CanEdit && _keyOn && !IsOtherBinding && !_applied.IsBound;
@@ -152,7 +152,7 @@ public partial class ButtonBinding : ObservableObject
     /// <summary>V29 #158: the keyboard shortcut shown in a ring mode's shortcut box (empty when none is set).</summary>
     public string KeysText => _applied.Kind == AuxKind.Keyboard && _applied.Combo.IsBound ? AuxKeyBinding.Describe(_applied) : "";
 
-    /// <summary>V29 #158 (Zak: shortcuts set in place, no extra window): a shortcut typed into the row's box
+    /// <summary>V29 #158 (Digital Groceries: shortcuts set in place, no extra window): a shortcut typed into the row's box
     /// (<see cref="Controls.KeyCaptureBox"/>); <see cref="AuxCombo.Unbound"/> empties the row.</summary>
     [RelayCommand(CanExecute = nameof(CanEdit))]
     private async Task SetKeys(AuxCombo? combo)

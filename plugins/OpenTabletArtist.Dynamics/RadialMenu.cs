@@ -19,10 +19,10 @@ namespace OpenTabletArtist.Dynamics;
 
 /// <summary>
 /// Radial menu (TASKS #42), like Wacom's: a pen button or ExpressKey set to it shows an 8-slice menu centred
-/// on the pointer. Tap a slice with the pen tip to use it. V29 #131 (Zak 19 Nov: "The radial menu should never close if not
+/// on the pointer. Tap a slice with the pen tip to use it. V29 #131 (Digital Groceries 19 Nov: "The radial menu should never close if not
 /// closed by the user by clicking the X"): the menu stays open after a slice is used, an empty slice does nothing, a tap
 /// outside the ring goes to the app underneath (as a mouse click does) and the menu never closes by itself; the X in the
-/// centre closes it, and so do pressing the button again and Esc (Zak: "Just dont close it when non of this is engaged").
+/// centre closes it, and so do pressing the button again and Esc (Digital Groceries: "Just dont close it when non of this is engaged").
 /// A Click slice makes the menu step aside for a moment (the app lets clicks through it) so its click lands on the work below. The menu lives in this binding's "Menu" setting (JSON), so it is
 /// saved with the tablet's settings, per application and per pen like any other binding.
 /// The app draws the menu (Services/RadialMenuOverlay) from the state file this writes. The pen taps are read here;
@@ -35,7 +35,7 @@ public class RadialMenuBinding : IStateBinding
     [Property("Menu"), ToolTip("The menu, as JSON. Edit it in Tablet App for Mac.")]
     public string? Menu { set; get; }
 
-    /// <summary>V30 build 4 (Zak 24 Nov 2026: the colour palette gets its own Off / On switch on the Pen page): true = pressing this
+    /// <summary>V30 build 4 (Digital Groceries 24 Nov 2026: the colour palette gets its own Off / On switch on the Pen page): true = pressing this
     /// button twice does not open the colour palette (two presses are two presses). False by default, so settings saved before
     /// this keep the palette.</summary>
     [Property("No colour palette"), ToolTip("Pressing this button twice does not open the colour palette.")]
@@ -133,7 +133,7 @@ public static class RadialMenuState
     public static string CommandFilePath { get; set; } =
         Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-menu-cmd");
 
-    /// <summary>V29 #154: the colour palette is its own surface (Zak 20 Nov: the radial menu and the palette can be open at the same
+    /// <summary>V29 #154: the colour palette is its own surface (Digital Groceries 20 Nov: the radial menu and the palette can be open at the same
     /// time), with its own state and command files, read by the app's second overlay window.</summary>
     public static string PaletteStateFilePath { get; set; } =
         Path.Combine(Path.GetTempPath(), "OpenTabletArtist", "radial-palette");
@@ -263,11 +263,11 @@ public static class RadialMenuState
         lock (Gate)
         {
             var now = Environment.TickCount64;
-            // Zak 19 Nov: a double press of the SAME button (Grok's review: another button pressed quickly is two single presses).
+            // Digital Groceries 19 Nov: a double press of the SAME button (Grok's review: another button pressed quickly is two single presses).
             bool quick = !binding.NoPalette && now - _lastPressAt <= DoublePressMs && _menuBeforePress is { } first && ReferenceEquals(first.Pressed, binding);
             if (quick)
             {
-                // V29 #154 (Zak 20 Nov): the second press of a double press: the first press's menu change is undone and the
+                // V29 #154 (Digital Groceries 20 Nov): the second press of a double press: the first press's menu change is undone and the
                 // palette opens or closes instead; the menu stays as it was.
                 _lastPressAt = long.MinValue / 2;
                 var before = _menuBeforePress!.Value;
@@ -308,7 +308,7 @@ public static class RadialMenuState
     }
 
     /// <summary>Open the surface <see cref="_s"/> at (x, y) with <paramref name="binding"/>'s menu (or <paramref name="menu"/>).
-    /// With <paramref name="beside"/>, it moves beside the other surface when the two circles would overlap (Zak 20 Nov).</summary>
+    /// With <paramref name="beside"/>, it moves beside the other surface when the two circles would overlap (Digital Groceries 20 Nov).</summary>
     private static void OpenLocked(RadialMenuBinding binding, RadialMenuDef? menu, double x, double y, bool beside)
     {
         var other = ReferenceEquals(_s, MenuSurface) ? PaletteSurface : MenuSurface;
@@ -333,7 +333,7 @@ public static class RadialMenuState
     private static double RadiusOf(Surface x, RadialMenuDef def) =>
         RadialMenuGeometry.OuterRadius(x.IsPalette ? def.PaletteSize : def.Size);
 
-    /// <summary>Zak 20 Nov (build 8): "the app had difficulty deciding am I clicking on the radial menu or on the palette when they were
+    /// <summary>Digital Groceries 20 Nov (build 8): "the app had difficulty deciding am I clicking on the radial menu or on the palette when they were
     /// covering some portions of each other". After the surface <see cref="_s"/> was dragged, it is the one on top (taps ask it first),
     /// and if it now covers the other one it moves beside it, as opening does. Returns true when it moved.</summary>
     private static bool AfterDragLocked()
@@ -352,7 +352,7 @@ public static class RadialMenuState
     public static Func<IReadOnlyList<(double X, double Y, double W, double H)>> ScreensProvider { get; set; } = MacScreens.All;
 
     /// <summary>Where a circle of radius <paramref name="r"/> wanted at (x, y) goes so it doesn't cover the circle at (ox, oy)
-    /// of radius <paramref name="or"/> (Zak 20 Nov: "If the palette would cover the menu, it opens beside it"): unchanged when
+    /// of radius <paramref name="or"/> (Digital Groceries 20 Nov: "If the palette would cover the menu, it opens beside it"): unchanged when
     /// they don't touch; else beside it on the pointer's side, then the other side, then below, then above - the first
     /// place that is wholly on one screen (Grok's review); if none is, where it was asked for.</summary>
     public static (double X, double Y) Beside(double x, double y, double r, double ox, double oy, double or)
@@ -421,7 +421,7 @@ public static class RadialMenuState
             }
             if (_palette)
             {
-                // V29 #142: the centre works as on the menu (Zak ~20:05): X closes, the pencil then a swatch changes that colour,
+                // V29 #142: the centre works as on the menu (Digital Groceries ~20:05): X closes, the pencil then a swatch changes that colour,
                 // the circular arrow asks Yes / No to put the palette's colours back. A swatch: the app sets the colour (Photoshop)
                 // and copies its code; the palette stays open. While the Yes / No shows, the right half is Yes, the left half No.
                 if (_confirm)
@@ -433,7 +433,7 @@ public static class RadialMenuState
                 if (slice == RadialMenuGeometry.Centre) CloseLocked("centre");
                 else if (slice is RadialMenuGeometry.Edit or RadialMenuGeometry.Restore) CentreQuarterLocked(slice);
                 else if (slice >= 0) PaletteTapLocked(slice);
-                // ColourPalette.Dot (the middle dot showing the last colour picked; Zak 19 Nov 20:21): a tap there does nothing.
+                // ColourPalette.Dot (the middle dot showing the last colour picked; Digital Groceries 19 Nov 20:21): a tap there does nothing.
                 return true;
             }
             if (slice < 0) { CentreQuarterLocked(slice); return true; }
@@ -821,7 +821,7 @@ public static class RadialMenuState
         }
         for (int i = 0; i < (dbl ? 2 : 1); i++)
         {
-            // 20 Nov (found with Zak's "No right click" report): the Mac pointer posts a button only when its state differs at Flush,
+            // 20 Nov (found with Digital Groceries' "No right click" report): the Mac pointer posts a button only when its state differs at Flush,
             // so a down and an up before one flush cancel out. Each one is flushed on its own.
             pointer.MouseDown(b);
             if (pointer is ISynchronousPointer s1) s1.Flush();

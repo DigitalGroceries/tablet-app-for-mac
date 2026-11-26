@@ -12,12 +12,12 @@ using OtdInterop.Tests;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V30 build 4 (Zak 24 Nov 2026 ~15:50: "Dont create mockup pictures that are different from the app as they are so
-/// confusing"): pictures for Zak use a tablet set up like his, never the sweep's PTK-470 test sample (not detected, pen button 2
+/// <summary>V30 build 4 (Digital Groceries 24 Nov 2026 ~15:50: "Dont create mockup pictures that are different from the app as they are so
+/// confusing"): pictures for Digital Groceries use a tablet set up like his, never the sweep's PTK-470 test sample (not detected, pen button 2
 /// changed to E): a connected Wacom PTK-440 (Intuos4 Small: two pen buttons, six ExpressKeys, the touch ring) with factory settings
 /// (pen button 2 opens the radial menu, pressed twice the colour palette; pen button 1 right-clicks and, held, opens the keyboard).
 /// The pager's KEEPs K6 / K7 remind of this rule.</summary>
-internal static class ZakTablet
+internal static class DigitalGroceriesTablet
 {
     public const string Name = "Wacom PTK-440";
 

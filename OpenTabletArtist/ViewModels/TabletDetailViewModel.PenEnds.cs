@@ -8,11 +8,11 @@ namespace OpenTabletArtist.ViewModels;
 
 public partial class TabletDetailViewModel
 {
-    // ── V29 #180 (Zak's Pen page mockup, 21 Nov 2026) ────────────────────────────────────────────────────────────────────────
+    // ── V29 #180 (Digital Groceries' Pen page mockup, 21 Nov 2026) ────────────────────────────────────────────────────────────────────────
     // The Eraser tab is gone: the Pen page's "Tip Feel | Eraser Feel" switch swaps the page's own settings between the two pen
     // ends ("Clicking Pen button brings the user to the pen settings and clicking the eraser button brings the user in eraser
     // settings menu"): the feel, Manual Pressure, Double Click Fix (tip only) and Pen / Eraser input. The pen buttons are shared
-    // and stay the same either way (Zak ~12:40). "1 Can you make them two different setting values?": the eraser has its own feel
+    // and stay the same either way (Digital Groceries ~12:40). "1 Can you make them two different setting values?": the eraser has its own feel
     // curve; a profile written by an older app has none, so the eraser starts with the tip's curve and keeps its own from the
     // first save on.
 
@@ -22,7 +22,7 @@ public partial class TabletDetailViewModel
     /// <summary>The switch at the top of the Pen page's left column: false = the tip's settings, true = the eraser's.</summary>
     [ObservableProperty] private bool _eraserSettingsShown;
 
-    /// <summary>The pen tip touches the tablet. Build 17 (Zak's list 1, item 1): the round "Tip" circle no longer lights for it.</summary>
+    /// <summary>The pen tip touches the tablet. Build 17 (Digital Groceries' list 1, item 1): the round "Tip" circle no longer lights for it.</summary>
     [ObservableProperty] private bool _tipPressed;
     /// <summary>The eraser touches the tablet (the "Eraser" circle no longer lights for it, build 17).</summary>
     [ObservableProperty] private bool _eraserPressed;
@@ -135,7 +135,7 @@ public partial class TabletDetailViewModel
         EraserPressed = s.IsDown && s.IsEraser && s.Pressure > 0;
     }
 
-    // ── Right column texts (Zak's mockup and his 21 Nov answers) ─────────────────────────────────────────────────────────────
+    // ── Right column texts (Digital Groceries' mockup and his 21 Nov answers) ─────────────────────────────────────────────────────────────
     public string RadialTransparencyTitle => Localizer.Te("radial_spot.transparency", "Radial Menu Transparency");
     public string RadialSizeTitle => Localizer.Te("radial_spot.size", "Radial Menu Size");
     public string PaletteSizeTitle => Localizer.Te("palette_spot.size", "Colour Palette Size");

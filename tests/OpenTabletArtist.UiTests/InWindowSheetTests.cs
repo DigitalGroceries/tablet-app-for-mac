@@ -10,7 +10,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>Version 19 (Zak: no popup windows): dialogs open inside the main window, keep their result and
+/// <summary>Version 19 (Digital Groceries: no popup windows): dialogs open inside the main window, keep their result and
 /// close the same way.</summary>
 public class InWindowSheetTests
 {

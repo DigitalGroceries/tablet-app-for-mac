@@ -74,7 +74,7 @@ public sealed class ReportWindow : Window
     {
         Model = vm;
         Title = vm.Title;
-        Width = 620; SizeToContent = SizeToContent.Height; CanResize = false;   // V30 #200: bigger (Zak 23 Nov)
+        Width = 620; SizeToContent = SizeToContent.Height; CanResize = false;   // V30 #200: bigger (Digital Groceries 23 Nov)
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
         var problem = new RadioButton { Name = "ReportProblem", Content = vm.ProblemLabel, GroupName = "ReportKind", IsChecked = !vm.IsRecommendation };
@@ -90,13 +90,13 @@ public sealed class ReportWindow : Window
         text.PropertyChanged += (_, e) => { if (e.Property == TextBox.TextProperty) vm.Description = text.Text ?? ""; };
         Avalonia.Automation.AutomationProperties.SetName(text, vm.DescriptionLabel);
 
-        // Version 25 (Zak, 6 Nov 2026): optional email near the top, with Zak's own line. Send with file only.
+        // Version 25 (Digital Groceries, 6 Nov 2026): optional email near the top, with Digital Groceries' own line. Send with file only.
         var email = new TextBox { Name = "ReportEmail", PlaceholderText = vm.EmailHint, Text = vm.Email, MaxWidth = 360, HorizontalAlignment = HorizontalAlignment.Left };
         email.PropertyChanged += (_, e) => { if (e.Property == TextBox.TextProperty) vm.Email = email.Text ?? ""; };
         Avalonia.Automation.AutomationProperties.SetName(email, vm.EmailLabel);
 
         var body = new StackPanel { Margin = new Thickness(24, 8, 24, 20), Spacing = 12 };
-        // "How to report" (Zak, 17 Nov 2026): a short guide, shown and hidden by its button, at the top of the report.
+        // "How to report" (Digital Groceries, 17 Nov 2026): a short guide, shown and hidden by its button, at the top of the report.
         var howToButton = new Button { Name = "ReportHowTo", Content = vm.HowToLabel, Command = vm.ToggleHowToCommand, HorizontalAlignment = HorizontalAlignment.Left };
         var howToSteps = new StackPanel { Name = "ReportHowToSteps", Spacing = 4, IsVisible = vm.IsHowToOpen };
         foreach (var step in vm.HowToSteps)
@@ -145,7 +145,7 @@ public sealed class ReportWindow : Window
         var status = new TextBlock { Name = "ReportStatus", Text = vm.Status, TextWrapping = TextWrapping.Wrap, IsVisible = vm.Status.Length > 0 }.Fg();
         body.Children.Add(status);
 
-        // Version 29 (Zak, 17 Nov 2026): Send with file with the email box empty asks first, inside the sheet.
+        // Version 29 (Digital Groceries, 17 Nov 2026): Send with file with the email box empty asks first, inside the sheet.
         vm.AskForEmail = true;
         var askAdd = new Button { Name = "ReportEmailAskAdd", Content = vm.AddEmailLabel, Padding = new Thickness(16, 8), Command = vm.AddEmailCommand };
         var askSend = new Button { Name = "ReportEmailAskSendWithout", Content = vm.SendWithoutEmailLabel, Padding = new Thickness(16, 8), Command = vm.SendWithoutEmailCommand };
@@ -158,7 +158,7 @@ public sealed class ReportWindow : Window
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right, Children = { askAdd, askSend } },
             },
         };
-        // V29 #156 (Zak 20 Nov, build 5: "Send with file report does not work if the email ... is not written"): the question
+        // V29 #156 (Digital Groceries 20 Nov, build 5: "Send with file report does not work if the email ... is not written"): the question
         // was added above the buttons, often out of sight in a long report, so pressing Send with file looked like it did
         // nothing. It now takes the buttons' place, framed, and is scrolled into view.
         var askFrame = new Border
@@ -181,10 +181,10 @@ public sealed class ReportWindow : Window
         };
         body.Children.Add(buttons);
 
-        // V30 #200 (Zak 23 Nov 2026: "make it simpler ... bigger ... the list of the steps numbered one under another";
+        // V30 #200 (Digital Groceries 23 Nov 2026: "make it simpler ... bigger ... the list of the steps numbered one under another";
         // team vote A1, A3, A5): after Send with file the sheet shows 3 big numbered steps. Step 1 has the big Open upload
         // page button, step 2 shows the file itself (it can be dragged onto the page), step 3 the name and email. The sheet
-        // stays open until Done. Zak 23 Nov: the upload service is never named. Zak 23 Nov 17:42: Open upload page also shows
+        // stays open until Done. Digital Groceries 23 Nov: the upload service is never named. Digital Groceries 23 Nov 17:42: Open upload page also shows
         // the file in Finder (A2), and "The page doesn't open?" shows the email address (A6).
         var openUpload = new Button
         {
@@ -208,7 +208,7 @@ public sealed class ReportWindow : Window
         fileTile.Use(Border.BorderBrushProperty, "GlassBorderBrush").Use(Border.BackgroundProperty, "BgSurfaceBrush");
         fileTile.PointerPressed += async (_, e) => await DragFileOutAsync(fileTile, e, vm.SavedPath);
         // V30 #200 A6: the upload page doesn't open (no internet, a blocked site) - email the file instead.
-        // Zak 23 Nov 19:1x: a small grey text link is not seen as something to click - a real button (the normal kind, so the
+        // Digital Groceries 23 Nov 19:1x: a small grey text link is not seen as something to click - a real button (the normal kind, so the
         // big accent Open upload page stays the first thing to press).
         var wontOpen = new Button
         {
@@ -315,7 +315,7 @@ public sealed class ReportWindow : Window
 
     private bool _aside;
 
-    /// <summary>V29 #167 (Zak 20 Nov ~09:46): while recording, the sheet steps aside so the app can be used (the radial menu settings,
+    /// <summary>V29 #167 (Digital Groceries 20 Nov ~09:46): while recording, the sheet steps aside so the app can be used (the radial menu settings,
     /// any page); a bar at the bottom of the window shows the recording and stops it. Stopping brings the report back.</summary>
     private void FollowRecording(ReportViewModel vm)
     {

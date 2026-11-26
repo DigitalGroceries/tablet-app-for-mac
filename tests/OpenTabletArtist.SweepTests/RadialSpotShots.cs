@@ -16,7 +16,7 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>TASKS #63: pictures of Tablet › Pen with the Radial Menu Settings picture at 1100x720 (Zak's window), 900x600 and larger, with the page hosted like
+/// <summary>TASKS #63: pictures of Tablet › Pen with the Radial Menu Settings picture at 1100x720 (Digital Groceries' window), 900x600 and larger, with the page hosted like
 /// the app does (below the nav row, above the footer). Output: $OTA_SHOTS/radial-spot-*.png or /workspace.</summary>
 public class RadialSpotShots
 {
@@ -45,7 +45,7 @@ public class RadialSpotShots
         var spot = view.FindControl<StackPanel>("RadialSpot")!;
         view.FindControl<TextBlock>("RadialSpotLine")!.BringIntoView();   // V30 build 4: no "Use pen button 2" button any more
         Settle(window);
-        spot.BringIntoView();   // V29 #180: no heading above the picture any more (Zak's mockup)
+        spot.BringIntoView();   // V29 #180: no heading above the picture any more (Digital Groceries' mockup)
         Settle(window);
         return (vm, view, window);
     }
@@ -56,7 +56,7 @@ public class RadialSpotShots
     [InlineData(1100, 720)]
     [InlineData(900, 600)]
     [InlineData(1100, 1000)]
-    [InlineData(1046, 1365)]   // Zak's window (16:39 screenshot)
+    [InlineData(1046, 1365)]   // Digital Groceries' window (16:39 screenshot)
     public void RadialSpot(double w, double h)
     {
         Directory.CreateDirectory(Dir);

@@ -203,7 +203,7 @@ public partial class StartupViewModel : ObservableObject
     public string OledLabelsDescription => Localizer.Te("oled.description",
         "Intuos4 Medium, Large and Extra Large. Each small screen beside an ExpressKey shows that key's action, as with the Wacom driver. Off: the screens stay dark.");
 
-    // ---- V28 #80 Option A (Zak 16 Nov): save every change by itself, like the Wacom app (on by default)
+    // ---- V28 #80 Option A (Digital Groceries 16 Nov): save every change by itself, like the Wacom app (on by default)
     public bool AutoSaveOn
     {
         get => Services.AutoSave.Enabled;

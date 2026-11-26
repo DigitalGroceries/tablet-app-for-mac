@@ -12,7 +12,7 @@ using OpenTabletArtist.Views;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>TASKS #59 (Zak 18:21): the Menu transparency value can be typed, not only dragged. Type into the real box of the
+/// <summary>TASKS #59 (Digital Groceries 18:21): the Menu transparency value can be typed, not only dragged. Type into the real box of the
 /// real radial menu editor: Enter or leaving the box applies it, the slider and the live preview follow.</summary>
 public class RadialTransparencyBoxTests
 {
@@ -72,7 +72,7 @@ public class RadialTransparencyBoxTests
         w.KeyTextInput("350");
         w.GetVisualDescendants().OfType<TextBox>().First(t => t != box).Focus();   // leave the box
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(60, vm.Transparency);   // v27: the limit is 60 (Zak 16:01)
+        Assert.Equal(60, vm.Transparency);   // v27: the limit is 60 (Digital Groceries 16:01)
         Assert.Equal(60, slider.Value);
         Assert.Equal("60", box.Text);
         w.Close();
@@ -127,7 +127,7 @@ public class RadialTransparencyBoxTests
         var (w, _, _, pie, vm) = Open();
         var box = w.GetVisualDescendants().OfType<TextBox>().First(t => t.Name == "SizeBox");
         var slider = w.GetVisualDescendants().OfType<Slider>().First(s => s.Maximum == RadialMenuDef.MaxSizeStep && s.Minimum == RadialMenuDef.MinSizeStep);
-        Assert.Equal("10", box.Text);                  // v27 (Zak 16:07): steps 1-10; 10 is the largest (size 50)
+        Assert.Equal("10", box.Text);                  // v27 (Digital Groceries 16:07): steps 1-10; 10 is the largest (size 50)
         Assert.Equal(10, slider.Value);
         Assert.Equal(vm.SizeInput, box.Text);          // Pen page binds the same SizeInput
         vm.SizeStep = 4;

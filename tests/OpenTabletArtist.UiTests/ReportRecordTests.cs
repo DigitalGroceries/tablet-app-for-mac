@@ -80,7 +80,7 @@ public class ReportRecordTests
         }
     }
 
-    /// <summary>V29 #167 (Zak 20 Nov ~09:46: "I cant record report file because when recording is happening the radial menu settings are
+    /// <summary>V29 #167 (Digital Groceries 20 Nov ~09:46: "I cant record report file because when recording is happening the radial menu settings are
     /// not available because the app is held in recording mode"): while recording, the report steps aside so the whole app can be
     /// used, and a bar at the bottom of the window shows the recording and stops it; stopping brings the report back.</summary>
     [AvaloniaFact]

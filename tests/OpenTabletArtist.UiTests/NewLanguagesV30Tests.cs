@@ -9,7 +9,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>Version 30 (Zak 24 Nov 2026: "do we have the app translated to japanese and indian? add them if we dont",
+/// <summary>Version 30 (Digital Groceries 24 Nov 2026: "do we have the app translated to japanese and indian? add them if we dont",
 /// then "also the most popular african language too"): Japanese was already there; Hindi and Swahili are new. Every key
 /// of en.json, the same placeholders, offered in Settings › System › Language, and a Mac set to Hindi (India) or
 /// Swahili (Kenya, Tanzania) gets them.</summary>

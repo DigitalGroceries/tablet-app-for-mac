@@ -18,7 +18,7 @@ public static class Localizer
     public const string SystemCode = "system";
 
     /// <summary>Languages offered in Settings (native labels). The website's Language menu lists exactly these, in this order
-    /// (the owner's rule, 26 Nov 2026: the website always lists the languages the app has):
+    /// (Digital Groceries' rule, 26 Nov 2026: the website always lists the languages the app has):
     /// after adding one here, run <c>python3 site/sync_languages.py</c>; SiteLanguagesTests fails until the two match.</summary>
     public static readonly (string Code, string NativeName)[] Languages =
     {
@@ -31,11 +31,11 @@ public static class Localizer
         ("ru", "Русский"),
         ("ja", "日本語"),
         ("zh-CN", "中文"),
-        // Version 29 (item 4): Italian, Swedish and Brazilian Portuguese (Zak: the Portuguese spoken by more people).
+        // Version 29 (item 4): Italian, Swedish and Brazilian Portuguese (Digital Groceries: the Portuguese spoken by more people).
         ("it", "Italiano"),
         ("sv", "Svenska"),
         ("pt-BR", "Português (Brasil)"),
-        // Version 30 (Zak 24 Nov 2026): Hindi ("Indian") and Swahili, the most widely spoken African language.
+        // Version 30 (Digital Groceries 24 Nov 2026): Hindi ("Indian") and Swahili, the most widely spoken African language.
         ("hi", "हिन्दी"),
         ("sw", "Kiswahili"),
     };

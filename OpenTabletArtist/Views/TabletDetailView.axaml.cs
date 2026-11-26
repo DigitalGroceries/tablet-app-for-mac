@@ -41,12 +41,12 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         SyncToolChips();
         ApplyLanguage();
         HookRadialSliders();
-        // Zak 9 Nov: About ExpressKeys beside the key list when there is room, under it when there is not.
+        // Digital Groceries 9 Nov: About ExpressKeys beside the key list when there is room, under it when there is not.
         ExpressKeysPage.SizeChanged += (_, e) => LayoutExpressKeysPage(e.NewSize.Width);
         // Touch ring: About sits over the top right of the page; keep the ring table below it, however many
         // lines the About text wraps to in the chosen language.
         WheelsPage.LayoutUpdated += (_, _) => KeepRingTableClearOfAbout();
-        // Build 17 (Zak's pager task list 1, items 6 and 9): the Pen page's heading and right column follow the drawing and cards.
+        // Build 17 (Digital Groceries' pager task list 1, items 6 and 9): the Pen page's heading and right column follow the drawing and cards.
         PenPageOuter.LayoutUpdated += (_, _) => LayoutPenPage();
         Localizer.LanguageChanged += ApplyLanguage;
         DetachedFromLogicalTree += (_, _) => Localizer.LanguageChanged -= ApplyLanguage;
@@ -55,7 +55,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     /// <summary>The key list is 600 wide; About needs about 300 beside it (plus the 40 gutter) to read well.</summary>
     internal const double ExpressKeysSideBySideWidth = 600 + 40 + 300;
 
-    /// <summary>Zak 9 Nov: put About ExpressKeys to the right of the key list (filling the page up to a readable
+    /// <summary>Digital Groceries 9 Nov: put About ExpressKeys to the right of the key list (filling the page up to a readable
     /// line length), or under the list at the list's width when the page is too narrow for both.</summary>
     internal void LayoutExpressKeysPage(double width)
     {
@@ -66,7 +66,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         AboutExpressKeys.MaxWidth = beside ? 520 : 600;
     }
 
-    /// <summary>Zak 9 Nov: the Touch ring table (Toggle | Function | Speed) spans the full page width, under the
+    /// <summary>Digital Groceries 9 Nov: the Touch ring table (Toggle | Function | Speed) spans the full page width, under the
     /// About block in the top right. Push it down when About is taller than the controls beside it.</summary>
     void KeepRingTableClearOfAbout()
     {
@@ -90,7 +90,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     internal const double PenRightColumnMinGap = 12;
 
     /// <summary>
-    /// Build 17 (Zak's pager task list 1, 21 Nov ~21:07):
+    /// Build 17 (Digital Groceries' pager task list 1, 21 Nov ~21:07):
     /// item 6, "PRESS A BUTTON TO TEST IT" "need to be bigger so it stretches from the pen to the right [edge] of the buttons just
     /// like in the mockup": the heading starts at the pen's barrel and ends at the right edge of the button cards, in the font
     /// size that makes the idle heading fill that width on one line (never below its old 20); the other texts it shows use the
@@ -139,7 +139,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
             null).WidthIncludingTrailingWhitespace;
         if (at20 <= 0) return PenHeadingMinSize;
         // the largest size (in 0.05 steps) at which the line still fits: the helper's check found the 1% margin left it 2-4 px
-        // short of the cards' edge (Zak: "stretches from the pen to the right [edge] of the buttons")
+        // short of the cards' edge (Digital Groceries: "stretches from the pen to the right [edge] of the buttons")
         return Math.Clamp(Math.Floor(20 * width / at20 * 20) / 20, PenHeadingMinSize, PenHeadingMaxSize);
     }
 
@@ -186,7 +186,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (PenDoubleClickLarge != null) PenDoubleClickLarge.Text = Localizer.Te("tablet.pen.double_click_large", "Large");
         if (PenDoubleClickNote != null) PenDoubleClickNote.Text = Localizer.Te("tablet.pen.double_click_note", "How far the pen tip may wobble during a click before it counts as a drag. Off for drawing apps that need every movement.");
         if (PenCustomise != null) PenCustomise.Content = Localizer.T("tablet.pen.customise");
-        // V29 #180 (Zak's mockup): one name for both ends' manual pressure.
+        // V29 #180 (Digital Groceries' mockup): one name for both ends' manual pressure.
         if (ManualTipPressureFrame != null) ManualTipPressureFrame.Header = Localizer.Te("tablet.pen.manual_pressure", "Manual Pressure");
         if (ManualEraserPressureFrame != null) ManualEraserPressureFrame.Header = Localizer.Te("tablet.pen.manual_pressure", "Manual Pressure");
         if (EraserChangeButton != null) EraserChangeButton.Content = Localizer.T("tablet.pen.change");
@@ -358,7 +358,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
             "size");
     }
 
-    /// <summary>v27 (Zak 21:56): a click on one of the four inner icons (X, pencil, circular arrow, hand) explains
+    /// <summary>v27 (Digital Groceries 21:56): a click on one of the four inner icons (X, pencil, circular arrow, hand) explains
     /// what that button does in the real menu, under the picture, and does not open the editor or change a slice.</summary>
     private void HookRadialCentreHints()
     {
@@ -660,7 +660,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     /// False when a name isn't on this page (an index older than the page).</summary>
     public bool OpenSearchPlace(string tool, string tab, string? panel = null)
     {
-        // V29 #180 (Zak's mockup 21 Nov): the Eraser tab became the Pen page with "Eraser Feel" chosen. Its routes (and
+        // V29 #180 (Digital Groceries' mockup 21 Nov): the Eraser tab became the Pen page with "Eraser Feel" chosen. Its routes (and
         // older search results) open the Pen page with the eraser's settings; "PenTab" shows the tip's.
         bool eraser = tab == "EraserTab";
         if (eraser) { tab = "PenTab"; if (panel == "EraserFeelDetails") panel = "FeelDetails"; }

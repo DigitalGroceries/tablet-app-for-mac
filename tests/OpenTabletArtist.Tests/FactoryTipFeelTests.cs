@@ -10,7 +10,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 #159 (Zak 20 Nov ~09:03: "Also make the default factory value for the Tip Feel to be 80").</summary>
+/// <summary>V29 #159 (Digital Groceries 20 Nov ~09:03: "Also make the default factory value for the Tip Feel to be 80").</summary>
 public class FactoryTipFeelTests
 {
     private static Profile NewProfile(string tablet) => new()

@@ -34,7 +34,7 @@ public partial class TabletDetailViewModel
     /// <summary>v1: Mapping / pressure stay on All; show a short note when editing an app.</summary>
     public bool ShowPerAppBindingsOnlyNote => !string.IsNullOrEmpty(SelectedAppBundleId);
 
-    /// <summary>V30 build 5 (Zak 24 Nov 21:18-21:30, testing build 5: Tablet › Pen with "All" lit showed Button 1 as the radial menu,
+    /// <summary>V30 build 5 (Digital Groceries 24 Nov 21:18-21:30, testing build 5: Tablet › Pen with "All" lit showed Button 1 as the radial menu,
     /// which was Photoshop's setting; "I did not move anythin. All I did was to open the app pages and take the screenshots", then
     /// "Photoshop"): the page is built again when you come back to Tablet, and its Application row lit "All" by default while the
     /// page still showed the chosen application's table. The lit tile now always follows the table shown (as the pen tiles do).</summary>
@@ -93,7 +93,7 @@ public partial class TabletDetailViewModel
         ShareOneRadialMenu();
     }
 
-    /// <summary>V29 #170: tables saved before the tablet had ONE radial menu (Zak's Photoshop and Affinity tables kept
+    /// <summary>V29 #170: tables saved before the tablet had ONE radial menu (Digital Groceries' Photoshop and Affinity tables kept
     /// their own copies) get All's menu, once and quietly; each replaced menu is kept aside (RadialMenuShare.ReplacedKey).
     /// Idempotent: afterwards every table already holds it.</summary>
     internal void ShareOneRadialMenu()

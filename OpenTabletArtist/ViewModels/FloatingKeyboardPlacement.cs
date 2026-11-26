@@ -8,7 +8,7 @@ namespace OpenTabletArtist.ViewModels;
 
 /// <summary>
 /// Which radial menu slice holds the floating keyboard, and putting it on one. V29 #143 had this in the pen button's Change… window
-/// (Radial menu tab); V29 #163 (Zak 20 Nov ~09:10: "Move the floating keyboard menu to where it is in the screenshot", "Put the
+/// (Radial menu tab); V29 #163 (Digital Groceries 20 Nov ~09:10: "Move the floating keyboard menu to where it is in the screenshot", "Put the
 /// keyboard settings menu and how it is triggered here") moved it to the Floating keyboard section of the Pen page.
 /// </summary>
 public static class FloatingKeyboardPlacement
@@ -45,7 +45,7 @@ public static class FloatingKeyboardPlacement
     }
 
     /// <summary>
-    /// V29 (Zak 20 Nov, build 7: "The button 'Put the keyboard there' doesnt do anything and is confusing"): the slice menu is the
+    /// V29 (Digital Groceries 20 Nov, build 7: "The button 'Put the keyboard there' doesnt do anything and is confusing"): the slice menu is the
     /// control itself. Its choices: "Not on the radial menu", the slice the keyboard is on, and the empty slices (a slice that does
     /// something else is never overwritten from here). Each choice's slice, 0-based, or -1 for "Not on the radial menu".
     /// </summary>

@@ -14,12 +14,12 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 #160 (Zak 20 Nov ~09:05-09:24): pen button 1 right-clicks on a quick press and shows or hides the floating keyboard
+/// <summary>V29 #160 (Digital Groceries 20 Nov ~09:05-09:24): pen button 1 right-clicks on a quick press and shows or hides the floating keyboard
 /// when held ("what about long press instead of click?"), or, if the user chooses, is a plain right button to drag with.</summary>
 [Collection("FloatingKeyboardFiles")]
 public class HoldForKeyboardTests : IDisposable
 {
-    /// <summary>Like the Mac pointer: it posts at Flush, so a down and an up need a flush between them (Zak 20 Nov: "No right click").</summary>
+    /// <summary>Like the Mac pointer: it posts at Flush, so a down and an up need a flush between them (Digital Groceries 20 Nov: "No right click").</summary>
     private sealed class FakeMouse : IMouseButtonHandler, ISynchronousPointer
     {
         public readonly List<string> Events = new();
@@ -121,7 +121,7 @@ public class HoldForKeyboardTests : IDisposable
     }
 }
 
-/// <summary>V29 #162 (Zak 20 Nov ~09:10-09:12: "the keyboard is microscopic and you did not include a keyboard resizing slider", "Let a
+/// <summary>V29 #162 (Digital Groceries 20 Nov ~09:10-09:12: "the keyboard is microscopic and you did not include a keyboard resizing slider", "Let a
 /// corner dragging resize the floating keyboard too") and the factory look (~09:26: transparency 40%).</summary>
 [Collection("FloatingKeyboardFiles")]
 public class FloatingKeyboardSizeTests

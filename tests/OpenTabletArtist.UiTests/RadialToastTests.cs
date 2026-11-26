@@ -72,7 +72,7 @@ public class RadialToastTests
         finally { ActionConfirmation.Recorder = null; overlay.Dispose(); }
     }
 
-    /// <summary>V29 #169 (Zak 20 Nov ~09:56: "The text 'Tap the colour to change' got separated from the palette and stuck hanging on the
+    /// <summary>V29 #169 (Digital Groceries 20 Nov ~09:56: "The text 'Tap the colour to change' got separated from the palette and stuck hanging on the
     /// desktop"): the hint follows a menu moved by the mouse too (the app moves the window itself then, with no new driver state), and a
     /// pen drag no longer writes a log line for every step.</summary>
     [AvaloniaFact]
@@ -99,7 +99,7 @@ public class RadialToastTests
         finally { overlay.Dispose(); }
     }
 
-    /// <summary>v27 (Zak 13 Nov 14:47: the hint was "too transparent"): the text box is fully solid with a light edge, even when the menu itself is
+    /// <summary>v27 (Digital Groceries 13 Nov 14:47: the hint was "too transparent"): the text box is fully solid with a light edge, even when the menu itself is
     /// set to 100% transparency, and where it went is logged next to the menu centre.</summary>
     [AvaloniaFact]
     public async Task ThePencilHint_IsSolid_EvenOnAFullySeeThroughMenu_AndWhereItWentIsLogged()

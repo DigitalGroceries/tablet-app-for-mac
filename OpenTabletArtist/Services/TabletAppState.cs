@@ -10,7 +10,7 @@ namespace OpenTabletArtist.Services;
 /// each ring's own Off, the pen tip / eraser / pressure-curve switches' saved copies, the ring-mode lists,
 /// "All displays" and the manual pressure values. Restore factory settings resets them; Save as default
 /// keeps a copy and Revert to default puts that copy back, so the switches always match the bindings.
-/// Per-app and per-pen tables are left alone here (Zak decides).
+/// Per-app and per-pen tables are left alone here (Digital Groceries decides).
 /// </summary>
 public static class TabletAppState
 {

@@ -7,7 +7,7 @@ using OpenTabletDriver.Desktop.Profiles;
 namespace OpenTabletArtist.Services;
 
 /// <summary>
-/// TASKS #29 (Zak, 10 Nov 2026): each Touch Ring or Touch Strip has its own On/Off, which never clashes with the
+/// TASKS #29 (Digital Groceries, 10 Nov 2026): each Touch Ring or Touch Strip has its own On/Off, which never clashes with the
 /// main switch (Touch Rings / Touch Strips). An Off ring keeps its settings but does nothing.
 ///
 /// How it is stored (the same way the main switch keeps its settings): the tablet's profile holds <b>no binding</b>

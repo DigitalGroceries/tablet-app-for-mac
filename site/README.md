@@ -14,7 +14,7 @@ build, commit on gh-pages. Edit the site here, not by hand on gh-pages, so the t
 A correction to the website's words is published the same day (build, commit on gh-pages). It does not wait for the
 next version of the app: the website is not part of the app.
 
-Three things the app's own tests keep right (`tests/OpenTabletArtist.Tests/Site*Tests.cs`), each a rule of the owner's:
+Three things the app's own tests keep right (`tests/OpenTabletArtist.Tests/Site*Tests.cs`), each a rule of Digital Groceries:
 
 - **Home says what is new in the current version only** (26 Nov 2026). What older versions had is on a page of its own:
   at a new STABLE the notes of the version before move to Releases, which has every version; they do not move down the
@@ -23,8 +23,9 @@ Three things the app's own tests keep right (`tests/OpenTabletArtist.Tests/Site*
   `python3 site/sync_languages.py`.
 - **Every place that says what the app was tested with names every tested tablet** (25 Nov 2026): ours and the ones
   people using the app have told us work. The list is the table under "Tested system and tablet" in the app's manual.
-  Add a tablet there first, then follow the failing tests: README, the manual's first lines, Home (the sentence at the
-  top and the one under the list lower down), llms.txt, the Help page.
+  Add a tablet there first, then follow the failing tests: README, the manual's first lines, Home, llms.txt, the Help
+  page. On Home the sentence at the top names the families only ("Intuos5": the family is enough there, 26 Nov 2026);
+  the sentence under the list lower down gives every tablet with its size and model number.
 
 Manual PDF: `python3 scripts/make-manual-pdf.py N YYYY-MM-DD out.pdf` (uses site/markdown.py and site/icon-256.png).
 

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V29 #142: pictures of the Eraser page with the Colour Palette Settings (Zak's window size) and of the palette itself.
+/// <summary>V29 #142: pictures of the Eraser page with the Colour Palette Settings (Digital Groceries' window size) and of the palette itself.
 /// Output: $OTA_SHOTS/palette-*.png or /workspace.</summary>
 public class PaletteShots
 {

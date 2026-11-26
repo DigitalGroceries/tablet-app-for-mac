@@ -8,7 +8,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>Version 29 (Zak, 17 Nov 2026): "Send with file" with the email box empty asks "Send without your email?"
+/// <summary>Version 29 (Digital Groceries, 17 Nov 2026): "Send with file" with the email box empty asks "Send without your email?"
 /// with "Add my email" and "Send without". It asks; it never blocks.</summary>
 public class ReportEmailQuestionTests
 {

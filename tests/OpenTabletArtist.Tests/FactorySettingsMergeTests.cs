@@ -10,7 +10,7 @@ using Xunit;
 namespace OpenTabletArtist.Tests;
 
 /// <summary>
-/// Zak build 6: Restore factory settings left All Double Click Fix at 60 when the tablet was not
+/// Digital Groceries build 6: Restore factory settings left All Double Click Fix at 60 when the tablet was not
 /// on the daemon's GetDefaults list (not detected) and/or the All stash still held 60.
 /// </summary>
 public class FactorySettingsMergeTests
@@ -64,9 +64,9 @@ public class FactorySettingsMergeTests
     }
 
     [Fact]
-    public void UserDefault_Matches_SeesDoubleClickFixChange_ZakSaveAsDefaultThenEdit()
+    public void UserDefault_Matches_SeesDoubleClickFixChange_DigitalGroceriesSaveAsDefaultThenEdit()
     {
-        // Zak: Save as default at DCF=50, set DCF=60, Save → Revert to default must enable.
+        // Digital Groceries: Save as default at DCF=50, set DCF=60, Save → Revert to default must enable.
         UserDefaultSettings.Delete();
         var store = new PresetStore(AppLogBridge.Instance);
         try

@@ -7,7 +7,7 @@ using OpenTabletArtist.Domain;
 namespace OpenTabletArtist.Controls;
 
 /// <summary>
-/// V29 #142 (Zak 19 Nov 2026: a colour menu "just like a painter uses that thing where different shades of the paint are already
+/// V29 #142 (Digital Groceries 19 Nov 2026: a colour menu "just like a painter uses that thing where different shades of the paint are already
 /// mixed"; his pictures: an artist's colour wheel): 12 hues round the edge, 4 ready-mixed shades of each towards the centre
 /// (<see cref="ColourPalette"/>), a ring of greys round the outside, the radial menu's own four centre buttons, and a small middle dot
 /// in the last colour picked. Drawn solid, never see-through, so an app's eyedropper picks exactly the colour shown. The same size as
@@ -30,7 +30,7 @@ public sealed class ColourPaletteWheel : Control
     /// <summary>The menu whose palette colours (the user's own, changed with the pencil) are drawn; null = the built-in ones.</summary>
     public RadialMenuDef? Menu { get => GetValue(MenuProperty); set => SetValue(MenuProperty, value); }
     /// <summary>The last colour picked from the palette ("#RRGGBB"), drawn in the middle dot; null or not a colour = an empty dot
-    /// (Zak 19 Nov 20:21).</summary>
+    /// (Digital Groceries 19 Nov 20:21).</summary>
     public string? LastColour { get => GetValue(LastColourProperty); set => SetValue(LastColourProperty, value); }
 
     static ColourPaletteWheel() => AffectsRender<ColourPaletteWheel>(MenuSizeProperty, HighlightProperty, EditingProperty, MenuProperty, LastColourProperty);
@@ -63,7 +63,7 @@ public sealed class ColourPaletteWheel : Control
             var pen = r * 0.299 + g * 0.587 + b * 0.114 > 170 ? HighlightPenDark : HighlightPen;   // visible on light and dark swatches
             ctx.DrawGeometry(null, pen, Sector(c, ri + 1.5, ro - 1.5, sector * step - step / 2 + 0.8, sector * step + step / 2 - 0.8));
         }
-        // The centre: the radial menu's own four buttons and pictures (Zak ~20:05): X closes, pencil changes a colour,
+        // The centre: the radial menu's own four buttons and pictures (Digital Groceries ~20:05): X closes, pencil changes a colour,
         // circular arrow puts the palette's colours back, open hand drags.
         var divider = new Pen(new SolidColorBrush(Color.FromArgb(220, 228, 228, 228)), Math.Max(2, inner / 28));
         RadialMenuPie.DrawCentreQuarters(ctx, c, inner, Highlight, Editing, CentreFill, RadialMenuPie.HighlightFill,
@@ -74,7 +74,7 @@ public sealed class ColourPaletteWheel : Control
     private static readonly IPen DotRing = new Pen(new SolidColorBrush(Color.FromRgb(0xE4, 0xE4, 0xE4)), 2);
     private static readonly IPen DotRingDark = new Pen(new SolidColorBrush(Color.FromRgb(0x14, 0x14, 0x14)), 1);
 
-    /// <summary>Zak 19 Nov 20:21: the small middle circle in the last colour picked (an empty ring until a colour is picked). It covers
+    /// <summary>Digital Groceries 19 Nov 20:21: the small middle circle in the last colour picked (an empty ring until a colour is picked). It covers
     /// the crossing of the dividing lines; a light ring outside and a thin dark one inside keep it visible on any colour.</summary>
     private static void DrawDot(DrawingContext ctx, Point c, double r, string? hex)
     {

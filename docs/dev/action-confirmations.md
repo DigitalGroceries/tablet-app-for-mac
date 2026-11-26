@@ -1,7 +1,7 @@
 # Action confirmation overlay ("Settings saved")
 
 Every button that **does** something shows the same big on-screen message as the touch-ring mode popup
-("Zoom", "Brush Size", …), so the user knows the action really ran. Asked by Zak on 10 Nov 2026.
+("Zoom", "Brush Size", …), so the user knows the action really ran. Asked by Digital Groceries on 10 Nov 2026.
 
 ## How
 - `Services/ActionConfirmation.cs`: `ActionConfirmation.Show("confirm.settings_saved", "Settings saved")`.

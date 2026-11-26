@@ -49,7 +49,7 @@ public class BuildR16Tests
         w.Close();
     }
 
-    /// <summary>V29 #180 (Zak's Pen page mockup, 21 Nov): the eraser's action sits by the Eraser label, above BUTTON 2 and BUTTON 1,
+    /// <summary>V29 #180 (Digital Groceries' Pen page mockup, 21 Nov): the eraser's action sits by the Eraser label, above BUTTON 2 and BUTTON 1,
     /// and the middle column is the same whichever end's settings are shown ("the 'Tip Feel' and the 'Eraser Feel' buttons share
     /// the same pen buttons setting").</summary>
     [AvaloniaFact]
@@ -97,15 +97,15 @@ public class BuildR16Tests
         finally { w.Close(); }
     }
 
-    /// <summary>V29 (Zak 16 Nov 16:11: 'the Buttons column on the Pen and Eraser pages is squished at the right, its text is
-    /// cut ... Move the column right next to the pen and show the full text'; missed in V29 builds 1-2, Zak 19 Nov): on both
+    /// <summary>V29 (Digital Groceries 16 Nov 16:11: 'the Buttons column on the Pen and Eraser pages is squished at the right, its text is
+    /// cut ... Move the column right next to the pen and show the full text'; missed in V29 builds 1-2, Digital Groceries 19 Nov): on both
     /// pages the cards start right next to the pen drawing, and a long action is shown in full, never cut with an ellipsis.</summary>
-    /// <summary>V29 #141 (Zak 18:46): the floating keyboard's transparency has a slider and a typed box on the Pen page, lined up
+    /// <summary>V29 #141 (Digital Groceries 18:46): the floating keyboard's transparency has a slider and a typed box on the Pen page, lined up
     /// with the radial menu's own rows.</summary>
     [AvaloniaFact]
     public void KeyboardTransparency_HasASliderAndABox_InLineWithTheMenuRows()
     {
-        var (vm, view, w) = Open("KeyboardTab"); // #177 (Zak 20 Nov): the keyboard settings have their own tab now
+        var (vm, view, w) = Open("KeyboardTab"); // #177 (Digital Groceries 20 Nov): the keyboard settings have their own tab now
         try
         {
             var slider = view.FindControl<Slider>("KeyboardTransparencySlider")!;

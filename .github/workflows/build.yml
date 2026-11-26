@@ -1,7 +1,7 @@
 name: build
 
 on:
-  # Every branch and pull request (Zak, 16 Nov 2026): Version 28 was built on its own branch, so nothing tested it.
+  # Every branch and pull request (Digital Groceries, 16 Nov 2026): Version 28 was built on its own branch, so nothing tested it.
   push:
     branches: [ '**' ]
     # Documentation is checked and published by docs.yml on its own cadence.

@@ -6,15 +6,17 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>The owner's rule (25 Nov 2026): wherever we say what the app was tested with, we name every tablet it was
+/// <summary>Digital Groceries' rule (25 Nov 2026): wherever we say what the app was tested with, we name every tablet it was
 /// tested with, ours and the ones people using the app have told us work. The manual and the README have named them since
 /// Version 30, but the first lines of the website's Home still said "Tested with a Wacom Intuos4", and at the first
 /// correction only the list lower on that page was changed, not that sentence: nothing made anyone look at every place.
 ///
 /// The list is kept in ONE place: the table under "Tested system and tablet" in the app's manual. This suite fails while
 /// any other place that says what the app was tested with does not name every tablet in that table: the README's table,
-/// the manual's first lines, the website's Home (the sentence at the top and the one under the list lower down), its
-/// llms.txt and its Help page. To add a tablet: add its row to the manual's table, then follow the failing tests.</summary>
+/// the manual's first lines, the website's Home, its llms.txt and its Help page. On Home the sentence at the top names
+/// the families only ("Intuos5": Digital Groceries, 26 Nov 2026, the family is enough there) and the sentence under the list
+/// lower down gives every tablet with its model number. To add a tablet: add its row to the manual's table, then follow
+/// the failing tests.</summary>
 public class SiteTestedTabletsTests
 {
     const string Where = " (the list is the table under 'Tested system and tablet' in OpenTabletArtist/Assets/manual/manual.md)";
@@ -115,19 +117,52 @@ public class SiteTestedTabletsTests
         NamesEveryModel(intro!, "The manual's 'Made and tested on ...' lines");
     }
 
-    /// <summary>The sentence a visitor reads first: the paragraph at the top of Home that says what the app was tested with. It
-    /// names every tablet in full (no model numbers there, so "Intuos5 touch Small, Medium and Large" would not do: a
-    /// tablet added to the list later could hide behind a size that is already written).</summary>
+    /// <summary>The family a tablet belongs to: its name without its size ("Intuos5 touch Medium" is an "Intuos5",
+    /// "Intuos S Bluetooth" an "Intuos Bluetooth", "Intuos3 6x11" an "Intuos3", "Bamboo Fun Small (Pen &amp; Touch)" a
+    /// "Bamboo Fun").</summary>
+    internal static string Family(string tablet)
+    {
+        var name = Regex.Replace(tablet, @"\([^)]*\)", " ");
+        var words = name.Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
+            .Where(w => !Sizes.Contains(w) && !Regex.IsMatch(w, @"^\d+x\d+$"));
+        return string.Join(" ", words);
+    }
+    static readonly string[] Sizes = { "Small", "Medium", "Large", "XS", "S", "M", "L", "XL", "touch" };
+
+    static bool Names(string text, string family) => Regex.IsMatch(text, @"(?<![A-Za-z0-9])" + Regex.Escape(family) + @"(?![A-Za-z0-9])");
+
+    /// <summary>The sentence a visitor reads first: the paragraph at the top of Home that says what the app was tested with.
+    /// Digital Groceries' rule for it (26 Nov 2026): the family is enough there ("Intuos5"), no sizes; the sizes and model numbers
+    /// are lower on the page for whoever wants to check their own tablet. So this sentence must name the family of every
+    /// tablet in the list, and must not go back to naming sizes.</summary>
     [Fact]
-    public void Homes_first_lines_name_every_tested_tablet()
+    public void Homes_first_lines_name_the_family_of_every_tested_tablet()
     {
         var leads = Regex.Matches(Home, "<p class=\"lead\">(.*?)</p>", RegexOptions.Singleline)
             .Select(m => SiteHomePageTests.Visible(m.Groups[1].Value)).Where(t => t.Contains("Tested")).ToList();
         Assert.True(leads.Count == 1, $"Home should say what the app was tested with in exactly one of its first paragraphs (found {leads.Count}).");
         var lead = leads[0];
-        Assert.True(lead.Contains("Wacom " + Ours.Tablet), $"Home's first lines do not name our own test tablet, the Wacom {Ours.Tablet}.");
+        Assert.True(Names(lead, "Wacom " + Family(Ours.Tablet)), $"Home's first lines do not name our own test tablet, the Wacom {Family(Ours.Tablet)}.");
         foreach (var t in ByUsers)
-            Assert.True(lead.Contains(t.Tablet), $"Home's first lines say what the app was tested with but do not name the {t.Tablet}.{Where}\n  They say: {lead.Trim()}");
+            Assert.True(Names(lead, Family(t.Tablet)),
+                $"Home's first lines say what the app was tested with but do not name the {Family(t.Tablet)} (for the {t.Tablet}).{Where}\n  They say: {lead.Trim()}");
+        var tested = lead[lead.IndexOf("Tested", System.StringComparison.Ordinal)..];
+        var size = Regex.Match(tested, @"\b(Small|Medium|Large)\b");
+        Assert.False(size.Success, $"Home's first lines name a size (\"{size.Value}\"); the family is enough there, the sizes are lower on the page.\n  They say: {tested.Trim()}");
+    }
+
+    [Fact]
+    public void A_tablets_family_is_its_name_without_its_size()
+    {
+        Assert.Equal("Intuos3", Family("Intuos3 6x11"));
+        Assert.Equal("Intuos4", Family("Intuos4 Medium"));
+        Assert.Equal("Intuos5", Family("Intuos5 touch Large"));
+        Assert.Equal("Intuos Pro", Family("Intuos Pro Medium (2013)"));
+        Assert.Equal("Intuos Bluetooth", Family("Intuos S Bluetooth"));
+        Assert.Equal("Bamboo Fun", Family("Bamboo Fun Small (Pen & Touch)"));
+        Assert.True(Names("with the Intuos3, Intuos5 and Intuos Pro.", "Intuos5"));
+        Assert.False(Names("with the Intuos3 and Intuos5.", "Intuos Bluetooth"));
+        Assert.False(Names("with the Intuos3 and Intuos5.", "Intuos"));   // "Intuos3" does not name the plain Intuos
     }
 
     /// <summary>Lower on Home, after the install steps: our own test system on one of the short "chips", and under them the

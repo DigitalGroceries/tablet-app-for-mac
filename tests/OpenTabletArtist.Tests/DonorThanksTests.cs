@@ -5,7 +5,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>Zak (2 Nov): thank donors while an app update downloads.</summary>
+/// <summary>Digital Groceries (2 Nov): thank donors while an app update downloads.</summary>
 public class DonorThanksTests
 {
     [Fact]
@@ -25,7 +25,7 @@ public class DonorThanksTests
     }
 
     [Fact]
-    public void Wording_IsZaksLine()
+    public void Wording_IsDigitalGroceriesLine()
     {
         const string line = "We are grateful to all who donated and keep this project alive.";
         Assert.Equal(line, OpenTabletArtist.Views.UpdatePromptWindow.DonorThanks);

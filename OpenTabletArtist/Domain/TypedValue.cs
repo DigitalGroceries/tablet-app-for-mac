@@ -4,7 +4,7 @@ using System.Globalization;
 namespace OpenTabletArtist.Domain;
 
 /// <summary>
-/// V29 #140 (Zak 19 Nov 18:37: "any app slider that doesnt have a manual value editing should receive one so instead of dragging
+/// V29 #140 (Digital Groceries 19 Nov 18:37: "any app slider that doesnt have a manual value editing should receive one so instead of dragging
 /// and hoping to replicate the exact possition the user just uses the keyboard to type the value they need"). Reads what a user
 /// typed into a slider's number box: "40", "40%", "40,5" or "40.5". The value is clamped to the slider's range and rounded to the
 /// box's number of decimals. Anything that isn't a number returns false, and the box then shows the real value again.
@@ -28,7 +28,7 @@ public static class TypedValue
 }
 
 /// <summary>
-/// V29 #130 (Zak 19 Nov 18:17: "Tip feel needs manual value field for soft and firm from 1 to 100"): the Tip Feel and Eraser Feel
+/// V29 #130 (Digital Groceries 19 Nov 18:17: "Tip feel needs manual value field for soft and firm from 1 to 100"): the Tip Feel and Eraser Feel
 /// sliders shown as 1 (softest) to 100 (firmest). 50 is the middle, the straight pressure curve; the slider's own range is
 /// -0.9 (Soft) to +0.9 (Firm), so each half of the scale maps onto its half of the slider.
 /// </summary>
@@ -37,7 +37,7 @@ public static class FeelScale
     public const int Min = 1, Middle = 50, Max = 100;
     public const double SliderEnd = 0.9;
 
-    /// <summary>V29 #159 (Zak 20 Nov ~09:03: "make the default factory value for the Tip Feel to be 80"): the Tip Feel
+    /// <summary>V29 #159 (Digital Groceries 20 Nov ~09:03: "make the default factory value for the Tip Feel to be 80"): the Tip Feel
     /// Restore factory settings gives. A saved Tip Feel is never changed by an update.</summary>
     public const int FactoryTipFeel = 80;
 

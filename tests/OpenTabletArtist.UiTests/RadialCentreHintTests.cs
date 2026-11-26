@@ -18,7 +18,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>v27 (Zak 21:56): clicking a centre icon (X, pencil, circular arrow, hand) on the editor ring or the
+/// <summary>v27 (Digital Groceries 21:56): clicking a centre icon (X, pencil, circular arrow, hand) on the editor ring or the
 /// Pen page picture shows a short line under the picture saying what that button does in the real menu. The
 /// click does not select or edit a slice.</summary>
 public class RadialCentreHintTests

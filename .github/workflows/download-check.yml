@@ -1,6 +1,6 @@
 name: Download check
 
-# Zak's team rule (5 Nov 2026): the website's Download button must be tested once a day.
+# Digital Groceries' team rule (5 Nov 2026): the website's Download button must be tested once a day.
 # Why: from 2 Nov to 5 Nov 2026 the big Download button pointed at Tablet-App-for-Mac.dmg, but
 # Versions 21 and 23 were published with a .zip only, so every new visitor got "404 Not Found".
 #

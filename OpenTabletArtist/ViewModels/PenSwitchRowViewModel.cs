@@ -39,7 +39,7 @@ public partial class PenSwitchRowViewModel : ObservableObject
         _applyAsync = applyAsync;
         _chooseAction = chooseAction;
         RefreshFromStore(store, canEdit);
-        // V29 #198 (Zak 22 Nov, switching Bulgarian and English back and forth): the card's action text is worked out here,
+        // V29 #198 (Digital Groceries 22 Nov, switching Bulgarian and English back and forth): the card's action text is worked out here,
         // so it is worked out again on a language change, not only after a restart.
         Localizer.LanguageChanged += () =>
         {

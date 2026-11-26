@@ -16,7 +16,7 @@ using static OpenTabletArtist.SweepTests.Sweep;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V30 build 5 test (Zak 24 Nov 2026 21:18-21:30): on Tablet › Pen with "All" lit, pen Button 1 showed "Radial menu" -
+/// <summary>V30 build 5 test (Digital Groceries 24 Nov 2026 21:18-21:30): on Tablet › Pen with "All" lit, pen Button 1 showed "Radial menu" -
 /// Photoshop's setting, not All's. "I did not move anythin. All I did was to open the app pages and take the screenshots", then
 /// "Photoshop" and two screenshots (Photoshop tile: Button 1 radial menu; All tile: Button 1 right click). His path: Functions,
 /// choose Adobe Photoshop, Settings › Theme, back to Tablet › Pen. Coming back builds the page again; the Application row lit
@@ -39,17 +39,17 @@ public class AppTileAfterReturnTests
             var vm = (MainViewModel)w.DataContext!;
             var details = (System.Collections.IDictionary)typeof(MainViewModel)
                 .GetField("_tabletDetails", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(vm)!;
-            var ed = ZakTablet.Page();
+            var ed = DigitalGroceriesTablet.Page();
             ed.ShowHeader = false;
-            // Zak's Photoshop table: pen button 1 opens the radial menu (and the palette, pressed twice); All keeps the factory settings
+            // Digital Groceries' Photoshop table: pen button 1 opens the radial menu (and the palette, pressed twice); All keeps the factory settings
             var ps = Newtonsoft.Json.JsonConvert.DeserializeObject<BindingSettings>(Newtonsoft.Json.JsonConvert.SerializeObject(ed.EditorAllBindings()))!;
             ps.PenButtons![0] = RadialMenuBinding.Make();
             ps.PenButtons[1] = RadialMenuBinding.WithPalette(RadialMenuBinding.Make(), false);
-            PerAppBindingStore.Remove(ZakTablet.Name, Ps);
-            PerAppBindingStore.Add(ZakTablet.Name, Ps, "Adobe Photoshop", "", ps);
+            PerAppBindingStore.Remove(DigitalGroceriesTablet.Name, Ps);
+            PerAppBindingStore.Add(DigitalGroceriesTablet.Name, Ps, "Adobe Photoshop", "", ps);
             ed.LoadAppProfiles();
-            details[ZakTablet.Name] = ed;
-            vm.TabletPage.SetTablets(new[] { (ZakTablet.Name, true) });
+            details[DigitalGroceriesTablet.Name] = ed;
+            vm.TabletPage.SetTablets(new[] { (DigitalGroceriesTablet.Name, true) });
             vm.CurrentPage = vm.TabletPage;
             await Settle(150);
             foreach (var host in w.GetVisualDescendants().OfType<TransitioningContentControl>()) host.IsEnabled = true;
@@ -59,7 +59,7 @@ public class AppTileAfterReturnTests
             view.FindControl<RadioButton>("ToolFunctionsButton")!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Settle(80);
             var psTile = view.GetVisualDescendants().OfType<RadioButton>().First(r => r.Tag as string == Ps);
             psTile.IsChecked = true;
-            psTile.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Settle(80);   // Zak chose Adobe Photoshop
+            psTile.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)); await Settle(80);   // Digital Groceries chose Adobe Photoshop
             Assert.Equal(Ps, ed.SelectedAppBundleId);
 
             vm.Settings.SelectedTab = SettingsTab.Theme; vm.NavigateCommand.Execute(vm.Settings); await Settle(120);   // Settings › Theme
@@ -71,7 +71,7 @@ public class AppTileAfterReturnTests
             // the page shows the table of ed.SelectedAppBundleId; the lit tile must say the same
             var all = back.FindControl<RadioButton>("AppAllTile")!;
             var psBack = back.GetVisualDescendants().OfType<RadioButton>().First(r => r.Tag as string == Ps);
-            // a picture of it for Zak (his path, his tablet), dark look as his app
+            // a picture of it for Digital Groceries (his path, his tablet), dark look as his app
             for (int i = 0; i < 8; i++) { Pump(); w.UpdateLayout(); }
             var dir = Environment.GetEnvironmentVariable("OTA_SHOTS_DIR") ?? "/tmp/ota-v30-shots";
             System.IO.Directory.CreateDirectory(dir);
@@ -82,7 +82,7 @@ public class AppTileAfterReturnTests
         }
         finally
         {
-            PerAppBindingStore.Remove(ZakTablet.Name, Ps);
+            PerAppBindingStore.Remove(DigitalGroceriesTablet.Name, Ps);
             w.AllowCloseForQuit(); w.Close();
         }
     }

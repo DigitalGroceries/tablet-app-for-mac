@@ -17,7 +17,7 @@ public static class RadialActions
     public const string Click = "Click";      // Left / Right / Middle / DoubleClick at the pointer
     public const string Submenu = "Submenu";  // opens another ring of 8 slices
     public const string Open = "Open";        // opens an app (bundle id or .app path)
-    /// <summary>V29 #141 (Zak 19 Nov): shows or hides the floating keyboard, so the pen can type.</summary>
+    /// <summary>V29 #141 (Digital Groceries 19 Nov): shows or hides the floating keyboard, so the pen can type.</summary>
     public const string Keyboard = "Keyboard";
 
     public static readonly string[] All = { None, Keys, Click, Submenu, Open, Keyboard };
@@ -28,10 +28,10 @@ public sealed class RadialMenuDef
 {
     public const int SliceCount = 8;
     public const int MinSize = 1, DefaultSize = 50;
-    /// <summary>TASKS #63 (Zak 21:01): the menu is never bigger than the one on his screen, which is size 50: 320 pt across
+    /// <summary>TASKS #63 (Digital Groceries 21:01): the menu is never bigger than the one on his screen, which is size 50: 320 pt across
     /// (<see cref="RadialMenuGeometry.OuterRadius"/> 160). The slider's largest value is this; a saved larger size is used as this.</summary>
     public const int MaxSize = 50;
-    /// <summary>v27 test (Zak 13 Nov 16:07): the user sets the menu size from 1 to 10. Step 1 is the smallest menu (size 1) and
+    /// <summary>v27 test (Digital Groceries 13 Nov 16:07): the user sets the menu size from 1 to 10. Step 1 is the smallest menu (size 1) and
     /// step 10 the largest (size 50); the steps in between are spread evenly over the same sizes. Menus are still saved with
     /// the size (1-50) the driver uses, so nothing saved before changes.</summary>
     public const int MinSizeStep = 1, MaxSizeStep = 10;
@@ -49,11 +49,11 @@ public sealed class RadialMenuDef
     }
     /// <summary>The widest a menu can be, in points (the picture in the Pen page's Radial Menu Settings is never larger).</summary>
     public const double MaxDiameter = 320;
-    /// <summary>Menu transparency in percent: 0 is solid. TASKS #58 / #59 (Zak 18:21): 40 unless chosen (was 70).
-    /// v27 test (Zak 13 Nov 16:01, looking at the open menu over a white web page): "60% should be the maximum" - above that
+    /// <summary>Menu transparency in percent: 0 is solid. TASKS #58 / #59 (Digital Groceries 18:21): 40 unless chosen (was 70).
+    /// v27 test (Digital Groceries 13 Nov 16:01, looking at the open menu over a white web page): "60% should be the maximum" - above that
     /// the slice names can't be read, so the slider, the number box and every saved menu stop at 60.</summary>
     public const int MinTransparency = 0, MaxTransparency = 60, DefaultTransparency = 40;
-    /// <summary>The percent scale the fading is measured on (unchanged by the 60% limit, so 60% looks exactly as Zak saw it).</summary>
+    /// <summary>The percent scale the fading is measured on (unchanged by the 60% limit, so 60% looks exactly as Digital Groceries saw it).</summary>
     public const int TransparencyScale = 100;
     /// <summary>Opacity left at <see cref="TransparencyScale"/> (100%) on the fading scale: 10%. Since the v27 test the
     /// slider stops at <see cref="MaxTransparency"/> (60%), which leaves 46% of the menu visible.</summary>
@@ -81,7 +81,7 @@ public sealed class RadialMenuDef
     /// The palette is always solid, so an eyedropper reads its colours exactly. Only the top menu's value is used.</summary>
     [JsonPropertyName("paletteSize")] public int PaletteSize { get; set; } = DefaultSize;
 
-    /// <summary>V29 #142 (Zak ~20:05: the pencil changes a swatch to your own colour): swatch number to "#RRGGBB", only for the
+    /// <summary>V29 #142 (Digital Groceries ~20:05: the pencil changes a swatch to your own colour): swatch number to "#RRGGBB", only for the
     /// swatches the user changed; the circular arrow empties it. Only the top menu's value is used.</summary>
     [JsonPropertyName("paletteColours")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string>? PaletteColours { get; set; }
@@ -315,7 +315,7 @@ public sealed class RadialMenuCommand
     public const string Close = "close";
     /// <summary>The menu was dragged: its centre is now (<see cref="X"/>, <see cref="Y"/>). It is then "parked": it stays until closed.</summary>
     public const string Move = "move";
-    /// <summary>The mouse let go of a dragged menu or palette (Zak 20 Nov: they must not cover each other).</summary>
+    /// <summary>The mouse let go of a dragged menu or palette (Digital Groceries 20 Nov: they must not cover each other).</summary>
     public const string MoveEnd = "move-end";
     /// <summary>The pencil was clicked: the next slice tapped is edited instead of run.</summary>
     public const string Edit = "edit";
@@ -346,7 +346,7 @@ public sealed class RadialMenuCommand
     }
 }
 
-/// <summary>V29 #141 (Zak 19 Nov): the floating keyboard the radial menu's Keyboard slice shows. The app draws it; the driver presses
+/// <summary>V29 #141 (Digital Groceries 19 Nov): the floating keyboard the radial menu's Keyboard slice shows. The app draws it; the driver presses
 /// the keys (the app can't press keys in other apps). They talk through two small files next to the menu's files: the app keeps
 /// <see cref="OpenFlag"/> while the keyboard is on screen, and writes each tapped key to <see cref="CommandFile"/>.</summary>
 public static class FloatingKeyboardFiles
@@ -360,7 +360,7 @@ public static class FloatingKeyboardFiles
     /// <summary>How many recent keys the file keeps.</summary>
     public const int KeepLast = 20;
 
-    /// <summary>V29 #160 (Zak 20 Nov ~09:20: "what about long press instead of click?"): the driver writes a new number here each
+    /// <summary>V29 #160 (Digital Groceries 20 Nov ~09:20: "what about long press instead of click?"): the driver writes a new number here each
     /// time pen button 1 is held to show or hide the keyboard; the app watches it and toggles the keyboard by the pointer.</summary>
     public static string ToggleRequest => System.IO.Path.Combine(Folder, "keyboard-toggle");
 
@@ -380,7 +380,7 @@ public static class FloatingKeyboardFiles
 }
 
 /// <summary>
-/// V29 #142 (Zak 19 Nov 18:50-19:35): the colour palette, a second radial menu "like a painter uses, where different shades of the
+/// V29 #142 (Digital Groceries 19 Nov 18:50-19:35): the colour palette, a second radial menu "like a painter uses, where different shades of the
 /// paint are already mixed and ready to choose from", drawn as an artist's colour wheel: 12 hues round the edge, each with 4 ready
 /// mixed shades towards the centre. The same pen button opens it with a quick double press. Shared by the app (drawing, the mouse)
 /// and the driver plugin (pen taps), so both find the same swatch at the same place.
@@ -429,7 +429,7 @@ public static class ColourPalette
     public static int Swatch(int hue, int shade) => hue * Shades + shade;
     public static (int Hue, int Shade) Split(int swatch) => (swatch / Shades, swatch % Shades);
 
-    /// <summary>Zak ~20:05: a ring of greys, white to black, round the outside edge (12 steps, white at the top, clockwise).
+    /// <summary>Digital Groceries ~20:05: a ring of greys, white to black, round the outside edge (12 steps, white at the top, clockwise).
     /// Swatch numbers 48 to 59.</summary>
     public const int Greys = 12;
     public const int FirstGrey = Hues * Shades;
@@ -481,7 +481,7 @@ public static class ColourPalette
         return clean.Count == 0 ? null : clean;
     }
 
-    /// <summary>Zak 19 Nov ~20:13 / 20:21 ("a central smaller circle that changes into the current colour chosen"; "That's okay" to its
+    /// <summary>Digital Groceries 19 Nov ~20:13 / 20:21 ("a central smaller circle that changes into the current colour chosen"; "That's okay" to its
     /// one limit): a small circle in the very middle of the palette shows the last colour picked from it. It does not know about a
     /// colour changed inside Photoshop some other way. A tap on it does nothing.</summary>
     public const int Dot = -7;

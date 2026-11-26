@@ -14,7 +14,7 @@ using OpenTabletArtist.Domain;
 namespace OpenTabletArtist.Services;
 
 /// <summary>
-/// V29 #141 (Zak 19 Nov 2026: "add the option where the user can add a floating keyboard to the radial pen menu so they can type
+/// V29 #141 (Digital Groceries 19 Nov 2026: "add the option where the user can add a floating keyboard to the radial pen menu so they can type
 /// using the pen"; 18:44 "use the in app keyboard code to create a new and more compact one"; 18:46 "It will be good if the
 /// floating keyboard can be transparency adjusted"). A small keyboard that floats over the user's work. The radial menu's Keyboard
 /// slice shows and hides it; its × hides it too. Tap a key with the pen (or click it with the mouse): the key goes to the app in
@@ -29,9 +29,9 @@ public sealed class FloatingKeyboard : IDisposable
     public const string SizeKey = "FloatingKeyboardSize";
     /// <summary>Same range as the radial menu's transparency (above 60% the keys can't be read).</summary>
     public const int MinTransparency = RadialMenuDef.MinTransparency, MaxTransparency = RadialMenuDef.MaxTransparency;
-    /// <summary>V29 (Zak 20 Nov ~09:30: "The default factory transparency for the floating keyboard should be 40%"; was 20).</summary>
+    /// <summary>V29 (Digital Groceries 20 Nov ~09:30: "The default factory transparency for the floating keyboard should be 40%"; was 20).</summary>
     public const int DefaultTransparency = 40;
-    /// <summary>V29 #162 (Zak 20 Nov ~09:10: "the keyboard is microscopic and you did not include a keyboard resizing slider"):
+    /// <summary>V29 #162 (Digital Groceries 20 Nov ~09:10: "the keyboard is microscopic and you did not include a keyboard resizing slider"):
     /// Keyboard size in percent of the first keyboard (30-point keys). 150% unless changed; the slider, the number box and
     /// dragging the keyboard's bottom-right corner all set it.</summary>
     public const int MinSize = 60, MaxSize = 300, DefaultSize = 150;
@@ -212,7 +212,7 @@ public sealed class FloatingKeyboard : IDisposable
     internal Border? Panel => _panel;
 
     /// <summary>Show it if hidden, hide it if shown. <paramref name="nearX"/>/<paramref name="nearY"/>: where to put it the first time
-    /// (global points, top centre of the keyboard): it always opens there, under the pen (Zak 20 Nov).</summary>
+    /// (global points, top centre of the keyboard): it always opens there, under the pen (Digital Groceries 20 Nov).</summary>
     public void Toggle(double nearX, double nearY)
     {
         if (IsShown) Hide();
@@ -227,7 +227,7 @@ public sealed class FloatingKeyboard : IDisposable
     /// <summary>How many times the window was made again for another screen (tests).</summary>
     internal int Remade { get; private set; }
 
-    /// <summary>V29 #174 (Zak 20 Nov): a window the app moves to a screen of another scale (Retina 2, his TV 1) can keep drawing for the
+    /// <summary>V29 #174 (Digital Groceries 20 Nov): a window the app moves to a screen of another scale (Retina 2, his TV 1) can keep drawing for the
     /// old one (twice too big or too small); so it is made again for the new screen.</summary>
     private void RemakeWindow()
     {
@@ -252,12 +252,12 @@ public sealed class FloatingKeyboard : IDisposable
             RefreshLayout();
             ApplySize();
             var (w, _) = Size();
-            // V29 (Zak 20 Nov, build 7: "the keyboard doesnt know where to show"; chose "Under the pen"): every time just under the
+            // V29 (Digital Groceries 20 Nov, build 7: "the keyboard doesnt know where to show"; chose "Under the pen"): every time just under the
             // pen, on the pen's screen; above it when there is no room below; kept inside the screen (as the palette hint is placed).
             var (_, h) = Size();
             double x = nearX - w / 2, y = nearY;
             // Units (Grok's review 20 Nov (4)): on macOS Avalonia's Screen.Bounds/WorkingArea and Window.Position are global points,
-            // the same space as the pen's CGEvent location (verified on Zak's Mac, see PenSampleMapping and RadialMenuOverlay.Show),
+            // the same space as the pen's CGEvent location (verified on Digital Groceries' Mac, see PenSampleMapping and RadialMenuOverlay.Show),
             // so nearX/nearY, the working area and the position need no Retina scaling here.
             var screen = _window.Screens?.ScreenFromPoint(new PixelPoint((int)nearX, (int)nearY));
             if (screen != null)
@@ -459,7 +459,7 @@ public sealed class FloatingKeyboard : IDisposable
             BorderBrush = new SolidColorBrush(Color.Parse("#4A4A4A")), BorderThickness = new Thickness(1),
             Child = new StackPanel { Children = { bar, rows } },
         };
-        // V29 #162 (Zak 20 Nov ~09:12: "Let a corner dragging resize the floating keyboard too"): the bottom-right corner.
+        // V29 #162 (Digital Groceries 20 Nov ~09:12: "Let a corner dragging resize the floating keyboard too"): the bottom-right corner.
         var corner = new Border
         {
             Width = 16, Height = 16, Background = Brushes.Transparent, HorizontalAlignment = HorizontalAlignment.Right,

@@ -64,7 +64,7 @@ public class PressurePluginInstaller
             var dest = Path.Combine(destDir, PressurePluginPaths.DllName);
             var existed = File.Exists(dest);
             if (existed && !IsStale(sourceDll, dest)) return PluginInstallOutcome.None;
-            // Build 8: replaces a read-only old copy too (Zak's was read-only since 23 Oct).
+            // Build 8: replaces a read-only old copy too (Digital Groceries' was read-only since 23 Oct).
             PluginFileCopy.Replace(sourceDll, dest);
             return existed ? PluginInstallOutcome.Updated : PluginInstallOutcome.Installed;
         }
@@ -78,7 +78,7 @@ public class PressurePluginInstaller
     /// <summary>Stale = the installed copy is not byte-for-byte the bundled one.
     /// Build 7 (10 Nov 2026): test builds are packed with every file's date set to the same fixed day, so "the
     /// bundled file is newer" never held, and the driver kept loading an older plugin without the new pen-zoom
-    /// types (Zak's OTD log: "Unable to find plugin matching name 'OpenTabletArtist.Dynamics.PenZoomBinding'").
+    /// types (Digital Groceries' OTD log: "Unable to find plugin matching name 'OpenTabletArtist.Dynamics.PenZoomBinding'").
     /// Compare the content instead; the file is small (≈80 KB).</summary>
     internal static bool IsStale(string source, string dest)
     {

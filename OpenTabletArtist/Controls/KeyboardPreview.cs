@@ -10,7 +10,7 @@ using OpenTabletArtist.Services;
 namespace OpenTabletArtist.Controls;
 
 /// <summary>
-/// V29 #163 (Zak 20 Nov, build 7: "The keyboard should be shown in that menu the way the radial menu is shown on the top part of the
+/// V29 #163 (Digital Groceries 20 Nov, build 7: "The keyboard should be shown in that menu the way the radial menu is shown on the top part of the
 /// app page. I gave you a screenshot on where it needs to be"): a picture of the floating keyboard in its section on the Pen page,
 /// like the radial menu's picture: its real size (the Keyboard size slider; shrunk only to fit the page), its transparency, and the
 /// keys of the Mac's selected layout (#171), read again every second while the page shows it, so switching British / Bulgarian

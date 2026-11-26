@@ -13,7 +13,7 @@ using Xunit;
 namespace OpenTabletArtist.UiTests;
 
 /// <summary>
-/// TASKS #15 (Zak, 9 Nov, test build 3): the Double Click Fix slider must show and keep the selected
+/// TASKS #15 (Digital Groceries, 9 Nov, test build 3): the Double Click Fix slider must show and keep the selected
 /// profile's own value. Build 3 wrote the app's value but never reloaded the slider on a profile switch and
 /// read All's table on open, so All and every app always looked like one shared value.
 /// </summary>

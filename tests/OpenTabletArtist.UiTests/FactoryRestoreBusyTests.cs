@@ -15,7 +15,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>Build 7 (Zak, 10 Nov 2026): "Restore factory settings ... does not restore the double click fix ...
+/// <summary>Build 7 (Digital Groceries, 10 Nov 2026): "Restore factory settings ... does not restore the double click fix ...
 /// it stays to the custom value". His app.log: "Factory restore failed (ApplyFailed)" three times. The session's
 /// RestoreFactoryAsync holds SettingsBusy itself and refuses while it is already held; the footer's handler had set
 /// it first, so every restore was refused before it reached the driver.</summary>

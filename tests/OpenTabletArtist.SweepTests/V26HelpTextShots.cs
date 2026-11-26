@@ -17,7 +17,7 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>Zak 9 Nov: plain-English About ExpressKeys / Touch ring texts. Screenshots at the default window
+/// <summary>Digital Groceries 9 Nov: plain-English About ExpressKeys / Touch ring texts. Screenshots at the default window
 /// size (1100 × 720; the page sits in the main window's 24 px side padding). Output folder: $OTA_SHOTS or /workspace.</summary>
 public class V26HelpTextShots
 {

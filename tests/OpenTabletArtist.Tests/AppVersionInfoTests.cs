@@ -23,7 +23,7 @@ public class AppVersionInfoTests
     public void Format_MissingOrEmpty_ReturnsPlaceholder(string? input)
         => Assert.Equal("Version ?", AppVersionInfo.Format(input));
 
-    // Zak, 4 and 12 Nov 2026: a version name is one number, or one number and one word. A test build is the number
+    // Digital Groceries, 4 and 12 Nov 2026: a version name is one number, or one number and one word. A test build is the number
     // followed by "test", never a build number; a finished version is just the number.
     [Theory]
     [InlineData("26-test", "26 test", "Version 26 test")]

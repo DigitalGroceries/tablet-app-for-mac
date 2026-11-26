@@ -177,7 +177,7 @@ public partial class App : Application
                 };
 
             AppMenu.Window = window;
-            // Zak (2 Nov): thank donors on the first run after an update (the old app did the download).
+            // Digital Groceries (2 Nov): thank donors on the first run after an update (the old app did the download).
             Avalonia.Threading.Dispatcher.UIThread.Post(() => Views.UpdatePromptWindow.ThankAfterUpdateIfNeeded(Program.LaunchInBackground),
                 Avalonia.Threading.DispatcherPriority.Background);
 

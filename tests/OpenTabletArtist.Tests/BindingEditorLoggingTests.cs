@@ -7,7 +7,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>No silent failures (Zak 17:15, pen button 2 "refused" to take the Radial menu once): the binding editor
+/// <summary>No silent failures (Digital Groceries 17:15, pen button 2 "refused" to take the Radial menu once): the binding editor
 /// writes what happens to app.log: opened, tab chosen, Save / Clear / Cancel, and a warning when the Radial menu
 /// is chosen while its switch in Settings is off.</summary>
 [Collection(DisplayEnumeratorCollection.Name)]

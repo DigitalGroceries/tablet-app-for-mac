@@ -13,7 +13,7 @@ using Xunit;
 namespace OpenTabletArtist.Tests;
 
 /// <summary>
-/// TASKS #76 (Version 28, agreed with Zak 14 Nov): the whole app is usable with no tablet plugged in. The user picks
+/// TASKS #76 (Version 28, agreed with Digital Groceries 14 Nov): the whole app is usable with no tablet plugged in. The user picks
 /// a model (or the sample tablet), the app saves a normal profile for it from the built-in catalog, the pages read its
 /// specs from the catalog while it isn't connected, and a different model plugged in instead gets an offer to copy
 /// what the two share (pen and screen mapping).

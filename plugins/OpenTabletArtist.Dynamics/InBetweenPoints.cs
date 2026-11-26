@@ -9,7 +9,7 @@ using OpenTabletDriver.Plugin.Tablet;
 namespace OpenTabletArtist.Dynamics;
 
 /// <summary>
-/// #40 (Zak, 11 Nov 2026): the path the pen took between two of its reports. An Intuos4 sends about 200 reports a
+/// #40 (Digital Groceries, 11 Nov 2026): the path the pen took between two of its reports. An Intuos4 sends about 200 reports a
 /// second, so on a fast curve the pen travels a few millimetres between two of them, and an app that draws straight
 /// lines between points shows flat facets. This fills the gaps with points on a smooth curve (uniform Catmull-Rom
 /// through the real points), so apps get many more points that lie on the curve the hand drew.

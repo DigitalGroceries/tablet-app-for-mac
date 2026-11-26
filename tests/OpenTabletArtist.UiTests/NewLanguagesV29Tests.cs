@@ -9,7 +9,7 @@ using Xunit;
 
 namespace OpenTabletArtist.UiTests;
 
-/// <summary>Version 29 (item 4, Zak 17-18 Nov): Italian, Swedish and Brazilian Portuguese ("the one spoken by more
+/// <summary>Version 29 (item 4, Digital Groceries 17-18 Nov): Italian, Swedish and Brazilian Portuguese ("the one spoken by more
 /// people"). Every key of en.json, the same placeholders, offered in Settings › System › Language, and a Portuguese
 /// Mac from Portugal gets the Brazilian texts rather than English.</summary>
 public class NewLanguagesV29Tests

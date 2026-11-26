@@ -236,13 +236,13 @@ public class AllDisplaysAutoRefitTests
         finally { System.IO.Directory.Delete(dir, true); }
     }
 
-    /// <summary>V29 #126/#129 (Zak's V29 test, 19 Nov): his whole-desktop mapping had been made for an older arrangement
+    /// <summary>V29 #126/#129 (Digital Groceries' V29 test, 19 Nov): his whole-desktop mapping had been made for an older arrangement
     /// (3512x2890) and the choice wasn't remembered, so Home said "partly off-screen"; its Fix put the pen on the built-in display
     /// only. Now a mapping made for several screens is fixed to today's whole desktop and remembered.</summary>
     [AvaloniaFact]
     public async Task OffScreenFix_OfAnOldWholeDesktopMapping_MapsAllDisplays_AndRemembersIt()
     {
-        DisplayInfo[] zaks =
+        DisplayInfo[] ownerDisplays =
         {
             new(1, "Built-in Retina Display", 1496, 967, 896, 2160, true),
             new(2, "SONY TV", 3840, 2160, 0, 0, false),
@@ -256,13 +256,13 @@ public class AllDisplaysAutoRefitTests
         var tablet = NewTablet(allDisplays: false);
         var (app, _, _) = await Open(tablet, older);
         using var lifetime = app;
-        DisplayEnumerator.Use(new FixedDisplays(zaks));
+        DisplayEnumerator.Use(new FixedDisplays(ownerDisplays));
         try
         {
-            Assert.False(DisplayMappingApplier.IsAllDisplays(app.CurrentSettings!.Profiles[0], zaks));
-            Assert.True(DisplayMappingApplier.SpansSeveralDisplays(app.CurrentSettings!.Profiles[0], zaks));
+            Assert.False(DisplayMappingApplier.IsAllDisplays(app.CurrentSettings!.Profiles[0], ownerDisplays));
+            Assert.True(DisplayMappingApplier.SpansSeveralDisplays(app.CurrentSettings!.Profiles[0], ownerDisplays));
             Assert.True(await app.FixOffScreenMappingAsync(tablet));
-            Assert.True(DisplayMappingApplier.IsAllDisplays(app.CurrentSettings!.Profiles[0], zaks));
+            Assert.True(DisplayMappingApplier.IsAllDisplays(app.CurrentSettings!.Profiles[0], ownerDisplays));
             Assert.Equal("1", AppSettings.Get($"MapAllDisplays:{tablet}"));
         }
         finally { DisplayEnumerator.Use(null); }

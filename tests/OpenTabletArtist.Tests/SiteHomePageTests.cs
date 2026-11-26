@@ -5,7 +5,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>The owner's rule (26 Nov 2026): the website's Home says what is new in the current version only; what older
+/// <summary>Digital Groceries' rule (26 Nov 2026): the website's Home says what is new in the current version only; what older
 /// versions had is on a page of its own. Home carried the notes of the version before under its "What is new" (a whole
 /// "Version 29" list under Version 30's), because each release moved the old notes down instead of out, and a picture
 /// line still said "New in Version 29". Home now links to Releases, the page that has every version's notes. These tests

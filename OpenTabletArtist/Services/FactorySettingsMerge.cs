@@ -11,7 +11,7 @@ namespace OpenTabletArtist.Services;
 /// <summary>
 /// After the daemon's ResetSettings, only currently connected tablets get fresh factory profiles.
 /// Not-detected tablets keep their pre-restore BindingSettings in open editors and in the All stash,
-/// so "Restore factory settings" looked like a no-op for Double Click Fix (Zak, build 6). This merge
+/// so "Restore factory settings" looked like a no-op for Double Click Fix (Digital Groceries, build 6). This merge
 /// re-attaches those profiles with factory Double Click Fix and refreshes the All stash from the
 /// post-restore document so a later All restore cannot put the old value back.
 /// </summary>
@@ -72,7 +72,7 @@ public static class FactorySettingsMerge
         bindings.TipDoubleClickDistance = DoubleClickState.DefaultMoveTolerance;
     }
 
-    /// <summary>TASKS #56 (Zak 17:12): factory settings put the Radial menu on pen button 2 (and its filter in the
+    /// <summary>TASKS #56 (Digital Groceries 17:12): factory settings put the Radial menu on pen button 2 (and its filter in the
     /// profile). Button 1 and every other binding stay as the daemon made them. A pen with fewer than two
     /// buttons is left alone. Only the reset paths call this, never a normal load.</summary>
     public static bool ApplyFactoryRadialButton(Profile profile)
@@ -84,11 +84,11 @@ public static class FactorySettingsMerge
         return true;
     }
 
-    /// <summary>V29 #149 (Zak 20 Nov: "the Factory Settings restores the app to touch ring being Off ... Is this a good
+    /// <summary>V29 #149 (Digital Groceries 20 Nov: "the Factory Settings restores the app to touch ring being Off ... Is this a good
     /// idea?", then: "Factory settings: Touch Ring On with its 4 modes (Rotate, Zoom, Brush size, Brush hardness); the
     /// centre button switches between them and the pop-up shows the mode"): after a factory restore every Touch Ring with a
     /// centre button works in Wacom's four modes at once. Modes can still be turned Off for plain Clockwise / Anticlockwise /
-    /// Centre button rows (Zak: artists customise everything). Touch strips have no centre button and are left as the
+    /// Centre button rows (Digital Groceries: artists customise everything). Touch strips have no centre button and are left as the
     /// driver made them. Only the reset paths call this.</summary>
     public static bool ApplyFactoryRingModes(Profile profile)
     {
@@ -103,7 +103,7 @@ public static class FactorySettingsMerge
         return changed;
     }
 
-    /// <summary>V29 #160 (Zak 20 Nov ~09:18-09:24: "Make a double click with pen button one opening the keyboard be the default
+    /// <summary>V29 #160 (Digital Groceries 20 Nov ~09:18-09:24: "Make a double click with pen button one opening the keyboard be the default
     /// factory settings", then a long press instead): pen button 1 right-clicks on a quick press and opens the floating keyboard when
     /// held. A pen with no buttons is left alone. Only the reset paths call this.</summary>
     public static bool ApplyFactoryHoldKeyboard(Profile profile)
@@ -114,7 +114,7 @@ public static class FactorySettingsMerge
         return true;
     }
 
-    /// <summary>V30 build 3 (ZAK-LISTS L6.8; Zak 24 Nov: "When the app is restored to factory settings the ExpressKeys are not setup
+    /// <summary>V30 build 3 (task list L6.8; Digital Groceries 24 Nov: "When the app is restored to factory settings the ExpressKeys are not setup
     /// as they dont have factory settings setup. They should be setup after factory restore." His factory set, ~11:35: "1. Undo
     /// (Command+Z) 2. Redo (Command+Shift+Z) 3. Brush (B} 4. Eye dropper tool 5. Move tool (V) 6. Pan /hand tool (Space)").
     /// The eye dropper is I (Photoshop's key; he gave none); Space is held for as long as the ExpressKey is held (a key binding
@@ -140,7 +140,7 @@ public static class FactorySettingsMerge
         return true;
     }
 
-    /// <summary>V29 #159 (Zak 20 Nov ~09:03: "make the default factory value for the Tip Feel to be 80"): after a factory
+    /// <summary>V29 #159 (Digital Groceries 20 Nov ~09:03: "make the default factory value for the Tip Feel to be 80"): after a factory
     /// restore the pen curve is the plain one at Tip Feel 80, no smoothing, pressure on. Only the reset paths call this.</summary>
     public static void ApplyFactoryTipFeel(Profile profile)
     {

@@ -107,7 +107,7 @@ public class PressurePluginInstallerTests
         => Assert.Equal(PluginInstallOutcome.SourceMissing,
             PressurePluginInstaller.CopyIfNeeded(Path.Combine("C:", "nope", "x.dll"), Path.Combine("C:", "plugins")));
 
-    // Build 8 (Zak, 12 Nov 2026): his installed plugin was an old, READ-ONLY copy from 23 Oct. The copy failed,
+    // Build 8 (Digital Groceries, 12 Nov 2026): his installed plugin was an old, READ-ONLY copy from 23 Oct. The copy failed,
     // the failure was reported as "up to date", and the driver kept the old plugin (no radial menu). The test
     // makes exactly that file. (Run as root, a read-only file is writable anyway; checked as a normal user on
     // 12 Nov: the old File.Copy threw UnauthorizedAccessException, PluginFileCopy.Replace replaced the file.)

@@ -13,7 +13,7 @@ namespace OpenTabletArtist.ViewModels;
 /// The radial menu editor (TASKS #42): a picture of the 8 slices; click one to set its name and what it does
 /// (a keystroke, a mouse click, a submenu or opening an app). Submenus are edited the same way, one ring at a
 /// time, up to <see cref="RadialMenuDef.MaxDepth"/> levels. Works on a copy; Save returns the new menu (JSON),
-/// Cancel returns null. Every choice is optional and the whole menu can be reset (Zak: "Art is the ultimate
+/// Cancel returns null. Every choice is optional and the whole menu can be reset (Digital Groceries: "Art is the ultimate
 /// form of customisation").
 /// </summary>
 public partial class RadialMenuEditorViewModel : ObservableObject
@@ -145,7 +145,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     public bool IsClick => ActionIndex == ActClick;
     public bool IsSubmenu => ActionIndex == ActSubmenu;
     public bool IsOpen => ActionIndex == ActOpen;
-    /// <summary>V29 #177 (Zak 20 Nov "Do it"; Grok 18:54: the slice list should point to the Keyboard tab): a keyboard slice
+    /// <summary>V29 #177 (Digital Groceries 20 Nov "Do it"; Grok 18:54: the slice list should point to the Keyboard tab): a keyboard slice
     /// says where the keyboard's own settings are.</summary>
     public bool IsKeyboard => ActionIndex == ActKeyboard;
     public string KeyboardTabNote => Localizer.Te("radial.keyboard_tab_note",
@@ -256,7 +256,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
             OnPropertyChanged();
             OnPropertyChanged(nameof(PaletteSizeStep));
             OnPropertyChanged(nameof(PaletteSizeInput));
-            // V29 #155 (Zak 20 Nov): an open palette follows at once, as the radial menu does (v27).
+            // V29 #155 (Digital Groceries 20 Nov): an open palette follows at once, as the radial menu does (v27).
             OpenTabletArtist.Services.RadialMenuOverlay.ShowLookLive(CurrentJson());
         }
     }
@@ -287,7 +287,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
     public string PaletteSizeCaption => Localizer.Te("palette.size", "Palette size");
     public string PaletteSolidNote => Localizer.Te("palette.solid", "The palette is always solid, so the colours you pick are exact.");
 
-    /// <summary>v27 test (Zak 16:07): the size as the user sees and sets it, 1 to 10 (the sliders and the number box use this).
+    /// <summary>v27 test (Digital Groceries 16:07): the size as the user sees and sets it, 1 to 10 (the sliders and the number box use this).
     /// <see cref="Size"/> stays the saved 1-50 the driver uses.</summary>
     public int SizeStep
     {
@@ -302,8 +302,8 @@ public partial class RadialMenuEditorViewModel : ObservableObject
 
     private string _sizeInput = "";
 
-    /// <summary>The size as typed in the number box beside the slider (v27, Zak: the size was a read-only number), as a step
-    /// 1 to 10 (Zak 16:07). Whatever is committed (Enter or leaving the box) is read as a number, clamped to 1-10 and applied,
+    /// <summary>The size as typed in the number box beside the slider (v27, Digital Groceries: the size was a read-only number), as a step
+    /// 1 to 10 (Digital Groceries 16:07). Whatever is committed (Enter or leaving the box) is read as a number, clamped to 1-10 and applied,
     /// so the slider and the live preview follow; text that is not a number, or an empty box, puts the old value back.
     /// The box always ends up showing the real step.</summary>
     public string SizeInput
@@ -347,7 +347,7 @@ public partial class RadialMenuEditorViewModel : ObservableObject
 
     private string _transparencyInput = "";
 
-    /// <summary>The transparency as typed in the number box beside the slider (TASKS #59, Zak 18:21: also editable from the
+    /// <summary>The transparency as typed in the number box beside the slider (TASKS #59, Digital Groceries 18:21: also editable from the
     /// keyboard). Whatever is committed (Enter or leaving the box) is read as a number, "40", "40%" or "40,5", clamped to
     /// 0-100 and applied, so the slider and the live preview follow; text that is not a number puts the old value back.
     /// The box always ends up showing the real value.</summary>

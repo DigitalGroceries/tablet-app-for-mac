@@ -12,7 +12,7 @@ using OpenTabletDriver.Plugin.Tablet;
 namespace OpenTabletArtist.Dynamics;
 
 /// <summary>
-/// V29 #160 (Zak 20 Nov ~09:05-09:24: pen button 1 should open the floating keyboard; "what about long press instead of click?";
+/// V29 #160 (Digital Groceries 20 Nov ~09:05-09:24: pen button 1 should open the floating keyboard; "what about long press instead of click?";
 /// "let them have the choice to be able to drag while holding the button or open a keyboard while holding the button"). A quick press
 /// clicks <see cref="Button"/> (right click by default) the moment the button is let go; holding it for <see cref="HoldMs"/> shows or
 /// hides the floating keyboard instead, with no click. A right click can't be taken back, so the click waits for the release rather
@@ -66,7 +66,7 @@ public class HoldForKeyboardBinding : IStateBinding
         }
         if (!click) return;
         if (!Enum.TryParse<MouseButton>(Button ?? "Right", true, out var b)) b = MouseButton.Right;
-        // Zak 20 Nov (build 8): "No right click when Button 1 set to open the keyboard". The Mac pointer only posts a button when its
+        // Digital Groceries 20 Nov (build 8): "No right click when Button 1 set to open the keyboard". The Mac pointer only posts a button when its
         // state differs at Flush (MacOSVirtualMouse.Flush compares the buttons with the last posted ones), so a down and an up in the
         // same report cancelled out and no click was posted (the recording showed 0 right clicks from the driver). The down is flushed
         // first, as RadialMenu.cs and PenScroll do; the up goes out with this report's own flush.

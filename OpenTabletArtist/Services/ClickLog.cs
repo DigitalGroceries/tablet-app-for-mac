@@ -7,7 +7,7 @@ using System.Text;
 namespace OpenTabletArtist.Services;
 
 /// <summary>
-/// Watches the mouse and click events macOS sees while "Record the problem" runs (TASKS #85, Zak 17 Nov 2026:
+/// Watches the mouse and click events macOS sees while "Record the problem" runs (TASKS #85, Digital Groceries 17 Nov 2026:
 /// "record exactly what my mouse does when I click the same sequence of windows, then compare the recorded
 /// mouse commands to the recorded pen click commands"). <see cref="Stop"/> returns the finished section for
 /// recording.txt, or null when nothing could be watched.

@@ -4,7 +4,7 @@ using Xunit;
 namespace OpenTabletArtist.Tests;
 
 /// <summary>
-/// V28 #80 Option A. Zak, 16 Nov 2026: "let the app always save and restore the last session settings like the
+/// V28 #80 Option A. Digital Groceries, 16 Nov 2026: "let the app always save and restore the last session settings like the
 /// Wacom". Unsaved changes are saved by themselves a moment later, but never while that would save the wrong thing
 /// (settings busy, a typed value not yet entered, an application's or extra pen's own settings on the driver).
 /// </summary>

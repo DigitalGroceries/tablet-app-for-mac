@@ -15,7 +15,7 @@ using static OpenTabletArtist.SweepTests.Sweep;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V31 (ZAK-LISTS L7.12, Zak 25 Nov 2026: in Burgundy and Custom the tab words were dark on a dark window, in Rose "Save"
+/// <summary>V31 (task list L7.12, Digital Groceries 25 Nov 2026: in Burgundy and Custom the tab words were dark on a dark window, in Rose "Save"
 /// and a dialog button's words were almost invisible, in Custom the knob of a switch that is On could not be seen): measures what
 /// is REALLY on the screen, not what the colours were meant to be. The window is drawn twice, once as it is and once with every
 /// text hidden; where the two pictures differ is the ink of a word, and the second picture is what lies behind it (a shaded

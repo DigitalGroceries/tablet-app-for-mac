@@ -5,14 +5,14 @@ using Box = OpenTabletDriver.Desktop.Interop.Input.Keyboard.MacOSSystemKeys.Box;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 #87 (Zak's build 4 test, 20 Nov 06:40): a Touch Ring brightness step must change the screen the Mac's own
-/// key changes - the screen of the window last clicked - not always the built-in one. Zak's layout: built-in 1496 x 967,
+/// <summary>V29 #87 (Digital Groceries' build 4 test, 20 Nov 06:40): a Touch Ring brightness step must change the screen the Mac's own
+/// key changes - the screen of the window last clicked - not always the built-in one. Digital Groceries' layout: built-in 1496 x 967,
 /// SONY TV 3840 x 2160 above it, a third display to the side.</summary>
 public class BrightnessTargetTests
 {
     private const uint BuiltIn = 1, Sony = 2, Side = 3;
 
-    private static readonly List<(uint, Box)> ZaksScreens = new()
+    private static readonly List<(uint, Box)> DigitalGroceriesScreens = new()
     {
         (BuiltIn, new Box(0, 0, 1496, 967)),
         (Sony, new Box(-1172, -2160, 3840, 2160)),
@@ -22,12 +22,12 @@ public class BrightnessTargetTests
     [Fact]
     public void AWindowOnTheTv_PicksTheTv_EvenWithThePointerOnTheMac()
     {
-        var (display, why) = MacOSSystemKeys.PickDisplay(new Box(100, -1500, 1200, 800), (300, 300), ZaksScreens, BuiltIn);
+        var (display, why) = MacOSSystemKeys.PickDisplay(new Box(100, -1500, 1200, 800), (300, 300), DigitalGroceriesScreens, BuiltIn);
         Assert.Equal(Sony, display);
         Assert.Equal("the front window's screen", why);
     }
 
-    /// <summary>Build 6 report (20 Nov 08:50:46): Zak clicked the desktop on the built-in screen; macOS named Finder's
+    /// <summary>Build 6 report (20 Nov 08:50:46): Digital Groceries clicked the desktop on the built-in screen; macOS named Finder's
     /// desktop, 0,-2160 3992x3160 (all three screens), as the focused window and the TV changed. These are the screens
     /// from that report.</summary>
     private static readonly List<(uint, Box)> Build6Screens = new()
@@ -77,14 +77,14 @@ public class BrightnessTargetTests
     public void AWindowAcrossTwoScreens_PicksTheScreenWithMostOfIt()
     {
         // 200 px on the built-in screen, 1000 px on the side screen
-        var (display, _) = MacOSSystemKeys.PickDisplay(new Box(1296, 100, 1200, 600), null, ZaksScreens, BuiltIn);
+        var (display, _) = MacOSSystemKeys.PickDisplay(new Box(1296, 100, 1200, 600), null, DigitalGroceriesScreens, BuiltIn);
         Assert.Equal(Side, display);
     }
 
     [Fact]
     public void NoWindow_UsesThePointersScreen()
     {
-        var (display, why) = MacOSSystemKeys.PickDisplay(null, (2000, 500), ZaksScreens, BuiltIn);
+        var (display, why) = MacOSSystemKeys.PickDisplay(null, (2000, 500), DigitalGroceriesScreens, BuiltIn);
         Assert.Equal(Side, display);
         Assert.Equal("the pointer's screen", why);
     }
@@ -92,14 +92,14 @@ public class BrightnessTargetTests
     [Fact]
     public void AWindowOffEveryScreen_FallsBackToThePointer()
     {
-        var (display, _) = MacOSSystemKeys.PickDisplay(new Box(9000, 9000, 500, 500), (0, -100), ZaksScreens, BuiltIn);
+        var (display, _) = MacOSSystemKeys.PickDisplay(new Box(9000, 9000, 500, 500), (0, -100), DigitalGroceriesScreens, BuiltIn);
         Assert.Equal(Sony, display);
     }
 
     [Fact]
     public void NothingKnown_UsesTheMainScreen()
     {
-        var (display, why) = MacOSSystemKeys.PickDisplay(null, null, ZaksScreens, BuiltIn);
+        var (display, why) = MacOSSystemKeys.PickDisplay(null, null, DigitalGroceriesScreens, BuiltIn);
         Assert.Equal(BuiltIn, display);
         Assert.Equal("the main screen", why);
     }
@@ -108,16 +108,16 @@ public class BrightnessTargetTests
     public void ControlFromTheMacScreen_ChangesTheExternalScreen_UnderThePointerFirst()
     {
         bool builtIn(uint d) => d == BuiltIn;
-        Assert.Equal(Side, MacOSSystemKeys.OtherDisplay(BuiltIn, ZaksScreens, (2000, 500), builtIn));
-        Assert.Equal(Sony, MacOSSystemKeys.OtherDisplay(BuiltIn, ZaksScreens, (300, 300), builtIn));   // pointer on the Mac: first external
+        Assert.Equal(Side, MacOSSystemKeys.OtherDisplay(BuiltIn, DigitalGroceriesScreens, (2000, 500), builtIn));
+        Assert.Equal(Sony, MacOSSystemKeys.OtherDisplay(BuiltIn, DigitalGroceriesScreens, (300, 300), builtIn));   // pointer on the Mac: first external
     }
 
     [Fact]
     public void ControlFromAnExternalScreen_ChangesTheMacScreen()
     {
         bool builtIn(uint d) => d == BuiltIn;
-        Assert.Equal(BuiltIn, MacOSSystemKeys.OtherDisplay(Sony, ZaksScreens, (0, -100), builtIn));
-        Assert.Equal(BuiltIn, MacOSSystemKeys.OtherDisplay(Side, ZaksScreens, null, builtIn));
+        Assert.Equal(BuiltIn, MacOSSystemKeys.OtherDisplay(Sony, DigitalGroceriesScreens, (0, -100), builtIn));
+        Assert.Equal(BuiltIn, MacOSSystemKeys.OtherDisplay(Side, DigitalGroceriesScreens, null, builtIn));
     }
 
     [Fact]

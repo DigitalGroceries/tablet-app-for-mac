@@ -8,7 +8,7 @@ using OpenTabletArtist.Domain;
 namespace OpenTabletArtist.Services;
 
 /// <summary>
-/// Version 15 (Zak, 27 Oct 2026): after an update the app showed "User-supplied OTD Daemon" and macOS asked
+/// Version 15 (Digital Groceries, 27 Oct 2026): after an update the app showed "User-supplied OTD Daemon" and macOS asked
 /// for Device Control and Data Access again, until "Quit and stop the daemon" and a reopen fixed it. Cause:
 /// an update replaces the app, but the driver process the old app started keeps running the old copy —
 /// either from the old app that the in-app updater moved aside, or (after a drag-install) from a file that

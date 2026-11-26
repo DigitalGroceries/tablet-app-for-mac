@@ -12,7 +12,7 @@ namespace OpenTabletArtist.ViewModels;
 
 public partial class TabletDetailViewModel
 {
-    // ── V30 build 4 (Zak 24 Nov 2026 ~15:44, on the light-look picture of Tablet › Pen): the radial menu and the colour palette
+    // ── V30 build 4 (Digital Groceries 24 Nov 2026 ~15:44, on the light-look picture of Tablet › Pen): the radial menu and the colour palette
     // "should never be grayed out. Use different way to show that they are not setup. Add a label next to then, a swithch with On on
     // one side and Off on the other. When the user turns the switch on the app should ask them what buttons should open this menu."
     // ~15:48: "Put the On/Off switches in the top right corner of the radial and palette menu", "Or outside next to that corner".

@@ -48,12 +48,12 @@ public class InputDeviceReportTests
         return d;
     }
 
-    static Dictionary<string, object?> MagicMouse() => Hid("Zak’s Magic Mouse", "Apple Inc.", 1452, 617, "Bluetooth", 1, 2,
+    static Dictionary<string, object?> MagicMouse() => Hid("Jamie’s Magic Mouse", "Apple Inc.", 1452, 617, "Bluetooth", 1, 2,
         "AppleMultitouchMouseHIDEventDriver", "AppleUserHIDDevice", false,
         ("BD_ADDR", "d4-61-9d-12-34-56"), ("DeviceAddress", "d4-61-9d-12-34-56"));
-    static Dictionary<string, object?> MagicKeyboard() => Hid("Zak’s Magic Keyboard", "Apple Inc.", 1452, 615, "Bluetooth", 1, 6,
+    static Dictionary<string, object?> MagicKeyboard() => Hid("Jamie’s Magic Keyboard", "Apple Inc.", 1452, 615, "Bluetooth", 1, 6,
         "AppleHIDKeyboardEventDriverV2", "AppleBluetoothHIDDevice");
-    static Dictionary<string, object?> MagicKeyboardConsumer() => Hid("Zak’s Magic Keyboard", "Apple Inc.", 1452, 615, "Bluetooth", 12, 1,
+    static Dictionary<string, object?> MagicKeyboardConsumer() => Hid("Jamie’s Magic Keyboard", "Apple Inc.", 1452, 615, "Bluetooth", 12, 1,
         "IOHIDEventDriver", "AppleBluetoothHIDDevice");
     static Dictionary<string, object?> LogiMouseIf() => Hid("USB Receiver", "Logitech", 1133, 50475, "USB", 1, 2, "IOHIDEventDriver", "AppleUserUSBHostHIDDevice");
     static Dictionary<string, object?> LogiKeyboardIf() => Hid("USB Receiver", "Logitech", 1133, 50475, "USB", 1, 6, "AppleHIDKeyboardEventDriverV2", "AppleUserUSBHostHIDDevice");
@@ -163,12 +163,12 @@ enabled	active	teamID	bundleID (version)	name	[state]
     public void Output_never_contains_serials_addresses_location_or_owner_name()
     {
         var text = InputDeviceReport.FormatMac(AllSamples(), SysExt, Kexts, "launchd\nSteerMouse\n");
-        foreach (var bad in new[] { "F5K123456789ABCD", "d4-61-9d", "336592896", "Zak" })
+        foreach (var bad in new[] { "F5K123456789ABCD", "d4-61-9d", "336592896", "Jamie" })
             Assert.DoesNotContain(bad, text);
     }
 
     [Theory]
-    [InlineData("Zak’s Magic Mouse", "Magic Mouse")]
+    [InlineData("Jamie’s Magic Mouse", "Magic Mouse")]
     [InlineData("Helgar's Magic Trackpad 2", "Magic Trackpad 2")]
     [InlineData("MX Master 3S", "MX Master 3S")]
     [InlineData("Logi Pebble Mouse d4:61:9d:12:34:56", "Logi Pebble Mouse [removed]")]
@@ -262,7 +262,7 @@ H: Handlers=mouse1 event7
 B: EV=b
 
 I: Bus=0005 Vendor=05ac Product=0269 Version=0001
-N: Name=""Zak's Magic Mouse""
+N: Name=""Jamie's Magic Mouse""
 U: Uniq=d4:61:9d:12:34:56
 H: Handlers=mouse2 event9
 B: EV=17
@@ -374,7 +374,7 @@ public class InputDeviceReportRealMacTests
         Assert.Contains("Mouse/keyboard tools running: (none found)", text);
         Assert.Contains("Third-party kernel extensions loaded: (none)", text);
         Assert.Contains("com.motu.driver.gen5.dext", text);
-        foreach (var bad in new[] { "Zak", "erial", "DeviceAddress", "PhysicalDeviceUniqueID" })
+        foreach (var bad in new[] { "Jamie", "erial", "DeviceAddress", "PhysicalDeviceUniqueID" })
             Assert.DoesNotContain(bad, text);
         Assert.DoesNotMatch(@"[0-9A-Fa-f]{2}([-:])([0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}", text);
     }
@@ -382,7 +382,7 @@ public class InputDeviceReportRealMacTests
     [Fact]
     public void Fixture_files_contain_no_serial_address_location_or_owner()
     {
-        foreach (var bad in new[] { "Zak", "SerialNumber", "DeviceAddress", "LocationID", "PhysicalDeviceUniqueID", "ReportDescriptor" })
+        foreach (var bad in new[] { "Jamie", "SerialNumber", "DeviceAddress", "LocationID", "PhysicalDeviceUniqueID", "ReportDescriptor" })
             Assert.DoesNotContain(bad, Ioreg);
     }
 }

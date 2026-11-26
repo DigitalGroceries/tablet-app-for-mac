@@ -7,7 +7,7 @@ using RadialMenuBinding = OpenTabletArtist.Domain.RadialMenuBinding;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>V29 #170 (Zak 20 Nov: "I have a menu in front of me = I should be able to control it the same no matter what
+/// <summary>V29 #170 (Digital Groceries 20 Nov: "I have a menu in front of me = I should be able to control it the same no matter what
 /// app is open"): one radial menu and palette per tablet, in All, every application's table and every pen's table.</summary>
 public class RadialMenuShareTests
 {

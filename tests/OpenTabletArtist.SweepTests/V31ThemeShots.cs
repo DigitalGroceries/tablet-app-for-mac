@@ -16,9 +16,9 @@ using static OpenTabletArtist.SweepTests.Sweep;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V31 (ZAK-LISTS L7, Zak 25 Nov 2026, his "Changes Needed" folder: Burgundy, Custom and Rose had unreadable tab
+/// <summary>V31 (task list L7, Digital Groceries 25 Nov 2026, his "Changes Needed" folder: Burgundy, Custom and Rose had unreadable tab
 /// words, buttons without their raised look, an invisible Save and washed-out switches): pictures of Home and Tablet › Pen from
-/// the real app (a connected PTK-440 with factory settings, <see cref="ZakTablet"/>) in the factory theme and the three skins,
+/// the real app (a connected PTK-440 with factory settings, <see cref="DigitalGroceriesTablet"/>) in the factory theme and the three skins,
 /// for his look before the test build (L7.24). Written to $OTA_SHOTS_DIR.</summary>
 public class V31ThemeShots
 {
@@ -77,10 +77,10 @@ public class V31ThemeShots
                 w.Height = 1600;
                 var details = (System.Collections.IDictionary)typeof(MainViewModel)
                     .GetField("_tabletDetails", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(vm)!;
-                var ed = ZakTablet.Page();
+                var ed = DigitalGroceriesTablet.Page();
                 ed.ShowHeader = false;
-                details[ZakTablet.Name] = ed;
-                vm.TabletPage.SetTablets(new[] { (ZakTablet.Name, true) });
+                details[DigitalGroceriesTablet.Name] = ed;
+                vm.TabletPage.SetTablets(new[] { (DigitalGroceriesTablet.Name, true) });
                 vm.CurrentPage = vm.TabletPage;
                 await Settle(150);
                 foreach (var host in w.GetVisualDescendants().OfType<TransitioningContentControl>()) host.IsEnabled = true;
@@ -109,7 +109,7 @@ public class V31ThemeShots
         }
         finally { Choose(ThemeService.Wacom); LightnessService.Set(0); }
 
-        // L7.10 (Zak's Custom and Rose screenshots, 25 Nov: does the colour palette look duller in these themes than in the
+        // L7.10 (Digital Groceries' Custom and Rose screenshots, 25 Nov: does the colour palette look duller in these themes than in the
         // factory theme?): the palette's colours are the artist's and must be the same in every look. Every coloured pixel of
         // the picture on the Pen page is compared with the grey look's (the grey rim and the hub take the look's colours).
         var first = palettes[Themes[0].Name];
@@ -150,7 +150,7 @@ public class V31ThemeShots
         return v is Avalonia.Media.IGradientBrush g ? g.GradientStops.Select(x => x.Color).ToArray() : new[] { Res(key) };
     }
 
-    /// <summary>L7.12 (and Zak 25 Nov 19:3x on the Custom picture: "The On Off buttons are still invisible"): in EVERY theme at EVERY
+    /// <summary>L7.12 (and Digital Groceries 25 Nov 19:3x on the Custom picture: "The On Off buttons are still invisible"): in EVERY theme at EVERY
     /// Lightness step, chosen the way the Theme page chooses it, the colours the app really uses must be readable: the knob of a
     /// switch that is On against its track, the words of a tab and of a button (Save too) against the raised fill, the chosen tab's
     /// word against its fill, and the page text against a panel.</summary>
@@ -207,7 +207,7 @@ public class V31ThemeShots
     }
 
     /// <summary>Home (one tablet with six keys not set up), then Tablet › Pen of a connected PTK-440 with factory settings, then
-    /// Settings › Theme: the three pages of Zak's "Changes Needed" screenshots. The page takes input as it does on his Mac.</summary>
+    /// Settings › Theme: the three pages of Digital Groceries' "Changes Needed" screenshots. The page takes input as it does on his Mac.</summary>
     internal static async Task ForEachPage(MainWindow w, Func<string, Task> visit)
     {
         var vm = (MainViewModel)w.DataContext!;
@@ -235,10 +235,10 @@ public class V31ThemeShots
 
         var details = (System.Collections.IDictionary)typeof(MainViewModel)
             .GetField("_tabletDetails", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(vm)!;
-        var ed = ZakTablet.Page();
+        var ed = DigitalGroceriesTablet.Page();
         ed.ShowHeader = false;
-        details[ZakTablet.Name] = ed;
-        vm.TabletPage.SetTablets(new[] { (ZakTablet.Name, true) });
+        details[DigitalGroceriesTablet.Name] = ed;
+        vm.TabletPage.SetTablets(new[] { (DigitalGroceriesTablet.Name, true) });
         vm.CurrentPage = vm.TabletPage;
         await Settle(150);
         TakeInput(); await Settle(60);
@@ -255,7 +255,7 @@ public class V31ThemeShots
         w.Height = tall;
     }
 
-    /// <summary>L7.12, the words: Home, Tablet › Pen and Settings › Theme (the pages of Zak's "Changes Needed" screenshots) in the
+    /// <summary>L7.12, the words: Home, Tablet › Pen and Settings › Theme (the pages of Digital Groceries' "Changes Needed" screenshots) in the
     /// grey look, Burgundy, Rose and Custom at EVERY Lightness step, measured from the pixels really drawn
     /// (<see cref="ReadabilityAudit"/>): a word on a button or tab needs 4.5:1 against what is behind it, any other word 3:1.
     /// Burgundy's dark tab words on a dark window (1.2:1), Rose's "Save" and Custom's switch knob would each have failed here.

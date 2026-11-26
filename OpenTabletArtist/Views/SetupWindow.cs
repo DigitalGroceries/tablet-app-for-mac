@@ -183,7 +183,7 @@ public sealed class SetupWindow : Window
                 _body.Children.Add(Plain(Localizer.Tf("setup.pointer.body", ("pane", MacAccessibility.PointerPaneName()))));
                 _body.Children.Add(Why(Localizer.Tf("setup.pointer.why", ("pane", MacAccessibility.PointerPaneName()))));   // #26
                 Picture("setup-move-pointer.png");
-                // Version 15 (Zak, double prompt): only open System Settings; no macOS permission box on top.
+                // Version 15 (Digital Groceries, double prompt): only open System Settings; no macOS permission box on top.
                 Row(Main(Localizer.Tf("setup.pointer.open", ("pane", MacAccessibility.PointerPaneName())), () => { _openedAt = DateTime.Now; PlatformShell.OpenAccessibilitySettings(); }));
                 Stale(Localizer.T("setup.pointer.stale"));
                 break;

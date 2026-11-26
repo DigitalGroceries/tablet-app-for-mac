@@ -17,7 +17,7 @@ using Xunit;
 namespace OpenTabletArtist.UiTests;
 
 /// <summary>TASKS #28 / #29: "All buttons" and the Touch Ring switch read "Off [switch] On", and the ring's label follows
-/// the tablet in Wacom's words (Zak, 10 Nov 2026): "Touch Ring" for one ring (Intuos4 PTK-440), "Touch Rings" for two
+/// the tablet in Wacom's words (Digital Groceries, 10 Nov 2026): "Touch Ring" for one ring (Intuos4 PTK-440), "Touch Rings" for two
 /// (Cintiq 24HD), "Touch Strip" / "Touch Strips" for strip tablets. With two, each card has its own On/Off.</summary>
 public class RingAndKeysSwitchTests
 {
@@ -75,7 +75,7 @@ public class RingAndKeysSwitchTests
         Assert.Equal(new[] { "Touch Rings", "Off", "[switch]", "On" }, Row(view, "LblEnableWheels"));
         Assert.Equal("Turn Touch Rings Off to pause every ring, or use each ring's own On/Off. Your settings are kept.",
             view.FindControl<TextBlock>("LblRingAboutEnable")!.Text);
-        // and no extra button next to the switch (Zak, 10 Nov: there is none)
+        // and no extra button next to the switch (Digital Groceries, 10 Nov: there is none)
         var panel = (StackPanel)view.FindControl<TextBlock>("LblEnableWheels")!.Parent!;
         Assert.Empty(panel.Children.Where(c => c is Button and not ToggleSwitch));
         w.Close();

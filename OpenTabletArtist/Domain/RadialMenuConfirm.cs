@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OpenTabletArtist.Domain;
 
-/// <summary>TASKS #65 (Zak 20:41): the short text shown near the radial menu when a slice has run, "Selection copied" for Copy. One plain
+/// <summary>TASKS #65 (Digital Groceries 20:41): the short text shown near the radial menu when a slice has run, "Selection copied" for Copy. One plain
 /// past-tense phrase per built-in action (found by its key combination, so a renamed or translated slice still gets its text); any other
 /// slice says "&lt;name&gt; done"; a slice that could not run says so ("&lt;name&gt; did not work") instead of pretending it worked.</summary>
 public static class RadialMenuConfirm

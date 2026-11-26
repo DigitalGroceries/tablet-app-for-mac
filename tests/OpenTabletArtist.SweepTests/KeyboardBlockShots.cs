@@ -17,8 +17,8 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>V29 #177 (Zak 20 Nov ~20:04): mockup picture of the Pen tab with the Keyboard settings… button and the Pen tip in one
-/// block under the pen buttons, set up like Zak's own Pen tab (defaults, radial menu on button 2). Output: $OTA_SHOTS/keyboard-block-*.png.</summary>
+/// <summary>V29 #177 (Digital Groceries 20 Nov ~20:04): mockup picture of the Pen tab with the Keyboard settings… button and the Pen tip in one
+/// block under the pen buttons, set up like Digital Groceries' own Pen tab (defaults, radial menu on button 2). Output: $OTA_SHOTS/keyboard-block-*.png.</summary>
 public class KeyboardBlockShots
 {
     static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
@@ -28,7 +28,7 @@ public class KeyboardBlockShots
     public void PenTab_KeyboardBlock(double w, double h)
     {
         Directory.CreateDirectory(Dir);
-        using var mac = OpenTabletArtist.Services.UiPlatform.PretendMac();   // Change… / Default as on Zak's Mac
+        using var mac = OpenTabletArtist.Services.UiPlatform.PretendMac();   // Change… / Default as on Digital Groceries' Mac
         _ = new ThemeViewModel();
         var p = new Profile
         {
@@ -86,7 +86,7 @@ public class KeyboardBlockShots
     public void PenPage_InALongLanguage(string code)
     {
         Directory.CreateDirectory(Dir);
-        using var mac = OpenTabletArtist.Services.UiPlatform.PretendMac();   // Change… / Default as on Zak's Mac
+        using var mac = OpenTabletArtist.Services.UiPlatform.PretendMac();   // Change… / Default as on Digital Groceries' Mac
         OpenTabletArtist.Services.Localizer.SetPreference(code);
         try
         {

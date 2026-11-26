@@ -15,7 +15,7 @@ using OpenTabletArtist.Services;
 namespace OpenTabletArtist.Views;
 
 /// <summary>
-/// V30 build 5 (Zak 24 Nov 2026 ~17:43: "In Tablet / Pen when you click on the radial menu, it opens a popup window to set it up. I want
+/// V30 build 5 (Digital Groceries 24 Nov 2026 ~17:43: "In Tablet / Pen when you click on the radial menu, it opens a popup window to set it up. I want
 /// the same for the colour pallet under the radial menu. The users should be able to click it and then go to fine tune it with the exaxt
 /// colour palletes they want"): the colour palette, large. Click a colour to pick your own for it (the palette pencil's picker:
 /// PaletteColourDialog - wheel, swatches, hex). Default colours puts every built-in colour back. Save returns the menu (JSON) with the

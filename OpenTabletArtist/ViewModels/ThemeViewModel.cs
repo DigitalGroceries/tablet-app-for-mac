@@ -55,7 +55,7 @@ public partial class ThemeViewModel : ObservableObject
             OnPropertyChanged(); OnPropertyChanged(nameof(LightnessInput));
         }
     }
-    /// <summary>V29 #132 (Zak 18:23 asked for 1 to 100; 19:10 "Do whats more easy to understand and logical"): the app has 9
+    /// <summary>V29 #132 (Digital Groceries 18:23 asked for 1 to 100; 19:10 "Do whats more easy to understand and logical"): the app has 9
     /// lightness levels (chosen so every text stays readable), so the Lightness box numbers them 1 (darkest) to 9 (lightest),
     /// one number per slider position: what is typed is exactly what is shown.</summary>
     public string LightnessInput
@@ -397,7 +397,7 @@ public partial class ThemeViewModel : ObservableObject
                      "CheckBoxCheckBackgroundStrokeCheckedPointerOver", "CheckBoxCheckBackgroundStrokeCheckedPressed" })
             app.Resources[k] = tickBox;
 
-        // V31 (L7.7, Zak 25 Nov on the Custom picture: "The On Off buttons are still invisible"): the knob of a switch that is On is
+        // V31 (L7.7, Digital Groceries 25 Nov on the Custom picture: "The On Off buttons are still invisible"): the knob of a switch that is On is
         // NOT set here any more. The switch's track is the palette's (SwitchOnFillBrush, a light grey on the dark looks), and a knob
         // picked to stand out from the ACCENT was light too: a light knob on a light track. The palette sets the knob with its track.
 
@@ -405,7 +405,7 @@ public partial class ThemeViewModel : ObservableObject
         app.Resources["RadioButtonCheckGlyphFillPointerOver"] = onAccentInk;
         app.Resources["RadioButtonCheckGlyphFillPressed"] = onAccentInk;
 
-        // V31 (L7.5, Zak 25 Nov: in Rose "Save in the bottom bar is almost invisible"): the accent button (Save) is drawn as a raised
+        // V31 (L7.5, Digital Groceries 25 Nov: in Rose "Save in the bottom bar is almost invisible"): the accent button (Save) is drawn as a raised
         // button like every other since Version 30, so its word comes from the palette (LightnessService), not from the accent: a
         // word picked for a pink fill was pale on the raised button's light fill.
         app.Resources["GlassBorderBrush"] = new SolidColorBrush(WithAlpha(accent, 0x40));

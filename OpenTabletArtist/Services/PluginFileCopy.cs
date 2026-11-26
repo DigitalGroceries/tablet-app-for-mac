@@ -5,7 +5,7 @@ namespace OpenTabletArtist.Services;
 /// <summary>
 /// Copies a plugin file into the driver's plugin folder so that the copy can always be replaced later.
 ///
-/// Build 8 (Zak, 12 Nov 2026): his installed OpenTabletArtist.Dynamics.dll was from 23 October and read-only
+/// Build 8 (Digital Groceries, 12 Nov 2026): his installed OpenTabletArtist.Dynamics.dll was from 23 October and read-only
 /// (r--r--r--, Finder "You can only read"). Every update since then failed inside File.Copy, the failure was
 /// swallowed, and the app logged "the installed plugin matches the bundled one" while the driver kept loading the
 /// old plugin ("Unable to find plugin matching name 'OpenTabletArtist.Dynamics.RadialMenuBinding'"). So: make an

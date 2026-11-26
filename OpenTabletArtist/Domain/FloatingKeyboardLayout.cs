@@ -25,11 +25,11 @@ public interface IKeyLabels
 }
 
 /// <summary>
-/// V29 #141 (Zak 19 Nov 18:44: "perhaps you can use the in app keyboard code to create a new and more compact one?"): the floating
+/// V29 #141 (Digital Groceries 19 Nov 18:44: "perhaps you can use the in app keyboard code to create a new and more compact one?"): the floating
 /// keyboard's keys: the main block of a Mac keyboard, without the function row, so it stays small next to the user's work: 5 rows of
 /// 15 key units each. Ctrl, Option, Cmd and Shift are toggles that apply to the next key only, like a phone keyboard's Shift; Caps
 /// Lock stays on until tapped again.
-/// <para>V29 #171 (Zak 20 Nov, build 7: capitals shown but small letters typed, no Caps Lock, Del where Shift is; "The floating
+/// <para>V29 #171 (Digital Groceries 20 Nov, build 7: capitals shown but small letters typed, no Caps Lock, Del where Shift is; "The floating
 /// keyboard should check what location keyboard the mac is using ... and show the same input"): the rows follow the shape of the
 /// Mac's keyboard (ISO or ANSI) and every key shows what the selected layout types (lower case, and the Shift symbol when Shift or
 /// Caps Lock is on), like the Mac's own Keyboard Viewer. The keys are sent as key positions, so the Mac types what the label shows.</para>
@@ -115,7 +115,7 @@ public static class FloatingKeyboardLayout
         return key.Value.Length == 1 && key.Value[0] is >= 'A' and <= 'Z';
     }
 
-    /// <summary>What the key shows: what the selected layout types (Zak 20 Nov: "show the same input"), small letters unless Shift
+    /// <summary>What the key shows: what the selected layout types (Digital Groceries 20 Nov: "show the same input"), small letters unless Shift
     /// or Caps Lock is on, the Shift symbol while Shift is on. Without a layout: the US label, letters following Shift / Caps Lock.</summary>
     public static string LabelFor(FloatingKey key, bool shift, bool capsLock, IKeyLabels? labels = null)
     {

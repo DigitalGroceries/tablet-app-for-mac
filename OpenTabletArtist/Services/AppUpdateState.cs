@@ -47,7 +47,7 @@ public sealed class AppUpdateState : INotifyPropertyChanged
     public string Status => _status;
     public bool IsBusy => _busy;
 
-    /// <summary>Zak (2 Nov): true while an app update downloads, so the window can show the thank-you note.</summary>
+    /// <summary>Digital Groceries (2 Nov): true while an app update downloads, so the window can show the thank-you note.</summary>
     public bool IsDownloading => _downloading;
     bool _downloading;
 

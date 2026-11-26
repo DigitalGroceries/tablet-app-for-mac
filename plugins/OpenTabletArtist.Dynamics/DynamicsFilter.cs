@@ -55,7 +55,7 @@ public class DynamicsFilter : IPositionedPipelineElement<IDeviceReport>
 
     private bool _eraser;
 
-    // V29 #180 (Zak 21 Nov: "1 Can you make them two different setting values?"): the eraser end has its own feel curve. Off
+    // V29 #180 (Digital Groceries 21 Nov: "1 Can you make them two different setting values?"): the eraser end has its own feel curve. Off
     // (a profile written by an older app) = the eraser uses the tip's curve, as before.
     [Property("Eraser curve own"), DefaultPropertyValue(false),
      ToolTip("On: the eraser end uses the Eraser curve values below. Off: it uses the tip's curve.")]

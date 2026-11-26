@@ -16,7 +16,7 @@ public class BuildV14Tests
     [Fact]
     public void EmptyWacomApplicationsFolder_DoesNotOpenSetup()
     {
-        // Zak's Mac, 26 Oct 2026: /Applications/Wacom Tablet.localized is left behind empty and belongs to the
+        // Digital Groceries' Mac, 26 Oct 2026: /Applications/Wacom Tablet.localized is left behind empty and belongs to the
         // system, so "Remove leftovers" can't delete it. It used to reopen setup at every start.
         bool Exists(string p) => p == WacomDriverCheck.ApplicationsLocalized;
         Assert.False(SetupWindow.WacomBlocksSetup(Exists, None, Array.Empty<string>()));

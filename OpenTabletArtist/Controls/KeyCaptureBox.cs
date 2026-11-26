@@ -9,7 +9,7 @@ using OpenTabletArtist.Domain;
 namespace OpenTabletArtist.Controls;
 
 /// <summary>
-/// V29 #158 (Zak 20 Nov: keyboard shortcuts are set in place, with no extra window): a box that shows a shortcut and, while it
+/// V29 #158 (Digital Groceries 20 Nov: keyboard shortcuts are set in place, with no extra window): a box that shows a shortcut and, while it
 /// has the keyboard focus, takes the next key pressed with its modifiers (⌃ ⌥ ⇧ ⌘) as the new shortcut. Backspace or Delete
 /// on its own empties it; Escape leaves it as it was. The new combo goes to <see cref="Command"/> (an <see cref="AuxCombo"/>,
 /// <see cref="AuxCombo.Unbound"/> for empty). Keys the Mac keeps for itself (for example ⌘Q) never reach an app's window.

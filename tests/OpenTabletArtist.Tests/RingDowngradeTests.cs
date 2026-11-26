@@ -106,7 +106,7 @@ public class RingDowngradeTests
         Assert.False(RingDowngrade.Convert(settings));
     }
 
-    /// <summary>Version 17 BETA 2: Zak's test (28 Oct 2026). With Photoshop's tile open, going back converted
+    /// <summary>Version 17 BETA 2: Digital Groceries' test (28 Oct 2026). With Photoshop's tile open, going back converted
     /// every table, then the page rewrote Photoshop's (now Version 15 layout, so "legacy") back to Version 16's.</summary>
     [Fact]
     public async Task GoingBack_WithAnAppOnScreen_LeavesEveryTableInTheVersion15Layout()

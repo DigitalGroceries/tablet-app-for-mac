@@ -15,7 +15,7 @@ using Xunit;
 
 namespace OpenTabletArtist.SweepTests;
 
-/// <summary>TASKS #59 (Zak 18:21): the four centre icons (X, pencil, Restore arrow, hand) have the same visual size and are
+/// <summary>TASKS #59 (Digital Groceries 18:21): the four centre icons (X, pencil, Restore arrow, hand) have the same visual size and are
 /// centred on the centroid of their quarter, clear of the dividing lines; the slice labels are centred in their slices.
 /// Measured on headless renders at several menu sizes, and a picture is saved to $OTA_SHOTS (or /workspace).</summary>
 public class RadialCentreIconTests
@@ -141,13 +141,13 @@ public class RadialCentreIconTests
         var frame = Render(row, 1300, 520);
         frame.Save($"{Dir}/radial-centre-icons-v26.png");
         Assert.True(System.IO.File.Exists($"{Dir}/radial-centre-icons-v26.png"));
-        // One big one, the same size as Zak's screenshot, to look at the icons closely.
+        // One big one, the same size as Digital Groceries' screenshot, to look at the icons closely.
         var big = MakePie(640, labels: true);
         big.Transparency = RadialMenuDef.DefaultTransparency;
         Render(big, 700, 700).Save($"{Dir}/radial-centre-icons-v26-large.png");
     }
 
-    /// <summary>v27 (Zak 13 Nov 15:44: "an ovoid artefact in the palm of the hand icon"): on a see-through menu each icon is
+    /// <summary>v27 (Digital Groceries 13 Nov 15:44: "an ovoid artefact in the palm of the hand icon"): on a see-through menu each icon is
     /// drawn as one shape, so where its parts overlap (fingers on the palm, the X's crossing, the arrow head on its arc) no
     /// pixel comes out brighter than the icon's own colour. Before the fix the overlaps were up to ~30 levels brighter.</summary>
     [AvaloniaTheory]

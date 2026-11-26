@@ -84,7 +84,7 @@ public class ThankAfterUpdateSheetTests
     }
 }
 
-/// <summary>Zak (2 Nov mock-ups): the download sheet has no title (only the close button), the thanks large,
+/// <summary>Digital Groceries (2 Nov mock-ups): the download sheet has no title (only the close button), the thanks large,
 /// bold and centred on top, then the bar, then "Downloading the update…" small and right-aligned.</summary>
 public class DownloadSheetLayoutTests
 {
