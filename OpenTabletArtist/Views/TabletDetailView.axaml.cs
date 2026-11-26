@@ -243,6 +243,12 @@ public partial class TabletDetailView : UserControl, ITabbedContent
             "To turn off just one key, click ••• next to it and choose Turn off. A key works only when All buttons and the key are both On.");
         // LblRingAboutEnable is bound to the view model's WheelAboutEnableText (one ring or several).
         if (KeysDefaultButton != null) KeysDefaultButton.Content = Localizer.T("tablet.pen.default");
+        if (SetUpButtonsButton != null)
+        {
+            SetUpButtonsButton.Content = Localizer.Te("keymap.title", "Set up my buttons");
+            ToolTip.SetTip(SetUpButtonsButton, Localizer.Te("keymap.page_tip",
+                "Show the app where each key sits on your tablet, one key at a time. The keys are then listed in that order."));
+        }
 
         if (LblPenCurrentPressure != null) LblPenCurrentPressure.Text = Localizer.T("tablet.pen.current_pressure");
         if (LblPenClick != null) LblPenClick.Text = Localizer.T("tablet.pen.click");

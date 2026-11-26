@@ -605,7 +605,7 @@
     "route": "tablet/ToolFunctionsButton/ButtonsTab"
   },
   {
-    "text": "Set up my buttons",
+    "text": "ボタンを設定",
     "path": "タブレット › ファンクション › ExpressKeys",
     "route": "tablet/ToolFunctionsButton/ButtonsTab"
   },

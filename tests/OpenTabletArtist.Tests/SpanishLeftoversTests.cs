@@ -15,6 +15,9 @@ public class SpanishLeftoversTests
     public static readonly IReadOnlyDictionary<string, string> SameAsEnglish = new Dictionary<string, string>
     {
         ["app.name"] = "product name",
+        ["keymap.fn.command"] = "the name printed on the Mac's Command key",
+        ["keymap.fn.option"] = "the name printed on the Mac's Option key",
+        ["keymap.fn.shift"] = "the name printed on the Shift key",
         ["nav.scribble"] = "the app's Scribble page name",
         ["settings.tab.dev"] = "technical abbreviation",
         ["perm.input_monitoring"] = "macOS setting name, kept in English throughout es.json",
