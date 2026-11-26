@@ -426,8 +426,10 @@ public static class LightnessService
             ("InsetBoxBrush", d ? Diagonal((G(pane + 0x04), 0), (G(pane), 0.5), (G(pane - 0x0C), 1))
                                 : Diagonal((G(pane - 0x04), 0), (G(pane - 0x08), 0.5), (G(pane - 0x12), 1))),
             ("InsetBoxShadow", BoxShadows.Parse(d ? "inset 1 1 6 1 #E0000000, 0 0 0 1.5 #26E4E4E4" : "inset 1 1 5 0 #70000000, 0 0 0 1.5 #B0E4E4E4")),
-            ("PenEmbossEdgeBrush", Across((d ? G(pane + 0x40) : G(0xE4), 0), (d ? G(pane + 0x40) : G(0xE4), 0.3),
-                (d ? G(Math.Max(pane - 0x1E, 0x06)) : G(pane - 0x78), 0.7), (d ? G(Math.Max(pane - 0x1E, 0x06)) : G(pane - 0x78), 1))),
+            // the pen's outline (measured again on the mockup after Grok's check, 26 Nov 2026): light all round on the dark
+            // looks - brightest on the left (#979797 on #343434), quieter on the right (#666666) - over a soft dark shadow
+            ("PenEmbossEdgeBrush", Across((d ? G(pane + 0x63) : G(0xE4), 0), (d ? G(pane + 0x63) : G(0xE4), 0.3),
+                (d ? G(pane + 0x32) : G(pane - 0x78), 0.7), (d ? G(pane + 0x32) : G(pane - 0x78), 1))),
             ("EmbossRingBrush", Diagonal((d ? G(pane + 0x28) : G(0xE4), 0), (d ? G(pane + 0x28) : G(0xE4), 0.3), (p.Pane, 0.5),
                 (d ? G(Math.Max(pane - 0x10, 0x06)) : G(pane - 0x34), 0.7), (d ? G(Math.Max(pane - 0x10, 0x06)) : G(pane - 0x34), 1))),
         };

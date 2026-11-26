@@ -64,8 +64,8 @@
     <SolidColorBrush x:Key="SunkenTrayBrush" Color="#262626" />
     <SolidColorBrush x:Key="InsetBoxBrush" Color="#343434" />
     <LinearGradientBrush x:Key="PenEmbossEdgeBrush" StartPoint="0%,50%" EndPoint="100%,50%">
-        <GradientStop Offset="0" Color="#747474" /><GradientStop Offset="0.3" Color="#747474" />
-        <GradientStop Offset="0.7" Color="#161616" /><GradientStop Offset="1" Color="#161616" />
+        <GradientStop Offset="0" Color="#979797" /><GradientStop Offset="0.3" Color="#979797" />
+        <GradientStop Offset="0.7" Color="#666666" /><GradientStop Offset="1" Color="#666666" />
     </LinearGradientBrush>
     <LinearGradientBrush x:Key="EmbossRingBrush" StartPoint="15%,15%" EndPoint="85%,85%">
         <GradientStop Offset="0" Color="#5C5C5C" /><GradientStop Offset="0.3" Color="#5C5C5C" /><GradientStop Offset="0.5" Color="#343434" />

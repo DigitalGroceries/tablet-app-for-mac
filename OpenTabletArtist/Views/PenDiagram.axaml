@@ -38,7 +38,7 @@
          side and dark down its right, and it throws a soft shadow to the lower right, lit from the top left like the panels. -->
     <Canvas x:Name="Shapes" Width="64" Height="360" RenderTransformOrigin="50%,50%">
         <Canvas.Effect>
-            <DropShadowEffect OffsetX="2.5" OffsetY="2" BlurRadius="4" Color="#000000" Opacity="0.5" />
+            <DropShadowEffect OffsetX="1" OffsetY="1.5" BlurRadius="7" Color="#000000" Opacity="0.75" />
         </Canvas.Effect>
         <!-- eraser cap -->
         <Rectangle Canvas.Left="23" Canvas.Top="0" Width="18" Height="22" RadiusX="6" RadiusY="6"
