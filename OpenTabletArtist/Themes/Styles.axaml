@@ -340,11 +340,11 @@
                     <ControlTemplate>
                         <Grid x:Name="SliderContainer" Background="Transparent" RowDefinitions="*,Auto,*">
                             <Grid.Styles>
-                                <Style Selector="TickBar">
+                                <Style Selector="c|NotchBar">
                                     <Setter Property="ReservedSpace" Value="{Binding #PART_Track.Thumb.Bounds}" />
                                 </Style>
                             </Grid.Styles>
-                            <TickBar x:Name="TopTickBar" Grid.Row="0" Height="4" Margin="0,0,0,5" VerticalAlignment="Bottom" Placement="Top"
+                            <c:NotchBar x:Name="TopTickBar" Grid.Row="0" Height="4" Margin="0,0,0,5" VerticalAlignment="Bottom"
                                      IsVisible="False" Fill="{DynamicResource SliderTickBrush}" Ticks="{TemplateBinding Ticks}"
                                      TickFrequency="{TemplateBinding Slider.TickFrequency}" Orientation="{TemplateBinding Slider.Orientation}"
                                      Minimum="{TemplateBinding Slider.Minimum}" Maximum="{TemplateBinding Slider.Maximum}" />
@@ -363,7 +363,7 @@
                                 </Track.IncreaseButton>
                                 <Thumb x:Name="thumb" Theme="{StaticResource SunkenSliderHandle}" DataContext="{TemplateBinding Value}" />
                             </Track>
-                            <TickBar x:Name="BottomTickBar" Grid.Row="2" Height="4" Margin="0,5,0,0" VerticalAlignment="Top" Placement="Bottom"
+                            <c:NotchBar x:Name="BottomTickBar" Grid.Row="2" Height="4" Margin="0,5,0,0" VerticalAlignment="Top"
                                      IsVisible="False" Fill="{DynamicResource SliderTickBrush}" Ticks="{TemplateBinding Ticks}"
                                      TickFrequency="{TemplateBinding Slider.TickFrequency}" Orientation="{TemplateBinding Slider.Orientation}"
                                      Minimum="{TemplateBinding Slider.Minimum}" Maximum="{TemplateBinding Slider.Maximum}" />
@@ -378,11 +378,11 @@
                     <ControlTemplate>
                         <Grid x:Name="SliderContainer" Background="Transparent" ColumnDefinitions="*,Auto,*">
                             <Grid.Styles>
-                                <Style Selector="TickBar">
+                                <Style Selector="c|NotchBar">
                                     <Setter Property="ReservedSpace" Value="{Binding #PART_Track.Thumb.Bounds}" />
                                 </Style>
                             </Grid.Styles>
-                            <TickBar x:Name="LeftTickBar" Grid.Column="0" Width="4" Margin="0,0,5,0" HorizontalAlignment="Right" Placement="Left"
+                            <c:NotchBar x:Name="LeftTickBar" Grid.Column="0" Width="4" Margin="0,0,5,0" HorizontalAlignment="Right"
                                      IsVisible="False" Fill="{DynamicResource SliderTickBrush}" Ticks="{TemplateBinding Ticks}"
                                      TickFrequency="{TemplateBinding Slider.TickFrequency}" Orientation="{TemplateBinding Slider.Orientation}"
                                      Minimum="{TemplateBinding Slider.Minimum}" Maximum="{TemplateBinding Slider.Maximum}" />
@@ -401,13 +401,27 @@
                                 </Track.IncreaseButton>
                                 <Thumb x:Name="thumb" Theme="{StaticResource SunkenSliderHandleUpright}" DataContext="{TemplateBinding Value}" />
                             </Track>
-                            <TickBar x:Name="RightTickBar" Grid.Column="2" Width="4" Margin="5,0,0,0" HorizontalAlignment="Left" Placement="Right"
+                            <c:NotchBar x:Name="RightTickBar" Grid.Column="2" Width="4" Margin="5,0,0,0" HorizontalAlignment="Left"
                                      IsVisible="False" Fill="{DynamicResource SliderTickBrush}" Ticks="{TemplateBinding Ticks}"
                                      TickFrequency="{TemplateBinding Slider.TickFrequency}" Orientation="{TemplateBinding Slider.Orientation}"
                                      Minimum="{TemplateBinding Slider.Minimum}" Maximum="{TemplateBinding Slider.Maximum}" />
                         </Grid>
                     </ControlTemplate>
                 </Setter>
+            </Style>
+            <!-- the notches: sharp little bars (Controls/NotchBar); a slider in a small box has finer, quieter ones, as in the mockup -->
+            <!-- Digital Groceries, 26 Nov 2026: on a big slider the notches divide its length into tenths. A slider with a few stops
+                 (class "stops": Menu size 1 to 10, Lightness) keeps a notch at each stop. -->
+            <Style Selector="^ /template/ c|NotchBar">
+                <Setter Property="Tenths" Value="True" />
+            </Style>
+            <Style Selector="^.stops /template/ c|NotchBar">
+                <Setter Property="Tenths" Value="False" />
+            </Style>
+            <Style Selector="^.compact /template/ c|NotchBar">
+                <Setter Property="Tenths" Value="False" />
+                <Setter Property="Fill" Value="{DynamicResource SliderTickFineBrush}" />
+                <Setter Property="Thickness" Value="1.2" />
             </Style>
             <!-- the two sizes: a slider on its own, then (class "compact") a slider in a small box -->
             <Style Selector="^:horizontal /template/ Border#SliderRim">
@@ -453,16 +467,16 @@
                 <Setter Property="Width" Value="21" /><Setter Property="Height" Value="38.5" /><Setter Property="CornerRadius" Value="10.5" />
             </Style>
             <!-- where the notches go -->
-            <Style Selector="^[TickPlacement=TopLeft] /template/ TickBar#TopTickBar, ^[TickPlacement=Outside] /template/ TickBar#TopTickBar">
+            <Style Selector="^[TickPlacement=TopLeft] /template/ c|NotchBar#TopTickBar, ^[TickPlacement=Outside] /template/ c|NotchBar#TopTickBar">
                 <Setter Property="IsVisible" Value="True" />
             </Style>
-            <Style Selector="^[TickPlacement=BottomRight] /template/ TickBar#BottomTickBar, ^[TickPlacement=Outside] /template/ TickBar#BottomTickBar">
+            <Style Selector="^[TickPlacement=BottomRight] /template/ c|NotchBar#BottomTickBar, ^[TickPlacement=Outside] /template/ c|NotchBar#BottomTickBar">
                 <Setter Property="IsVisible" Value="True" />
             </Style>
-            <Style Selector="^[TickPlacement=TopLeft] /template/ TickBar#LeftTickBar, ^[TickPlacement=Outside] /template/ TickBar#LeftTickBar">
+            <Style Selector="^[TickPlacement=TopLeft] /template/ c|NotchBar#LeftTickBar, ^[TickPlacement=Outside] /template/ c|NotchBar#LeftTickBar">
                 <Setter Property="IsVisible" Value="True" />
             </Style>
-            <Style Selector="^[TickPlacement=BottomRight] /template/ TickBar#RightTickBar, ^[TickPlacement=Outside] /template/ TickBar#RightTickBar">
+            <Style Selector="^[TickPlacement=BottomRight] /template/ c|NotchBar#RightTickBar, ^[TickPlacement=Outside] /template/ c|NotchBar#RightTickBar">
                 <Setter Property="IsVisible" Value="True" />
             </Style>
             <!-- a slider that can't be used is faint, like the rest of the app's switched-off parts -->

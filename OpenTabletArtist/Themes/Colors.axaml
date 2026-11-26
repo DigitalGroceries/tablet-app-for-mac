@@ -58,7 +58,8 @@
     <SolidColorBrush x:Key="SliderThumbHoverBrush" Color="#4E4E4E" />
     <SolidColorBrush x:Key="SliderThumbOutlineBrush" Color="#111111" />
     <SolidColorBrush x:Key="SliderThumbLineBrush" Color="#E4DFCF" />
-    <SolidColorBrush x:Key="SliderTickBrush" Color="#686868" />
+    <SolidColorBrush x:Key="SliderTickBrush" Color="#909090" />
+    <SolidColorBrush x:Key="SliderTickFineBrush" Color="#909090" />
     <SolidColorBrush x:Key="SunkenPanelBrush" Color="#2B2B2B" />
     <SolidColorBrush x:Key="SunkenTrayBrush" Color="#262626" />
     <SolidColorBrush x:Key="InsetBoxBrush" Color="#343434" />

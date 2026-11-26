@@ -413,7 +413,8 @@ public static class LightnessService
             ("SliderThumbShadow", BoxShadows.Parse(d ? "0 1 2 0 #66000000" : "0 1 2 0 #59000000")),
             ("SliderThumbLineBrush", B(d ? line : Color.FromRgb(0xB9, 0xA8, 0x96))),
             ("SliderThumbLineGlow", BoxShadows.Parse(d ? "0 0 3 0 #99E4DCC4" : "0 0 2 0 #66C8B49C")),
-            ("SliderTickBrush", B(d ? G(pane + 0x2C) : G(pane - 0x60))),
+            ("SliderTickBrush", B(d ? G(pane + 0x5C) : G(pane - 0x70))),       // his long sliders' notches: #909090 on #343434
+            ("SliderTickFineBrush", B(d ? G(pane + 0x5C) : G(pane - 0x70))),   // the small boxes' sliders: thinner notches, as easy to see (Digital Groceries, 26 Nov)
             ("SunkenPanelBrush", B(d ? G(pane - 0x09) : G(pane - 0x0C))),
             ("SunkenPanelShadow", BoxShadows.Parse(d ? "inset -8 0 0 0 #3EE4E4E4, inset 0 -6.5 0 0 #2BE4E4E4, inset 2 2 4 0 #40000000"
                                                      : "inset -8 0 0 0 #B0E4E4E4, inset 0 -6.5 0 0 #80E4E4E4, inset 2 2 4 0 #40000000")),

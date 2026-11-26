@@ -206,6 +206,7 @@ public sealed class RadialMenuEditorDialog : Window
         // v27 test (Digital Groceries 16:07): the size is set from 1 to 10 (SizeStep); the saved size stays 1-50.
         var size = new Slider { Minimum = RadialMenuDef.MinSizeStep, Maximum = RadialMenuDef.MaxSizeStep, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220,
             TickPlacement = TickPlacement.BottomRight };   // V31 (L7.23): notches under every slider
+        size.Classes.Add("stops");   // a notch at each of its 10 stops
         size[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.SizeStep)) { Mode = BindingMode.TwoWay };
         Avalonia.Automation.AutomationProperties.SetName(size, vm.SizeCaption);
         var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto,Auto,*,Auto,Auto"), Margin = new Thickness(0, 14, 0, 0), Name = FooterName };

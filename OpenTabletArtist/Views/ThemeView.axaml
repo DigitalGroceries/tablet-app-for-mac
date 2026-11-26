@@ -55,7 +55,7 @@
                     <c:LabeledField Label="Lightness" Margin="0,12,0,0" IsEnabled="{Binding LightnessApplies}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock Text="Dark" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
-                            <Slider x:Name="LightnessSlider" Width="220" Minimum="0" Maximum="{Binding LightnessMax}"
+                            <Slider x:Name="LightnessSlider" Classes="stops" Width="220" Minimum="0" Maximum="{Binding LightnessMax}"
                                     Value="{Binding Lightness}" IsSnapToTickEnabled="True" TickFrequency="1"
                                     TickPlacement="BottomRight"
                                     ToolTip.Tip="How light the app looks. Applies at once." />

@@ -1986,7 +1986,7 @@
                                 </Grid>
                                 <TextBlock x:Name="RadialSizeTitle" Text="{Binding RadialSizeTitle}" Classes="spotTitle" Margin="0,6,0,0" />
                                 <Grid x:Name="RadialSizeRow" ColumnDefinitions="*,8,52,4,18">
-                                    <Slider x:Name="RadialSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
+                                    <Slider x:Name="RadialSizeSlider" Classes="stops" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
                                             Value="{Binding RadialPreview.SizeStep, Mode=TwoWay}" VerticalAlignment="Center"
                                             AutomationProperties.Name="Menu size" />
                                     <TextBox x:Name="RadialSizeBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
@@ -2031,7 +2031,7 @@
                             <StackPanel x:Name="PaletteSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}">
                                 <TextBlock x:Name="PaletteSizeTitle" Text="{Binding PaletteSizeTitle}" Classes="spotTitle" />
                                 <Grid x:Name="PaletteSizeRow" ColumnDefinitions="*,8,52,4,18">
-                                    <Slider x:Name="PaletteSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
+                                    <Slider x:Name="PaletteSizeSlider" Classes="stops" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
                                             Value="{Binding RadialPreview.PaletteSizeStep, Mode=TwoWay}" VerticalAlignment="Center"
                                             AutomationProperties.Name="Palette size" />
                                     <TextBox x:Name="PaletteSizeBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"

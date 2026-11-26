@@ -34,13 +34,13 @@ public static class SliderNotches
         double every = GetEvery(slider);
         if (every <= 0) return;
         foreach (var name in new[] { "TopTickBar", "BottomTickBar", "LeftTickBar", "RightTickBar" })
-            if (e.NameScope.Find<TickBar>(name) is { } bar) bar.TickFrequency = every;   // a value of its own: it wins over the template's
+            if (e.NameScope.Find<NotchBar>(name) is { } bar) bar.Every = every;
     }
 
     static void Apply(Slider slider)
     {
         double every = GetEvery(slider);
         if (every <= 0) return;
-        foreach (var bar in Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(slider).OfType<TickBar>()) bar.TickFrequency = every;
+        foreach (var bar in Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(slider).OfType<NotchBar>()) bar.Every = every;
     }
 }
