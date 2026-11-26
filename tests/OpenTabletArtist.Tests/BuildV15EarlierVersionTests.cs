@@ -87,7 +87,13 @@ public class BuildV15EarlierVersionTests
             Directory.CreateDirectory(bin);
             var driverExe = Path.Combine(bin, "OpenTabletDriver");
             var otherExe = Path.Combine(bin, "bystander");
-            File.Copy("/bin/sleep", driverExe); File.Copy("/bin/sleep", otherExe);
+            // Small shell scripts, not copies of /bin/sleep: on Ubuntu 26.04 (GitHub's ubuntu-latest since Nov 2026)
+            // sleep is one link into the uutils multi-call binary, which picks the tool by its own file name, so a copy
+            // named "bystander" exited at once and the test failed for a reason that has nothing to do with the app.
+            // The trap ends the script's own sleep when it is stopped, so nothing is left running.
+            const string sleeper = "#!/bin/sh\ntrap 'kill $c 2>/dev/null; exit 0' TERM\nsleep \"$1\" & c=$!\nwait $c\n";
+            File.WriteAllText(driverExe, sleeper); File.WriteAllText(otherExe, sleeper);
+            Process.Start("chmod", new[] { "+x", driverExe, otherExe })!.WaitForExit();
             using var driver = Process.Start(driverExe, "30");
             using var other = Process.Start(otherExe, "30");
             // "open" is stubbed through PATH so the test needn't be on a Mac.
@@ -107,7 +113,7 @@ public class BuildV15EarlierVersionTests
             Assert.True(Directory.Exists(Path.Combine(current, "new-marker")));
             Assert.True(File.Exists(Path.Combine(current, "opened")));
             Assert.True(Directory.Exists(Path.Combine(staging, "old.app", "old-marker")));
-            other.Kill();
+            other.Kill(entireProcessTree: true);
         }
         finally { try { Directory.Delete(root, true); } catch { } }
     }
