@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Disattiva inclinazione",
+    "text": "No",
+    "path": "Tavoletta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Sì",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,16 +841,6 @@
   },
   {
     "text": "Menu radiale",
-    "path": "Tavoletta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "No",
-    "path": "Tavoletta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Sì",
     "path": "Tavoletta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

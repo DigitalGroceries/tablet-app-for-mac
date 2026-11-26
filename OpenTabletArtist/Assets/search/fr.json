@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Désactiver l'inclinaison",
+    "text": "Désactivé",
+    "path": "Tablette › Stylet › Stylet",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Activé",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -731,11 +736,6 @@
   },
   {
     "text": "Correction du double-clic",
-    "path": "Tablette › Stylet › Stylet",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Désactivé",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,11 +836,6 @@
   },
   {
     "text": "Menu radial",
-    "path": "Tablette › Stylet › Stylet",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Activé",
     "path": "Tablette › Stylet › Stylet",
     "route": "tablet/ToolPenButton/PenTab"
   },

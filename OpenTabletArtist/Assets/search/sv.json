@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Stäng av lutning",
+    "text": "Av",
+    "path": "Ritplatta › Penna › Penna",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "På",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -731,11 +736,6 @@
   },
   {
     "text": "Dubbelklickshjälp",
-    "path": "Ritplatta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Av",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,11 +836,6 @@
   },
   {
     "text": "Radialmeny",
-    "path": "Ritplatta › Penna › Penna",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "På",
     "path": "Ritplatta › Penna › Penna",
     "route": "tablet/ToolPenButton/PenTab"
   },

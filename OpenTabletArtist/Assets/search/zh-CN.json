@@ -760,11 +760,6 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "关闭倾斜",
-    "path": "数位板 › 笔 › 笔",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
     "text": "笔尖手感",
     "path": "数位板 › 笔 › 笔",
     "route": "tablet/ToolPenButton/PenTab"

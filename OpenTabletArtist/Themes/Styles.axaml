@@ -277,6 +277,200 @@
             </Setter>
         </ControlTheme>
 
+        <!-- V31 (task list L7.14, Digital Groceries' mockup of 25 Nov 2026): every slider of the app is a pill-shaped recess with a dark
+             groove and a flat oval handle with a thin bright line, and its notches under it. Sizes and colours were measured on
+             the mockup, whose picture has 1.248 dots for each point of the app (the Tip Feel box, 250 points wide, is 312 dots
+             wide in it). He drew two sizes:
+               - the slider on its own (Radial Menu Transparency and Size, Position smoothing): the recess 25 high from outline
+                 to outline, the groove 8, the handle 48 x 25;
+               - the slider in a small box (Tip Feel, Double Click Fix, Manual Pressure - class "compact"): 21, 6.4, 38.5 x 21.
+             The handle's line is 2 wide, the notches 4 high and 5 under the recess (LightnessService.SunkenResources has the
+             colours, which follow the theme and its Lightness step). The slider is 48 high with the recess in its middle, as the
+             slider before it was, so no page moves.
+             The parts keep the names the Slider looks for (PART_Track, PART_DecreaseButton, PART_IncreaseButton). -->
+        <ControlTheme x:Key="SunkenSliderClickArea" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="Transparent" />
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+        <ControlTheme x:Key="SunkenSliderHandle" TargetType="Thumb">
+            <Setter Property="Background" Value="{DynamicResource SliderThumbBrush}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Panel>
+                        <Border x:Name="HandleBody" CornerRadius="{TemplateBinding CornerRadius}" Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource SliderThumbOutlineBrush}" BorderThickness="1.25"
+                                BoxShadow="{DynamicResource SliderThumbShadow}" />
+                        <!-- the bright line runs the handle's whole height, over its outline, as in the mockup -->
+                        <Border x:Name="HandleLine" Classes="sliderHandleLine" Background="{DynamicResource SliderThumbLineBrush}"
+                                BoxShadow="{DynamicResource SliderThumbLineGlow}" CornerRadius="1" />
+                    </Panel>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource SliderThumbHoverBrush}" />
+            </Style>
+            <Style Selector="^ /template/ Border.sliderHandleLine">
+                <Setter Property="Width" Value="2.4" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Stretch" />
+            </Style>
+        </ControlTheme>
+        <!-- an upright slider's handle: the same, with its line lying down -->
+        <ControlTheme x:Key="SunkenSliderHandleUpright" TargetType="Thumb" BasedOn="{StaticResource SunkenSliderHandle}">
+            <Style Selector="^ /template/ Border.sliderHandleLine">
+                <Setter Property="Width" Value="NaN" />
+                <Setter Property="Height" Value="2.4" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+        </ControlTheme>
+        <ControlTheme x:Key="{x:Type Slider}" TargetType="Slider">
+            <Setter Property="Background" Value="Transparent" />
+            <Style Selector="^:horizontal">
+                <Setter Property="MinWidth" Value="60" />
+                <Setter Property="MinHeight" Value="48" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Grid x:Name="SliderContainer" Background="Transparent" RowDefinitions="*,Auto,*">
+                            <Grid.Styles>
+                                <Style Selector="TickBar">
+                                    <Setter Property="ReservedSpace" Value="{Binding #PART_Track.Thumb.Bounds}" />
+                                </Style>
+                            </Grid.Styles>
+                            <TickBar x:Name="TopTickBar" Grid.Row="0" Height="4" Margin="0,0,0,5" VerticalAlignment="Bottom" Placement="Top"
+                                     IsVisible="False" Fill="{DynamicResource SliderTickBrush}" Ticks="{TemplateBinding Ticks}"
+                                     TickFrequency="{TemplateBinding Slider.TickFrequency}" Orientation="{TemplateBinding Slider.Orientation}"
+                                     Minimum="{TemplateBinding Slider.Minimum}" Maximum="{TemplateBinding Slider.Maximum}" />
+                            <Border x:Name="SliderRim" Grid.Row="1" Background="{DynamicResource SliderRimBrush}"
+                                    BorderBrush="{DynamicResource SliderOutlineBrush}" BorderThickness="1.25"
+                                    BoxShadow="{DynamicResource SliderRimShadow}" />
+                            <Border x:Name="SliderGroove" Grid.Row="1" VerticalAlignment="Center" Background="{DynamicResource SliderGrooveBrush}" />
+                            <Track x:Name="PART_Track" Grid.Row="1" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
+                                   Value="{TemplateBinding Value, Mode=TwoWay}" IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+                                   Orientation="Horizontal">
+                                <Track.DecreaseButton>
+                                    <RepeatButton x:Name="PART_DecreaseButton" Theme="{StaticResource SunkenSliderClickArea}" />
+                                </Track.DecreaseButton>
+                                <Track.IncreaseButton>
+                                    <RepeatButton x:Name="PART_IncreaseButton" Theme="{StaticResource SunkenSliderClickArea}" />
+                                </Track.IncreaseButton>
+                                <Thumb x:Name="thumb" Theme="{StaticResource SunkenSliderHandle}" DataContext="{TemplateBinding Value}" />
+                            </Track>
+                            <TickBar x:Name="BottomTickBar" Grid.Row="2" Height="4" Margin="0,5,0,0" VerticalAlignment="Top" Placement="Bottom"
+                                     IsVisible="False" Fill="{DynamicResource SliderTickBrush}" Ticks="{TemplateBinding Ticks}"
+                                     TickFrequency="{TemplateBinding Slider.TickFrequency}" Orientation="{TemplateBinding Slider.Orientation}"
+                                     Minimum="{TemplateBinding Slider.Minimum}" Maximum="{TemplateBinding Slider.Maximum}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter>
+            </Style>
+            <Style Selector="^:vertical">
+                <Setter Property="MinWidth" Value="48" />
+                <Setter Property="MinHeight" Value="60" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Grid x:Name="SliderContainer" Background="Transparent" ColumnDefinitions="*,Auto,*">
+                            <Grid.Styles>
+                                <Style Selector="TickBar">
+                                    <Setter Property="ReservedSpace" Value="{Binding #PART_Track.Thumb.Bounds}" />
+                                </Style>
+                            </Grid.Styles>
+                            <TickBar x:Name="LeftTickBar" Grid.Column="0" Width="4" Margin="0,0,5,0" HorizontalAlignment="Right" Placement="Left"
+                                     IsVisible="False" Fill="{DynamicResource SliderTickBrush}" Ticks="{TemplateBinding Ticks}"
+                                     TickFrequency="{TemplateBinding Slider.TickFrequency}" Orientation="{TemplateBinding Slider.Orientation}"
+                                     Minimum="{TemplateBinding Slider.Minimum}" Maximum="{TemplateBinding Slider.Maximum}" />
+                            <Border x:Name="SliderRim" Grid.Column="1" Background="{DynamicResource SliderRimBrush}"
+                                    BorderBrush="{DynamicResource SliderOutlineBrush}" BorderThickness="1.25"
+                                    BoxShadow="{DynamicResource SliderRimShadow}" />
+                            <Border x:Name="SliderGroove" Grid.Column="1" HorizontalAlignment="Center" Background="{DynamicResource SliderGrooveBrush}" />
+                            <Track x:Name="PART_Track" Grid.Column="1" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
+                                   Value="{TemplateBinding Value, Mode=TwoWay}" IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+                                   Orientation="Vertical">
+                                <Track.DecreaseButton>
+                                    <RepeatButton x:Name="PART_DecreaseButton" Theme="{StaticResource SunkenSliderClickArea}" />
+                                </Track.DecreaseButton>
+                                <Track.IncreaseButton>
+                                    <RepeatButton x:Name="PART_IncreaseButton" Theme="{StaticResource SunkenSliderClickArea}" />
+                                </Track.IncreaseButton>
+                                <Thumb x:Name="thumb" Theme="{StaticResource SunkenSliderHandleUpright}" DataContext="{TemplateBinding Value}" />
+                            </Track>
+                            <TickBar x:Name="RightTickBar" Grid.Column="2" Width="4" Margin="5,0,0,0" HorizontalAlignment="Left" Placement="Right"
+                                     IsVisible="False" Fill="{DynamicResource SliderTickBrush}" Ticks="{TemplateBinding Ticks}"
+                                     TickFrequency="{TemplateBinding Slider.TickFrequency}" Orientation="{TemplateBinding Slider.Orientation}"
+                                     Minimum="{TemplateBinding Slider.Minimum}" Maximum="{TemplateBinding Slider.Maximum}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter>
+            </Style>
+            <!-- the two sizes: a slider on its own, then (class "compact") a slider in a small box -->
+            <Style Selector="^:horizontal /template/ Border#SliderRim">
+                <Setter Property="Height" Value="25" /><Setter Property="CornerRadius" Value="12.5" />
+            </Style>
+            <Style Selector="^:horizontal /template/ Border#SliderGroove">
+                <Setter Property="Height" Value="8" /><Setter Property="CornerRadius" Value="4" /><Setter Property="Margin" Value="11.5,0" />
+            </Style>
+            <Style Selector="^:horizontal /template/ Thumb#thumb">
+                <Setter Property="Width" Value="48" /><Setter Property="Height" Value="25" /><Setter Property="CornerRadius" Value="12.5" />
+            </Style>
+            <Style Selector="^:vertical /template/ Border#SliderRim">
+                <Setter Property="Width" Value="25" /><Setter Property="CornerRadius" Value="12.5" />
+            </Style>
+            <Style Selector="^:vertical /template/ Border#SliderGroove">
+                <Setter Property="Width" Value="8" /><Setter Property="CornerRadius" Value="4" /><Setter Property="Margin" Value="0,11.5" />
+            </Style>
+            <Style Selector="^:vertical /template/ Thumb#thumb">
+                <Setter Property="Width" Value="25" /><Setter Property="Height" Value="48" /><Setter Property="CornerRadius" Value="12.5" />
+            </Style>
+            <Style Selector="^.compact:horizontal">
+                <Setter Property="MinWidth" Value="48" />
+            </Style>
+            <Style Selector="^.compact:horizontal /template/ Border#SliderRim">
+                <Setter Property="Height" Value="21" /><Setter Property="CornerRadius" Value="10.5" />
+            </Style>
+            <Style Selector="^.compact:horizontal /template/ Border#SliderGroove">
+                <Setter Property="Height" Value="6.4" /><Setter Property="CornerRadius" Value="3.2" /><Setter Property="Margin" Value="9.5,0" />
+            </Style>
+            <Style Selector="^.compact:horizontal /template/ Thumb#thumb">
+                <Setter Property="Width" Value="38.5" /><Setter Property="Height" Value="21" /><Setter Property="CornerRadius" Value="10.5" />
+            </Style>
+            <Style Selector="^.compact:vertical">
+                <Setter Property="MinHeight" Value="48" />
+            </Style>
+            <Style Selector="^.compact:vertical /template/ Border#SliderRim">
+                <Setter Property="Width" Value="21" /><Setter Property="CornerRadius" Value="10.5" />
+            </Style>
+            <Style Selector="^.compact:vertical /template/ Border#SliderGroove">
+                <Setter Property="Width" Value="6.4" /><Setter Property="CornerRadius" Value="3.2" /><Setter Property="Margin" Value="0,9.5" />
+            </Style>
+            <Style Selector="^.compact:vertical /template/ Thumb#thumb">
+                <Setter Property="Width" Value="21" /><Setter Property="Height" Value="38.5" /><Setter Property="CornerRadius" Value="10.5" />
+            </Style>
+            <!-- where the notches go -->
+            <Style Selector="^[TickPlacement=TopLeft] /template/ TickBar#TopTickBar, ^[TickPlacement=Outside] /template/ TickBar#TopTickBar">
+                <Setter Property="IsVisible" Value="True" />
+            </Style>
+            <Style Selector="^[TickPlacement=BottomRight] /template/ TickBar#BottomTickBar, ^[TickPlacement=Outside] /template/ TickBar#BottomTickBar">
+                <Setter Property="IsVisible" Value="True" />
+            </Style>
+            <Style Selector="^[TickPlacement=TopLeft] /template/ TickBar#LeftTickBar, ^[TickPlacement=Outside] /template/ TickBar#LeftTickBar">
+                <Setter Property="IsVisible" Value="True" />
+            </Style>
+            <Style Selector="^[TickPlacement=BottomRight] /template/ TickBar#RightTickBar, ^[TickPlacement=Outside] /template/ TickBar#RightTickBar">
+                <Setter Property="IsVisible" Value="True" />
+            </Style>
+            <!-- a slider that can't be used is faint, like the rest of the app's switched-off parts -->
+            <Style Selector="^:disabled">
+                <Setter Property="Opacity" Value="0.45" />
+            </Style>
+        </ControlTheme>
+
         <!-- LabeledSlider: caption + slider + optional live numeric readout. -->
         <ControlTheme x:Key="{x:Type c:LabeledSlider}" TargetType="c:LabeledSlider">
             <Setter Property="Template">
@@ -1057,18 +1251,6 @@
     </Style>
     <Style Selector="ScrollBar /template/ Thumb">
         <Setter Property="RenderTransform" Value="none" />
-    </Style>
-
-    <!-- Slimmer slider thumb (#160). The Fluent thumb knob is ~20px; replace its template with a
-         small accent dot so the size is fully under our control. -->
-    <Style Selector="Slider /template/ Thumb">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
-        <Setter Property="Template">
-            <ControlTemplate>
-                <Ellipse Width="12" Height="12" Fill="{DynamicResource AccentBrush}" />
-            </ControlTemplate>
-        </Setter>
     </Style>
 
     <!-- CheckBox: the checked box uses the theme accent (Fluent's default is an off-theme accent that

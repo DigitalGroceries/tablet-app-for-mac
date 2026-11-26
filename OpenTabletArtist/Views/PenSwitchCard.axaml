@@ -30,15 +30,30 @@
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="TextAlignment" Value="Center" />
         </Style>
+        <!-- V31 (task list L7.19, Digital Groceries' mockup of 25 Nov 2026): a square-cornered frame cut into the page - the page's own
+             grey, a dark shade inside its edges, a thin light line round it (LightnessService.SunkenResources) - and on the two
+             button cards a larger box of one size (146 x 67, measured on the mockup) with wider, heavier lettering: the
+             words are drawn 1.2 times as wide as they are high. -->
         <Style Selector="Border.penValueBox">
-            <Setter Property="Background" Value="#1A1A1A" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="{DynamicResource InsetBoxBrush}" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="BoxShadow" Value="{DynamicResource InsetBoxShadow}" />
             <Setter Property="Width" Value="146" />
             <Setter Property="MinHeight" Value="34" />
             <Setter Property="Padding" Value="10,6" />
         </Style>
-        <Style Selector="Border.penValueBox TextBlock.penValue">
-            <Setter Property="Foreground" Value="#E4E4E4" />
+        <Style Selector="Border.penValueBox.wide">
+            <Setter Property="MinHeight" Value="67" />
+            <Setter Property="Padding" Value="6,6" />
+        </Style>
+        <Style Selector="Border.penValueBox.wide LayoutTransformControl">
+            <Setter Property="LayoutTransform" Value="scale(1.2,1)" />
+        </Style>
+        <Style Selector="Border.penValueBox TextBlock.penValue.wide">
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <!-- the box's 134 of room, divided by the 1.2: a set width, so the lines break the same way when measured and when drawn -->
+            <Setter Property="Width" Value="111" />
         </Style>
         <Style Selector="Button.penAction">
             <Setter Property="MinWidth" Value="104" />
@@ -85,8 +100,10 @@
             <TextBlock x:Name="ShoutHeading" Classes="penHeading shout" MinWidth="84"
                        Text="{Binding SectionLabel, Converter={x:Static conv:UpperCaseConverter.Instance}}"
                        IsVisible="{Binding #CardRoot.Shout}" />
-            <Border x:Name="ValueBox" Classes="penValueBox" IsVisible="{Binding ShowChooseAction}">
-                <TextBlock Classes="penValue" Text="{Binding CurrentPlainLabel}" HorizontalAlignment="Center" />
+            <Border x:Name="ValueBox" Classes="penValueBox" Classes.wide="{Binding #CardRoot.Shout}" IsVisible="{Binding ShowChooseAction}">
+                <LayoutTransformControl x:Name="ValueStretch" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock x:Name="ValueText" Classes="penValue" Classes.wide="{Binding #CardRoot.Shout}" Text="{Binding CurrentPlainLabel}" HorizontalAlignment="Center" />
+                </LayoutTransformControl>
             </Border>
             <!-- V29 #177 (Digital Groceries 20 Nov ~20:18: "It would read better if the text is on one line and not two ... 'Pen Tip Default
                  Setting'"): the default status sits on the heading's line, as plain text (no tick, Digital Groceries ~20:08). -->

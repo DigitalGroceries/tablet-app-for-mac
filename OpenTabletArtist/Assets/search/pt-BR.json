@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Desativar inclinação",
+    "text": "Desativado",
+    "path": "Tablet › Caneta › Caneta",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ativado",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -731,11 +736,6 @@
   },
   {
     "text": "Correção de clique duplo",
-    "path": "Tablet › Caneta › Caneta",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Desativado",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,11 +836,6 @@
   },
   {
     "text": "Menu radial",
-    "path": "Tablet › Caneta › Caneta",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Ativado",
     "path": "Tablet › Caneta › Caneta",
     "route": "tablet/ToolPenButton/PenTab"
   },

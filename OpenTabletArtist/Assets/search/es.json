@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Desactivar inclinación",
+    "text": "Desactivado",
+    "path": "Tableta › Lápiz › Lápiz",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Activado",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -731,11 +736,6 @@
   },
   {
     "text": "Corrección de doble clic",
-    "path": "Tableta › Lápiz › Lápiz",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Desactivado",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,11 +836,6 @@
   },
   {
     "text": "Menú radial",
-    "path": "Tableta › Lápiz › Lápiz",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Activado",
     "path": "Tableta › Lápiz › Lápiz",
     "route": "tablet/ToolPenButton/PenTab"
   },

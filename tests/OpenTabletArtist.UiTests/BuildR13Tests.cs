@@ -153,7 +153,15 @@ public class BuildR13Tests
         var tab = new TabletDetailView { DataContext = vm };
         w = new Window { Content = tab, Width = 1100, Height = 900 }; w.Show(); Dispatcher.UIThread.RunJobs();
         Assert.True(tab.FindControl<RadioButton>("PenTab")!.IsChecked);
-        Assert.Contains(tab.GetVisualDescendants().OfType<CheckBox>(), c => c.Content as string == "Turn tilt off" && c.IsEffectivelyVisible);
+        // V31 (task list L7.18): Tilt is an Off / On switch now, not the "Turn tilt off" tick box; On = tilt is on
+        var tilt = tab.FindControl<ToggleSwitch>("PenTiltSwitch")!;
+        Assert.True(tilt.IsEffectivelyVisible);
+        Assert.DoesNotContain(tab.GetVisualDescendants().OfType<CheckBox>(), c => c.Content as string == "Turn tilt off");
+        Assert.True(tilt.IsChecked); Assert.False(vm.DisableTilt);
+        tilt.IsChecked = false; Dispatcher.UIThread.RunJobs();
+        Assert.True(vm.DisableTilt);
+        vm.DisableTilt = false; Dispatcher.UIThread.RunJobs();
+        Assert.True(tilt.IsChecked);
         w.Close();
     }
 

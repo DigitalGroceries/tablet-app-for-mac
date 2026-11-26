@@ -108,10 +108,18 @@ public class BuildR14Tests
         var boxes = new[] { c1, c2 }.Select(c => c.FindControl<Border>("ValueBox")!).ToList();
         foreach (var b in boxes)
         {
-            var fill = ((ISolidColorBrush)b.Background!).Color;
-            Assert.True(fill.R <= 0x20 && fill.R == fill.G && fill.G == fill.B, $"fill {fill}");
-            Assert.Equal(6, b.CornerRadius.TopLeft);
-            var fg = ((ISolidColorBrush)((TextBlock)b.Child!).Foreground!).Color;
+            // V31 (task list L7.19, the mockup of 25 Nov 2026): a square-cornered frame cut into the page - the page's grey
+            // (no longer a black box), a dark shade inside its edges and a thin light line round it
+            var stops = ((IGradientBrush)b.Background!).GradientStops.Select(s => s.Color).ToList();
+            int page = LightnessService.For(LightnessService.Saved).Pane.R;
+            Assert.Contains(stops, c => c.R == page);
+            Assert.All(stops, c => Assert.True(Math.Abs(c.R - page) <= 0x0E && c.R == c.G && c.G == c.B, $"fill {c} on a page of {page:X2}"));
+            Assert.Equal(0, b.CornerRadius.TopLeft);
+            var shadows = Enumerable.Range(0, b.BoxShadow.Count).Select(i => b.BoxShadow[i]).ToList();
+            Assert.Contains(shadows, s => s.IsInset && s.Color.R == 0 && s.Blur >= 4);
+            Assert.Contains(shadows, s => !s.IsInset && s.Spread > 0 && s.Color.R > 0xC0);
+            var words = b.GetVisualDescendants().OfType<TextBlock>().Single();
+            var fg = ((ISolidColorBrush)words.Foreground!).Color;
             Assert.True(fg.R <= 0xE4 && fg.R >= 0xC0, $"text {fg}");
         }
         Assert.Equal(boxes[0].Bounds.Width, boxes[1].Bounds.Width);

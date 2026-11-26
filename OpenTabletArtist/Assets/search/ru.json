@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Отключить наклон",
+    "text": "Выкл.",
+    "path": "Планшет › Перо › Перо",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Вкл.",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -731,11 +736,6 @@
   },
   {
     "text": "Исправление двойного щелчка",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Выкл.",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,11 +836,6 @@
   },
   {
     "text": "Радиальное меню",
-    "path": "Планшет › Перо › Перо",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Вкл.",
     "path": "Планшет › Перо › Перо",
     "route": "tablet/ToolPenButton/PenTab"
   },

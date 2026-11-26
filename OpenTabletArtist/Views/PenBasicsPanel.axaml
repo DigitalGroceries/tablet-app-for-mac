@@ -53,7 +53,7 @@
                              FontFamily="{DynamicResource MonoFontFamily}" Width="52" MinWidth="0" HorizontalContentAlignment="Right" VerticalAlignment="Center"
                              FontWeight="SemiBold" MaxLength="6" AutomationProperties.Name="Position smoothing value" />
                 </Grid>
-                <Slider x:Name="PositionSmoothingSlider" HorizontalAlignment="Stretch"
+                <Slider x:Name="PositionSmoothingSlider" HorizontalAlignment="Stretch" TickPlacement="BottomRight" ctrl:SliderNotches.Every="1"
                         Minimum="0" Maximum="10" TickFrequency="0.1" IsSnapToTickEnabled="True"
                         SmallChange="0.1" LargeChange="1"
                         Value="{Binding PositionSmoothingScale, Mode=TwoWay}"

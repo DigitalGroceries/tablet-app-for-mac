@@ -9,12 +9,16 @@
 
     <UserControl.Styles>
         <!-- V30 build 4 (Digital Groceries 24 Nov: "All the text in the black frame is not readable" in the light look): theme colours. -->
+        <!-- V31 (task list L7.17, Digital Groceries' mockup of 25 Nov 2026): a rounded tray sunk into the page, with no outline: darker than the
+             page, a soft shade inside its top and left edges and a light band inside its right and bottom edges - the lit walls of the
+             hollow (LightnessService.SunkenResources; measured on his mockup: the tray's band is 12.5 wide and 9.5 high, a box's
+             8 and 6.5). The bands lie INSIDE the old outline, so a tray or box is exactly as big as it was and nothing moves; the
+             outline's 1 of room went into the padding (16 + 1, and 12,8 + 1 for the boxes). -->
         <Style Selector="Border.penBasicsInset">
-            <Setter Property="Background" Value="{DynamicResource PenBasicsInsetBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource PenBasicsInsetBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="2" />
-            <Setter Property="BoxShadow" Value="inset 0 0 10 0 #33000000" />
+            <Setter Property="Background" Value="{DynamicResource SunkenTrayBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="BoxShadow" Value="{DynamicResource SunkenTrayShadow}" />
         </Style>
         <!-- R12: tile icons follow the tile state; dark #141414 on the selected #D8D8D8 fill -->
         <Style Selector=":is(Shape).tileIcon"><Setter Property="Fill" Value="{DynamicResource TextSecondaryBrush}" /></Style>
@@ -45,8 +49,9 @@
                 <ControlTemplate>
                     <StackPanel Spacing="4">
                         <TextBlock Text="{TemplateBinding Header}" FontSize="12" Margin="2,0,0,0" />
-                        <Border Background="{DynamicResource WacomPaneBrush}" BorderBrush="{DynamicResource GlassBorderBrush}"
-                                BorderThickness="1" CornerRadius="4" Padding="12,8">
+                        <!-- V31 (L7.17): sunk into the page like the tray below (Border.penBasicsInset), with smaller corners -->
+                        <Border x:Name="GroupBox" Background="{DynamicResource SunkenPanelBrush}" BorderThickness="0" CornerRadius="10" Padding="13,9"
+                                BoxShadow="{DynamicResource SunkenPanelShadow}">
                             <ContentPresenter Content="{TemplateBinding Content}" />
                         </Border>
                     </StackPanel>
@@ -55,9 +60,9 @@
         </Style>
         <!-- V29 #180 (Digital Groceries' Pen page mockup, 21 Nov): the pieces of the merged Pen page. -->
         <Style Selector="Border.wacomBox">
-            <Setter Property="Background" Value="{DynamicResource WacomPaneBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="4" /><Setter Property="Padding" Value="12,8" />
+            <Setter Property="Background" Value="{DynamicResource SunkenPanelBrush}" />
+            <Setter Property="BorderThickness" Value="0" /><Setter Property="CornerRadius" Value="10" /><Setter Property="Padding" Value="13,9" />
+            <Setter Property="BoxShadow" Value="{DynamicResource SunkenPanelShadow}" />
         </Style>
         <!-- Kept in its place but hidden (Double Click Fix while the eraser's settings are shown): the page doesn't jump. -->
         <Style Selector="HeaderedContentControl.keepSpace">
@@ -114,12 +119,13 @@
             <Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Border.penEndValue">
-            <Setter Property="Background" Value="#1A1A1A" /><Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="{DynamicResource InsetBoxBrush}" /><Setter Property="CornerRadius" Value="0" />
+            <Setter Property="BoxShadow" Value="{DynamicResource InsetBoxShadow}" />
             <Setter Property="MinWidth" Value="126" /><Setter Property="MinHeight" Value="34" /><Setter Property="Padding" Value="10,6" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="Border.penEndValue > TextBlock">
-            <Setter Property="FontSize" Value="15" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="#E4E4E4" />
+            <Setter Property="FontSize" Value="15" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
             <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextWrapping" Value="Wrap" /><Setter Property="TextAlignment" Value="Center" />
         </Style>
@@ -801,7 +807,7 @@
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="12" Margin="0,10,0,0">
                                 <TextBlock x:Name="LblMapSize" Grid.Column="0" Text="Size" VerticalAlignment="Center"
                                            Foreground="{DynamicResource TextMutedBrush}" />
-                                <Slider Grid.Column="1" Minimum="10" Maximum="100" MinWidth="120"
+                                <Slider Grid.Column="1" Minimum="10" Maximum="100" MinWidth="120" TickFrequency="10" TickPlacement="BottomRight"
                                         Value="{Binding ActiveAreaSizePercent}" VerticalAlignment="Center" />
                                 <!-- V29 #140 (Digital Groceries): type the size, 10 to 100 %. -->
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
@@ -1651,10 +1657,25 @@
                 <Grid x:Name="PenPageOuter" ColumnDefinitions="Auto,24,*">
                 <Grid x:Name="PenPageGrid" ColumnDefinitions="250,24,Auto" RowDefinitions="Auto,Auto,Auto">
                     <StackPanel x:Name="PenLeftColumn" Spacing="12">
-                        <HeaderedContentControl x:Name="PenTiltGroup" Classes="wacomGroup" Header="Tilt">
-                            <CheckBox x:Name="PenTiltOff" Content="Turn tilt off" IsChecked="{Binding DisableTilt}"
-                                      ToolTip.Tip="OTD has no tilt-sensitivity curve; tilt can only be on or off." />
-                        </HeaderedContentControl>
+                        <!-- V31 (task list L7.18, Digital Groceries' mockup of 25 Nov 2026): Tilt is an Off / On switch like the radial menu's, with
+                             its name above it and no box around it. It replaces the "Turn tilt off" tick box, so its meaning is the
+                             other way round: the switch is On while tilt is on.
+                             Measured on his mockup: the group is as high as the old boxed one (69), so nothing below it moves; the name
+                             is 14 high and sits over the middle of the switch (the switch's own 12 of room on its right is left out of
+                             the centring), the switch's middle is 43 under the group's top. -->
+                        <Grid x:Name="PenTiltGroup" ColumnDefinitions="Auto,Auto,Auto" RowDefinitions="27,32,*" ColumnSpacing="6" Height="69"
+                              HorizontalAlignment="Left" Margin="2,0,0,0"
+                              ToolTip.Tip="OTD has no tilt-sensitivity curve; tilt can only be on or off.">
+                            <TextBlock x:Name="PenTiltLabel" Grid.Column="1" Text="Tilt" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Top"
+                                       Margin="0,5,12,0" />
+                            <TextBlock x:Name="PenTiltOffText" Grid.Row="1" Text="{Binding MenuSwitchOffText}" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <ToggleSwitch x:Name="PenTiltSwitch" Grid.Row="1" Grid.Column="1" IsChecked="{Binding TiltOn, Mode=TwoWay}"
+                                          OnContent="" OffContent="" MinWidth="0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          AutomationProperties.Name="Tilt" />
+                            <TextBlock x:Name="PenTiltOnText" Grid.Row="1" Grid.Column="2" Text="{Binding MenuSwitchOnText}" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </Grid>
                         <StackPanel x:Name="PenFeelGroup" Spacing="4">
                             <WrapPanel x:Name="PenEndSwitch" ItemSpacing="6" LineSpacing="4">
                                 <RadioButton x:Name="TipFeelChip" GroupName="PenEndSwitch" Classes="penEndChip" Content="{Binding TipFeelSwitchLabel}"
@@ -1667,7 +1688,7 @@
                                     <StackPanel x:Name="TipFeelPanel" Spacing="4" IsVisible="{Binding TipSettingsShown}">
                                         <!-- V29 #130/#140 (Digital Groceries): a typed value 1 (Soft) to 100 (Firm) beside the slider, like Double Click Fix. -->
                                         <Grid x:Name="TipFeelRow" ColumnDefinitions="*,6,48" RowDefinitions="Auto,Auto">
-                                        <Slider x:Name="TipFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
+                                        <Slider x:Name="TipFeelSlider" Classes="compact" Minimum="-0.9" Maximum="0.9" Value="{Binding TipFeel}"
                                         TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
                                         VerticalAlignment="Center" AutomationProperties.Name="Tip Feel" />
                                         <TextBox x:Name="TipFeelBox" Grid.Column="2" Width="48" MinWidth="0" VerticalAlignment="Center"
@@ -1690,7 +1711,7 @@
                                     <StackPanel x:Name="EraserFeelPanel" Spacing="4" IsVisible="{Binding EraserSettingsShown}">
                                         <!-- V29 #180: the eraser's own curve (Digital Groceries 21 Nov: "1 Can you make them two different setting values?"). -->
                                         <Grid x:Name="EraserFeelRow" ColumnDefinitions="*,6,48" RowDefinitions="Auto,Auto">
-                                        <Slider x:Name="EraserFeelSlider" Minimum="-0.9" Maximum="0.9" Value="{Binding EraserFeel}"
+                                        <Slider x:Name="EraserFeelSlider" Classes="compact" Minimum="-0.9" Maximum="0.9" Value="{Binding EraserFeel}"
                                         TickFrequency="0.3" TickPlacement="BottomRight" IsEnabled="{Binding CanEditPressure}"
                                         VerticalAlignment="Center" AutomationProperties.Name="Eraser Feel" />
                                         <TextBox x:Name="EraserFeelBox" Grid.Column="2" Width="48" MinWidth="0" VerticalAlignment="Center"
@@ -1718,7 +1739,7 @@
                                                 Classes.keepSpace="{Binding EraserSettingsShown}">
                             <StackPanel Spacing="4">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                                    <Slider x:Name="TipDoubleClickDistanceSlider" Minimum="0" Maximum="100"
+                                    <Slider x:Name="TipDoubleClickDistanceSlider" Classes="compact" Minimum="0" Maximum="100"
                                             SmallChange="1" LargeChange="10"
                                             Value="{Binding TipDoubleClickDistance}"
                                             TickFrequency="25" TickPlacement="BottomRight" VerticalAlignment="Center"
@@ -1760,7 +1781,7 @@
                         <HeaderedContentControl x:Name="ManualTipPressureFrame" Classes="wacomGroup" Header="Manual Pressure" IsVisible="{Binding TipSettingsShown}">
                             <StackPanel Spacing="4">
                                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
-                                    <Slider x:Name="ManualTipPressureSlider" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1"
+                                    <Slider x:Name="ManualTipPressureSlider" Classes="compact" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1"
                                             TickFrequency="0.25" TickPlacement="BottomRight" VerticalAlignment="Center"
                                             Value="{Binding ManualTipPressure}" AutomationProperties.Name="Manual Pen Tip Pressure" />
                                     <TextBox x:Name="ManualTipPressureBox" Grid.Column="1" Width="48" MinWidth="0" VerticalAlignment="Center"
@@ -1777,7 +1798,7 @@
                         <HeaderedContentControl x:Name="ManualEraserPressureFrame" Classes="wacomGroup" Header="Manual Pressure" IsVisible="{Binding EraserSettingsShown}">
                             <StackPanel Spacing="4">
                                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
-                                    <Slider x:Name="ManualEraserPressureSlider" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1"
+                                    <Slider x:Name="ManualEraserPressureSlider" Classes="compact" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1"
                                             TickFrequency="0.25" TickPlacement="BottomRight" VerticalAlignment="Center"
                                             Value="{Binding ManualEraserPressure}" AutomationProperties.Name="Manual Eraser Pressure" />
                                     <TextBox x:Name="ManualEraserPressureBox" Grid.Column="1" Width="48" MinWidth="0" VerticalAlignment="Center"
@@ -1835,7 +1856,9 @@
                                 <Viewbox><TextBlock Text="{Binding TipLabel}" /></Viewbox>
                             </Border>
                         </Panel>
-                        <StackPanel x:Name="PenCardsColumn" Grid.Column="2" Spacing="24" HorizontalAlignment="Left">
+                        <!-- V31 (L7.19): 19 between the cards (was 24): the two button boxes are one larger size now, as in the mockup of
+                             25 Nov 2026, and the column ends where it ended. -->
+                        <StackPanel x:Name="PenCardsColumn" Grid.Column="2" Spacing="19" HorizontalAlignment="Left">
                             <!-- The eraser end's action beside the Eraser label: Change… and its current action (Digital Groceries' mockup). -->
                             <StackPanel x:Name="EraserActionRow" Orientation="Horizontal" Spacing="12" Margin="0,18,0,10">
                                 <Button x:Name="EraserChangeButton" Classes="penEndAction" Content="Change…"
@@ -1886,7 +1909,7 @@
                         </StackPanel>
                     </Border>
                     <!-- R14/R16 (the user's mock-ups): movement and pen input in a darker inset frame; Eraser input while the eraser is shown. -->
-                    <Border x:Name="PenBasicsBox" Grid.Row="2" Grid.ColumnSpan="3" Classes="penBasicsInset" Padding="16" Margin="0,10,0,0">
+                    <Border x:Name="PenBasicsBox" Grid.Row="2" Grid.ColumnSpan="3" Classes="penBasicsInset" Padding="17" Margin="0,10,0,0">
                         <views:PenBasicsPanel ForEraser="{Binding EraserSettingsShown}" />
                     </Border>
                 </Grid>
@@ -1911,6 +1934,13 @@
                                  screenshot, a narrower window): outside the Viewbox, so it keeps its size and is never cut off when the picture shrinks. -->
                             <StackPanel Width="324" Spacing="2">
                             <Grid x:Name="RadialSpotArea" Width="324" Height="324">
+                                <!-- V31 (task list L7.21, Digital Groceries' mockup of 25 Nov 2026): embossed. A thin ring just outside the menu, light at
+                                     the top left and dark at the bottom right (LightnessService.SunkenResources, EmbossRingBrush). It lies
+                                     outside the button, which would cut it off. -->
+                                <Panel x:Name="RadialSpotRimHolder" Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                    <Ellipse x:Name="RadialSpotRim" Margin="-6" Stroke="{DynamicResource EmbossRingBrush}" StrokeThickness="2.5" />
+                                </Panel>
                                 <Button x:Name="RadialSpotButton" Classes="flat" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
                                         BorderThickness="0" Cursor="Hand" IsEnabled="{Binding CanEditRadial}" Click="OnRadialSpotClick"
                                         AutomationProperties.Name="{Binding RadialSpotHeading}">
@@ -1940,10 +1970,12 @@
                             <StackPanel x:Name="RadialSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}">
                                 <TextBlock x:Name="RadialTransparencyTitle" Text="{Binding RadialTransparencyTitle}" Classes="spotTitle" />
                                 <Grid x:Name="RadialTransparencyRow" ColumnDefinitions="*,8,52,4,18">
-                                    <!-- Build 17 (Digital Groceries' list 1, item 7): as long as the Radial Menu Size slider looks (its line ends at its
-                                         knob's centre at 10), so half a knob shorter. -->
+                                    <!-- Build 17 (Digital Groceries' list 1, item 7): as long as the Radial Menu Size slider looks. V31: the sunken slider
+                                         shows its whole recess, so the two are simply the same length, as in his mockup of 25 Nov 2026
+                                         (before, a line ended at the knob's middle and this one was made half a knob shorter). -->
                                     <Slider x:Name="RadialTransparencySlider" Minimum="0" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True"
-                                            Value="{Binding RadialPreview.Transparency, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0"
+                                            TickPlacement="BottomRight" ctrl:SliderNotches.Every="10"
+                                            Value="{Binding RadialPreview.Transparency, Mode=TwoWay}" VerticalAlignment="Center"
                                             AutomationProperties.Name="Menu transparency" />
                                     <TextBox x:Name="RadialTransparencyBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
                                              VerticalAlignment="Center" FontWeight="SemiBold" MaxLength="6"
@@ -1953,7 +1985,7 @@
                                 </Grid>
                                 <TextBlock x:Name="RadialSizeTitle" Text="{Binding RadialSizeTitle}" Classes="spotTitle" Margin="0,6,0,0" />
                                 <Grid x:Name="RadialSizeRow" ColumnDefinitions="*,8,52,4,18">
-                                    <Slider x:Name="RadialSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
+                                    <Slider x:Name="RadialSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
                                             Value="{Binding RadialPreview.SizeStep, Mode=TwoWay}" VerticalAlignment="Center"
                                             AutomationProperties.Name="Menu size" />
                                     <TextBox x:Name="RadialSizeBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
@@ -1979,6 +2011,9 @@
                                 <StackPanel Width="324" Spacing="2">
                                     <!-- V30 build 5 (Digital Groceries 24 Nov ~17:43): click the palette, as the radial menu, to open its own window and pick your
                                          own colours (PaletteEditorDialog). -->
+                                    <!-- V31 (L7.22): the embossed ring lies outside the button, which would cut it off -->
+                                    <Panel x:Name="PaletteSpotArea" Width="324" Height="324" HorizontalAlignment="Center">
+                                    <ctrl:EmbossRing x:Name="PaletteSpotRim" Margin="-6" Brush="{DynamicResource EmbossRingBrush}" MenuSize="{Binding RadialPreview.PaletteSize}" />
                                     <Button x:Name="PaletteSpotButton" Classes="flat" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand"
                                             HorizontalAlignment="Center" IsEnabled="{Binding CanEditRadialSliders}" Click="OnPaletteSpotClick"
                                             AutomationProperties.Name="{Binding PaletteSpotTip}" ToolTip.Tip="{Binding PaletteSpotTip}">
@@ -1989,12 +2024,13 @@
                                         </Button.Styles>
                                         <ctrl:ColourPaletteWheel x:Name="PaletteSpotWheel" Width="324" Height="324" MenuSize="{Binding RadialPreview.PaletteSize}" Menu="{Binding RadialPreview.PaletteMenu}" />
                                     </Button>
+                                    </Panel>
                                 </StackPanel>
                             </Viewbox>
                             <StackPanel x:Name="PaletteSliders" Spacing="4" Margin="0,6,0,0" IsEnabled="{Binding CanEditRadialSliders}">
                                 <TextBlock x:Name="PaletteSizeTitle" Text="{Binding PaletteSizeTitle}" Classes="spotTitle" />
                                 <Grid x:Name="PaletteSizeRow" ColumnDefinitions="*,8,52,4,18">
-                                    <Slider x:Name="PaletteSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
+                                    <Slider x:Name="PaletteSizeSlider" Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
                                             Value="{Binding RadialPreview.PaletteSizeStep, Mode=TwoWay}" VerticalAlignment="Center"
                                             AutomationProperties.Name="Palette size" />
                                     <TextBox x:Name="PaletteSizeBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"
@@ -2019,7 +2055,7 @@
                 <!-- V29 #163 (Digital Groceries 20 Nov ~09:10, screenshot "Put the keyboard settings menu and how it is triggered here"): the floating
                      keyboard's own section under Movement / Pen input: what opens it on the left, how it looks on the right (the
                      transparency row moved here from the radial menu's sliders; #162 adds its size). -->
-                <Border x:Name="FloatingKeyboardBox" Classes="penBasicsInset" Padding="16">
+                <Border x:Name="FloatingKeyboardBox" Classes="penBasicsInset" Padding="17">
                     <Grid ColumnDefinitions="*,32,*" RowDefinitions="Auto,Auto,Auto,Auto">
                         <TextBlock x:Name="FloatingKeyboardHeading" Grid.ColumnSpan="3" Text="{Binding KeyboardLook.Heading}"
                                    FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" />
@@ -2053,7 +2089,7 @@
                         <StackPanel x:Name="FloatingKeyboardLook" Grid.Row="3" Grid.Column="2" Spacing="4">
                             <TextBlock Text="{Binding KeyboardLook.SizeCaption}" FontSize="12" />
                             <Grid x:Name="KeyboardSizeRow" ColumnDefinitions="*,8,52,4,18">
-                                <Slider x:Name="KeyboardSizeSlider" Minimum="60" Maximum="300"
+                                <Slider x:Name="KeyboardSizeSlider" Minimum="60" Maximum="300" TickPlacement="BottomRight" ctrl:SliderNotches.Every="30"
                                         TickFrequency="10" IsSnapToTickEnabled="False" SmallChange="5" LargeChange="20"
                                         Value="{Binding KeyboardLook.Size, Mode=TwoWay}" VerticalAlignment="Center"
                                         AutomationProperties.Name="Keyboard size" />
@@ -2066,6 +2102,7 @@
                             <TextBlock Text="{Binding KeyboardLook.TransparencyCaption}" FontSize="12" Margin="0,6,0,0" />
                             <Grid x:Name="KeyboardTransparencyRow" ColumnDefinitions="*,8,52,4,18">
                                 <Slider x:Name="KeyboardTransparencySlider" Minimum="0" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True"
+                                        TickPlacement="BottomRight" ctrl:SliderNotches.Every="10"
                                         Value="{Binding KeyboardLook.Transparency, Mode=TwoWay}" VerticalAlignment="Center"
                                         AutomationProperties.Name="Keyboard transparency" />
                                 <TextBox x:Name="KeyboardTransparencyBox" Grid.Column="2" Width="52" MinWidth="0" HorizontalContentAlignment="Right"

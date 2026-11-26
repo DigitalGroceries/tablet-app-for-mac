@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Zima mwinamo",
+    "text": "Zima",
+    "path": "Kibao › Kalamu › Kalamu",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Washa",
     "path": "Kibao › Kalamu › Kalamu",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,16 +841,6 @@
   },
   {
     "text": "Menyu ya duara",
-    "path": "Kibao › Kalamu › Kalamu",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Zima",
-    "path": "Kibao › Kalamu › Kalamu",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Washa",
     "path": "Kibao › Kalamu › Kalamu",
     "route": "tablet/ToolPenButton/PenTab"
   },

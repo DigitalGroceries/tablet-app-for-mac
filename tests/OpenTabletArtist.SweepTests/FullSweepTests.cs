@@ -445,13 +445,15 @@ public class FullSweepTests : IDisposable
         using var vm = Editor(app);
         var view = new TabletDetailView { DataContext = vm };
         var w = Host(view, 1100, 820);
-        var tilt = Visible<CheckBox>(w).FirstOrDefault(c => Label(c) == "Turn tilt off");
-        if (tilt != null)
+        // V31 (task list L7.18): Tilt is an Off / On switch (it was the "Turn tilt off" tick box); Off = tilt is off
+        var tilt = Visible<ToggleSwitch>(w).FirstOrDefault(c => c.Name == "PenTiltSwitch");
+        if (tilt == null) Defect("[missing] Pen › the Tilt switch is not on the page");
+        else
         {
             Click(w, tilt); await Settle(300);
             var afterUi = tilt.IsChecked; var afterVm = vm.DisableTilt; var inDoc = app.CurrentSettings!.Profiles[0].BindingSettings.DisableTilt;
-            if (afterUi != true || !afterVm || !inDoc) Defect($"[no response] Pen › 'Turn tilt off': after one click box={afterUi}, setting={afterVm}, applied={inDoc}");
-            else Pass("Turn tilt off toggles and applies");
+            if (afterUi != false || !afterVm || !inDoc) Defect($"[no response] Pen › Tilt switch: after one click switch={afterUi}, tilt off={afterVm}, applied={inDoc}");
+            else Pass("The Tilt switch turns tilt off and applies");
             Click(w, tilt); await Settle(300);
         }
         foreach (var name in new[] { "KeyboardTab", "MappingTab", "PenTab" })   // V29 #180: no Eraser tab

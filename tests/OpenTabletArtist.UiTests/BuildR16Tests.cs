@@ -42,10 +42,19 @@ public class BuildR16Tests
     {
         var (_, view, w) = Open("PenTab");
         var b = view.FindControl<Border>("PenBasicsBox")!;
-        var bg = ((ISolidColorBrush)b.Background!).Color; var br = ((ISolidColorBrush)b.BorderBrush!).Color;
-        Assert.Equal(Color.Parse("#262626"), bg);
-        Assert.Equal(Color.Parse("#4A4A4A"), br);
-        Assert.Equal(1, b.BorderThickness.Top);
+        var bg = ((ISolidColorBrush)b.Background!).Color;
+        // a little darker than the page it is sunk into (#262626 on his #343434, measured on the mockup)
+        var page = LightnessService.For(LightnessService.Saved).Pane;
+        Assert.Equal(Color.FromRgb((byte)(page.R - 0x0E), (byte)(page.G - 0x0E), (byte)(page.B - 0x0E)), bg);
+        // V31 (task list L7.17, the mockup of 25 Nov 2026): no outline any more. The tray is sunk: a light band inside its
+        // right and bottom edges (12.5 wide, 9.5 high) and a soft shade inside its top and left edges.
+        Assert.Equal(0, b.BorderThickness.Top);
+        Assert.Equal(16, b.CornerRadius.TopLeft);
+        var shadows = Enumerable.Range(0, b.BoxShadow.Count).Select(i => b.BoxShadow[i]).ToList();
+        Assert.All(shadows, s => Assert.True(s.IsInset));
+        Assert.Contains(shadows, s => s.OffsetX == -12.5 && s.OffsetY == 0 && s.Color.R > 0xC0);
+        Assert.Contains(shadows, s => s.OffsetX == 0 && s.OffsetY == -9.5 && s.Color.R > 0xC0);
+        Assert.Contains(shadows, s => s.OffsetX > 0 && s.OffsetY > 0 && s.Color.R == 0);
         w.Close();
     }
 
@@ -149,7 +158,8 @@ public class BuildR16Tests
             Assert.True(left - penRight <= 40, $"card starts {left - penRight:0} pt right of the pen (should sit next to it)");
         }
         var card2 = cards.First(c => ReferenceEquals(c.DataContext, vm.PenButton2Row));
-        var text = card2.FindControl<Border>("ValueBox")!.Child as TextBlock;
+        // V31 (L7.19): the words sit in a LayoutTransformControl (drawn 1.2 times as wide)
+        var text = card2.FindControl<Border>("ValueBox")!.GetVisualDescendants().OfType<TextBlock>().SingleOrDefault();
         Assert.NotNull(text);
         Assert.Equal(longText, text!.Text);
         Assert.Equal(TextTrimming.None, text.TextTrimming);

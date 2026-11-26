@@ -174,10 +174,11 @@ public class V29List1Tests
         {
             var t = Find<Slider>(view, "RadialTransparencySlider"); var s = Find<Slider>(view, "RadialSizeSlider");
             s.Value = s.Maximum; Settle(w);
-            var knob = s.GetVisualDescendants().OfType<Thumb>().First();
-            var knobCentre = In(knob, view).Center.X;
-            // the size slider's line ends at its knob's centre at 10; the transparency slider's line ends there too
-            Assert.Equal(knobCentre, In(t, view).Right, 1.5);
+            // V31 (task list L7.14): the sunken slider shows its whole recess, so "as long as it looks" is simply the same
+            // recess, end to end, as in the mockup of 25 Nov 2026 (before, a line ended at the knob's middle)
+            Border Rim(Slider x) => x.GetVisualDescendants().OfType<Border>().First(b => b.Name == "SliderRim");
+            Assert.Equal(In(Rim(s), view).Right, In(Rim(t), view).Right, 0.5);
+            Assert.Equal(In(Rim(s), view).Left, In(Rim(t), view).Left, 0.5);
             Assert.Equal(In(t, view).Left, In(s, view).Left, 0.5);
             // the number boxes still line up
             Assert.Equal(In(Find<TextBox>(view, "RadialTransparencyBox"), view).Left, In(Find<TextBox>(view, "RadialSizeBox"), view).Left, 0.5);

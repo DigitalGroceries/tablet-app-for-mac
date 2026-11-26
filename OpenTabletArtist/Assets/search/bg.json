@@ -670,7 +670,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Изключи наклона",
+    "text": "Изкл.",
+    "path": "Таблет › Писалка › Писалка",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Вкл.",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -716,11 +721,6 @@
   },
   {
     "text": "Поправка на двойното кликане",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Изкл.",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -821,11 +821,6 @@
   },
   {
     "text": "Радиално меню",
-    "path": "Таблет › Писалка › Писалка",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Вкл.",
     "path": "Таблет › Писалка › Писалка",
     "route": "tablet/ToolPenButton/PenTab"
   },

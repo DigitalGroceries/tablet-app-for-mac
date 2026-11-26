@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:conv="using:OpenTabletArtist.Converters"
+        xmlns:ctrl="using:OpenTabletArtist.Controls"
         x:Class="OpenTabletArtist.Views.BindingEditorDialog"
         Title="{Binding Title}"
         Width="880" Height="580"
@@ -208,6 +209,7 @@
                     <Grid ColumnDefinitions="Auto,*,Auto,52" ColumnSpacing="8">
                         <TextBlock Text="{Binding SpeedSlowLabel}" VerticalAlignment="Center" />
                         <Slider Grid.Column="1" Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
+                                TickPlacement="BottomRight" ctrl:SliderNotches.Every="11"
                                 Value="{Binding GestureSpeed}" AutomationProperties.Name="Speed"
                                 ToolTip.Tip="{Binding SpeedTip}" />
                         <TextBlock Grid.Column="2" Text="{Binding SpeedFastLabel}" VerticalAlignment="Center" />

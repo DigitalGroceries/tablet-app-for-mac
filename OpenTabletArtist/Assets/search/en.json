@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Turn tilt off",
+    "text": "Off",
+    "path": "Tablet › Pen › Pen",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "On",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -731,11 +736,6 @@
   },
   {
     "text": "Double Click Fix",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Off",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,11 +836,6 @@
   },
   {
     "text": "Radial menu",
-    "path": "Tablet › Pen › Pen",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "On",
     "path": "Tablet › Pen › Pen",
     "route": "tablet/ToolPenButton/PenTab"
   },

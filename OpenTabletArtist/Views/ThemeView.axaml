@@ -83,7 +83,7 @@
                 <StackPanel>
                     <c:ToggleSetting Label="Falling petals" IsChecked="{Binding PetalsEnabled}"
                                      ToolTip.Tip="Animate drifting petals over the backdrop" />
-                    <c:LabeledSlider Label="Petal opacity" LabelWidth="130"
+                    <c:LabeledSlider Label="Petal opacity" TickFrequency="0.1" TickPlacement="BottomRight" LabelWidth="130"
                                      Minimum="0.1" Maximum="1" Value="{Binding PetalsOpacity}"
                                      ValueFormat="0%" Margin="0,8,0,0"
                                      IsEnabled="{Binding PetalsEnabled}"
@@ -289,20 +289,20 @@
                         <!-- Radial places a blob somewhere along its edge; a linear wash spans the whole
                              edge, so it trades those two for the shape of its fade. Reach is the one
                              measurement that means the same thing in both. -->
-                        <c:LabeledSlider Label="Center X" LabelWidth="82" Minimum="0" Maximum="1"
+                        <c:LabeledSlider Label="Center X" TickFrequency="0.1" TickPlacement="BottomRight" LabelWidth="82" Minimum="0" Maximum="1"
                                          Value="{Binding Gradients.Selected.CenterX, Mode=TwoWay}" ValueFormat="0.00"
                                          IsVisible="{Binding Gradients.Selected.IsRadial}" />
-                        <c:LabeledSlider Label="Width" LabelWidth="82" Minimum="0.05" Maximum="1.5"
+                        <c:LabeledSlider Label="Width" TickFrequency="0.145" TickPlacement="BottomRight" LabelWidth="82" Minimum="0.05" Maximum="1.5"
                                          Value="{Binding Gradients.Selected.Width, Mode=TwoWay}" ValueFormat="0.00"
                                          IsVisible="{Binding Gradients.Selected.IsRadial}" />
-                        <c:LabeledSlider Label="Reach" LabelWidth="82" Minimum="0" Maximum="600"
+                        <c:LabeledSlider Label="Reach" TickFrequency="60" TickPlacement="BottomRight" LabelWidth="82" Minimum="0" Maximum="600"
                                          Value="{Binding Gradients.Selected.ReachPx, Mode=TwoWay}" ValueFormat="0"
                                          ToolTip.Tip="How far the glow reaches in from its edge, in pixels" />
-                        <c:LabeledSlider Label="Falloff" LabelWidth="82" Minimum="0.02" Maximum="0.98"
+                        <c:LabeledSlider Label="Falloff" TickFrequency="0.096" TickPlacement="BottomRight" LabelWidth="82" Minimum="0.02" Maximum="0.98"
                                          Value="{Binding Gradients.Selected.Falloff, Mode=TwoWay}" ValueFormat="0.00"
                                          IsVisible="{Binding Gradients.Selected.IsLinear}"
                                          ToolTip.Tip="Where the wash reaches half opacity: low fades early, high holds the colour and fades late" />
-                        <c:LabeledSlider Label="Opacity" LabelWidth="82" Minimum="0" Maximum="1"
+                        <c:LabeledSlider Label="Opacity" TickFrequency="0.1" TickPlacement="BottomRight" LabelWidth="82" Minimum="0" Maximum="1"
                                          Value="{Binding Gradients.Selected.CenterOpacity, Mode=TwoWay}" ValueFormat="0.00" />
                     </StackPanel>
                 </WrapPanel>
@@ -329,7 +329,7 @@
                             </StackPanel>
                         </c:LabeledField>
                         <!-- Only meaningful with an image set: fades the image over the base color. -->
-                        <c:LabeledSlider Label="Image opacity" LabelWidth="130"
+                        <c:LabeledSlider Label="Image opacity" TickFrequency="0.1" TickPlacement="BottomRight" LabelWidth="130"
                                          Minimum="0" Maximum="1" Value="{Binding BackgroundImageOpacity}"
                                          ValueFormat="0%" IsVisible="{Binding ShowBackgroundImageOpacity}"
                                          ToolTip.Tip="Lower opacity lets more of the base colour show through the image" />
@@ -368,7 +368,7 @@
                             <TextBlock Text="Card colour" Foreground="{DynamicResource TextSecondaryBrush}" />
                             <c:ColorPicker Color="{Binding CardColor, Mode=TwoWay}" />
                         </StackPanel>
-                        <c:LabeledSlider Label="Card opacity" LabelWidth="130"
+                        <c:LabeledSlider Label="Card opacity" TickFrequency="0.085" TickPlacement="BottomRight" LabelWidth="130"
                                          Minimum="0.15" Maximum="1" Value="{Binding CardOpacity}" />
                         <Button Content="Reset to defaults" Command="{Binding ResetToDefaultsCommand}"
                                 Theme="{StaticResource GhostButton}" Padding="12,6"

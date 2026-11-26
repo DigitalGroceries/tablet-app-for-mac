@@ -46,7 +46,7 @@ public class BuildR18Tests
         var pen = Controls(view.FindControl<Border>("PenBasicsBox")!);
         PenPageTabs.Select(view, "EraserTab");
         Assert.Equal(pen, Controls(view.FindControl<Border>("PenBasicsBox")!));   // Movement + Eraser input frame
-        foreach (var n in new[] { "PenTiltOff", "EraserFeelSlider", "EraserCustomizeButton", "EraserPressurePercent", "EraserActionRow", "EraserEndLabel" })
+        foreach (var n in new[] { "PenTiltSwitch", "EraserFeelSlider", "EraserCustomizeButton", "EraserPressurePercent", "EraserActionRow", "EraserEndLabel" })
             Assert.True(view.FindControl<Control>(n)!.IsEffectivelyVisible, n);
         Assert.False(view.FindControl<Control>("TipFeelSlider")!.IsEffectivelyVisible);
         // V29 #180 (Grok's review 21 Nov): no "Shared with Pen" notes any more; they pushed the box down in the eraser's view.

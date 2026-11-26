@@ -755,7 +755,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "傾きをオフ",
+    "text": "オフ",
+    "path": "タブレット › ペン › ペン",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "オン",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -801,11 +806,6 @@
   },
   {
     "text": "ダブルクリック補正",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "オフ",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -911,11 +911,6 @@
   },
   {
     "text": "ラジアルメニュー",
-    "path": "タブレット › ペン › ペン",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "オン",
     "path": "タブレット › ペン › ペン",
     "route": "tablet/ToolPenButton/PenTab"
   },

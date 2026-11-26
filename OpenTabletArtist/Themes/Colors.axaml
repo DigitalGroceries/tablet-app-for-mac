@@ -44,6 +44,32 @@
     <SolidColorBrush x:Key="PenEndCircleBrush" Color="#3BE4E4E4" />
     <SolidColorBrush x:Key="PenEndCircleSelectedBrush" Color="#D9E4E4E4" />
     <SolidColorBrush x:Key="RadialPictureBackingBrush" Color="#00000000" />
+    <!-- V31 (L7.14-L7.22, Digital Groceries' mockup of 25 Nov): the sunken sliders, panels and boxes. Defaults (his dark mockup) for a
+         theme the palette does not drive; LightnessService.SunkenResources sets them for every theme and step. -->
+    <SolidColorBrush x:Key="SliderOutlineBrush" Color="#111111" />
+    <LinearGradientBrush x:Key="SliderRimBrush" StartPoint="50%,0%" EndPoint="50%,100%">
+        <GradientStop Offset="0" Color="#575757" /><GradientStop Offset="0.35" Color="#7E7E7E" />
+        <GradientStop Offset="0.6" Color="#8A8A8A" /><GradientStop Offset="1" Color="#6E6E6E" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="SliderGrooveBrush" StartPoint="50%,0%" EndPoint="50%,100%">
+        <GradientStop Offset="0" Color="#060606" /><GradientStop Offset="1" Color="#212121" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="SliderThumbBrush" Color="#424242" />
+    <SolidColorBrush x:Key="SliderThumbHoverBrush" Color="#4E4E4E" />
+    <SolidColorBrush x:Key="SliderThumbOutlineBrush" Color="#111111" />
+    <SolidColorBrush x:Key="SliderThumbLineBrush" Color="#E4DFCF" />
+    <SolidColorBrush x:Key="SliderTickBrush" Color="#686868" />
+    <SolidColorBrush x:Key="SunkenPanelBrush" Color="#2B2B2B" />
+    <SolidColorBrush x:Key="SunkenTrayBrush" Color="#262626" />
+    <SolidColorBrush x:Key="InsetBoxBrush" Color="#343434" />
+    <LinearGradientBrush x:Key="PenEmbossEdgeBrush" StartPoint="0%,50%" EndPoint="100%,50%">
+        <GradientStop Offset="0" Color="#747474" /><GradientStop Offset="0.3" Color="#747474" />
+        <GradientStop Offset="0.7" Color="#161616" /><GradientStop Offset="1" Color="#161616" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="EmbossRingBrush" StartPoint="15%,15%" EndPoint="85%,85%">
+        <GradientStop Offset="0" Color="#5C5C5C" /><GradientStop Offset="0.3" Color="#5C5C5C" /><GradientStop Offset="0.5" Color="#343434" />
+        <GradientStop Offset="0.7" Color="#242424" /><GradientStop Offset="1" Color="#242424" />
+    </LinearGradientBrush>
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Error}" />
     <SolidColorBrush x:Key="ErrorMutedBrush" Color="{StaticResource ErrorMuted}" />
     <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource Info}" />

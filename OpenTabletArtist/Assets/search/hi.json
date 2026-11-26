@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "झुकाव बंद करें",
+    "text": "बंद",
+    "path": "टैबलेट › पेन › पेन",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "चालू",
     "path": "टैबलेट › पेन › पेन",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -731,11 +736,6 @@
   },
   {
     "text": "डबल क्लिक सुधार",
-    "path": "टैबलेट › पेन › पेन",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "बंद",
     "path": "टैबलेट › पेन › पेन",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,11 +836,6 @@
   },
   {
     "text": "रेडियल मेन्यू",
-    "path": "टैबलेट › पेन › पेन",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "चालू",
     "path": "टैबलेट › पेन › पेन",
     "route": "tablet/ToolPenButton/PenTab"
   },

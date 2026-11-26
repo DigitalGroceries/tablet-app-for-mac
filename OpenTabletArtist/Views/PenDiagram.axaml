@@ -34,18 +34,23 @@
     <Panel Width="64" Height="360" HorizontalAlignment="Center" VerticalAlignment="Center">
     <!-- R16: the shapes rotate 180° on the Eraser tab (Flipped); the badges are a separate layer that stays
          upright and moves to the same physical buttons. -->
+    <!-- V31 (task list L7.20, Digital Groceries' mockup of 25 Nov 2026): the pen is embossed. Its outline is the bevel, light down its left
+         side and dark down its right, and it throws a soft shadow to the lower right, lit from the top left like the panels. -->
     <Canvas x:Name="Shapes" Width="64" Height="360" RenderTransformOrigin="50%,50%">
+        <Canvas.Effect>
+            <DropShadowEffect OffsetX="2.5" OffsetY="2" BlurRadius="4" Color="#000000" Opacity="0.5" />
+        </Canvas.Effect>
         <!-- eraser cap -->
         <Rectangle Canvas.Left="23" Canvas.Top="0" Width="18" Height="22" RadiusX="6" RadiusY="6"
-                   Fill="{DynamicResource PenDiagramFillBrush}" Stroke="{DynamicResource PenDiagramStrokeBrush}" StrokeThickness="1.5" />
+                   Fill="{DynamicResource PenDiagramFillBrush}" Stroke="{DynamicResource PenEmbossEdgeBrush}" StrokeThickness="1.5" />
         <!-- barrel -->
         <Rectangle Canvas.Left="18" Canvas.Top="18" Width="28" Height="272" RadiusX="10" RadiusY="10"
-                   Fill="{DynamicResource PenDiagramFillBrush}" Stroke="{DynamicResource PenDiagramStrokeBrush}" StrokeThickness="1.5" />
+                   Fill="{DynamicResource PenDiagramFillBrush}" Stroke="{DynamicResource PenEmbossEdgeBrush}" StrokeThickness="1.5" />
         <!-- R16 (the user's close-up): a separate tapered cone under the rounded barrel end, top a touch wider than
              the barrel with sharp corners, ~2× the barrel width tall, narrowing to a flat end ~0.3 × the barrel
              width; under it a small solid light-grey triangular nib. -->
         <Path x:Name="Cone" Data="M17,286 L47,286 L36,343 L28,343 Z" Fill="{DynamicResource PenDiagramFillBrush}"
-              Stroke="{DynamicResource PenDiagramStrokeBrush}" StrokeThickness="1.5" StrokeJoin="Miter" />
+              Stroke="{DynamicResource PenEmbossEdgeBrush}" StrokeThickness="1.5" StrokeJoin="Miter" />
         <Path x:Name="Nib" Data="M29,344 L35,344 L32,351 Z" Fill="{DynamicResource PenDiagramStrokeBrush}" />
     </Canvas>
     <Canvas x:Name="Badges" Width="64" Height="360">

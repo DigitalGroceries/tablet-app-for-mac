@@ -685,7 +685,12 @@
     "route": "tablet/ToolPenButton/PenTab"
   },
   {
-    "text": "Neigung ausschalten",
+    "text": "Aus",
+    "path": "Tablet › Stift › Stift",
+    "route": "tablet/ToolPenButton/PenTab"
+  },
+  {
+    "text": "Ein",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -731,11 +736,6 @@
   },
   {
     "text": "Doppelklick-Hilfe",
-    "path": "Tablet › Stift › Stift",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Aus",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },
@@ -836,11 +836,6 @@
   },
   {
     "text": "Radialmenü",
-    "path": "Tablet › Stift › Stift",
-    "route": "tablet/ToolPenButton/PenTab"
-  },
-  {
-    "text": "Ein",
     "path": "Tablet › Stift › Stift",
     "route": "tablet/ToolPenButton/PenTab"
   },

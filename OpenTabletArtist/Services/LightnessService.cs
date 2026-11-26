@@ -357,6 +357,81 @@ public static class LightnessService
         };
     }
 
+    static LinearGradientBrush Shade(params (Color Color, double At)[] stops)
+    {
+        var b = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0.5, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(0.5, 1, RelativeUnit.Relative),
+        };
+        foreach (var (c, at) in stops) b.GradientStops.Add(new GradientStop(T(c), at));
+        return b;
+    }
+
+    static LinearGradientBrush Across(params (Color Color, double At)[] stops)
+    {
+        var b = Shade(stops);
+        b.StartPoint = new RelativePoint(0, 0.5, RelativeUnit.Relative); b.EndPoint = new RelativePoint(1, 0.5, RelativeUnit.Relative);
+        return b;
+    }
+
+    static LinearGradientBrush Diagonal(params (Color Color, double At)[] stops)
+    {
+        var b = Shade(stops);
+        b.StartPoint = new RelativePoint(0.15, 0.15, RelativeUnit.Relative); b.EndPoint = new RelativePoint(0.85, 0.85, RelativeUnit.Relative);
+        return b;
+    }
+
+    /// <summary>V31 (task list L7.14-L7.22, Digital Groceries' mockup of 25 Nov 2026): the parts that are sunk into the page.
+    /// Measured on his mockup, whose window is #222222 and whose page is #343434 (the palette's pane):
+    /// a slider is a pill-shaped recess 22 high with a dark outline (#111111), a grey rim that is lighter towards its lower
+    /// half (#575757, #7E7E7E, #8A8A8A, #6E6E6E), a black groove 6 high (#060606 to #212121) and a flat dark oval handle
+    /// 38 x 20 (#424242) with a thin warm-white line; a panel is filled #2B2B2B, darker than the page, with a soft shadow
+    /// inside its top and left edges and a light band 3 wide (#5A5A5A) outside its right and bottom edges. (His picture has
+    /// 1.276 dots for each point of the app: 1314 dots across a window of 1030 points.)
+    /// Every colour is taken from the page's grey, so it follows the Lightness step, and is tinted in a skin like the rest.
+    /// The light looks follow his light sample: a grey rim, a dark-grey groove and a white handle.</summary>
+    public static (string Key, object Value)[] SunkenResources(int step)
+    {
+        var p = For(step); int pane = p.Pane.R; bool d = p.Dark;
+        SolidColorBrush B(Color c) => new(T(c));
+        // nothing is brighter than #E4 (NoNearWhite); his line is #FAF4E3, the same warm white at that limit
+        var line = Color.FromRgb(0xE4, 0xDF, 0xCF);
+        return new (string, object)[]
+        {
+            ("SliderOutlineBrush", B(d ? G(Math.Max(pane - 0x23, 0x06)) : G(pane - 0x58))),
+            ("SliderRimBrush", d
+                ? Shade((G(pane + 0x23), 0), (G(pane + 0x4A), 0.35), (G(pane + 0x56), 0.6), (G(pane + 0x3A), 1))
+                : Shade((G(pane - 0x26), 0), (G(pane - 0x46), 0.4), (G(pane - 0x38), 0.7), (G(pane - 0x24), 1))),
+            ("SliderGrooveBrush", d
+                ? Shade((G(Math.Max(pane - 0x2E, 0)), 0), (G(Math.Max(pane - 0x13, 0x10)), 1))
+                : Shade((G(Math.Max(pane - 0x98, 0x30)), 0), (G(Math.Max(pane - 0x80, 0x44)), 1))),
+            ("SliderRimShadow", BoxShadows.Parse(d ? "0 1.5 1 0 #36E4E4E4, 0 -1.2 1 0 #2CE4E4E4" : "0 1.5 1 0 #99E4E4E4, 0 -1.2 1 0 #22000000")),
+            ("SliderThumbBrush", B(d ? G(pane + 0x0E) : G(0xE4))),
+            ("SliderThumbHoverBrush", B(d ? G(pane + 0x1A) : G(0xDA))),
+            ("SliderThumbOutlineBrush", B(d ? G(Math.Max(pane - 0x23, 0x06)) : G(pane - 0x66))),
+            ("SliderThumbShadow", BoxShadows.Parse(d ? "0 1 2 0 #66000000" : "0 1 2 0 #59000000")),
+            ("SliderThumbLineBrush", B(d ? line : Color.FromRgb(0xB9, 0xA8, 0x96))),
+            ("SliderThumbLineGlow", BoxShadows.Parse(d ? "0 0 3 0 #99E4DCC4" : "0 0 2 0 #66C8B49C")),
+            ("SliderTickBrush", B(d ? G(pane + 0x2C) : G(pane - 0x60))),
+            ("SunkenPanelBrush", B(d ? G(pane - 0x09) : G(pane - 0x0C))),
+            ("SunkenPanelShadow", BoxShadows.Parse(d ? "inset -8 0 0 0 #3EE4E4E4, inset 0 -6.5 0 0 #2BE4E4E4, inset 2 2 4 0 #40000000"
+                                                     : "inset -8 0 0 0 #B0E4E4E4, inset 0 -6.5 0 0 #80E4E4E4, inset 2 2 4 0 #40000000")),
+            ("SunkenTrayBrush", B(d ? G(pane - 0x0E) : G(pane - 0x10))),
+            ("SunkenTrayShadow", BoxShadows.Parse(d ? "inset -12.5 0 0.8 0 #3BE4E4E4, inset 0 -9.5 0.8 0 #2EE4E4E4, inset 2 3 6 0 #40000000"
+                                                    : "inset -12.5 0 0.8 0 #B0E4E4E4, inset 0 -9.5 0.8 0 #80E4E4E4, inset 2 3 6 0 #40000000")),
+            // a frame cut into the page (his pen boxes): the page's own grey, a little darker towards the bottom right, a dark
+            // shade inside its edges and a thin light line round it
+            ("InsetBoxBrush", d ? Diagonal((G(pane + 0x04), 0), (G(pane), 0.5), (G(pane - 0x0C), 1))
+                                : Diagonal((G(pane - 0x04), 0), (G(pane - 0x08), 0.5), (G(pane - 0x12), 1))),
+            ("InsetBoxShadow", BoxShadows.Parse(d ? "inset 1 1 6 1 #E0000000, 0 0 0 1.5 #26E4E4E4" : "inset 1 1 5 0 #70000000, 0 0 0 1.5 #B0E4E4E4")),
+            ("PenEmbossEdgeBrush", Across((d ? G(pane + 0x40) : G(0xE4), 0), (d ? G(pane + 0x40) : G(0xE4), 0.3),
+                (d ? G(Math.Max(pane - 0x1E, 0x06)) : G(pane - 0x78), 0.7), (d ? G(Math.Max(pane - 0x1E, 0x06)) : G(pane - 0x78), 1))),
+            ("EmbossRingBrush", Diagonal((d ? G(pane + 0x28) : G(0xE4), 0), (d ? G(pane + 0x28) : G(0xE4), 0.3), (p.Pane, 0.5),
+                (d ? G(Math.Max(pane - 0x10, 0x06)) : G(pane - 0x34), 0.7), (d ? G(Math.Max(pane - 0x10, 0x06)) : G(pane - 0x34), 1))),
+        };
+    }
+
     public static Color SwitchOnFill(int step) => For(step).Dark ? SelectionFill(step) : G(0x30);
     public static Color SwitchOnKnob(int step) => For(step).Dark ? SelectionText : G(0xE4);
 
@@ -486,6 +561,7 @@ public static class LightnessService
             foreach (var (k, c) in BrushResources(step))
                 if (!(skin && SkinOwned.Contains(k))) palette[k] = new SolidColorBrush(T(c));
             foreach (var (k, v) in RaisedResources(step, RaisedVariant)) palette[k] = v;
+            foreach (var (k, v) in SunkenResources(step)) palette[k] = v;
         }
         // in place of the last palette (it keeps its place: after the app's own colour files, so it comes before them, and
         // before NoNearWhite's dictionary, which stays last)

@@ -1417,8 +1417,17 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>V31 (task list L7.18): the Pen page's Tilt switch. On while tilt is on: the other way round from the
+    /// "Turn tilt off" tick box it replaces, which is what the profile stores (DisableTilt).</summary>
+    public bool TiltOn
+    {
+        get => !DisableTilt;
+        set => DisableTilt = !value;
+    }
+
     partial void OnDisableTiltChanged(bool value)
     {
+        OnPropertyChanged(nameof(TiltOn));
         if (_skipPenInputPersist) return;
         _ = ApplySettingsChange(p => p.BindingSettings.DisableTilt = value);
     }

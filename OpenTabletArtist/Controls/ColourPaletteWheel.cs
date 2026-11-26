@@ -33,6 +33,7 @@ public sealed class ColourPaletteWheel : Control
     /// (Digital Groceries 19 Nov 20:21).</summary>
     public string? LastColour { get => GetValue(LastColourProperty); set => SetValue(LastColourProperty, value); }
 
+
     static ColourPaletteWheel() => AffectsRender<ColourPaletteWheel>(MenuSizeProperty, HighlightProperty, EditingProperty, MenuProperty, LastColourProperty);
 
     private static readonly IBrush Rim = new SolidColorBrush(Color.FromRgb(0x2A, 0x2A, 0x2A));

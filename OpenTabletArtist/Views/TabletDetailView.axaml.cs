@@ -173,8 +173,8 @@ public partial class TabletDetailView : UserControl, ITabbedContent
         if (FiltersTab != null) FiltersTab.Content = Localizer.T("tablet.tab.filters");
         if (JsonTab != null) JsonTab.Content = Localizer.T("tablet.tab.json");
 
-        if (PenTiltGroup != null) PenTiltGroup.Header = Localizer.T("tablet.pen.tilt");
-        if (PenTiltOff != null) PenTiltOff.Content = Localizer.T("tablet.pen.turn_tilt_off");
+        if (PenTiltLabel != null) PenTiltLabel.Text = Localizer.T("tablet.pen.tilt");
+        if (PenTiltSwitch != null) Avalonia.Automation.AutomationProperties.SetName(PenTiltSwitch, Localizer.T("tablet.pen.tilt"));
         if (PenSoft != null) PenSoft.Text = Localizer.T("tablet.pen.soft");
         if (PenFirm != null) PenFirm.Text = Localizer.T("tablet.pen.firm");
         if (PenDoubleClickDistanceGroup != null) PenDoubleClickDistanceGroup.Header = Localizer.Te("tablet.pen.double_click_distance", "Double Click Fix");
