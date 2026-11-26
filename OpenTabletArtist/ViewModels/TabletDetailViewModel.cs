@@ -1924,6 +1924,40 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         return saved;
     }
 
+    // ── TASKS #212 part 6: the offer for a tablet the app has not mapped yet ──
+
+    // Set once the question was asked for this tablet model, whatever the answer.
+    private string KeyMapOfferedKey => $"KeyMapOffered:{_profile.Tablet}";
+
+    /// <summary>Set by the page: asks "Set up your tablet's buttons?" and completes with true for "Set up now".</summary>
+    public Func<Task<bool>>? AskSetUpButtons { get; set; }
+
+    /// <summary>
+    /// True when the offer is due: the tablet is connected and has ExpressKeys, nobody has mapped this model yet, the
+    /// question was never asked for it, the page can change settings, and the app's window is in front. Asked once per
+    /// tablet model; "Set up my buttons" on the ExpressKeys page stays there for any later time.
+    /// </summary>
+    internal bool ShouldOfferKeyMapping() =>
+        IsTabletDetected && _applyAction != null && ShowKeyMapping != null && AskSetUpButtons != null
+        && _keyMapping == null && AuxButtons.Count > 0 && IsAppInFront()
+        && !KeyOrderStore.Has(_profile.Tablet) && AppSettings.Get(KeyMapOfferedKey) != "true";
+
+    private bool _offeringKeyMapping;
+
+    /// <summary>Asks the question when it is due and, on "Set up now", opens the sheet. True when a mapping was saved.</summary>
+    internal async Task<bool> OfferKeyMappingAsync()
+    {
+        if (_offeringKeyMapping || !ShouldOfferKeyMapping()) return false;
+        _offeringKeyMapping = true;
+        try
+        {
+            AppSettings.Set(KeyMapOfferedKey, "true");
+            if (!await AskSetUpButtons!()) return false;
+            return await RunKeyMappingAsync();
+        }
+        finally { _offeringKeyMapping = false; }
+    }
+
     /// <summary>TASKS #212 part 5: "Give the keys Wacom's own functions" - each driver key (from 0) in
     /// <paramref name="plan"/> gets its factory function, in one change; every other key keeps what it does. An Off key
     /// keeps the new function aside, as when it is edited. True when the change was made.</summary>

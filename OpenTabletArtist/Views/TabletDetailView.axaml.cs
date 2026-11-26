@@ -479,6 +479,28 @@ public partial class TabletDetailView : UserControl, ITabbedContent
             await vm.ResetTouchRingToDefaultsAsync();
     }
 
+    // ── TASKS #212 part 6: "Set up your tablet's buttons?" for a tablet the app has not mapped yet ──
+
+    internal static string KeyOfferTitle => OpenTabletArtist.Services.Localizer.Te("keymap.offer.title", "Set up your tablet's buttons?");
+    internal static string KeyOfferBody => OpenTabletArtist.Services.Localizer.Te("keymap.offer.body",
+        "The app can learn where each button sits on your tablet. It lights one drawn key at a time and you press that key on the tablet. "
+        + "It takes about a minute. You can also do it later: \"Set up my buttons\" is on the ExpressKeys page.");
+
+    private Task<bool> AskSetUpButtonsAsync() => OpenTabletArtist.Helpers.Dialogs.ShowConfirmAsync(KeyOfferTitle, KeyOfferBody,
+        OpenTabletArtist.Services.Localizer.Te("keymap.offer.yes", "Set up now"),
+        OpenTabletArtist.Services.Localizer.Te("keymap.offer.no", "Later"));
+
+    private void OnVmChangedForKeyOffer(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(TabletDetailViewModel.IsTabletDetected)) OfferKeyMappingSoon();
+    }
+
+    // After the page has settled, so the question never opens while the page is still being put together.
+    private void OfferKeyMappingSoon() => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+    {
+        if (Vm is { } vm && !OpenTabletArtist.Helpers.InWindowSheet.IsOpen) _ = vm.OfferKeyMappingAsync();
+    }, Avalonia.Threading.DispatcherPriority.Background);
+
     private async void OnKeysDefault(object? s, RoutedEventArgs e)
     {
         if (Vm is not { } vm) return;
@@ -525,6 +547,14 @@ public partial class TabletDetailView : UserControl, ITabbedContent
                 ? KeyMappingDialog.ShowAsync(w, sheet)
                 : System.Threading.Tasks.Task.FromResult<OpenTabletArtist.Domain.KeyOrderMap?>(null);
             _ = Vm.RestoreKeysAfterBrokenMappingAsync();
+            // Part 6: a connected tablet nobody has mapped yet gets the question once (only in the app's own window,
+            // and never on top of another sheet).
+            if (TopLevel.GetTopLevel(this) is MainWindow)
+            {
+                Vm.AskSetUpButtons = AskSetUpButtonsAsync;
+                Vm.PropertyChanged += OnVmChangedForKeyOffer;
+                OfferKeyMappingSoon();
+            }
         }
         // Version 16: the page re-opens on the Pen tile (its XAML default), but PenToolActive lives on the view
         // model and still held the last visit's Functions or More choice, so the Pen / Eraser / Mapping tabs
@@ -556,7 +586,7 @@ public partial class TabletDetailView : UserControl, ITabbedContent
     {
         base.OnDetachedFromVisualTree(e);
         if (Vm != null) Vm.TabRequested -= OnTabRequested;
-        if (Vm != null) { Vm.UnsetControlUsed -= OnUnsetControlUsed; Vm.IsAppInFront = () => false; Vm.ShowKeyMapping = null; }
+        if (Vm != null) { Vm.UnsetControlUsed -= OnUnsetControlUsed; Vm.IsAppInFront = () => false; Vm.ShowKeyMapping = null; Vm.AskSetUpButtons = null; Vm.PropertyChanged -= OnVmChangedForKeyOffer; }
         if (PerAppBindingRuntime.Shared is { } runtime) runtime.PenSeen -= OnPenSeen;
         if (_screens != null) { _screens.Changed -= OnScreensChanged; _screens = null; }
         ButtonsTab.IsCheckedChanged -= OnLiveTabChanged;
