@@ -17,7 +17,9 @@ public static class Localizer
     public const string PreferenceKey = "ui.language";
     public const string SystemCode = "system";
 
-    /// <summary>Languages offered in Settings (native labels). Order matches the GitHub Pages menu.</summary>
+    /// <summary>Languages offered in Settings (native labels). The website's Language menu lists exactly these, in this order
+    /// (the owner's rule, 26 Nov 2026: the website always lists the languages the app has):
+    /// after adding one here, run <c>python3 site/sync_languages.py</c>; SiteLanguagesTests fails until the two match.</summary>
     public static readonly (string Code, string NativeName)[] Languages =
     {
         (SystemCode, "Match system"),
