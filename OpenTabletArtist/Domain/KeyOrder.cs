@@ -23,12 +23,18 @@ public sealed class KeyOrderMap
     /// <summary>A place whose key was skipped, or whose press never reached the app.</summary>
     public const int NotSeen = -1;
 
-    public KeyOrderMap(IEnumerable<int> keys, bool flipped = false, IEnumerable<int>? groups = null)
+    public KeyOrderMap(IEnumerable<int> keys, bool flipped = false, IEnumerable<int>? groups = null,
+        IEnumerable<ControlCheckResult>? controls = null)
     {
         Keys = keys.ToArray();
         Flipped = flipped;
         Groups = (groups ?? Array.Empty<int>()).Where(g => g > 0).ToArray();
+        Controls = (controls ?? Array.Empty<ControlCheckResult>()).ToArray();
     }
+
+    /// <summary>TASKS #212 part 4: what the steps after the keys found (each ring or strip, finger touch). Empty for a
+    /// mapping saved before them, or a tablet without any.</summary>
+    public IReadOnlyList<ControlCheckResult> Controls { get; }
 
     /// <summary>Driver key number (from 0) per place, top to bottom; <see cref="NotSeen"/> where none was recorded.</summary>
     public IReadOnlyList<int> Keys { get; }
@@ -82,6 +88,7 @@ public sealed class KeyOrderMap
         ["keys"] = new JArray(Keys),
         ["flipped"] = Flipped,
         ["groups"] = new JArray(Groups),
+        ["controls"] = new JArray(Controls.Select(c => c.ToJson())),
     }.ToString(Formatting.None);
 
     /// <summary>Reads what <see cref="ToJson"/> wrote. Null for anything else: a mapping that cannot be read is no
@@ -97,10 +104,14 @@ public sealed class KeyOrderMap
             var groups = o["groups"] is JArray g && g.All(x => x.Type == JTokenType.Integer)
                 ? g.Select(x => x.Value<int>())
                 : null;
+            // A check that cannot be read is left out; it never spoils the key order.
+            var controls = o["controls"] is JArray c
+                ? c.Select(ControlCheckResult.TryParse).Where(x => x != null).Select(x => x!)
+                : null;
             return new KeyOrderMap(
                 keys.Select(k => k.Value<int>()),
                 o["flipped"] is { Type: JTokenType.Boolean } f && f.Value<bool>(),
-                groups);
+                groups, controls);
         }
         catch (JsonException)
         {

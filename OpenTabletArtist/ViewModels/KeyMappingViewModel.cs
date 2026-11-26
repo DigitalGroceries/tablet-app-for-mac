@@ -58,8 +58,12 @@ public sealed partial class KeyMappingViewModel : ObservableObject
     /// <param name="flipped">The tablet is turned round (left-handed use) while this runs.</param>
     /// <param name="layout">Where the keys sit (<see cref="KeyLayouts.For"/>); null = the plain column. A layout with
     /// another number of keys than <paramref name="keyCount"/> is not used.</param>
-    public KeyMappingViewModel(int keyCount, IEnumerable<int>? groups = null, bool flipped = false, KeyLayout? layout = null)
+    /// <param name="controls">TASKS #212 part 4: the checks after the keys (rings, strips, finger touch), from
+    /// <see cref="ControlCheck.For"/>; null = none.</param>
+    public KeyMappingViewModel(int keyCount, IEnumerable<int>? groups = null, bool flipped = false, KeyLayout? layout = null,
+        IEnumerable<ControlCheck>? controls = null)
     {
+        Controls = (controls ?? Array.Empty<ControlCheck>()).ToList();
         _keyCount = Math.Max(0, keyCount);
         if (layout is { Proven: true } proven && proven.KeyCount == _keyCount)
         {
@@ -83,6 +87,19 @@ public sealed partial class KeyMappingViewModel : ObservableObject
     }
 
     public IReadOnlyList<KeyMappingPlace> Places { get; }
+
+    /// <summary>The checks after the keys, in order (part 4).</summary>
+    public IReadOnlyList<ControlCheck> Controls { get; }
+
+    // Which check is on (index into Controls); -1 while the keys are being done.
+    private int _control = -1;
+
+    /// <summary>The check on now, or null while the keys are being done (or when everything is over).</summary>
+    public ControlCheck? CurrentControl => !IsFinished && _control >= 0 && _control < Controls.Count ? Controls[_control] : null;
+
+    /// <summary>The check on now is the ring drawn on the tablet (one ring, and the layout draws it): the sheet lights it.</summary>
+    public bool IsRingLit => CurrentControl is { Kind: ControlCheckKind.Ring } && Layout.Ring != null
+        && Controls.Count(c => c.Kind == ControlCheckKind.Ring) == 1;
 
     /// <summary>What the sheet draws: spot N is place N.</summary>
     public KeyLayout Layout { get; }
@@ -119,15 +136,48 @@ public sealed partial class KeyMappingViewModel : ObservableObject
 
     public int RecordedCount => _session.RecordedCount;
 
-    /// <summary>The mapping as it stands.</summary>
-    public KeyOrderMap Result => _session.Result(_flipped);
+    /// <summary>The mapping as it stands, with what the checks after the keys found.</summary>
+    public KeyOrderMap Result
+    {
+        get
+        {
+            var keys = _session.Result(_flipped);
+            return new KeyOrderMap(keys.Keys, keys.Flipped, keys.Groups,
+                Controls.Where(c => c.IsDone).Select(c => c.Result));
+        }
+    }
+
+    /// <summary>An absolute ring or strip reading from the driver (wheel number, position or null = no finger).</summary>
+    public void OnWheelPosition(int wheel, uint? position)
+    {
+        if (CurrentControl is { } c && c.OnPosition(wheel, position)) NextControl();
+    }
+
+    /// <summary>A relative ring's steps from the driver.</summary>
+    public void OnWheelDelta(int wheel, int delta)
+    {
+        if (CurrentControl is { } c && c.OnDelta(wheel, delta)) NextControl();
+    }
+
+    /// <summary>A touch report from the driver with this many fingers down.</summary>
+    public void OnTouch(int fingers)
+    {
+        if (CurrentControl is { } c && c.OnTouch(fingers)) NextControl();
+    }
+
+    private void NextControl()
+    {
+        Message = "";
+        _control++;
+        Advance();
+    }
 
     /// <summary>A report of the driver: the up/down state of every key.</summary>
     public void OnKeys(IReadOnlyList<bool> states)
     {
         var before = _last;
         _last = states.ToArray();
-        if (IsFinished) return;
+        if (IsFinished || _control >= 0) return;          // the keys are done: a press now is not for a key
         // Two keys going down in the same report cannot be told apart; say so rather than guess.
         int downNow = 0;
         for (int i = 0; i < states.Count; i++)
@@ -161,6 +211,12 @@ public sealed partial class KeyMappingViewModel : ObservableObject
     private void Skip()
     {
         if (IsFinished) return;
+        if (CurrentControl is { } c)
+        {
+            c.Skip(NothingCameThrough);
+            NextControl();
+            return;
+        }
         _session.Skip(NothingCameThrough);
         Message = "";
         Advance();
@@ -169,7 +225,20 @@ public sealed partial class KeyMappingViewModel : ObservableObject
     [RelayCommand]
     private void Back()
     {
-        if (!_session.Back()) return;
+        if (IsFinished) return;
+        if (_control > 0)
+        {
+            _control--;
+            Controls[_control].Reset();
+        }
+        else if (_control == 0)
+        {
+            // From the first check back to the last key (if there are keys).
+            if (_keyCount == 0) return;
+            _control = -1;
+            _session.Back();
+        }
+        else if (!_session.Back()) return;
         Message = "";
         Advance();
     }
@@ -179,6 +248,7 @@ public sealed partial class KeyMappingViewModel : ObservableObject
     {
         if (IsFinished) return;
         _session.Stop();
+        _stopped = true;
         Message = "";
         Advance();
     }
@@ -187,9 +257,14 @@ public sealed partial class KeyMappingViewModel : ObservableObject
     private void StartAgain()
     {
         _session = new KeyMappingSession(_keyCount, _groups);
+        foreach (var c in Controls) c.Reset();
+        _control = -1;
+        _stopped = false;
         Message = "";
         Advance();
     }
+
+    private bool _stopped;
 
     private void Advance()
     {
@@ -208,26 +283,49 @@ public sealed partial class KeyMappingViewModel : ObservableObject
 
     private void Refresh()
     {
-        IsFinished = _session.IsFinished;
+        // The keys are done (not stopped): the checks after them follow, one by one.
+        if (!_stopped && _session.IsFinished && _control < 0) _control = 0;
+        IsFinished = _stopped || (_session.IsFinished && _control >= Controls.Count);
+        bool inKeys = !IsFinished && _control < 0;
         for (int i = 0; i < Places.Count; i++)
         {
             Places[i].State = _session.StateOf(i);
-            Places[i].IsLit = !IsFinished && i == _session.Place;
+            Places[i].IsLit = inKeys && i == _session.Place;
         }
-        CanGoBack = IsRunning && _session.Place > 0;
+        CanGoBack = IsRunning && (inKeys ? _session.Place > 0 : _control > 0 || _keyCount > 0);
         OnPropertyChanged(nameof(RecordedCount));
+        OnPropertyChanged(nameof(CurrentControl));
+        OnPropertyChanged(nameof(IsRingLit));
 
         if (IsFinished)
         {
             StepText = "";
             GroupText = "";
-            Instruction = _keyCount == 0
-                ? T("keymap.no_keys", "This tablet has no ExpressKeys to set up.")
+            var keys = _keyCount == 0
+                ? (Controls.Count == 0 ? T("keymap.no_keys", "This tablet has no ExpressKeys to set up.") : "")
                 : RecordedCount == _keyCount
                     ? T("keymap.done_all", "All {count} keys are set up.").Replace("{count}", _keyCount.ToString(), StringComparison.Ordinal)
                     : T("keymap.done_some", "{number} of {count} keys are set up. The others come last in the list.")
                         .Replace("{number}", RecordedCount.ToString(), StringComparison.Ordinal)
                         .Replace("{count}", _keyCount.ToString(), StringComparison.Ordinal);
+            var lines = new List<string>();
+            if (keys.Length > 0) lines.Add(keys);
+            foreach (var c in Controls)
+                if (ControlSummary(c) is { Length: > 0 } line) lines.Add(line);
+            Instruction = string.Join("\n", lines);
+            return;
+        }
+
+        if (CurrentControl is { } control)
+        {
+            StepText = control.Title;
+            GroupText = "";
+            Instruction = control.Kind switch
+            {
+                ControlCheckKind.Ring => T("keymap.ring", "Touch the ring with one finger and move it round a little."),
+                ControlCheckKind.Strip => T("keymap.strip", "Slide one finger up the strip, from the bottom to the top."),
+                _ => T("keymap.touch", "Touch the tablet with one finger."),
+            };
             return;
         }
 
@@ -243,6 +341,22 @@ public sealed partial class KeyMappingViewModel : ObservableObject
                     .Replace("{number}", (group + 1).ToString(), StringComparison.Ordinal)
                     .Replace("{count}", groupCount.ToString(), StringComparison.Ordinal);
         Instruction = T("keymap.press", "Press the lit key on your tablet.");
+    }
+
+    /// <summary>The line for one check on the last screen; empty for a check that was skipped or never reached.</summary>
+    private static string ControlSummary(ControlCheck c)
+    {
+        string Fill(string text) => text.Replace("{name}", c.Title, StringComparison.Ordinal);
+        return c.State switch
+        {
+            ControlCheckState.Works when c.Kind == ControlCheckKind.Strip && c.StripUp == StripDirection.UpIsRising =>
+                Fill(T("keymap.strip_reversed", "{name} works, but it counts the other way round. The app has noted it for this tablet.")),
+            ControlCheckState.Works when c.Kind == ControlCheckKind.Touch => T("keymap.touch_works", "Touch works."),
+            ControlCheckState.Works => Fill(T("keymap.control_works", "{name} works.")),
+            ControlCheckState.NotSeen when c.Kind == ControlCheckKind.Touch => T("keymap.touch_nothing", "Nothing came through from touch."),
+            ControlCheckState.NotSeen => Fill(T("keymap.control_nothing", "Nothing came through from {name}.")),
+            _ => "",
+        };
     }
 
     private static string T(string key, string english) => Localizer.Te(key, english);

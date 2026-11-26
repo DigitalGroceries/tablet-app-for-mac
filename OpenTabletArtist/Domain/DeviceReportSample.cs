@@ -145,5 +145,15 @@ public static class DeviceReportSample
         return true;
     }
 
+    /// <summary>TASKS #212 part 4: how many fingers a touch report has down (OTD <c>ITouchReport.Touches</c>: one entry
+    /// per touch slot, null when that slot has no finger). Only touch reports carry it.</summary>
+    public static bool TryParseTouches(JObject data, out int fingers)
+    {
+        fingers = 0;
+        if (data["Data"]?["Touches"] is not JArray arr) return false;
+        fingers = arr.Count(t => t is JObject);
+        return true;
+    }
+
     private static double Clamp01(double v) => v < 0 ? 0 : v > 1 ? 1 : v;
 }

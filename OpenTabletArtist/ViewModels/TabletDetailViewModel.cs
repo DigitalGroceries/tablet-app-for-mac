@@ -875,6 +875,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             _penInput.WheelButtons += OnWheelButtons;
             _penInput.WheelPositions += OnWheelPositions;
             _penInput.WheelDeltas += OnWheelDeltas;
+            _penInput.Touches += OnTouches;
         }
 
         // Live-refresh the detection banner + tablet-dependent actions as tablets connect/disconnect
@@ -1886,9 +1887,9 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     {
         if (_keyMapping != null || ShowKeyMapping == null || AuxButtons.Count == 0) return false;
         var groups = KeyOrderStore.Load(_profile.Tablet)?.Groups;
-        var sheet = new KeyMappingViewModel(AuxButtons.Count, groups,
-            Intuos4Oled.IsUpsideDown(_profile.AbsoluteModeSettings?.Tablet?.Rotation ?? 0),
-            KeyLayouts.For(_profile.Tablet, AuxButtons.Count));
+        bool turned = Intuos4Oled.IsUpsideDown(_profile.AbsoluteModeSettings?.Tablet?.Rotation ?? 0);
+        var sheet = new KeyMappingViewModel(AuxButtons.Count, groups, turned,
+            KeyLayouts.For(_profile.Tablet, AuxButtons.Count), MappingChecks(turned));
         bool turnedOff = AuxButtonsEnabled && _applyAction != null;
         _keyMapping = sheet;
         bool saved = false;
@@ -1917,6 +1918,23 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         }
         return saved;
     }
+
+    /// <summary>TASKS #212 part 4: the checks after the keys - each ring or strip the page shows, then finger touch on a
+    /// tablet whose configuration has touch. Turned round with two strips, "Left" / "Right" would be wrong as held,
+    /// so they are numbered instead.</summary>
+    internal List<ControlCheck> MappingChecks(bool turned)
+    {
+        var wheels = Wheels.Select(w => (w.IsStrip,
+            turned && w.IsStrip && Wheels.Count > 1
+                ? Localizer.Te("tablet.strip.n", "Touch Strip {number}").Replace("{number}", (w.WheelIndex + 1).ToString(), StringComparison.Ordinal)
+                : w.Title));
+        bool touch = HasTouchForMapping ?? (_deviceData != null
+            && TabletAboutInfo.From(_deviceData.TabletsWithRemembered, TabletName)?.HasTouch == true);
+        return ControlCheck.For(wheels, touch, Localizer.Te("keymap.touch_title", "Touch"), turned);
+    }
+
+    /// <summary>For tests: whether the tablet has finger touch (null = read it from the tablet's configuration).</summary>
+    internal bool? HasTouchForMapping { get; set; }
 
     private async Task SetAllButtonsAsync(bool on)
     {
@@ -2602,15 +2620,30 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
 
     private void OnWheelPositions(uint?[] positions)
     {
+        // TASKS #212 part 4: while "Set up my buttons" is open the ring and strip belong to the sheet (and nothing
+        // jumps to a row with nothing on it).
+        if (_keyMapping is { } mapping)
+        {
+            for (int w = 0; w < positions.Length; w++) mapping.OnWheelPosition(w, positions[w]);
+            return;
+        }
         for (int w = 0; w < Wheels.Count && w < positions.Length; w++)
             Wheels[w].OnAbsolutePosition(positions[w]);
     }
 
     private void OnWheelDeltas(int[] deltas)
     {
+        if (_keyMapping is { } mapping)
+        {
+            for (int w = 0; w < deltas.Length; w++) mapping.OnWheelDelta(w, deltas[w]);
+            return;
+        }
         for (int w = 0; w < Wheels.Count && w < deltas.Length; w++)
             Wheels[w].OnRelativeDelta(deltas[w]);
     }
+
+    // TASKS #212 part 4: finger touch only matters to the sheet's touch check.
+    private void OnTouches(int fingers) => _keyMapping?.OnTouch(fingers);
 
     partial void OnAuxButtonsEnabledChanged(bool value)
     {

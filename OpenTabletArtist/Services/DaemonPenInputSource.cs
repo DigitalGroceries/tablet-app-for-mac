@@ -69,6 +69,9 @@ public sealed class DaemonPenInputSource
     /// <summary>Relative-wheel step deltas per wheel (scroll wheels). Relative-wheel reports only.</summary>
     public event Action<int[]>? WheelDeltas;
 
+    /// <summary>TASKS #212 part 4: fingers down in a touch report (touch reports only).</summary>
+    public event Action<int>? Touches;
+
     public async Task StartAsync()
     {
         _wantRunning = true;
@@ -147,5 +150,7 @@ public sealed class DaemonPenInputSource
             Dispatcher.UIThread.Post(() => WheelPositions?.Invoke(wheelPositions));
         if (DeviceReportSample.TryParseWheelDeltas(data, out var wheelDeltas))
             Dispatcher.UIThread.Post(() => WheelDeltas?.Invoke(wheelDeltas));
+        if (Touches != null && DeviceReportSample.TryParseTouches(data, out var fingers))
+            Dispatcher.UIThread.Post(() => Touches?.Invoke(fingers));
     }
 }
