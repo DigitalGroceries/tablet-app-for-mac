@@ -82,6 +82,48 @@ public class KeyMappingShots
         }
     }
 
+    /// <summary>TASKS #212 part 4: the steps after the keys - the drawn ring lit (Intuos4 S), a strip beside the words
+    /// (Intuos3), the touch step (Intuos Pro 2013 M) and an end screen that names a strip counting the other way.
+    /// Output: key-mapping-part4-*.png.</summary>
+    [AvaloniaFact]
+    public void The_ring_strip_and_touch_steps()
+    {
+        Directory.CreateDirectory(Dir);
+        using var mac = UiPlatform.PretendMac();
+        _ = new ThemeViewModel();
+
+        void Shot(KeyMappingViewModel vm, string file)
+        {
+            var sheet = new KeyMappingDialog(vm);
+            sheet.Show();
+            RadialSpotShots.Settle(sheet);
+            sheet.CaptureRenderedFrame()!.Save($"{Dir}/key-mapping-part4-{file}.png");
+            sheet.Close();
+        }
+
+        var ring = new KeyMappingViewModel(6, null, false, KeyLayouts.For("Wacom PTK-440", 6),
+            ControlCheck.For(new[] { (false, "Touch Ring") }, false, "Touch"));
+        for (int k = 0; k < 6; k++) Tap(ring, 6, k);
+        Assert.True(ring.IsRingLit);
+        Shot(ring, "ring-ptk-440");
+
+        var strips = new KeyMappingViewModel(8, null, false, KeyLayouts.For("Wacom PTZ-930", 8),
+            ControlCheck.For(new[] { (true, "Left Touch Strip"), (true, "Right Touch Strip") }, false, "Touch"));
+        for (int k = 0; k < 8; k++) Tap(strips, 8, k);
+        Shot(strips, "strip-ptz-930");
+
+        var touch = new KeyMappingViewModel(8, null, false, KeyLayouts.For("Wacom PTH-651", 8),
+            ControlCheck.For(new[] { (false, "Touch Ring") }, true, "Touch"));
+        for (int k = 0; k < 8; k++) Tap(touch, 8, k);
+        touch.OnWheelPosition(0, 10);
+        Shot(touch, "touch-pth-651");
+
+        strips.OnWheelPosition(0, 10); strips.OnWheelPosition(0, 6);        // left strip: as the app expects
+        strips.OnWheelPosition(1, 2); strips.OnWheelPosition(1, 7);         // right strip: the other way round
+        Assert.True(strips.IsFinished);
+        Shot(strips, "end-ptz-930");
+    }
+
     [AvaloniaFact]
     public void The_ExpressKeys_page_with_a_saved_order()
     {

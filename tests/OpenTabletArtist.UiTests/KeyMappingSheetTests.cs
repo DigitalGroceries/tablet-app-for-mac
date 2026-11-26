@@ -175,6 +175,100 @@ public class KeyMappingSheetTests
         finally { Cleanup(tablet); }
     }
 
+    // ── part 4: the ring / strip step and the touch step ─────────────────────────────────────────
+
+    private static void Invoke(TabletDetailViewModel vm, string method, object arg) =>
+        typeof(TabletDetailViewModel).GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(vm, new[] { arg });
+
+    [AvaloniaFact]
+    public async Task After_the_keys_the_ring_and_touch_reach_the_sheet_and_their_results_are_saved()
+    {
+        var tablet = Tablet();
+        try
+        {
+            var settings = SettingsFor(tablet, "A", "B");
+            settings.Profiles[0].BindingSettings.WheelBindings = new System.Collections.Generic.List<WheelBindingSettings> { new() };
+            var vm = VmFor(settings);
+            vm.HasTouchForMapping = true;
+            vm.IsAppInFront = () => true;
+            var jumps = 0; vm.UnsetControlUsed += (_, _) => jumps++;
+            Assert.Single(vm.Wheels);
+            vm.ShowKeyMapping = sheet =>
+            {
+                Assert.Equal(new[] { ControlCheckKind.Ring, ControlCheckKind.Touch }, sheet.Controls.Select(c => c.Kind));
+                Tap(vm, 2, 0); Tap(vm, 2, 1);
+                Assert.Equal(ControlCheckKind.Ring, sheet.CurrentControl!.Kind);
+                Invoke(vm, "OnWheelPositions", new uint?[] { 12 });
+                Invoke(vm, "OnWheelPositions", new uint?[] { 20 });   // turning: no jump to a ring row meanwhile
+                Assert.Equal(ControlCheckKind.Touch, sheet.CurrentControl!.Kind);
+                Invoke(vm, "OnTouches", 1);
+                Assert.True(sheet.IsFinished);
+                return Task.FromResult<KeyOrderMap?>(sheet.Result);
+            };
+            Assert.True(await vm.RunKeyMappingAsync());
+            Assert.Equal(0, jumps);
+            var saved = KeyOrderStore.Load(tablet)!;
+            Assert.Equal(new[] { ControlCheckState.Works, ControlCheckState.Works }, saved.Controls.Select(c => c.State));
+        }
+        finally { Cleanup(tablet); }
+    }
+
+    [AvaloniaFact]
+    public void The_checks_follow_the_pages_rings_and_the_tablets_touch()
+    {
+        var tablet = Tablet();
+        var settings = SettingsFor(tablet, "A");
+        settings.Profiles[0].BindingSettings.WheelBindings = new System.Collections.Generic.List<WheelBindingSettings> { new(), new() };
+        var vm = VmFor(settings);
+        vm.HasTouchForMapping = false;
+        var checks = vm.MappingChecks(turned: false);
+        Assert.Equal(new[] { "Touch Ring 1", "Touch Ring 2" }, checks.Select(c => c.Title));
+        Assert.Equal(new[] { 0, 1 }, checks.Select(c => c.WheelIndex));
+        vm.HasTouchForMapping = true;
+        Assert.Equal(ControlCheckKind.Touch, vm.MappingChecks(turned: true).Last().Kind);
+
+        var none = VmFor(SettingsFor(Tablet(), "A"));
+        none.HasTouchForMapping = false;
+        Assert.Empty(none.MappingChecks(turned: false));
+    }
+
+    [AvaloniaFact]
+    public void The_sheet_lights_the_drawn_ring_and_shows_a_strip_beside_the_words()
+    {
+        var ring = new KeyMappingViewModel(6, null, false, KeyLayouts.For("Wacom PTK-440", 6),
+            ControlCheck.For(new[] { (false, "Touch Ring") }, true, "Touch"));
+        var sheet = new KeyMappingDialog(ring);
+        sheet.Show();
+        Assert.False(sheet.RingIsLit);
+        Assert.False(sheet.ControlPicture.IsVisible);
+        for (int k = 0; k < 6; k++) { ring.OnKeys(Down(6, k)); ring.OnKeys(new bool[6]); }
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(sheet.RingIsLit);
+        Assert.False(sheet.ControlPicture.IsVisible);
+        Assert.Equal("Touch Ring", sheet.StepLabel.Text);
+        ring.OnWheelPosition(0, 9);
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(sheet.RingIsLit);
+        Assert.True(sheet.ControlPicture.IsVisible);           // the finger picture for touch
+        sheet.Close();
+
+        var strip = new KeyMappingViewModel(4, null, false, KeyLayouts.For("Wacom PTZ-430", 4),
+            ControlCheck.For(new[] { (true, "Touch Strip") }, false, "Touch"));
+        var sheet2 = new KeyMappingDialog(strip);
+        sheet2.Show();
+        for (int k = 0; k < 4; k++) { strip.OnKeys(Down(4, k)); strip.OnKeys(new bool[4]); }
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(sheet2.ControlPicture.IsVisible);
+        Assert.True(sheet2.BackButton.IsEnabled && sheet2.SkipButton.IsVisible);
+        strip.OnWheelPosition(0, 10); strip.OnWheelPosition(0, 6);
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(sheet2.ControlPicture.IsVisible);
+        Assert.Contains("Touch Strip works.", sheet2.InstructionLabel.Text);
+        Assert.True(sheet2.SaveButton.IsVisible);
+        sheet2.Close();
+    }
+
     // ── the sheet ───────────────────────────────────────────────────────────────────────────────
 
     private static bool[] Down(int count, int key) { var s = new bool[count]; s[key] = true; return s; }

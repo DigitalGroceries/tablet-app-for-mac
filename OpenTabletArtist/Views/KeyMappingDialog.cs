@@ -45,6 +45,16 @@ public sealed class KeyMappingDialog : AppWindow
     /// <summary>The drawn keys, place by place.</summary>
     public IReadOnlyList<Border> KeySpots => _nubs.ConvertAll(n => n.Nub);
 
+    private Ellipse? _ring;
+    private double _ringThickness = 6;
+
+    /// <summary>TASKS #212 part 4: the small picture of the ring, strip or finger to use, beside the words, when the
+    /// drawn tablet does not show it (a strip, two rings, or touch). Hidden for the keys.</summary>
+    public Border ControlPicture { get; }
+
+    /// <summary>True while the drawn tablet's ring is lit (the ring check on a tablet whose layout draws its ring).</summary>
+    public bool RingIsLit { get; private set; }
+
     public KeyMappingDialog(KeyMappingViewModel vm)
     {
         _vm = vm;
@@ -73,7 +83,8 @@ public sealed class KeyMappingDialog : AppWindow
         if (ring is { } r)
         {
             var circle = new Ellipse { Width = r.D * scale, Height = r.D * scale, StrokeThickness = 6 * scale };
-            circle[!Shape.StrokeProperty] = new DynamicResourceExtension("TextMutedBrush");
+            _ring = circle;
+            _ringThickness = 6 * scale;
             Canvas.SetLeft(circle, r.X * scale);
             Canvas.SetTop(circle, r.Y * scale);
             KeysDrawing.Children.Add(circle);
@@ -101,6 +112,8 @@ public sealed class KeyMappingDialog : AppWindow
             VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = wide ? HorizontalAlignment.Center : HorizontalAlignment.Left,
             Margin = wide ? new Thickness(0, 4, 0, 16) : new Thickness(0, 4, 0, 0), Child = KeysDrawing,
         };
+
+        ControlPicture = new Border { HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 4), IsVisible = false };
 
         StepLabel = new TextBlock { FontSize = 20, FontWeight = FontWeight.SemiBold };
         GroupLabel = new TextBlock { FontSize = 14 };
@@ -138,7 +151,7 @@ public sealed class KeyMappingDialog : AppWindow
                         + "While this is open your keys do nothing else."),
                     FontSize = 14, TextWrapping = TextWrapping.Wrap,
                 },
-                StepLabel, GroupLabel, InstructionLabel, MessageLabel,
+                StepLabel, GroupLabel, ControlPicture, InstructionLabel, MessageLabel,
                 new WrapPanel
                 {
                     Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
@@ -204,6 +217,7 @@ public sealed class KeyMappingDialog : AppWindow
         // With nothing recorded there is nothing to save: the one button left simply closes.
         DontSaveButton.Content = any ? Localizer.Te("keymap.dont_save", "Don't save") : Localizer.Te("app.close", "Close");
         ApplyKeys();
+        ApplyControl();
     }
 
     private void ApplyKeys()
@@ -217,6 +231,60 @@ public sealed class KeyMappingDialog : AppWindow
             nub.Opacity = place.IsLeftOut ? 0.4 : 1;
             mark.Text = place.IsRecorded ? "✓" : place.IsLeftOut ? "–" : "";
         }
+    }
+
+    private ControlCheck? _pictured;
+
+    private void ApplyControl()
+    {
+        RingIsLit = _vm.IsRingLit;
+        if (_ring != null)
+        {
+            _ring[!Shape.StrokeProperty] = new DynamicResourceExtension(RingIsLit ? "SelectionFillBrush" : "TextMutedBrush");
+            _ring.StrokeThickness = RingIsLit ? _ringThickness * 1.5 : _ringThickness;
+        }
+        var control = _vm.CurrentControl;
+        ControlPicture.IsVisible = control != null && !RingIsLit;
+        if (control == null || RingIsLit || ReferenceEquals(control, _pictured)) return;
+        _pictured = control;
+        ControlPicture.Child = control.Kind switch
+        {
+            // A strip, upright, with an arrow for the slide up (no Wacom artwork: the app's own simple shapes).
+            ControlCheckKind.Strip => Lit(new Border
+            {
+                Width = 24, Height = 88, CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(2),
+                Child = new TextBlock { Text = "↑", FontSize = 20, FontWeight = FontWeight.Bold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+            }),
+            ControlCheckKind.Ring => RingPicture(),
+            _ => FingerPicture(),
+        };
+    }
+
+    private static Border Lit(Border b)
+    {
+        b[!Border.BorderBrushProperty] = new DynamicResourceExtension("SelectionBorderBrush");
+        b[!Border.BackgroundProperty] = new DynamicResourceExtension("SelectionFillBrush");
+        if (b.Child is TextBlock t) t[!TextBlock.ForegroundProperty] = new DynamicResourceExtension("SelectionTextBrush");
+        return b;
+    }
+
+    private static Control RingPicture()
+    {
+        var e = new Ellipse { Width = 56, Height = 56, StrokeThickness = 9 };
+        e[!Shape.StrokeProperty] = new DynamicResourceExtension("SelectionFillBrush");
+        return e;
+    }
+
+    private static Control FingerPicture()
+    {
+        // A fingertip on a piece of the drawing area.
+        var pad = new Border { Width = 96, Height = 60, CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(2) };
+        pad[!Border.BorderBrushProperty] = new DynamicResourceExtension("TextMutedBrush");
+        pad[!Border.BackgroundProperty] = new DynamicResourceExtension("GlassBgBrush");
+        var tip = new Ellipse { Width = 22, Height = 22, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        tip[!Shape.FillProperty] = new DynamicResourceExtension("SelectionFillBrush");
+        pad.Child = tip;
+        return pad;
     }
 
     private void Finish(KeyOrderMap? map)
