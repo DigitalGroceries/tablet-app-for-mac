@@ -68,6 +68,33 @@ internal static class Sweep
 
     public static string Slug(string s) => Regex.Replace(s.ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
 
+    /// <summary>Where the picture tests write when no folder is given: /workspace where that exists and can be written (the
+    /// team's cloud workspace), else a folder under the machine's temp folder. On GitHub's machines /workspace cannot be
+    /// made, and 58 tests failed there for that reason alone the first time the suite ran in CI (26 Nov 2026).</summary>
+    public static string ShotsRoot { get; } = FindShotsRoot();
+
+    static string FindShotsRoot()
+    {
+        if (System.Environment.GetEnvironmentVariable("OTA_SHOTS_ROOT") is { Length: > 0 } given)
+        {
+            System.IO.Directory.CreateDirectory(given);
+            return given;
+        }
+        try
+        {
+            if (System.IO.Directory.Exists("/workspace"))
+            {
+                var probe = System.IO.Path.Combine("/workspace", ".ota-write-test-" + System.Guid.NewGuid().ToString("N"));
+                System.IO.File.WriteAllText(probe, ""); System.IO.File.Delete(probe);
+                return "/workspace";
+            }
+        }
+        catch (System.Exception) { /* not writable: use the temp folder */ }
+        var dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ota-sweep-shots");
+        System.IO.Directory.CreateDirectory(dir);
+        return dir;
+    }
+
     /// <summary>Capture the window to shots/name.png and scan the frame for pixels brighter than #E4E4E4.</summary>
     public static void Shot(TopLevel win, string name)
     {

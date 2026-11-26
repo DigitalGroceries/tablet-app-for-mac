@@ -16,7 +16,7 @@ namespace OpenTabletArtist.SweepTests;
 /// </summary>
 public class ConfirmationOverlayShots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace/ota-confirm-shots";
+    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? Sweep.ShotsRoot + "/ota-confirm-shots";
 
     private static (string Path, double W, double H) Shoot(string file, System.Action<RingModeHud> show)
     {

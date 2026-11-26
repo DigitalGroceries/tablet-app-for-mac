@@ -17,7 +17,7 @@ namespace OpenTabletArtist.SweepTests;
 /// editor and the binding editor's Radial menu tab. Output: $OTA_SHOTS/radial-*.png or /workspace.</summary>
 public class RadialMenuShots
 {
-    static string Dir => Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
+    static string Dir => Environment.GetEnvironmentVariable("OTA_SHOTS") ?? Sweep.ShotsRoot;
 
     private static void Snap(Window w, string file)
     {

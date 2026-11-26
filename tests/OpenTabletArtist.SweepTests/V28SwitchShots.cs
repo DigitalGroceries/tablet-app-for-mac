@@ -18,7 +18,7 @@ namespace OpenTabletArtist.SweepTests;
 /// one-ring and a two-ring tablet. Written to $OTA_SHOTS_DIR (default /workspace/ota-28-shots). Run it with OTA_APPDATA pointing at an empty folder, so no saved On/Off state leaks in.</summary>
 public class V28SwitchShots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS_DIR") ?? "/workspace/ota-28-shots";
+    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS_DIR") ?? Sweep.ShotsRoot + "/ota-28-shots";
 
     private static WheelEditor Wheel(int i)
     {

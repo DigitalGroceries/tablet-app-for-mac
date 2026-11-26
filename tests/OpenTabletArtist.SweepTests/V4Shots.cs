@@ -18,7 +18,7 @@ namespace OpenTabletArtist.SweepTests;
 
 public class V4Shots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("SHOTS_DIR") ?? "/workspace/otaE/V4/shots";
+    static string Dir => System.Environment.GetEnvironmentVariable("SHOTS_DIR") ?? Sweep.ShotsRoot + "/otaE/V4/shots";
     private static (TabletDetailViewModel, TabletDetailView, Window) Open(string tab, double width, double height = 1100, bool wheel = false)
     {
         _ = new ThemeViewModel();

@@ -17,7 +17,7 @@ namespace OpenTabletArtist.SweepTests;
 /// theme, also when the dialog window's own theme (macOS) is the opposite. Saves screenshots and checks contrast.</summary>
 public class V19SheetThemeShots
 {
-    static string Dir => Environment.GetEnvironmentVariable("SHOTS_DIR") ?? "/workspace/otaE/v19b3/shots";
+    static string Dir => Environment.GetEnvironmentVariable("SHOTS_DIR") ?? Sweep.ShotsRoot + "/otaE/v19b3/shots";
 
     static double Lum(Color c)
     {

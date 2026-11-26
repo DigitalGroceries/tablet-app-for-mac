@@ -10,7 +10,7 @@ namespace OpenTabletArtist.SweepTests;
 /// Output: $OTA_SHOTS/palette-*.png or /workspace.</summary>
 public class PaletteShots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
+    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? Sweep.ShotsRoot;
 
     [AvaloniaFact]
     public void EraserPage_WithThePalette()

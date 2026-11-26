@@ -21,7 +21,7 @@ namespace OpenTabletArtist.SweepTests;
 /// block under the pen buttons, set up like Digital Groceries' own Pen tab (defaults, radial menu on button 2). Output: $OTA_SHOTS/keyboard-block-*.png.</summary>
 public class KeyboardBlockShots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
+    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? Sweep.ShotsRoot;
 
     [AvaloniaTheory]
     [InlineData(1046, 1365)]

@@ -20,7 +20,7 @@ namespace OpenTabletArtist.SweepTests;
 /// the app does (below the nav row, above the footer). Output: $OTA_SHOTS/radial-spot-*.png or /workspace.</summary>
 public class RadialSpotShots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
+    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? Sweep.ShotsRoot;
 
     internal static (TabletDetailViewModel Vm, TabletDetailView View, Window Window) Open(double w, double h, bool radialOnButton2, string tab = "PenTab")
     {

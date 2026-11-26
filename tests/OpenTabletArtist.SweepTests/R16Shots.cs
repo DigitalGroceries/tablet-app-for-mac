@@ -38,16 +38,16 @@ public class R16Shots
     [AvaloniaFact]
     public void Screenshots()
     {
-        System.IO.Directory.CreateDirectory("/workspace/otaE/R16/shots");
+        System.IO.Directory.CreateDirectory(Sweep.ShotsRoot + "/otaE/R16/shots");
         foreach (var tab in new[] { "PenTab", "EraserTab" })
         {
             var (_, view, w) = Open(tab);
-            w.CaptureRenderedFrame()!.Save($"/workspace/otaE/R16/shots/r16-tablet-{tab.Replace("Tab", "").ToLower()}.png");
+            w.CaptureRenderedFrame()!.Save(Sweep.ShotsRoot + $"/otaE/R16/shots/r16-tablet-{tab.Replace("Tab", "").ToLower()}.png");
             w.Close();
         }
         var pd = new PenDiagram { Width = 64, Height = 360 };
         var pw = new Window { Content = new Border { Background = new SolidColorBrush(Color.Parse("#3A3A3A")), Child = pd }, Width = 64, Height = 360 };
         pw.Show(); Dispatcher.UIThread.RunJobs();
-        pw.CaptureRenderedFrame()!.Save("/workspace/otaE/R16/shots/r16-pen-diagram.png"); pw.Close();
+        pw.CaptureRenderedFrame()!.Save(Sweep.ShotsRoot + "/otaE/R16/shots/r16-pen-diagram.png"); pw.Close();
     }
 }

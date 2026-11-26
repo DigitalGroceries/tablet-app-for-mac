@@ -17,7 +17,7 @@ namespace OpenTabletArtist.SweepTests;
 /// (agent K's language). Written to $OTA_SHOTS_DIR (default /workspace/ota-200-shots).</summary>
 public class V30ReportStepsShots
 {
-    static string Dir => Environment.GetEnvironmentVariable("OTA_SHOTS_DIR") ?? "/workspace/ota-200-shots";
+    static string Dir => Environment.GetEnvironmentVariable("OTA_SHOTS_DIR") ?? Sweep.ShotsRoot + "/ota-200-shots";
     static (List<string>, IReadOnlyList<string>, string?) Inputs() => (new List<string>(), Array.Empty<string>(), null);
 
     static async System.Threading.Tasks.Task Shot(string name, string lang, bool dark)

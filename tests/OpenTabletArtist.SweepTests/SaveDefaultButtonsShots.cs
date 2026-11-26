@@ -100,7 +100,7 @@ public class SaveDefaultButtonsShots
         window.Measure(new Size(1200, 140));
         window.Arrange(new Rect(0, 0, 1200, 140));
         Pump();
-        SaveFrame(window, "/workspace/save-default-buttons.png");
+        SaveFrame(window, Sweep.ShotsRoot + "/save-default-buttons.png");
         window.Close();
     }
 
@@ -183,7 +183,7 @@ public class SaveDefaultButtonsShots
         window.Measure(new Size(520, 320));
         window.Arrange(new Rect(0, 0, 520, 320));
         Pump();
-        SaveFrame(window, "/workspace/factory-confirm.png");
+        SaveFrame(window, Sweep.ShotsRoot + "/factory-confirm.png");
         window.Close();
     }
 }

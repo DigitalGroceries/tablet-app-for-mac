@@ -22,7 +22,7 @@ public class V20SafetyShots
         public System.Threading.Tasks.Task SetTabletDebugAsync(bool enabled) => System.Threading.Tasks.Task.CompletedTask;
     }
 
-    static string Dir => Environment.GetEnvironmentVariable("SHOTS_DIR") ?? "/workspace/otaE/v20safety/shots";
+    static string Dir => Environment.GetEnvironmentVariable("SHOTS_DIR") ?? Sweep.ShotsRoot + "/otaE/v20safety/shots";
 
     [AvaloniaTheory]
     [InlineData("dark", 0)]

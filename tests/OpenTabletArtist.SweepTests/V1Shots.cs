@@ -18,7 +18,7 @@ namespace OpenTabletArtist.SweepTests;
 
 public class V1Shots
 {
-    const string Dir = "/workspace/otaE/V1/shots";
+    static readonly string Dir = Sweep.ShotsRoot + "/otaE/V1/shots";
     private static (TabletDetailViewModel, TabletDetailView, Window) Open(string tab, double width, double height = 1100, bool wheel = false)
     {
         _ = new ThemeViewModel();

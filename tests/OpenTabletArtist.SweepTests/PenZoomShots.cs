@@ -14,7 +14,7 @@ namespace OpenTabletArtist.SweepTests;
 /// Output: $OTA_SHOTS/pen-zoom.png or /workspace/pen-zoom.png.</summary>
 public class PenZoomShots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
+    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? Sweep.ShotsRoot;
 
     [AvaloniaFact]
     public void BindingEditor_PenZoomWithSpeedSlider()

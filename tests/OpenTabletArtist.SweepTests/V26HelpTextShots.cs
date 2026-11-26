@@ -21,7 +21,7 @@ namespace OpenTabletArtist.SweepTests;
 /// size (1100 × 720; the page sits in the main window's 24 px side padding). Output folder: $OTA_SHOTS or /workspace.</summary>
 public class V26HelpTextShots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
+    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? Sweep.ShotsRoot;
 
     private static (TabletDetailView, Window) Open(string tab, double width, double height)
     {

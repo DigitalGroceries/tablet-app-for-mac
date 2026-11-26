@@ -16,7 +16,7 @@ namespace OpenTabletArtist.SweepTests;
 /// Output: $OTA_SHOTS/radial-editor-fit-*.png or /workspace.</summary>
 public class RadialEditorFitShots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
+    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? Sweep.ShotsRoot;
 
     [AvaloniaTheory]
     [InlineData(1100, 720)]

@@ -18,7 +18,7 @@ namespace OpenTabletArtist.SweepTests;
 /// being cut.</summary>
 public class V23ReportShots
 {
-    static string Dir => Environment.GetEnvironmentVariable("SHOTS_DIR") ?? "/workspace/otaE/v23report/shots";
+    static string Dir => Environment.GetEnvironmentVariable("SHOTS_DIR") ?? Sweep.ShotsRoot + "/otaE/v23report/shots";
     static (List<string>, IReadOnlyList<string>, string?) Inputs() => (new List<string> { "Wacom PTK-440" }, Array.Empty<string>(), "0.6.8");
 
     [AvaloniaTheory]

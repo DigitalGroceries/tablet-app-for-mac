@@ -20,7 +20,7 @@ namespace OpenTabletArtist.SweepTests;
 /// Measured on headless renders at several menu sizes, and a picture is saved to $OTA_SHOTS (or /workspace).</summary>
 public class RadialCentreIconTests
 {
-    static string Dir => Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
+    static string Dir => Environment.GetEnvironmentVariable("OTA_SHOTS") ?? Sweep.ShotsRoot;
 
     private static readonly string[] Labels = { "Undo", "Redo", "Copy", "Paste", "Cut", "Select all", "Zoom out", "Zoom in" };
 

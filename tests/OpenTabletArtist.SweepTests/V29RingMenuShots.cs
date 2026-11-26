@@ -17,7 +17,7 @@ namespace OpenTabletArtist.SweepTests;
 /// leaves only mode 1). Written to $OTA_SHOTS_DIR (default /workspace/ota-158-shots); run with OTA_APPDATA set to an empty folder.</summary>
 public class V29RingMenuShots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS_DIR") ?? "/workspace/ota-158-shots";
+    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS_DIR") ?? Sweep.ShotsRoot + "/ota-158-shots";
 
     private static Window Open(string tablet, RingCentre centre)
     {

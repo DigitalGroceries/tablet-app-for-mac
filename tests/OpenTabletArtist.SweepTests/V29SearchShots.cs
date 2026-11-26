@@ -14,7 +14,7 @@ namespace OpenTabletArtist.SweepTests;
 /// marked on its page. Written to $SHOTS_DIR (default /workspace/ota-29-search).</summary>
 public class V29SearchShots
 {
-    static string Dir => Environment.GetEnvironmentVariable("SHOTS_DIR") ?? "/workspace/ota-29-search";
+    static string Dir => Environment.GetEnvironmentVariable("SHOTS_DIR") ?? Sweep.ShotsRoot + "/ota-29-search";
 
     static void Settle(MainWindow w)
     {

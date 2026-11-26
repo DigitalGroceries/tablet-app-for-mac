@@ -13,7 +13,7 @@ namespace OpenTabletArtist.SweepTests;
 /// <summary>#25: headless shot of Settings › Troubleshooting box.</summary>
 public class TroubleshootingShots
 {
-    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? "/workspace";
+    static string Dir => System.Environment.GetEnvironmentVariable("OTA_SHOTS") ?? Sweep.ShotsRoot;
 
     private sealed class Noop : ICommand
     {
