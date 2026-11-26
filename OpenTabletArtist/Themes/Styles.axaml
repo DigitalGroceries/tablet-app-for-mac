@@ -410,7 +410,7 @@
                 </Setter>
             </Style>
             <!-- the notches: sharp little bars (Controls/NotchBar); a slider in a small box has finer, quieter ones, as in the mockup -->
-            <!-- Digital Groceries, 26 Nov 2026: on a big slider the notches divide its length into tenths. A slider with a few stops
+            <!-- Digital Groceries, 26 Nov 2026: the notches divide a slider's length into tenths. A slider with a few stops
                  (class "stops": Menu size 1 to 10, Lightness) keeps a notch at each stop. -->
             <Style Selector="^ /template/ c|NotchBar">
                 <Setter Property="Tenths" Value="True" />
@@ -418,8 +418,8 @@
             <Style Selector="^.stops /template/ c|NotchBar">
                 <Setter Property="Tenths" Value="False" />
             </Style>
+            <!-- a slider in a small box: thinner notches, also one at every tenth (Digital Groceries said yes to that on 26 Nov 2026) -->
             <Style Selector="^.compact /template/ c|NotchBar">
-                <Setter Property="Tenths" Value="False" />
                 <Setter Property="Fill" Value="{DynamicResource SliderTickFineBrush}" />
                 <Setter Property="Thickness" Value="1.2" />
             </Style>
