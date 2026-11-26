@@ -2658,6 +2658,8 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _auxButtonCount = "0";
     [ObservableProperty] private bool _noAuxButtons;
     [ObservableProperty] private List<ButtonBinding> _auxButtons = [];
+    /// <summary>TASKS #212: the same keys in the order they sit on the tablet (the page lists these); see KeysInPlace.</summary>
+    [ObservableProperty] private List<ButtonBinding> _auxButtonsInPlace = [];
     /// <summary>One card per filter on the profile (Filters tab). Rebuilt by <see cref="UpdateFiltersDisplay"/>.</summary>
     public ObservableCollection<FilterCardViewModel> Filters { get; } = new();
 

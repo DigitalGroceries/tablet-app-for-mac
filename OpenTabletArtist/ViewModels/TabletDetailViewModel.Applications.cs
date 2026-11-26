@@ -146,6 +146,36 @@ public partial class TabletDetailViewModel
         RefreshWheels();
     }
 
+    /// <summary>
+    /// TASKS #212: the keys in the order they sit on the tablet, for the ExpressKeys page. <paramref name="keys"/> is in
+    /// the driver's order (and stays so everywhere else: settings, the Intuos4's key displays and the live press all
+    /// go by the driver's number). With a saved mapping the page shows them top to bottom as the user proved them, each
+    /// numbered by its place; without one, nothing changes. <paramref name="upsideDown"/> = the tablet is turned round now.
+    /// </summary>
+    internal static List<ButtonBinding> KeysInPlace(IReadOnlyList<ButtonBinding> keys, KeyOrderMap? map, bool upsideDown)
+    {
+        if (map is not { HasAny: true })
+        {
+            foreach (var k in keys) { k.Place = 0; k.StartsNewGroup = false; }
+            return keys.ToList();
+        }
+        var order = map.DisplayOrder(keys.Count, upsideDown);
+        // Where a new group begins, counted in places. Turned round, the groups come in the opposite order too.
+        var groups = map.Groups.Sum() == keys.Count ? map.Groups.ToList() : new List<int>();
+        if (upsideDown != map.Flipped) groups.Reverse();
+        var starts = new HashSet<int>();
+        for (int g = 0, at = 0; g < groups.Count - 1; g++) { at += groups[g]; starts.Add(at); }
+        var inPlace = new List<ButtonBinding>(keys.Count);
+        for (int place = 0; place < order.Count; place++)
+        {
+            var key = keys[order[place]];
+            key.Place = place + 1;
+            key.StartsNewGroup = starts.Contains(place);
+            inPlace.Add(key);
+        }
+        return inPlace;
+    }
+
     private void RebuildAuxButtonsFromWorking()
     {
         var auxStores = EffectiveAuxStores();
@@ -171,6 +201,8 @@ public partial class TabletDetailViewModel
                 applyKeyOn: SetAuxKeyOnAsync));
         }
         AuxButtons = newAuxButtons;
+        AuxButtonsInPlace = KeysInPlace(newAuxButtons, KeyOrderStore.Load(_profile.Tablet),
+            Intuos4Oled.IsUpsideDown(_profile.AbsoluteModeSettings?.Tablet?.Rotation ?? 0));
         NoAuxButtons = newAuxButtons.Count == 0;
         ShowAuxControls = newAuxButtons.Count > 0 && _applyAction != null;
     }

@@ -83,7 +83,28 @@ public partial class ButtonBinding : ObservableObject
     public int Index { get; }
     private readonly string? _label;
     /// <summary>Row title. Defaults to localised "Button N"; wheel rows pass a custom label (the direction).</summary>
-    public string Label => _label ?? ButtonLabel(Index);
+    public string Label => _label ?? ButtonLabel(Place);
+
+    // ── TASKS #212: where the key sits ──
+    private int _place;
+
+    /// <summary>The number the user sees on the key and in its title: 1 for the top key, counted in the order the keys
+    /// sit on the tablet once the step-by-step mapping has said what that order is. Until then it is the driver's own
+    /// number (<see cref="Index"/>), which is what every setting is stored under either way.</summary>
+    public int Place
+    {
+        get => _place > 0 ? _place : Index;
+        set
+        {
+            if (_place == value) return;
+            _place = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(Label));
+        }
+    }
+
+    /// <summary>The first key of a second group (the four keys below the ring): the page leaves a gap above it.</summary>
+    [ObservableProperty] private bool _startsNewGroup;
 
     static string ButtonLabel(int n)
     {
