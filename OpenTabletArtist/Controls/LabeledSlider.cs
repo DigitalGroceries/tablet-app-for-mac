@@ -79,6 +79,11 @@ public class LabeledSlider : TemplatedControl
     public double LargeChange { get => GetValue(LargeChangeProperty); set => SetValue(LargeChangeProperty, value); }
     public bool IsSnapToTickEnabled { get => GetValue(IsSnapToTickEnabledProperty); set => SetValue(IsSnapToTickEnabledProperty, value); }
     public TickPlacement TickPlacement { get => GetValue(TickPlacementProperty); set => SetValue(TickPlacementProperty, value); }
+
+    /// <summary>V31 (task list L7.23): how far apart the drawn notches are, when that is not the step the slider moves in
+    /// (SliderNotches.Every on the slider inside). 0: the notches are at the slider's own steps.</summary>
+    public static readonly StyledProperty<double> NotchEveryProperty = AvaloniaProperty.Register<LabeledSlider, double>(nameof(NotchEvery));
+    public double NotchEvery { get => GetValue(NotchEveryProperty); set => SetValue(NotchEveryProperty, value); }
     public string? Ticks { get => GetValue(TicksProperty); set => SetValue(TicksProperty, value); }
     public bool ShowValue { get => GetValue(ShowValueProperty); set => SetValue(ShowValueProperty, value); }
     public string ValueFormat { get => GetValue(ValueFormatProperty); set => SetValue(ValueFormatProperty, value); }
@@ -97,6 +102,7 @@ public class LabeledSlider : TemplatedControl
     {
         base.OnApplyTemplate(e);
         _slider = e.NameScope.Find<Slider>("PART_Slider");
+        if (_slider != null && NotchEvery > 0) SliderNotches.SetEvery(_slider, NotchEvery);
         if (_box != null)
         {
             _box.LostFocus -= OnBoxLostFocus;

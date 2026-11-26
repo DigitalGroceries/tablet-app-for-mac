@@ -7,6 +7,7 @@ using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 using OpenTabletArtist.Controls;
 using OpenTabletArtist.Domain;
@@ -75,7 +76,17 @@ public sealed class PaletteEditorDialog : AppWindow
                 {
                     // no heading of its own: the window's title bar already says "Colour Palette Settings" (it said it twice)
                     new TextBlock { Text = Localizer.Te("palette_editor.help", "Click a colour to replace it with one of your own."), FontSize = 14, TextWrapping = TextWrapping.Wrap },
-                    _wheel,
+                    // V31 (task list L7.23): embossed like the picture on the Pen page - a thin ring just outside the wheel
+                    new Panel
+                    {
+                        Width = edge, Height = edge, HorizontalAlignment = HorizontalAlignment.Center,
+                        Children =
+                        {
+                            new EmbossRing { Name = "WheelRim", Margin = new Thickness(-EmbossRing.Gap), MenuSize = _size,
+                                [!EmbossRing.BrushProperty] = new DynamicResourceExtension("EmbossRingBrush") },
+                            _wheel,
+                        },
+                    },
                     bottom,
                 },
             },

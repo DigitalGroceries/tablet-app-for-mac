@@ -44,7 +44,7 @@
         </Style>
         <Style Selector="Border.penValueBox.wide">
             <Setter Property="MinHeight" Value="67" />
-            <Setter Property="Padding" Value="6,6" />
+            <Setter Property="Padding" Value="4,6" />
         </Style>
         <Style Selector="Border.penValueBox.wide LayoutTransformControl">
             <Setter Property="LayoutTransform" Value="scale(1.2,1)" />
@@ -52,8 +52,8 @@
         <Style Selector="Border.penValueBox TextBlock.penValue.wide">
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontSize" Value="14" />
-            <!-- the box's 134 of room, divided by the 1.2: a set width, so the lines break the same way when measured and when drawn -->
-            <Setter Property="Width" Value="111" />
+            <!-- the box's 138 of room, divided by the 1.2: a set width, so the lines break the same way when measured and when drawn -->
+            <Setter Property="Width" Value="115" />
         </Style>
         <Style Selector="Button.penAction">
             <Setter Property="MinWidth" Value="104" />

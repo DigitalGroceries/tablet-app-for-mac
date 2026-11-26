@@ -90,7 +90,7 @@ public class ButtonLookAuditTests
 
     /// <summary>What one walk through the app saw: every button and tab with its look, every word with its measured contrast
     /// (<see cref="ReadabilityAudit"/>), and the fill of the tab you are on in that look.</summary>
-    internal sealed record Seen(List<Look> Looks, List<ReadabilityAudit.Word> Words, string TabOn);
+    internal sealed record Seen(List<Look> Looks, List<ReadabilityAudit.Word> Words, string TabOn, List<string> SliderFaults, int Sliders);
 
     /// <summary>The looks the audits walk through: the grey look dark and light, and (V31, task list L7.3 / L7.12, Digital Groceries 25 Nov 2026:
     /// in Burgundy, Custom and Rose "enabled tabs and buttons lose their raised button look") each skin at the step it starts on.
@@ -115,10 +115,22 @@ public class ButtonLookAuditTests
         V31ThemeShots.Choose(theme);
         var all = new List<Look>();
         var words = new List<ReadabilityAudit.Word>();
+        // V31 (task list L7.23): the mockup's slider on every page, window and menu - a sunken recess with a groove, a handle
+        // with a bright line, and notches
+        var sliderFaults = new List<string>(); int sliders = 0;
         void See(Window win, string slug)
         {
             all.AddRange(Looks(win, slug));
             words.AddRange(ReadabilityAudit.Measure(win, $"{look} {slug}"));
+            foreach (var sl in Visible<Slider>(win))
+            {
+                sliders++;
+                string name = sl.Name ?? Avalonia.Automation.AutomationProperties.GetName(sl) ?? "(no name)";
+                var parts = sl.GetVisualDescendants().OfType<Border>().Select(b => b.Name).ToHashSet();
+                foreach (var part in new[] { "SliderRim", "SliderGroove", "HandleBody", "HandleLine" })
+                    if (!parts.Contains(part)) sliderFaults.Add($"{look} {slug}: slider '{name}' has no {part}");
+                if (sl.TickPlacement == TickPlacement.None) sliderFaults.Add($"{look} {slug}: slider '{name}' has no notches");
+            }
         }
 
         var w = new MainWindow { Width = 1130, Height = 900 };
@@ -229,7 +241,7 @@ public class ButtonLookAuditTests
         await Dialog(new SupportedTabletsDialog { Width = 900, Height = 700 }, "dialog-supported-tablets");
         await Dialog(new HotkeyCaptureDialog(new HotkeyCaptureViewModel()) { Width = 900, Height = 600 }, "dialog-hotkey");
         await Dialog(new ReportWindow(new ReportViewModel(() => (new List<string>(), Array.Empty<string>(), null), null, "shot")) { Width = 900, Height = 800 }, "dialog-report");
-        return new Seen(all, words, tabOn);
+        return new Seen(all, words, tabOn, sliderFaults, sliders);
     }
 
     static string Key(Look l) => $"{l.Fill} | shadow {(l.Shadow ? "yes" : "no")} | edge {l.Edge}";
@@ -271,6 +283,8 @@ public class ButtonLookAuditTests
                 }
                 lines.Add("");
 
+                Assert.True(seen.Sliders >= 15, $"{look}: only {seen.Sliders} sliders were seen - were the pages drawn?");
+                Assert.True(seen.SliderFaults.Count == 0, "V31 (L7.23): a slider without the mockup's look:\n" + string.Join("\n", seen.SliderFaults.Distinct()));
                 // V31 (L7.12): and every word on every page and window can be read (a word on a button or tab 4.5:1, any other 3:1)
                 Assert.True(seen.Words.Count > 500, $"{look}: only {seen.Words.Count} words were measured - were the pages drawn?");
                 low.AddRange(seen.Words.Where(x => !x.Ok).Select(x => x.ToString()));

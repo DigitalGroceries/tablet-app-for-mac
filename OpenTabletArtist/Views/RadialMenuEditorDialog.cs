@@ -112,7 +112,11 @@ public sealed class RadialMenuEditorDialog : Window
         pie.CentreClicked += vm.ExplainCentre;   // v27: the four inner icons explain themselves; they do not select a slice
         // TASKS #60: the ring has the size the slider says (live preview) but never more than the free space, and never less than
         // MinPieDiameter (smaller windows scroll instead). The old fixed 470 x 470 box was taller than the area in a 1100x720 window.
-        var pieBox = new PieFit { Child = pie, MinDiameter = MinPieDiameter };
+        // V31 (task list L7.23): embossed like the picture on the Pen page - a thin ring just outside the menu, light at the
+        // top left and dark at the bottom right
+        var pieRim = new Avalonia.Controls.Shapes.Ellipse { Name = "PieRim", Margin = new Thickness(-OpenTabletArtist.Controls.EmbossRing.Gap), StrokeThickness = 2.5, IsHitTestVisible = false,
+            [!Avalonia.Controls.Shapes.Shape.StrokeProperty] = new DynamicResourceExtension("EmbossRingBrush") };
+        var pieBox = new PieFit { Child = new Panel { Children = { pieRim, pie } }, MinDiameter = MinPieDiameter };
         pieBox[!PieFit.PreferredProperty] = new Binding(nameof(vm.PreviewDiameter));
         var where = new TextBlock { TextWrapping = TextWrapping.Wrap, FontWeight = FontWeight.SemiBold };
         where[!TextBlock.TextProperty] = new Binding(nameof(vm.Where));
@@ -200,7 +204,8 @@ public sealed class RadialMenuEditorDialog : Window
 
         // Footer: size, reset, save / cancel
         // v27 test (Digital Groceries 16:07): the size is set from 1 to 10 (SizeStep); the saved size stays 1-50.
-        var size = new Slider { Minimum = RadialMenuDef.MinSizeStep, Maximum = RadialMenuDef.MaxSizeStep, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220 };
+        var size = new Slider { Minimum = RadialMenuDef.MinSizeStep, Maximum = RadialMenuDef.MaxSizeStep, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220,
+            TickPlacement = TickPlacement.BottomRight };   // V31 (L7.23): notches under every slider
         size[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.SizeStep)) { Mode = BindingMode.TwoWay };
         Avalonia.Automation.AutomationProperties.SetName(size, vm.SizeCaption);
         var footer = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto,Auto,*,Auto,Auto"), Margin = new Thickness(0, 14, 0, 0), Name = FooterName };
@@ -227,7 +232,9 @@ public sealed class RadialMenuEditorDialog : Window
         sizeBox.LostFocus += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => sizeBox.Text = vm.SizeInput);
         Put(sizeBox, 4);
         // Menu transparency: 0 (solid) to 100 (clear), the ring on the left shows it while the slider moves.
-        var transparency = new Slider { Minimum = RadialMenuDef.MinTransparency, Maximum = RadialMenuDef.MaxTransparency, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220, Margin = new Thickness(0, 6, 0, 0) };
+        var transparency = new Slider { Minimum = RadialMenuDef.MinTransparency, Maximum = RadialMenuDef.MaxTransparency, TickFrequency = 1, IsSnapToTickEnabled = true, MinWidth = 220, Margin = new Thickness(0, 6, 0, 0),
+            TickPlacement = TickPlacement.BottomRight };
+        OpenTabletArtist.Controls.SliderNotches.SetEvery(transparency, 10);   // V31 (L7.23): a notch every 10, not at each of its 61 steps
         transparency[!Avalonia.Controls.Primitives.RangeBase.ValueProperty] = new Binding(nameof(vm.Transparency)) { Mode = BindingMode.TwoWay };
         Avalonia.Automation.AutomationProperties.SetName(transparency, vm.TransparencyCaption);
         Put(new TextBlock { Text = vm.TransparencyCaption, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 6, 10, 0) }, 0, 1);

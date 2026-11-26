@@ -749,6 +749,7 @@
                         <StackPanel x:Name="TouchFeel" Spacing="4" Margin="0,10,0,0" IsVisible="{Binding TouchTrackpadAvailable}">
                             <ctrl:LabeledSlider x:Name="TouchSpeedSlider" Label="{Binding TouchSpeedLabel}" LabelWidth="130"
                                                 Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"
+                                                TickPlacement="BottomRight" NotchEvery="11"
                                                 Value="{Binding TouchSpeed}" ValueTextOverride="{Binding TouchSpeedText}"
                                                 Monospace="True" ValueWidth="40" />
                             <TextBlock x:Name="TouchSpeedHint" Text="{Binding TouchSpeedHint}" TextWrapping="Wrap" FontSize="12"
@@ -1541,7 +1542,7 @@
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" />
                         <ctrl:LabeledSlider Label="Max hover" LabelWidth="80"
-                                            Minimum="1" Maximum="255"
+                                            Minimum="1" Maximum="255" TickPlacement="BottomRight" NotchEvery="25.4"
                                             Value="{Binding MaxHoverDistance}"
                                             ValueTextOverride="{Binding MaxHoverDistanceText}"
                                             Monospace="True" ValueWidth="40"
