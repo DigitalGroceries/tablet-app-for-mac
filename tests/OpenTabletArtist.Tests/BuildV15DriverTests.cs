@@ -4,7 +4,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>Version 15 (Zak, 27 Oct 2026): a leftover driver from an older version is stopped at start; an
+/// <summary>Version 15 (Digital Groceries, 27 Oct 2026): a leftover driver from an older version is stopped at start; an
 /// OpenTabletDriver the artist installed is never touched.</summary>
 public class BuildV15DriverTests
 {

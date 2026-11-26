@@ -23,7 +23,7 @@ public class SafetyUpdateTests : IDisposable
     {
         Directory.CreateDirectory(App); Directory.CreateDirectory(Path.Combine(Otd, "Presets"));
         SettingsBundle.AppDataDir = () => App; SettingsBundle.OtdDataDir = () => Otd;
-        SettingsBundle.HomeDir = () => "/Users/zak";
+        SettingsBundle.HomeDir = () => "/Users/digitalgroceries";
     }
 
     public void Dispose()
@@ -44,7 +44,7 @@ public class SafetyUpdateTests : IDisposable
     public void PortableExport_RemovesSerialsHomeAndMachineKeys()
     {
         File.WriteAllText(Path.Combine(App, "settings.json"),
-            "{\"ui.language\":\"en\",\"daemon.userPath\":\"/Users/zak/x\",\"PerAppTables:T\":\"[{\\\"AppPath\\\":\\\"/Users/zak/Apps/Krita.app\\\"}]\"}");
+            "{\"ui.language\":\"en\",\"daemon.userPath\":\"/Users/digitalgroceries/x\",\"PerAppTables:T\":\"[{\\\"AppPath\\\":\\\"/Users/digitalgroceries/Apps/Krita.app\\\"}]\"}");
         File.WriteAllText(Path.Combine(Otd, "settings.json"),
             "{\"Profiles\":[{\"Tablet\":\"Wacom PTK-440\",\"SerialNumber\":\"8HAB001234\"}]}");
         File.WriteAllText(Path.Combine(Otd, "Presets", "PS.json"), "{\"a\":1}");
@@ -55,7 +55,7 @@ public class SafetyUpdateTests : IDisposable
         string Read(string n) { using var r = new StreamReader(zip.GetEntry(n)!.Open()); return r.ReadToEnd(); }
         var all = string.Join("\n", zip.Entries.Select(e => Read(e.FullName)));
         Assert.DoesNotContain("8HAB001234", all);
-        Assert.DoesNotContain("/Users/zak", all);
+        Assert.DoesNotContain("/Users/digitalgroceries", all);
         Assert.DoesNotContain("daemon.userPath", all);
         Assert.Contains("~/Apps/Krita.app", all);
         Assert.NotNull(zip.GetEntry("presets/PS.json"));

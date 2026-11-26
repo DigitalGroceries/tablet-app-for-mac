@@ -40,7 +40,7 @@ public static class Updater
     /// <summary>Version 14: what the user can choose from. <see cref="Stable"/> is a newer stable version, or —
     /// when <see cref="StableIsGoBack"/> — the stable version a BETA user can go back to. <see cref="Beta"/> is a
     /// BETA newer than both the running app and the newest stable version.
-    /// Version 15 (Zak, 27 Oct 2026: "All versions stable or beta should allow the users to downgrade to an
+    /// Version 15 (Digital Groceries, 27 Oct 2026: "All versions stable or beta should allow the users to downgrade to an
     /// earlier version"): <see cref="Earlier"/> holds the stable versions older than the running app, newest
     /// first, at most <see cref="EarlierCount"/> (the same two the website links to). Not counted in
     /// <see cref="Any"/>: an earlier version is never announced as an update.</summary>

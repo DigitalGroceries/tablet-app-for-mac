@@ -14,7 +14,7 @@ using Avalonia.Threading;
 
 namespace OpenTabletArtist.Helpers;
 
-/// <summary>Version 19 (Zak's rule: no popup windows). Shows what used to be a separate dialog window as a
+/// <summary>Version 19 (Digital Groceries' rule: no popup windows). Shows what used to be a separate dialog window as a
 /// sheet inside the main window. The dialog object is still built as before (so its code, bindings, results and
 /// Close() calls are unchanged); only its content is moved into the main window's <c>SheetHost</c> layer.
 /// Falls back to a normal window when there is no main window to host it (tests, very early start).</summary>

@@ -163,7 +163,7 @@ public partial class AboutViewModel : ObservableObject
         if (await Views.UpdatePromptWindow.AskGoBackAsync(g.Label)) await Services.AppUpdateState.Shared.InstallAsync(g);
     }
 
-    /// <summary>Version 15 (Zak, 27 Oct 2026: "All versions stable or beta should allow the users to downgrade to
+    /// <summary>Version 15 (Digital Groceries, 27 Oct 2026: "All versions stable or beta should allow the users to downgrade to
     /// an earlier version"): checks GitHub if needed, then offers the earlier stable versions.</summary>
     [RelayCommand]
     private async Task ChooseEarlier()

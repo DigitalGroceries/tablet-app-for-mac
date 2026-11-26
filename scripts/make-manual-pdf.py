@@ -2,7 +2,7 @@
 # Usage: python3 scripts/make-manual-pdf.py <version> <date> <out.pdf>
 # Needs: Python Playwright with its Chromium (pip install playwright; python -m playwright install chromium).
 # The md() converter and the cover icon come from this repo's site/ folder; override with $SITE_TOOLS (a folder with
-# markdown.py or an older build_site.py) and $SITE_ICON. Zak's rule (27 Oct 2026): make a new PDF for every app version.
+# markdown.py or an older build_site.py) and $SITE_ICON. Digital Groceries' rule (27 Oct 2026): make a new PDF for every app version.
 import re, sys, os
 V, DATE, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
 ROOT=os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..'))

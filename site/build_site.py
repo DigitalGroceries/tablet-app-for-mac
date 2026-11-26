@@ -5,7 +5,7 @@ site/src holds every text file of the live site exactly as published. Only the v
 STABLE release are placeholders, filled from site/site.json:
 
   {{V}}            current STABLE version, e.g. 18
-  {{P1}}, {{P2}}   the two previous STABLE versions (Zak's rule: the site links the two most recent previous ones)
+  {{P1}}, {{P2}}   the two previous STABLE versions (Digital Groceries' rule: the site links the two most recent previous ones)
 
 Images and the manual PDF are not kept here (they live on gh-pages). Pass --manual PATH to copy a new
 manual PDF to help/tablet-app-for-mac-manual.pdf.

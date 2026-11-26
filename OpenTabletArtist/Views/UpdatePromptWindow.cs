@@ -77,7 +77,7 @@ public static class UpdatePromptWindow
         return done.Task;
     }
 
-    /// <summary>Version 15 (Zak: "All versions stable or beta should allow the users to downgrade to an earlier
+    /// <summary>Version 15 (Digital Groceries: "All versions stable or beta should allow the users to downgrade to an earlier
     /// version"): one "Go back to Version N" button per earlier stable version, plus Not now.
     /// Returns the chosen release, or null.</summary>
     public static Task<Updater.Release?> ChooseEarlierAsync(System.Collections.Generic.IReadOnlyList<Updater.Release> earlier)

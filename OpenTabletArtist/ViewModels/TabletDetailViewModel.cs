@@ -1749,7 +1749,7 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             var ws = wheels[w];
             int wi = w;
             // Version 16 BETA 2: "Clockwise" is OTD's ClockwiseRotation. OTD fires it for a rising ring position,
-            // which is a clockwise turn on Wacom rings (Zak's PTK-440: the readout and every ring mode in
+            // which is a clockwise turn on Wacom rings (Digital Groceries' PTK-440: the readout and every ring mode in
             // Photoshop, Affinity and PhotoCraft showed it; the Intuos Pro 2017 ring, which counts the other way,
             // is mirrored by its report parser since Version 16). Up to Version 16 BETA 1 the rows were swapped,
             // after upstream OpenTabletArtist's Intuos Pro, so every ring mode ran backwards. Plain keys set

@@ -12,7 +12,7 @@ British English (`en.json`) is the source of truth. Other languages are JSON str
 | `es` | Español | |
 | `de` | Deutsch | |
 | `fr` | Français | |
-| `bg` | Български | **Zak proofreads** — see `bulgarian-proof-2026-10-24.md` |
+| `bg` | Български | **Digital Groceries proofreads** — see `bulgarian-proof-2026-10-24.md` |
 | `ru` | Русский | |
 | `ja` | 日本語 | |
 | `zh-CN` | 中文 | |
@@ -22,7 +22,7 @@ British English (`en.json`) is the source of truth. Other languages are JSON str
 - `Services/Localizer.cs` loads tables from Avalonia assets, persists `ui.language` in `settings.json`.
 - Settings › System has a **Language** picker. Changing it applies immediately (`LanguageChanged`).
 - Call `Localizer.T("key")` or `Localizer.Tf("key", ("version", n))` from code. Placeholders use `{name}`.
-- Do **not** put “Zak” in public strings. Do **not** translate the PDF manual in this pass.
+- Do **not** put a person’s name in public strings (the owner is written “Digital Groceries”). Do **not** translate the PDF manual in this pass.
 - Leave technical identifiers, paths, URLs, tablet model names, and log lines in English where clearer.
 - Keep macOS pane names recognisable: Input Monitoring, Accessibility, Device Control (unless a locale’s System Settings uses a clear local name you prefer).
 
@@ -31,7 +31,7 @@ British English (`en.json`) is the source of truth. Other languages are JSON str
 1. Copy `Assets/i18n/en.json` to `Assets/i18n/<code>.json` and translate values (keep keys and `{placeholders}`).
 2. Add the code to `Localizer.Languages` and `Supported`.
 3. Mirror the file under `/workspace/otaE/V7/i18n/` for release notes / proof packs.
-4. For Bulgarian, update the proof markdown and wait for Zak’s corrections before polishing further.
+4. For Bulgarian, update the proof markdown and wait for Digital Groceries’ corrections before polishing further.
 
 ## Proof pack (Bulgarian)
 

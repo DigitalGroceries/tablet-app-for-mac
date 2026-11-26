@@ -13,7 +13,7 @@ using Xunit;
 
 namespace OpenTabletArtist.Tests;
 
-/// <summary>Version 16 BETA 2: Zak's ring test (27 Oct 2026). Every ring mode ran backwards on the PTK-440 (the
+/// <summary>Version 16 BETA 2: Digital Groceries' ring test (27 Oct 2026). Every ring mode ran backwards on the PTK-440 (the
 /// app stored "Clockwise" in OTD's CounterClockwiseRotation), zoom was far too fast and stuck at Speed 2 or more,
 /// smooth actions in other apps ignored the Speed, and with an app selected in the Application row no ring-mode
 /// change stayed (they were written to All while the page showed the app's table).</summary>
