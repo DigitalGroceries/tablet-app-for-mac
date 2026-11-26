@@ -172,6 +172,21 @@ The **Keyboard** tab (Version 29, between Pen and Mapping) holds the **Floating 
 - Row **⋯**: **Edit…** opens the function editor, **Clear** removes the action, **Turn off** / **Turn on** switches just that key (an Off key is greyed and keeps its shortcut). Each application keeps its own On/Off for every key.
 - **All buttons** (Off / On switch) turns every ExpressKey off or on; actions and each key's own On/Off are kept. A key works only when **All buttons** and the key are both On. While **All buttons** is Off, the per-key item is greyed ("Turn on All buttons first").
 - **Default**: clears every ExpressKey action, after asking.
+- **Set up my buttons**: shows the app where each key sits on your tablet (see below). After it, the keys are listed top to bottom in the order they sit, and numbered in that order.
+
+### Set up my buttons
+
+The driver numbers a tablet's keys, but it cannot know where each key sits. **Set up my buttons** lets you show the app:
+
+- A small drawn tablet appears with one key lit. Press that key on your tablet. The next key lights. A key you already did changes nothing: the app asks for the lit one again.
+- **Skip** leaves a key out, **Back** goes one key back, **Stop** ends it and keeps what was done. If nothing comes through for about 10 seconds the app says so; press the key again or choose **Skip**.
+- After the keys, the app asks you to touch each Touch Ring or slide a finger up each Touch Strip, and, on a tablet with finger touch, to touch the tablet with one finger. This only checks that they reach the app.
+- For some tablet models the last screen offers **Give them Wacom's functions**: the keys you pressed get the functions Wacom's own driver gives them, where the app can do them (Shift, Command, Option, Move pen to scroll, Radial menu, Touch on/off). Other keys keep what they do. **I'll choose myself** changes nothing.
+- **Save** keeps the order for this tablet model; **Don't save** keeps things as they were. **Start again** clears the run.
+
+While it is open, your ExpressKeys do nothing else; their settings come back when it closes. The drawing is the right shape for the tablet families whose Wacom manual shows where the keys are; for other tablets it is a plain column of keys, top to bottom. You can run it again at any time: the new order replaces the old one.
+
+The first time a tablet with ExpressKeys is connected, the app asks once: **Set up your tablet's buttons?** **Later** closes the question for good; the button on this page stays.
 
 Function editor: **Keyboard** (a shortcut; Cmd, Ctrl, Shift and Option are held modifiers), **Mouse** (Left click, Right click, Middle click, Back button, Forward button, or **Double Click**), **Scroll** (up, down, left, right, or a pen gesture), **Media** (Mute, Volume down, Volume up, Play / Pause, Previous track, Next track, Stop, and since Version 29 **Brightness down** and **Brightness up**, which work like the Mac's own brightness keys: they change the screen of the window you last clicked in, and with Control held the other screen (from the Mac's own screen an external one, from an external screen the Mac's own), as the Mac's keyboard does; a screen the Mac's own keys can't dim won't change either; set them on the Touch Ring's Clockwise and Anticlockwise to turn the brightness with the ring). **Radial menu** is on its own tab (see Radial menu). **Save**, **Cancel**, **Clear**.
 
@@ -323,7 +338,7 @@ The report opens inside the app window:
 - **How to report** (at the top) shows a short guide: click **Record the problem**; make the problem happen 3 to 5 times, a few seconds apart; if it is about clicks, click the same windows with your mouse first, then with the pen; click **Stop recording** within 2 minutes; in one line, write what you expected and what happened instead; click **Send with file**, then follow the 3 steps on the screen.
 - Choose **A problem** or **A recommendation**.
 - Write what happened, or your idea (you can leave it empty).
-- A picture of the app window, as it was just before the report opened, is added. Untick **Add this picture of the app window** to leave it out. **Add screenshots…** adds more pictures (up to 10 in all).
+- A picture of the app window, as it was just before the report opened, is added. Untick **Add this picture of the app window** to leave it out. If you have used **Set up my buttons**, a box **Add where the buttons sit on my tablet** is there too. It is not ticked: tick it only if you want to send us the order of your tablet's keys (the model name and key numbers, nothing about you). **Add screenshots…** adds more pictures (up to 10 in all).
 - **Record the problem**: click it, make the problem happen with your tablet (pen, eraser, buttons, touch, ExpressKeys or touch ring), then click **Stop recording**. The report then also holds what the tablet sent in those seconds (up to 2 minutes), and the app and driver logs are marked where the recording started and stopped. On a Mac it also records every click and mouse event macOS sees, from the mouse and from the pen, and how long each click took to bring its window and app to the front, so a mouse click and a pen click on the same windows can be compared.
 - Press **Send with file** or **Send with GitHub account**. Both make one file with your text, your pictures and the app and driver logs. Serial numbers and your user name are removed from the logs. Pictures are sent as they are, so check them first.
 - **Send with file** needs no account. It asks where to save the file (the Desktop is suggested). Then the report shows 3 numbered steps:
