@@ -124,6 +124,16 @@ jobs:
       - name: UI smoke tests
         run: dotnet test tests/OpenTabletArtist.UiTests/OpenTabletArtist.UiTests.csproj -c Debug --no-build
 
+      # The sweep suite: the guards that walk every page and window in every look (words that can be read, buttons and
+      # tabs with their look, the sunken sliders with their notches - task lists L7.12 and L7.23) and the page-by-page
+      # sweeps. A guard that runs only when someone remembers to run it is no guard. On Linux only: it measures words
+      # from the drawn pixels, with the fonts of the machine the limits were set on.
+      - name: Sweep tests (every page, every look)
+        if: runner.os == 'Linux'
+        run: dotnet test tests/OpenTabletArtist.SweepTests/OpenTabletArtist.SweepTests.csproj -c Debug
+        env:
+          OTA_NO_PETALS: "1"
+
       # The driver's own suite (configuration lint, parsers, bindings). Not in the solution, and it needs
       # OpenTabletDriver's global.json (VSTest), so it runs from that folder. Missing here, it let three
       # Bamboo configs fail their lint check unnoticed in Version 28 (16 Nov 2026).
