@@ -102,6 +102,7 @@ internal static class Sweep
         var bmp = win is Window w ? w.CaptureRenderedFrame() : null;
         if (bmp is null) { Defect($"[shot] {name}: no frame rendered"); return; }
         var file = Path.Combine(Shots, Slug(name) + ".png");
+        Directory.CreateDirectory(Shots);   // a test that takes a picture without the sweep's own start-up (R13Shots) on a fresh machine
         bmp.Save(file);
         lock (ShotFiles) ShotFiles.Add(file);
         if (bmp is WriteableBitmap wb) ScanWhite(wb, name);
