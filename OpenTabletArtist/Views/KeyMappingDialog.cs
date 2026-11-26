@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.MarkupExtensions;
+using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia.Threading;
 using OpenTabletArtist.Domain;
@@ -38,7 +39,11 @@ public sealed class KeyMappingDialog : AppWindow
     public Button StartAgainButton { get; }
     public Button DontSaveButton { get; }
     public Button SaveButton { get; }
-    public StackPanel KeysColumn { get; }
+    /// <summary>The small drawn tablet: its body, the ring if any, and one key (Border) per place.</summary>
+    public Canvas KeysDrawing { get; }
+
+    /// <summary>The drawn keys, place by place.</summary>
+    public IReadOnlyList<Border> KeySpots => _nubs.ConvertAll(n => n.Nub);
 
     public KeyMappingDialog(KeyMappingViewModel vm)
     {
@@ -49,26 +54,53 @@ public sealed class KeyMappingDialog : AppWindow
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-        // The drawn edge of a tablet with its keys, top to bottom (the same drawing as the ExpressKeys page).
-        KeysColumn = new StackPanel { Margin = new Thickness(0, 14), Spacing = 8 };
-        foreach (var place in vm.Places)
+        // A small drawn tablet: its keys where the manual shows them (KeyLayouts), or one plain column. The spot with
+        // index N is place N; a proven layout is drawn turned half round when the tablet is turned.
+        var layout = vm.Layout;
+        bool wide = layout.Width > layout.Height;
+        double scale = wide ? Math.Min(1.3, 540 / Math.Max(1, layout.Width)) : 1;
+        var spots = vm.DrawTurned ? layout.TurnedSpots : layout.Spots;
+        var ring = vm.DrawTurned ? layout.TurnedRing : layout.Ring;
+        KeysDrawing = new Canvas { Width = layout.Width * scale, Height = layout.Height * scale };
+        var body = new Border
         {
+            Width = KeysDrawing.Width, Height = KeysDrawing.Height, BorderThickness = new Thickness(2),
+            CornerRadius = new CornerRadius(14 * scale),
+        };
+        body[!Border.BorderBrushProperty] = new DynamicResourceExtension("TextMutedBrush");
+        body[!Border.BackgroundProperty] = new DynamicResourceExtension("GlassBgBrush");
+        KeysDrawing.Children.Add(body);
+        if (ring is { } r)
+        {
+            var circle = new Ellipse { Width = r.D * scale, Height = r.D * scale, StrokeThickness = 6 * scale };
+            circle[!Shape.StrokeProperty] = new DynamicResourceExtension("TextMutedBrush");
+            Canvas.SetLeft(circle, r.X * scale);
+            Canvas.SetTop(circle, r.Y * scale);
+            KeysDrawing.Children.Add(circle);
+        }
+        for (int i = 0; i < vm.Places.Count && i < spots.Count; i++)
+        {
+            var place = vm.Places[i];
+            var spot = spots[i];
             var number = new TextBlock { Text = place.Number.ToString(), FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-            var nub = new Border { Width = 34, Height = 22, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), Child = number, HorizontalAlignment = HorizontalAlignment.Center };
-            var mark = new TextBlock { FontSize = 13, Width = 18, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+            var nub = new Border { Width = spot.W * scale, Height = spot.H * scale, CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(1), Child = number };
+            Canvas.SetLeft(nub, spot.X * scale);
+            Canvas.SetTop(nub, spot.Y * scale);
+            KeysDrawing.Children.Add(nub);
+            // The tick or dash for a done key, in the key's upper right corner (it never leaves the drawn tablet).
+            var mark = new TextBlock { FontSize = 10, FontWeight = FontWeight.Bold, IsHitTestVisible = false };
             mark[!TextBlock.ForegroundProperty] = new DynamicResourceExtension("TextSecondaryBrush");
-            var row = new Grid { ColumnDefinitions = new ColumnDefinitions("64,Auto"), Margin = new Thickness(0, place.StartsNewGroup ? 20 : 0, 0, 0) };
-            row.Children.Add(nub);
-            Grid.SetColumn(mark, 1);
-            row.Children.Add(mark);
-            KeysColumn.Children.Add(row);
+            Canvas.SetLeft(mark, (spot.X + spot.W) * scale - 11);
+            Canvas.SetTop(mark, spot.Y * scale);
+            KeysDrawing.Children.Add(mark);
             _nubs.Add((place, nub, mark));
             place.PropertyChanged += OnPlaceChanged;
         }
-        var edge = new Border { Width = 64, HorizontalAlignment = HorizontalAlignment.Left, CornerRadius = new CornerRadius(14, 0, 0, 14), BorderThickness = new Thickness(2, 2, 0, 2) };
-        edge[!Border.BorderBrushProperty] = new DynamicResourceExtension("TextMutedBrush");
-        edge[!Border.BackgroundProperty] = new DynamicResourceExtension("GlassBgBrush");
-        var drawing = new Grid { VerticalAlignment = VerticalAlignment.Top, Children = { edge, KeysColumn } };
+        var drawing = new Border
+        {
+            VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = wide ? HorizontalAlignment.Center : HorizontalAlignment.Left,
+            Margin = wide ? new Thickness(0, 4, 0, 16) : new Thickness(0, 4, 0, 0), Child = KeysDrawing,
+        };
 
         StepLabel = new TextBlock { FontSize = 20, FontWeight = FontWeight.SemiBold };
         GroupLabel = new TextBlock { FontSize = 14 };
@@ -114,11 +146,23 @@ public sealed class KeyMappingDialog : AppWindow
                 },
             },
         };
-        var layout = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
-        layout.Children.Add(drawing);
-        Grid.SetColumn(words, 1);
-        layout.Children.Add(words);
-        Content = new Border { Padding = new Thickness(22, 18, 22, 16), Child = layout };
+        // A tall drawing (keys down one edge) stands left of the words; a wide one (keys along the top) above them.
+        var grid = new Grid();
+        if (wide)
+        {
+            grid.RowDefinitions = new RowDefinitions("Auto,*");
+            words.Margin = new Thickness(0);
+            grid.Children.Add(drawing);
+            Grid.SetRow(words, 1);
+        }
+        else
+        {
+            grid.ColumnDefinitions = new ColumnDefinitions("Auto,*");
+            grid.Children.Add(drawing);
+            Grid.SetColumn(words, 1);
+        }
+        grid.Children.Add(words);
+        Content = new Border { Padding = new Thickness(22, 18, 22, 16), Child = grid };
 
         _wait = new DispatcherTimer { Interval = KeyMappingViewModel.QuietTime };
         _wait.Tick += (_, _) => { _wait.Stop(); _vm.NothingCame(); };

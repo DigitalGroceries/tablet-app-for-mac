@@ -192,7 +192,7 @@ public class KeyMappingSheetTests
         Assert.True(sheet.SkipButton.IsVisible && sheet.StopButton.IsVisible && sheet.BackButton.IsVisible);
         Assert.False(sheet.BackButton.IsEnabled);
         Assert.False(sheet.SaveButton.IsVisible || sheet.DontSaveButton.IsVisible || sheet.StartAgainButton.IsVisible);
-        Assert.Equal(3, sheet.KeysColumn.Children.Count);
+        Assert.Equal(3, sheet.KeySpots.Count);
 
         vm.OnKeys(Down(3, 1)); vm.OnKeys(new bool[3]);
         Assert.Equal("Key 2 of 3", sheet.StepLabel.Text);

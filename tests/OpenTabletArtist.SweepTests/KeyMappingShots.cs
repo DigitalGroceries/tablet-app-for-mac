@@ -53,6 +53,35 @@ public class KeyMappingShots
         sheet.Close();
     }
 
+    /// <summary>The sheet's drawn tablet for a few families (proven layouts from the manuals, and the plain column):
+    /// key-mapping-layout-*.png, the second key lit.</summary>
+    [AvaloniaFact]
+    public void The_sheet_per_tablet_family()
+    {
+        Directory.CreateDirectory(Dir);
+        using var mac = UiPlatform.PretendMac();
+        _ = new ThemeViewModel();
+        foreach (var (file, tablet, count, turned) in new[]
+                 {
+                     ("ptk-440", "Wacom PTK-440", 6, false),
+                     ("ptk-440-turned", "Wacom PTK-440", 6, true),
+                     ("ctl-4100wl", "Wacom CTL-4100WL", 5, false),
+                     ("ptz-930-intuos3", "Wacom PTZ-930", 8, false),
+                     ("cte-450-bamboo-fun", "Wacom CTE-450", 4, false),
+                     ("pth-660-plain-column", "Wacom PTH-660", 8, false),
+                 })
+        {
+            var vm = new KeyMappingViewModel(count, null, turned, KeyLayouts.For(tablet, count));
+            Tap(vm, count, 0);
+            var sheet = new KeyMappingDialog(vm);
+            sheet.Show();
+            RadialSpotShots.Settle(sheet);
+            Assert.Equal(count, sheet.KeySpots.Count);
+            sheet.CaptureRenderedFrame()!.Save($"{Dir}/key-mapping-layout-{file}.png");
+            sheet.Close();
+        }
+    }
+
     [AvaloniaFact]
     public void The_ExpressKeys_page_with_a_saved_order()
     {
