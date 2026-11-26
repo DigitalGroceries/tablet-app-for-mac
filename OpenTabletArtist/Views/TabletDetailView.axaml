@@ -205,15 +205,19 @@
         </Style>
         <!-- Connection status chip in the header, sized to sit beside the Refresh button — solid color by
              state: neutral grey when the tablet isn't detected, green when it is. -->
+        <!-- V31 (TASKS #216): the words were small light text on slate grey (3.8:1). Now the page's own text colour on
+             the page's own raised grey, with an outline, a size larger. -->
         <Style Selector="Border.tabletStatusChip">
-            <Setter Property="Background" Value="{DynamicResource NeutralBrush}" />
+            <Setter Property="Background" Value="{DynamicResource GlassBgBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="0" />
             <Setter Property="Padding" Value="10,6" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <!-- Connected keeps the neutral chip (#593: no green status color); the text says the state. -->
         <Style Selector="Border.tabletStatusChip.connected">
-            <Setter Property="Background" Value="{DynamicResource NeutralBrush}" />
+            <Setter Property="Background" Value="{DynamicResource GlassBgBrush}" />
         </Style>
         <!-- The switcher/detection statusDot + statusSquare styles moved into TabletSwitcherBar (#580). -->
 
@@ -429,9 +433,9 @@
                             VerticalAlignment="Center">
                     <Border Classes="tabletStatusChip" Classes.connected="{Binding IsTabletDetected}"
                             Width="{Binding #RefreshBtn.Bounds.Width, Converter={x:Static otac:MultiplyConverter.Instance}, ConverterParameter=1.5}">
-                        <TextBlock Text="{Binding DetectionText}" FontWeight="SemiBold"
-                                   FontSize="{DynamicResource TypeCaptionSize}"
-                                   Foreground="{DynamicResource TextInverseBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock x:Name="DetectionChipText" Text="{Binding DetectionText}" FontWeight="SemiBold"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <Button x:Name="RefreshBtn" Content="Refresh" Command="{Binding RefreshCommand}"
                             ToolTip.Tip="Reload settings from driver"

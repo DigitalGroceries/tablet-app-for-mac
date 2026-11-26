@@ -283,6 +283,10 @@ public class ButtonLookAuditTests
                 }
                 lines.Add("");
 
+                // V31 (TASKS #216): Home's "Open driver page" is a real button, not a small link
+                var driverPage = looks.Where(l => l.Label == "Open driver page").ToList();
+                Assert.True(driverPage.Count > 0, $"{look}: Home's 'Open driver page' button was not seen");
+                Assert.All(driverPage, l => Assert.True(l.Raised, $"{look} {l.Page}: 'Open driver page' has no button look (theme {l.Theme})"));
                 Assert.True(seen.Sliders >= 15, $"{look}: only {seen.Sliders} sliders were seen - were the pages drawn?");
                 Assert.True(seen.SliderFaults.Count == 0, "V31 (L7.23): a slider without the mockup's look:\n" + string.Join("\n", seen.SliderFaults.Distinct()));
                 // V31 (L7.12): and every word on every page and window can be read (a word on a button or tab 4.5:1, any other 3:1)

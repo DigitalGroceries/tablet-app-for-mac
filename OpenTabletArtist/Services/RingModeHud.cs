@@ -169,8 +169,10 @@ public sealed class RingModeHud : IDisposable
             // over whatever other app happens to be frontmost (v27).
             var (target, where) = PickTarget(overOwnWindow);
 
-            // Size: a third of the target's width (at least 360 pt), half as tall; the text scales with it.
-            double w = Math.Max(360, target.Width / 3), h = w * 0.5;
+            // Size: half as tall as wide; the text scales with it. V31 (TASKS #196, Digital Groceries 22 Nov 2026: the pop-up three
+            // times its size): three times the area it had - it was a third of the target's width (at least 360 pt), now
+            // that times the square root of 3 - and never wider than nine tenths of what it lies over.
+            var (w, h) = PopupSize(target.Width);
             _window!.Width = w;
             _window.Height = h;
             _window.Position = new PixelPoint((int)(target.X + (target.Width - w) / 2), (int)(target.Y + (target.Height - h) / 2));
@@ -238,6 +240,14 @@ public sealed class RingModeHud : IDisposable
         {
             AppLog.Warn("Ring mode popup: couldn't make the window click-through", e);
         }
+    }
+
+    /// <summary>The pop-up's width and height over a window or display of the given width (see Show).</summary>
+    internal static (double Width, double Height) PopupSize(double targetWidth)
+    {
+        double w = Math.Max(360, targetWidth / 3) * Math.Sqrt(3);
+        w = Math.Min(w, Math.Max(360, targetWidth * 0.9));
+        return (w, w * 0.5);
     }
 
     private void EnsureWindow()

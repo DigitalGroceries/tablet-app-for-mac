@@ -155,7 +155,7 @@
                                         IsVisible="{Binding Remediation, Converter={StaticResource NotNull}}"
                                         Command="{Binding $parent[ItemsControl].DataContext.RemediateCommand}"
                                         CommandParameter="{Binding}"
-                                        Theme="{StaticResource LinkButton}" Padding="0" FontSize="12" VerticalAlignment="Center" />
+                                        Padding="10,4" FontSize="13" VerticalAlignment="Center" />
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -164,10 +164,13 @@
                     <TextBlock Classes="attentionNotice" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="460"
                                Text="{Binding Daemon.HomeProblemText}" />
-                    <Button Content="Fix" Command="{Binding Daemon.FixCommand}" IsVisible="{Binding Daemon.CanStartDaemon}"
-                            IsEnabled="{Binding !Daemon.IsDaemonBusy}" Theme="{StaticResource LinkButton}" Padding="0" FontSize="12" />
-                    <Button Content="Open driver page" Command="{Binding Daemon.OpenDaemonPageCommand}"
-                            Theme="{StaticResource LinkButton}" Padding="0" FontSize="12" />
+                    <!-- V31 (TASKS #216): real buttons. They were 12-point words with no button look, the kind of small link
+                         Digital Groceries does not see (23 Nov 2026: "small links are not seen"). The same for the action beside
+                         each line of the list above. -->
+                    <Button x:Name="HomeFixButton" Content="Fix" Command="{Binding Daemon.FixCommand}" IsVisible="{Binding Daemon.CanStartDaemon}"
+                            IsEnabled="{Binding !Daemon.IsDaemonBusy}" Padding="10,4" FontSize="13" VerticalAlignment="Center" />
+                    <Button x:Name="HomeOpenDriverPageButton" Content="Open driver page" Command="{Binding Daemon.OpenDaemonPageCommand}"
+                            Padding="10,4" FontSize="13" VerticalAlignment="Center" />
                 </StackPanel>
             </StackPanel>
 

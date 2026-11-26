@@ -77,4 +77,20 @@ public class ConfirmationOwnWindowTests
         Assert.Contains("RingModeHud.OwnWindowBounds =", app);
         Assert.Contains("candidate.IsActive", app);   // the active dialog first, then the main window
     }
+
+    /// <summary>V31 (TASKS #196, Digital Groceries 22 Nov 2026: the Touch Ring pop-up three times its size): three times the area it
+    /// had (a third of the width of what it lies over, at least 360 wide, half as tall), never wider than nine tenths of
+    /// what it lies over.</summary>
+    [Theory]
+    [InlineData(1100, 635.1, 317.5)]    // the app's own window: was 366.7 x 183.3
+    [InlineData(1920, 1108.5, 554.3)]   // a full-width window: was 640 x 320
+    [InlineData(600, 540, 270)]         // a narrow window: 360 x 180 times 3 would not fit, so nine tenths of it
+    public void The_popup_has_three_times_the_area_it_had(double over, double width, double height)
+    {
+        var (w, h) = RingModeHud.PopupSize(over);
+        Assert.Equal(width, w, 1);
+        Assert.Equal(height, h, 1);
+        double before = Math.Max(360, over / 3); before *= before * 0.5;
+        if (over >= 1000) Assert.Equal(3, w * h / before, 2);
+    }
 }
