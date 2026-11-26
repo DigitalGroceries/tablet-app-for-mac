@@ -39,6 +39,13 @@ public sealed class KeyMappingDialog : AppWindow
     public Button StartAgainButton { get; }
     public Button DontSaveButton { get; }
     public Button SaveButton { get; }
+
+    /// <summary>TASKS #212 part 5: the last screen's "Give the keys Wacom's own functions?" (hidden when there is no
+    /// offer), its list, and the two answers.</summary>
+    public StackPanel WacomChoice { get; }
+    public TextBlock WacomFunctionsLabel { get; }
+    public RadioButton UseWacomButton { get; }
+    public RadioButton ChooseMyselfButton { get; }
     /// <summary>The small drawn tablet: its body, the ring if any, and one key (Border) per place.</summary>
     public Canvas KeysDrawing { get; }
 
@@ -130,6 +137,31 @@ public sealed class KeyMappingDialog : AppWindow
         DontSaveButton.IsCancel = true;
         SaveButton = MakeButton("keymap.save", "Save");
         SaveButton.IsDefault = true;
+        WacomFunctionsLabel = new TextBlock { FontSize = 13, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 2) };
+        WacomFunctionsLabel[!TextBlock.ForegroundProperty] = new DynamicResourceExtension("TextSecondaryBrush");
+        UseWacomButton = new RadioButton
+        {
+            GroupName = "keymap-wacom", Content = Localizer.Te("keymap.fn.use", "Give them Wacom's functions"),
+        };
+        ChooseMyselfButton = new RadioButton
+        {
+            GroupName = "keymap-wacom", IsChecked = true,
+            Content = Localizer.Te("keymap.fn.myself", "I'll choose myself (on the ExpressKeys page)"),
+        };
+        UseWacomButton.IsCheckedChanged += (_, _) => _vm.UseWacomFunctions = UseWacomButton.IsChecked == true;
+        WacomChoice = new StackPanel
+        {
+            Spacing = 4, IsVisible = false,
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = Localizer.Te("keymap.fn.ask", "Give the keys Wacom's own functions?"),
+                    FontSize = 15, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap,
+                },
+                WacomFunctionsLabel, UseWacomButton, ChooseMyselfButton,
+            },
+        };
         BackButton.Click += (_, _) => _vm.BackCommand.Execute(null);
         SkipButton.Click += (_, _) => _vm.SkipCommand.Execute(null);
         StopButton.Click += (_, _) => _vm.StopCommand.Execute(null);
@@ -151,7 +183,7 @@ public sealed class KeyMappingDialog : AppWindow
                         + "While this is open your keys do nothing else."),
                     FontSize = 14, TextWrapping = TextWrapping.Wrap,
                 },
-                StepLabel, GroupLabel, ControlPicture, InstructionLabel, MessageLabel,
+                StepLabel, GroupLabel, ControlPicture, InstructionLabel, WacomChoice, MessageLabel,
                 new WrapPanel
                 {
                     Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
@@ -216,6 +248,13 @@ public sealed class KeyMappingDialog : AppWindow
         DontSaveButton.IsVisible = !running;
         // With nothing recorded there is nothing to save: the one button left simply closes.
         DontSaveButton.Content = any ? Localizer.Te("keymap.dont_save", "Don't save") : Localizer.Te("app.close", "Close");
+        WacomChoice.IsVisible = _vm.OffersWacomFunctions && any;
+        WacomFunctionsLabel.Text = _vm.WacomFunctionsText;
+        if (UseWacomButton.IsChecked != _vm.UseWacomFunctions)
+        {
+            UseWacomButton.IsChecked = _vm.UseWacomFunctions;
+            ChooseMyselfButton.IsChecked = !_vm.UseWacomFunctions;
+        }
         ApplyKeys();
         ApplyControl();
     }

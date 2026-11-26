@@ -336,6 +336,141 @@ public class KeyMappingSheetTests
         Assert.Null(await sheet.Result);
     }
 
+    // ── part 5: "Give the keys Wacom's own functions?" ───────────────────────────────────────────
+
+    // A test tablet whose name holds a model with verified factory keys (the model is read from the name).
+    private static string Intuos3Small() => "Wacom PTZ-430 (keymap " + Guid.NewGuid().ToString("N")[..8] + ")";
+
+    [AvaloniaFact]
+    public async Task Wacoms_functions_are_set_on_the_keys_when_chosen()
+    {
+        var tablet = Intuos3Small();
+        try
+        {
+            var settings = SettingsFor(tablet, "A", "B", "C", "D");
+            var vm = VmFor(settings);
+            bool offered = false;
+            vm.ShowKeyMapping = sheet =>
+            {
+                Tap(vm, 4, 3); Tap(vm, 4, 2); Tap(vm, 4, 1); Tap(vm, 4, 0);   // Wacom's key 1 is the driver's fourth ...
+                offered = sheet.OffersWacomFunctions;
+                sheet.UseWacomFunctions = true;
+                return Task.FromResult<KeyOrderMap?>(sheet.Result);
+            };
+
+            Assert.True(await vm.RunKeyMappingAsync());
+
+            Assert.True(offered);
+            var live = settings.Profiles[0].BindingSettings.AuxButtons.Select(AuxKeyBinding.ReadBinding).ToArray();
+            Assert.Equal(WacomFactoryKeys.Binding(FactoryFunction.PenScroll), live[0]);   // driver key 1 = Wacom's 4: Pan/Scroll
+            Assert.Equal(WacomFactoryKeys.Binding(FactoryFunction.Option), live[1]);
+            Assert.Equal(WacomFactoryKeys.Binding(FactoryFunction.Shift), live[2]);
+            Assert.Equal(WacomFactoryKeys.Binding(FactoryFunction.Command), live[3]);
+            Assert.True(vm.AuxButtonsEnabled);
+            Assert.Equal(new[] { 3, 2, 1, 0 }, KeyOrderStore.Load(tablet)!.Keys);
+        }
+        finally { Cleanup(tablet); }
+    }
+
+    [AvaloniaFact]
+    public async Task I_choose_myself_and_skipped_keys_keep_what_they_do()
+    {
+        var tablet = Intuos3Small();
+        try
+        {
+            var settings = SettingsFor(tablet, "A", "B", "C", "D");
+            var vm = VmFor(settings);
+            vm.ShowKeyMapping = sheet =>
+            {
+                Tap(vm, 4, 0); Tap(vm, 4, 1); Tap(vm, 4, 2); Tap(vm, 4, 3);
+                return Task.FromResult<KeyOrderMap?>(sheet.Result);    // the default answer: I'll choose myself
+            };
+            Assert.True(await vm.RunKeyMappingAsync());
+            Assert.Equal(new[] { "A", "B", "C", "D" }, LiveKeys(settings));
+
+            vm.ShowKeyMapping = sheet =>
+            {
+                Tap(vm, 4, 0); sheet.SkipCommand.Execute(null); Tap(vm, 4, 2); Tap(vm, 4, 3);
+                sheet.UseWacomFunctions = true;
+                return Task.FromResult<KeyOrderMap?>(sheet.Result);
+            };
+            Assert.True(await vm.RunKeyMappingAsync());
+            var live = settings.Profiles[0].BindingSettings.AuxButtons.Select(AuxKeyBinding.ReadBinding).ToArray();
+            Assert.Equal(WacomFactoryKeys.Binding(FactoryFunction.Command), live[0]);
+            Assert.Equal("B", live[1]!.Combo.Key);                                          // place 2 was skipped
+            Assert.Equal(WacomFactoryKeys.Binding(FactoryFunction.Option), live[2]);
+            Assert.Equal(WacomFactoryKeys.Binding(FactoryFunction.PenScroll), live[3]);
+        }
+        finally { Cleanup(tablet); }
+    }
+
+    [AvaloniaFact]
+    public async Task No_offer_when_the_keys_were_off_or_for_a_model_without_verified_keys()
+    {
+        var tablet = Intuos3Small();
+        var plain = Tablet();
+        try
+        {
+            var settings = SettingsFor(tablet, "A", "B", "C", "D");
+            var vm = VmFor(settings);
+            vm.AuxButtonsEnabled = false;
+            for (int i = 0; i < 5; i++) { Dispatcher.UIThread.RunJobs(); await Task.Delay(10, TestContext.Current.CancellationToken); }
+            bool offered = true;
+            vm.ShowKeyMapping = sheet =>
+            {
+                for (int k = 0; k < 4; k++) Tap(vm, 4, k);
+                offered = sheet.OffersWacomFunctions;
+                sheet.UseWacomFunctions = true;
+                return Task.FromResult<KeyOrderMap?>(sheet.Result);
+            };
+            Assert.True(await vm.RunKeyMappingAsync());
+            Assert.False(offered);
+
+            var other = VmFor(SettingsFor(plain, "A", "B"));
+            other.ShowKeyMapping = sheet =>
+            {
+                Tap(other, 2, 0); Tap(other, 2, 1);
+                offered = sheet.OffersWacomFunctions;
+                return Task.FromResult<KeyOrderMap?>(sheet.Result);
+            };
+            Assert.True(await other.RunKeyMappingAsync());
+            Assert.False(offered);
+        }
+        finally { Cleanup(tablet); Cleanup(plain); }
+    }
+
+    [AvaloniaFact]
+    public void The_last_screen_asks_and_I_choose_myself_is_picked()
+    {
+        var vm = new KeyMappingViewModel(4, layout: KeyLayouts.For("Wacom PTZ-430", 4),
+            factory: WacomFactoryKeys.For("Wacom PTZ-430", 4, false));
+        var sheet = new KeyMappingDialog(vm);
+        sheet.Show();
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(sheet.WacomChoice.IsVisible);                                          // not while it runs
+        for (int k = 0; k < 4; k++) { vm.OnKeys(Down(4, k)); vm.OnKeys(new bool[4]); }
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(sheet.WacomChoice.IsVisible);
+        Assert.True(sheet.ChooseMyselfButton.IsChecked);
+        Assert.Contains("Key 4: Move pen to scroll", sheet.WacomFunctionsLabel.Text);
+        sheet.UseWacomButton.IsChecked = true;
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(vm.UseWacomFunctions);
+        vm.StartAgainCommand.Execute(null);
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(sheet.WacomChoice.IsVisible);
+        Assert.True(sheet.ChooseMyselfButton.IsChecked);
+        sheet.Close();
+
+        var plain = new KeyMappingViewModel(2);
+        var plainSheet = new KeyMappingDialog(plain);
+        plainSheet.Show();
+        plain.OnKeys(Down(2, 0)); plain.OnKeys(new bool[2]); plain.OnKeys(Down(2, 1)); plain.OnKeys(new bool[2]);
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(plainSheet.WacomChoice.IsVisible);
+        plainSheet.Close();
+    }
+
     [AvaloniaFact]
     public void The_page_has_the_Set_up_my_buttons_button()
     {

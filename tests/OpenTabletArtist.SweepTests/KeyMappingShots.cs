@@ -124,6 +124,38 @@ public class KeyMappingShots
         Shot(strips, "end-ptz-930");
     }
 
+    /// <summary>TASKS #212 part 5: the last screen's "Give the keys Wacom's own functions?" - Intuos4 M (8 keys, four
+    /// the app can do, the radial menu one of them), Intuos4 S with a skipped key and "Wacom's functions" picked,
+    /// Intuos3 (two groups of the same four), Intuos 2013 (Control not in the list). Output: key-mapping-part5-*.png.</summary>
+    [AvaloniaFact]
+    public void The_Wacom_functions_offer()
+    {
+        Directory.CreateDirectory(Dir);
+        using var mac = UiPlatform.PretendMac();
+        _ = new ThemeViewModel();
+        foreach (var (file, tablet, count, skip, use) in new[]
+                 {
+                     ("offer-ptk-640", "Wacom PTK-640", 8, -1, false),
+                     ("offer-ptk-440-skipped-chosen", "Wacom PTK-440", 6, 3, true),
+                     ("offer-ptz-930", "Wacom PTZ-930", 8, -1, false),
+                     ("offer-cth-480", "Wacom CTH-480", 4, -1, false),
+                 })
+        {
+            var vm = new KeyMappingViewModel(count, null, false, KeyLayouts.For(tablet, count),
+                factory: WacomFactoryKeys.For(tablet, count, false));
+            for (int k = 0; k < count; k++)
+                if (k == skip) vm.SkipCommand.Execute(null); else Tap(vm, count, k);
+            Assert.True(vm.OffersWacomFunctions, tablet);
+            var sheet = new KeyMappingDialog(vm);
+            sheet.Show();
+            if (use) sheet.UseWacomButton.IsChecked = true;
+            RadialSpotShots.Settle(sheet);
+            Assert.True(sheet.WacomChoice.IsVisible);
+            sheet.CaptureRenderedFrame()!.Save($"{Dir}/key-mapping-part5-{file}.png");
+            sheet.Close();
+        }
+    }
+
     [AvaloniaFact]
     public void The_ExpressKeys_page_with_a_saved_order()
     {

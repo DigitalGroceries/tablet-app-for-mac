@@ -321,7 +321,18 @@ public static class AuxKeyBinding
     /// <summary>The friendly display name for a stored key value (e.g. "D0" → "0"), from the picker list; a media key
     /// by its name in the app's language (V29 #150: the Touch Ring rows showed "BrightnessUp").</summary>
     private static string KeyDisplay(string value) =>
-        MediaKeyName(value) ?? Options.FirstOrDefault(o => o.Value == value)?.Display ?? value;
+        MediaKeyName(value) ?? ModifierKeyName(value) ?? Options.FirstOrDefault(o => o.Value == value)?.Display ?? value;
+
+    /// <summary>TASKS #212 part 5: a modifier held on its own (Wacom's factory Shift / Ctrl/Cmd / Alt/Opt keys) by the
+    /// name on this platform's keyboard, or null for any other key. OTD's "Application" key is Command on a Mac.</summary>
+    public static string? ModifierKeyName(string? value) => value switch
+    {
+        "Application" => OperatingSystem.IsMacOS() ? Localizer.Te("keymap.fn.command", "Command") : "Menu",
+        "Alt" => OperatingSystem.IsMacOS() ? Localizer.Te("keymap.fn.option", "Option") : "Alt",
+        "Shift" => Localizer.Te("keymap.fn.shift", "Shift"),
+        "Control" => "Control",
+        _ => null,
+    };
 
     /// <summary>The Media tab's keys by name, in the app's language, or null for any other key.</summary>
     public static string? MediaKeyName(string? value) => value switch

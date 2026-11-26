@@ -60,8 +60,10 @@ public sealed partial class KeyMappingViewModel : ObservableObject
     /// another number of keys than <paramref name="keyCount"/> is not used.</param>
     /// <param name="controls">TASKS #212 part 4: the checks after the keys (rings, strips, finger touch), from
     /// <see cref="ControlCheck.For"/>; null = none.</param>
+    /// <param name="factory">TASKS #212 part 5: the tablet's verified Wacom factory functions
+    /// (<see cref="WacomFactoryKeys.For"/>), offered at the end; null = no offer. Used only with a proven layout.</param>
     public KeyMappingViewModel(int keyCount, IEnumerable<int>? groups = null, bool flipped = false, KeyLayout? layout = null,
-        IEnumerable<ControlCheck>? controls = null)
+        IEnumerable<ControlCheck>? controls = null, FactoryKeyList? factory = null)
     {
         Controls = (controls ?? Array.Empty<ControlCheck>()).ToList();
         _keyCount = Math.Max(0, keyCount);
@@ -73,6 +75,7 @@ public sealed partial class KeyMappingViewModel : ObservableObject
             _groups = proven.GroupSizes.ToArray();
             DrawTurned = flipped;
             _flipped = false;
+            if (factory != null && factory.Keys.Count == _keyCount) _factory = factory;
         }
         else
         {
@@ -88,6 +91,44 @@ public sealed partial class KeyMappingViewModel : ObservableObject
 
     public IReadOnlyList<KeyMappingPlace> Places { get; }
 
+    private readonly FactoryKeyList? _factory;
+
+    /// <summary>TASKS #212 part 5: what "Use Wacom's functions" would give, driver key number (from 0) -> function: the
+    /// recorded keys whose factory function the app can do. Empty = nothing to offer.</summary>
+    public IReadOnlyDictionary<int, FactoryFunction> WacomPlan => WacomFactoryKeys.Plan(_factory, Result);
+
+    /// <summary>The last screen asks "Give the keys Wacom's own functions?" (a verified model, and at least one
+    /// recorded key whose factory function the app can do).</summary>
+    public bool OffersWacomFunctions => IsFinished && WacomPlan.Count > 0;
+
+    /// <summary>The user's answer: true = Wacom's own functions, false = "I'll choose myself" (the default; nothing
+    /// is changed and the ExpressKeys page is where to choose).</summary>
+    [ObservableProperty] private bool _useWacomFunctions;
+
+    /// <summary>The offer's list, key by key in Wacom's numbering ("Key 5: Shift"), keys whose function the app cannot
+    /// do and keys not recorded say that they keep what they do now.</summary>
+    public string WacomFunctionsText
+    {
+        get
+        {
+            if (_factory == null) return "";
+            var keys = Result.Keys;
+            var lines = new List<string>();
+            for (int place = 0; place < _factory.Keys.Count; place++)
+            {
+                var k = _factory.Keys[place];
+                bool recorded = place < keys.Count && keys[place] >= 0;
+                var what = !recorded ? T("keymap.fn.not_recorded", "skipped - keeps what it does now")
+                    : k.Function == FactoryFunction.NotSetUp
+                        ? T("keymap.fn.cannot", "{wacom} - the app cannot do this, so it keeps what it does now").Replace("{wacom}", k.WacomName, StringComparison.Ordinal)
+                        : WacomFactoryKeys.Name(k.Function);
+                lines.Add(T("keymap.fn.line", "Key {number}: {what}")
+                    .Replace("{number}", (place + 1).ToString(), StringComparison.Ordinal)
+                    .Replace("{what}", what, StringComparison.Ordinal));
+            }
+            return string.Join("\n", lines);
+        }
+    }
     /// <summary>The checks after the keys, in order (part 4).</summary>
     public IReadOnlyList<ControlCheck> Controls { get; }
 
@@ -260,6 +301,7 @@ public sealed partial class KeyMappingViewModel : ObservableObject
         foreach (var c in Controls) c.Reset();
         _control = -1;
         _stopped = false;
+        UseWacomFunctions = false;
         Message = "";
         Advance();
     }
@@ -296,6 +338,8 @@ public sealed partial class KeyMappingViewModel : ObservableObject
         OnPropertyChanged(nameof(RecordedCount));
         OnPropertyChanged(nameof(CurrentControl));
         OnPropertyChanged(nameof(IsRingLit));
+        OnPropertyChanged(nameof(OffersWacomFunctions));
+        OnPropertyChanged(nameof(WacomFunctionsText));
 
         if (IsFinished)
         {

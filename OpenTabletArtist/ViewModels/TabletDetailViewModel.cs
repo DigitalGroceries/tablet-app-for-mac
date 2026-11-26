@@ -1888,8 +1888,12 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
         if (_keyMapping != null || ShowKeyMapping == null || AuxButtons.Count == 0) return false;
         var groups = KeyOrderStore.Load(_profile.Tablet)?.Groups;
         bool turned = Intuos4Oled.IsUpsideDown(_profile.AbsoluteModeSettings?.Tablet?.Rotation ?? 0);
+        // Part 5: Wacom's own functions are offered only where they can be set: the keys are on and the page shows
+        // All's own table (not an application's or an extra pen's).
+        bool canSet = AuxButtonsEnabled && _applyAction != null && AuxScopeIsAll();
+        var factory = canSet ? WacomFactoryKeys.For(_profile.Tablet, AuxButtons.Count, TouchTrackpad.Wanted(_profile)) : null;
         var sheet = new KeyMappingViewModel(AuxButtons.Count, groups, turned,
-            KeyLayouts.For(_profile.Tablet, AuxButtons.Count), MappingChecks(turned));
+            KeyLayouts.For(_profile.Tablet, AuxButtons.Count), MappingChecks(turned), factory);
         bool turnedOff = AuxButtonsEnabled && _applyAction != null;
         _keyMapping = sheet;
         bool saved = false;
@@ -1916,7 +1920,27 @@ public partial class TabletDetailViewModel : ObservableObject, IDisposable
             }
             else RebuildAuxButtonsFromWorking();   // SetAllButtonsAsync rebuilds the list itself
         }
+        if (saved && canSet && sheet.UseWacomFunctions) await ApplyWacomFunctionsAsync(sheet.WacomPlan);
         return saved;
+    }
+
+    /// <summary>TASKS #212 part 5: "Give the keys Wacom's own functions" - each driver key (from 0) in
+    /// <paramref name="plan"/> gets its factory function, in one change; every other key keeps what it does. An Off key
+    /// keeps the new function aside, as when it is edited. True when the change was made.</summary>
+    internal async Task<bool> ApplyWacomFunctionsAsync(System.Collections.Generic.IReadOnlyDictionary<int, FactoryFunction> plan)
+    {
+        if (plan.Count == 0 || !AuxButtonsEnabled || _applyAction == null || !AuxScopeIsAll()) return false;
+        var scope = AuxKeyOffScope();
+        var off = AuxKeyOffStore.Load(scope);
+        var ok = await ApplyBindingMutationAsync(b =>
+        {
+            foreach (var (key, function) in plan)
+                if (WacomFactoryKeys.Binding(function) is { } binding)
+                    AuxKeyOffStore.SetBinding(b.AuxButtons, off, key + 1, AuxKeyBinding.MakeBinding(binding));   // SetBinding counts from 1
+            AuxKeyOffStore.Save(scope, off);
+        });
+        RebuildAuxButtonsFromWorking();
+        return ok;
     }
 
     /// <summary>TASKS #212 part 4: the checks after the keys - each ring or strip the page shows, then finger touch on a
