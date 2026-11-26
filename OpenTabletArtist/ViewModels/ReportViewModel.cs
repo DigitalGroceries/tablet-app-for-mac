@@ -62,6 +62,18 @@ public partial class ReportViewModel : ObservableObject
     /// never into app.log. Blank is fine.</summary>
     [ObservableProperty] private string _email = "";
 
+    // ── TASKS #212 part 7: the key order from "Set up my buttons", only when the user ticks it ──
+
+    /// <summary>There is a saved key order to offer. Tests set it; the app reads the settings.</summary>
+    public bool HasKeyOrder { get; init; } = DiagnosticBundle.HasKeyOrder();
+
+    /// <summary>Off by default: the key order goes into the report only when the user ticks the box.</summary>
+    [ObservableProperty] private bool _includeKeyOrder;
+
+    public string KeyOrderLabel => Localizer.Te("report.key_order", "Add where the buttons sit on my tablet (from \"Set up my buttons\")");
+    public string KeyOrderHelp => Localizer.Te("report.key_order.help",
+        "It helps us draw this tablet model correctly for everyone. It holds the tablet's model name and key numbers, nothing about you.");
+
     public string? WindowPicturePath { get; }
     public bool HasWindowPicture => WindowPicturePath != null;
 
@@ -422,9 +434,10 @@ public partial class ReportViewModel : ObservableObject
         var text = Description ?? "";
         var email = includeEmail ? (Email ?? "").Trim() : "";
         var settings = _settings?.Invoke();
+        var keyOrder = IncludeKeyOrder && HasKeyOrder;
         return await Task.Run(() =>
         {
-            var zip = DiagnosticBundle.Create(folder, devices, conflicts, version);
+            var zip = DiagnosticBundle.Create(folder, devices, conflicts, version, includeKeyOrder: keyOrder);
             if (trace != null) DiagnosticBundle.AddText(zip, "recording.txt", trace);
             if (_settings != null) UnsavedSettingsReport.AddTo(zip, settings);
             DiagnosticBundle.AddScreenshots(zip, pictures);

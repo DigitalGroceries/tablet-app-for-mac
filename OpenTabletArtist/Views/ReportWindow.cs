@@ -131,6 +131,18 @@ public sealed class ReportWindow : Window
             body.Children.Add(new StackPanel { Spacing = 6, Children = { thumb, include } });
         }
 
+        // TASKS #212 part 7: the saved key order is offered only when there is one, and is not ticked.
+        if (vm.HasKeyOrder)
+        {
+            var keyOrder = new CheckBox { Name = "ReportKeyOrder", Content = vm.KeyOrderLabel, IsChecked = vm.IncludeKeyOrder };
+            keyOrder.IsCheckedChanged += (_, _) => vm.IncludeKeyOrder = keyOrder.IsChecked == true;
+            body.Children.Add(new StackPanel
+            {
+                Spacing = 2,
+                Children = { keyOrder, new TextBlock { Name = "ReportKeyOrderHelp", Text = vm.KeyOrderHelp, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(28, 0, 0, 0) }.Fg("TextSecondaryBrush") },
+            });
+        }
+
         var add = new Button { Name = "ReportAddScreenshots", Content = vm.AddScreenshotsLabel, Command = vm.AddScreenshotsCommand };
         var count = new TextBlock { Name = "ReportPictures", Text = vm.PicturesText, VerticalAlignment = VerticalAlignment.Center }.Fg("TextSecondaryBrush");
         body.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Children = { add, count } });

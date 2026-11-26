@@ -9,6 +9,8 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+using OpenTabletArtist.Domain;
+
 namespace OpenTabletArtist.Services;
 
 /// <summary>
@@ -38,7 +40,8 @@ public static class DiagnosticBundle
     /// the live mouse/keyboard listing (tests).</summary>
     public static string Create(string folder, IEnumerable<string> devices, IEnumerable<string> conflicts,
         string? daemonVersion, DateTime? now = null, Func<string>? inputDevices = null,
-        Func<string>? permissions = null, Func<string>? eventTaps = null, Func<string>? tabletInterfaces = null)
+        Func<string>? permissions = null, Func<string>? eventTaps = null, Func<string>? tabletInterfaces = null,
+        bool includeKeyOrder = false)
     {
         var stamp = now ?? DateTime.Now;
         Directory.CreateDirectory(folder);
@@ -89,10 +92,53 @@ public static class DiagnosticBundle
                     AddFile(zip, "logs/otd/" + Path.GetFileName(f), f, Clean);
 
             // Settings snapshot: the same portable export (serials removed, home as "~").
+            // TASKS #212 part 7: where the keys sit on the user's tablet ("Set up my buttons") goes into a report only
+            // when the user ticked it (off by default). Without the tick it is taken out of the settings snapshot too.
             foreach (var (name, text) in SettingsBundle.Collect(portable: true))
-                Add(zip, "settings/" + name, Clean(text));
+                Add(zip, "settings/" + name, Clean(name == "app-settings.json" && !includeKeyOrder ? WithoutKeyOrder(text) : text));
+            if (includeKeyOrder && KeyOrderText() is { Length: > 0 } order) Add(zip, "key-order.txt", Clean(order));
         }
         return path;
+    }
+
+    /// <summary>The app's settings without the saved key orders (the entries "KeyOrder:{tablet}").</summary>
+    internal static string WithoutKeyOrder(string appSettingsJson)
+    {
+        try
+        {
+            if (Newtonsoft.Json.Linq.JToken.Parse(appSettingsJson) is not Newtonsoft.Json.Linq.JObject o) return appSettingsJson;
+            foreach (var p in o.Properties().Where(p => p.Name.StartsWith(KeyOrderPrefix, StringComparison.Ordinal)).ToList()) p.Remove();
+            return o.ToString(Newtonsoft.Json.Formatting.Indented);
+        }
+        catch (Newtonsoft.Json.JsonException) { return appSettingsJson; }
+    }
+
+    const string KeyOrderPrefix = "KeyOrder:";
+
+    /// <summary>True when "Set up my buttons" has saved the key order of at least one tablet model.</summary>
+    public static bool HasKeyOrder() => AppSettings.Keys(KeyOrderPrefix).Any(k => KeyOrderMap.TryParse(AppSettings.Get(k)) is { HasAny: true });
+
+    /// <summary>key-order.txt: one block per tablet model, readable by a person - the driver's key numbers (from 1) in the
+    /// order the keys sit, the groups, whether the tablet was turned round, and what the ring / strip / touch checks said.
+    /// Only the tablet's model name and numbers: nothing about the user.</summary>
+    public static string KeyOrderText(IEnumerable<(string Tablet, KeyOrderMap Map)>? maps = null)
+    {
+        maps ??= AppSettings.Keys(KeyOrderPrefix)
+            .Select(k => (Tablet: k[KeyOrderPrefix.Length..], Map: KeyOrderMap.TryParse(AppSettings.Get(k))))
+            .Where(x => x.Map is { HasAny: true }).Select(x => (x.Tablet, x.Map!));
+        var sb = new StringBuilder();
+        foreach (var (tablet, map) in maps.OrderBy(x => x.Tablet, StringComparer.Ordinal))
+        {
+            if (sb.Length == 0)
+                sb.AppendLine("Where the ExpressKeys sit, as the user pressed them in \"Set up my buttons\" (driver key numbers, counted from 1; - = not pressed):");
+            sb.AppendLine();
+            sb.AppendLine(tablet);
+            sb.AppendLine("  Keys in the order they sit: " + string.Join(", ", map.Keys.Select(k => k >= 0 ? (k + 1).ToString() : "-")));
+            if (map.Groups.Count > 1) sb.AppendLine("  Groups: " + string.Join(" + ", map.Groups));
+            sb.AppendLine("  Tablet turned round when mapped: " + (map.Flipped ? "yes" : "no"));
+            foreach (var c in map.Controls) sb.AppendLine("  Check: " + c.ToJson().ToString(Newtonsoft.Json.Formatting.None));
+        }
+        return sb.ToString();
     }
 
     /// <summary>Adds user-picked screenshots (images only, max 10, 15 MB each) to an existing zip under screenshots/.
