@@ -83,7 +83,8 @@ public sealed class PaletteEditorDialog : AppWindow
                         Children =
                         {
                             new EmbossRing { Name = "WheelRim", Margin = new Thickness(-EmbossRing.Gap), MenuSize = _size,
-                                [!EmbossRing.BrushProperty] = new DynamicResourceExtension("EmbossRingBrush") },
+                                [!EmbossRing.BrushProperty] = new DynamicResourceExtension("EmbossRingBrush"),
+                                [!EmbossRing.EdgeBrushProperty] = new DynamicResourceExtension("EmbossRingEdgeBrush") },
                             _wheel,
                         },
                     },

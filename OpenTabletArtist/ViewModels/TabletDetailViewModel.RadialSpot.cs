@@ -46,7 +46,7 @@ public partial class TabletDetailViewModel
     /// 324 points at the largest menu (<see cref="RadialMenuDef.MaxDiameter"/> 320), smaller with the size slider.</summary>
     public const double RadialPictureMax = RadialMenuDef.MaxDiameter + 4;
     /// <summary>The fixed square kept for the picture on the page: the largest picture (the button around it has no padding).</summary>
-    public const double RadialSpotAreaSize = RadialPictureMax;
+    public const double RadialSpotAreaSize = RadialPictureMax + 2 * OpenTabletArtist.Controls.EmbossRing.Gap;   // test build 2: room for the bevel all round
     [ObservableProperty] private double _radialPictureSize = RadialPictureMax;
 
     /// <summary>The sliders work whenever the page can write settings (V30 build 4: never greyed out). With no pen button on the

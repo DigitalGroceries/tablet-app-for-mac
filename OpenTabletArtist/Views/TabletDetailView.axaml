@@ -1947,14 +1947,14 @@
                                  top right corner of the radial and palette menu ... Or outside next to that corner": just above the square's top
                                  right corner, so it never covers the circle. Turning it on asks which pen button opens the menu. Build 5 (Digital Groceries'
                                  screenshot, a narrower window): outside the Viewbox, so it keeps its size and is never cut off when the picture shrinks. -->
-                            <StackPanel Width="324" Spacing="2">
-                            <Grid x:Name="RadialSpotArea" Width="324" Height="324">
-                                <!-- V31 (task list L7.21, Digital Groceries' mockup of 25 Nov 2026): embossed. A thin ring just outside the menu, light at
-                                     the top left and dark at the bottom right (LightnessService.SunkenResources, EmbossRingBrush). It lies
-                                     outside the button, which would cut it off. -->
+                            <!-- test build 2: 344, the largest menu (324) and its bevel (10 each side); the Viewbox fits it in the column -->
+                            <StackPanel Width="344" Spacing="2">
+                            <Grid x:Name="RadialSpotArea" Width="344" Height="344">
+                                <!-- V31 (task list L7.21, Digital Groceries' mockup of 25 Nov 2026): the bevel all the way round the menu (EmbossRing; test build 2: by
+                                     the logic of the light, a full circle). It lies outside the button, which would cut it off. -->
                                 <Panel x:Name="RadialSpotRimHolder" Width="{Binding RadialPictureSize}" Height="{Binding RadialPictureSize}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
-                                    <Ellipse x:Name="RadialSpotRim" Margin="-6" Stroke="{DynamicResource EmbossRingBrush}" StrokeThickness="2.5" />
+                                    <ctrl:EmbossRing x:Name="RadialSpotRim" Margin="-10" Fills="True" Brush="{DynamicResource EmbossRingBrush}" EdgeBrush="{DynamicResource EmbossRingEdgeBrush}" />
                                 </Panel>
                                 <Button x:Name="RadialSpotButton" Classes="flat" Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent"
                                         BorderThickness="0" Cursor="Hand" IsEnabled="{Binding CanEditRadial}" Click="OnRadialSpotClick"
@@ -2023,12 +2023,12 @@
                                 <TextBlock Text="{Binding MenuSwitchOnText}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" />
                             </StackPanel>
                             <Viewbox x:Name="PaletteSpotFit" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" MaxWidth="324">
-                                <StackPanel Width="324" Spacing="2">
+                                <StackPanel Width="344" Spacing="2">
                                     <!-- V30 build 5 (Digital Groceries 24 Nov ~17:43): click the palette, as the radial menu, to open its own window and pick your
                                          own colours (PaletteEditorDialog). -->
                                     <!-- V31 (L7.22): the embossed ring lies outside the button, which would cut it off -->
-                                    <Panel x:Name="PaletteSpotArea" Width="324" Height="324" HorizontalAlignment="Center">
-                                    <ctrl:EmbossRing x:Name="PaletteSpotRim" Margin="-6" Brush="{DynamicResource EmbossRingBrush}" MenuSize="{Binding RadialPreview.PaletteSize}" />
+                                    <Panel x:Name="PaletteSpotArea" Width="344" Height="344" HorizontalAlignment="Center">
+                                    <ctrl:EmbossRing x:Name="PaletteSpotRim" Margin="-10" Brush="{DynamicResource EmbossRingBrush}" EdgeBrush="{DynamicResource EmbossRingEdgeBrush}" MenuSize="{Binding RadialPreview.PaletteSize}" />
                                     <Button x:Name="PaletteSpotButton" Classes="flat" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand"
                                             HorizontalAlignment="Center" IsEnabled="{Binding CanEditRadialSliders}" Click="OnPaletteSpotClick"
                                             AutomationProperties.Name="{Binding PaletteSpotTip}" ToolTip.Tip="{Binding PaletteSpotTip}">

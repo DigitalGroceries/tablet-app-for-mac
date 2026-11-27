@@ -400,17 +400,26 @@ public static class LightnessService
         return new (string, object)[]
         {
             ("SliderOutlineBrush", B(d ? G(Math.Max(pane - 0x23, 0x06)) : G(pane - 0x58))),
+            // Test build 2 (Digital Groceries, 27 Nov 2026: every button and slider channel has "shadow on one side and
+            // highlight on the other side", or they "look flat and not realistic"). The channel is a groove cut into the
+            // page: its rim lies in shadow along the top and catches the light along the bottom; the slot is darkest under
+            // its top edge. The handle is a solid piece lying in it: lit at the top left, in shadow at the bottom right.
             ("SliderRimBrush", d
-                ? Shade((G(pane + 0x23), 0), (G(pane + 0x4A), 0.35), (G(pane + 0x56), 0.6), (G(pane + 0x3A), 1))
-                : Shade((G(pane - 0x26), 0), (G(pane - 0x46), 0.4), (G(pane - 0x38), 0.7), (G(pane - 0x24), 1))),
+                ? Shade((G(Math.Max(pane - 0x1C, 0x08)), 0), (G(pane + 0x08), 0.3), (G(pane + 0x46), 0.7), (G(pane + 0x7C), 1))
+                : Shade((G(pane - 0x58), 0), (G(pane - 0x3C), 0.3), (G(pane - 0x20), 0.7), (G(0xE4), 1))),
             ("SliderGrooveBrush", d
-                ? Shade((G(Math.Max(pane - 0x2E, 0)), 0), (G(Math.Max(pane - 0x13, 0x10)), 1))
-                : Shade((G(Math.Max(pane - 0x98, 0x30)), 0), (G(Math.Max(pane - 0x80, 0x44)), 1))),
-            ("SliderRimShadow", BoxShadows.Parse(d ? "0 1.5 1 0 #36E4E4E4, 0 -1.2 1 0 #2CE4E4E4" : "0 1.5 1 0 #99E4E4E4, 0 -1.2 1 0 #22000000")),
-            ("SliderThumbBrush", B(d ? G(pane + 0x0E) : G(0xE4))),
-            ("SliderThumbHoverBrush", B(d ? G(pane + 0x1A) : G(0xDA))),
+                ? Shade((G(0x02), 0), (G(Math.Max(pane - 0x2A, 0x06)), 0.45), (G(Math.Max(pane - 0x0C, 0x14)), 1))
+                : Shade((G(Math.Max(pane - 0xA8, 0x20)), 0), (G(Math.Max(pane - 0x90, 0x34)), 0.45), (G(Math.Max(pane - 0x70, 0x50)), 1))),
+            ("SliderRimShadow", BoxShadows.Parse(d ? "0 1.6 0.6 0 #66E4E4E4, 0 -1.6 0.6 0 #A0000000" : "0 1.6 0.6 0 #C0E4E4E4, 0 -1.6 0.6 0 #48000000")),
+            ("SliderThumbBrush", d
+                ? Diagonal((G(pane + 0x52), 0), (G(pane + 0x22), 0.3), (G(pane + 0x0A), 0.7), (G(Math.Max(pane - 0x12, 0x0A)), 1))
+                : Diagonal((G(0xE4), 0), (G(0xE0), 0.3), (G(0xCC), 0.7), (G(0xA8), 1))),
+            ("SliderThumbHoverBrush", d
+                ? Diagonal((G(pane + 0x5E), 0), (G(pane + 0x2E), 0.3), (G(pane + 0x16), 0.7), (G(Math.Max(pane - 0x06, 0x0A)), 1))
+                : Diagonal((G(0xE4), 0), (G(0xD8), 0.3), (G(0xC2), 0.7), (G(0x9E), 1))),
             ("SliderThumbOutlineBrush", B(d ? G(Math.Max(pane - 0x23, 0x06)) : G(pane - 0x66))),
-            ("SliderThumbShadow", BoxShadows.Parse(d ? "0 1 2 0 #66000000" : "0 1 2 0 #59000000")),
+            ("SliderThumbShadow", BoxShadows.Parse(d ? "1.5 2 2.5 0 #B0000000, inset 1 1 0 0 #4CE4E4E4, inset -1 -1 0 0 #70000000"
+                                                      : "1.5 2 2.5 0 #70000000, inset 1 1 0 0 #C0E4E4E4, inset -1 -1 0 0 #38000000")),
             ("SliderThumbLineBrush", B(d ? line : Color.FromRgb(0xB9, 0xA8, 0x96))),
             ("SliderThumbLineGlow", BoxShadows.Parse(d ? "0 0 3 0 #99E4DCC4" : "0 0 2 0 #66C8B49C")),
             ("SliderTickBrush", B(d ? G(pane + 0x5C) : G(pane - 0x70))),       // his long sliders' notches: #909090 on #343434
@@ -437,8 +446,16 @@ public static class LightnessService
             // looks - brightest on the left (#979797 on #343434), quieter on the right (#666666) - over a soft dark shadow
             ("PenEmbossEdgeBrush", Across((d ? G(pane + 0x63) : G(0xE4), 0), (d ? G(pane + 0x63) : G(0xE4), 0.3),
                 (d ? G(pane + 0x32) : G(pane - 0x78), 0.7), (d ? G(pane + 0x32) : G(pane - 0x78), 1))),
-            ("EmbossRingBrush", Diagonal((d ? G(pane + 0x28) : G(0xE4), 0), (d ? G(pane + 0x28) : G(0xE4), 0.3), (p.Pane, 0.5),
-                (d ? G(Math.Max(pane - 0x10, 0x06)) : G(pane - 0x34), 0.7), (d ? G(Math.Max(pane - 0x10, 0x06)) : G(pane - 0x34), 1))),
+            // the bevel all round the round menus (EmbossRing). They are RAISED above the page, like the buttons (Digital
+            // Groceries, 27 Nov 2026): the slope is lit all along the top left and in shadow all along the bottom right,
+            // and outside it lies the thin dark line of the menu's shadow on the page, darkest at the bottom right. That
+            // line is darker than the page all the way round, so the circle is never broken.
+            ("EmbossRingBrush", d
+                ? Diagonal((G(pane + 0x6C), 0), (G(pane + 0x6C), 0.15), (G(pane + 0x30), 0.48), (G(Math.Max(pane - 0x20, 0x06)), 0.62), (G(Math.Max(pane - 0x2C, 0x04)), 1))
+                : Diagonal((G(0xE4), 0), (G(0xE4), 0.15), (G(pane - 0x10), 0.48), (G(pane - 0x48), 0.62), (G(pane - 0x60), 1))),
+            ("EmbossRingEdgeBrush", d
+                ? Diagonal((G(Math.Max(pane - 0x14, 0x0A)), 0), (G(Math.Max(pane - 0x14, 0x0A)), 0.2), (G(0x04), 0.8), (G(0x04), 1))
+                : Diagonal((G(pane - 0x24), 0), (G(pane - 0x24), 0.2), (G(pane - 0x74), 0.8), (G(pane - 0x74), 1))),
         };
     }
 

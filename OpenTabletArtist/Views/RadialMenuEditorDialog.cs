@@ -114,8 +114,9 @@ public sealed class RadialMenuEditorDialog : Window
         // MinPieDiameter (smaller windows scroll instead). The old fixed 470 x 470 box was taller than the area in a 1100x720 window.
         // V31 (task list L7.23): embossed like the picture on the Pen page - a thin ring just outside the menu, light at the
         // top left and dark at the bottom right
-        var pieRim = new Avalonia.Controls.Shapes.Ellipse { Name = "PieRim", Margin = new Thickness(-OpenTabletArtist.Controls.EmbossRing.Gap), StrokeThickness = 2.5, IsHitTestVisible = false,
-            [!Avalonia.Controls.Shapes.Shape.StrokeProperty] = new DynamicResourceExtension("EmbossRingBrush") };
+        var pieRim = new OpenTabletArtist.Controls.EmbossRing { Name = "PieRim", Margin = new Thickness(-OpenTabletArtist.Controls.EmbossRing.Gap), Fills = true,
+            [!OpenTabletArtist.Controls.EmbossRing.BrushProperty] = new DynamicResourceExtension("EmbossRingBrush"),
+            [!OpenTabletArtist.Controls.EmbossRing.EdgeBrushProperty] = new DynamicResourceExtension("EmbossRingEdgeBrush") };
         var pieBox = new PieFit { Child = new Panel { Children = { pieRim, pie } }, MinDiameter = MinPieDiameter };
         pieBox[!PieFit.PreferredProperty] = new Binding(nameof(vm.PreviewDiameter));
         var where = new TextBlock { TextWrapping = TextWrapping.Wrap, FontWeight = FontWeight.SemiBold };
