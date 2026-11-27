@@ -47,14 +47,18 @@ public class BuildR16Tests
         var page = LightnessService.For(LightnessService.Saved).Pane;
         Assert.Equal(Color.FromRgb((byte)(page.R - 0x0E), (byte)(page.G - 0x0E), (byte)(page.B - 0x0E)), bg);
         // V31 (task list L7.17, the mockup of 25 Nov 2026): no outline any more. The tray is sunk: a light band inside its
-        // right and bottom edges (12.5 wide, 9.5 high) and a soft shade inside its top and left edges.
+        // right and bottom edges (12.5 wide, 9.5 high) and a dark band inside its top and left edges.
         Assert.Equal(0, b.BorderThickness.Top);
         Assert.Equal(16, b.CornerRadius.TopLeft);
         var shadows = Enumerable.Range(0, b.BoxShadow.Count).Select(i => b.BoxShadow[i]).ToList();
         Assert.All(shadows, s => Assert.True(s.IsInset));
         Assert.Contains(shadows, s => s.OffsetX == -12.5 && s.OffsetY == 0 && s.Color.R > 0xC0);
         Assert.Contains(shadows, s => s.OffsetX == 0 && s.OffsetY == -9.5 && s.Color.R > 0xC0);
-        Assert.Contains(shadows, s => s.OffsetX > 0 && s.OffsetY > 0 && s.Color.R == 0);
+        // Test build 2 (Digital Groceries, 27 Nov 2026: a sunken box has FOUR bevelled sides): the left and top slopes are
+        // dark bands exactly as wide as the light ones opposite them.
+        Assert.Contains(shadows, s => s.OffsetX == 12.5 && s.OffsetY == 0 && s.Color.R == 0 && s.Color.A >= 0x28);
+        Assert.Contains(shadows, s => s.OffsetX == 0 && s.OffsetY == 9.5 && s.Color.R == 0 && s.Color.A >= 0x28);
+        Assert.Equal(4, shadows.Count);
         w.Close();
     }
 

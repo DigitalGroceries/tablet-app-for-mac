@@ -415,12 +415,19 @@ public static class LightnessService
             ("SliderThumbLineGlow", BoxShadows.Parse(d ? "0 0 3 0 #99E4DCC4" : "0 0 2 0 #66C8B49C")),
             ("SliderTickBrush", B(d ? G(pane + 0x5C) : G(pane - 0x70))),       // his long sliders' notches: #909090 on #343434
             ("SliderTickFineBrush", B(d ? G(pane + 0x5C) : G(pane - 0x70))),   // the small boxes' sliders: thinner notches, as easy to see (Digital Groceries, 26 Nov)
+            // Version 31 test build 2 (Digital Groceries, 27 Nov 2026: "Do not follow the pixels for pixels. Follow the logic of
+            // the mockup." - "How many sides a squared sunken menu should have?"). A box pressed into the page has FOUR
+            // sloping sides, and with the light coming from the top left each one shows: the top and left slopes lie in
+            // shadow (dark), the bottom and right slopes catch the light. All four are the same kind of band, clearly
+            // seen, and each pair is as wide as the other. (The app drew only the two light ones before.)
             ("SunkenPanelBrush", B(d ? G(pane - 0x09) : G(pane - 0x0C))),
-            ("SunkenPanelShadow", BoxShadows.Parse(d ? "inset -8 0 0 0 #3EE4E4E4, inset 0 -6.5 0 0 #2BE4E4E4, inset 2 2 4 0 #40000000"
-                                                     : "inset -8 0 0 0 #B0E4E4E4, inset 0 -6.5 0 0 #80E4E4E4, inset 2 2 4 0 #40000000")),
+            ("SunkenPanelShadow", BoxShadows.Parse(d
+                ? "inset -8 0 0 0 #3EE4E4E4, inset 0 -6.5 0 0 #2BE4E4E4, inset 8 0 0 0 #6E000000, inset 0 6.5 0 0 #8A000000"
+                : "inset -8 0 0 0 #B0E4E4E4, inset 0 -6.5 0 0 #80E4E4E4, inset 8 0 0 0 #2E000000, inset 0 6.5 0 0 #3C000000")),
             ("SunkenTrayBrush", B(d ? G(pane - 0x0E) : G(pane - 0x10))),
-            ("SunkenTrayShadow", BoxShadows.Parse(d ? "inset -12.5 0 0.8 0 #3BE4E4E4, inset 0 -9.5 0.8 0 #2EE4E4E4, inset 2 3 6 0 #40000000"
-                                                    : "inset -12.5 0 0.8 0 #B0E4E4E4, inset 0 -9.5 0.8 0 #80E4E4E4, inset 2 3 6 0 #40000000")),
+            ("SunkenTrayShadow", BoxShadows.Parse(d
+                ? "inset -12.5 0 0.8 0 #3BE4E4E4, inset 0 -9.5 0.8 0 #2EE4E4E4, inset 12.5 0 0.8 0 #6E000000, inset 0 9.5 0.8 0 #8A000000"
+                : "inset -12.5 0 0.8 0 #B0E4E4E4, inset 0 -9.5 0.8 0 #80E4E4E4, inset 12.5 0 0.8 0 #2E000000, inset 0 9.5 0.8 0 #3C000000")),
             // a frame cut into the page (his pen boxes): the page's own grey, a little darker towards the bottom right, a dark
             // shade inside its edges and a thin light line round it
             ("InsetBoxBrush", d ? Diagonal((G(pane + 0x04), 0), (G(pane), 0.5), (G(pane - 0x0C), 1))
