@@ -386,24 +386,28 @@ public partial class BindingEditorViewModel : ObservableObject
                          Mod("Alt Gr","Alt",1.5), Key("Menu","Application",1.5), Mod("Ctrl","Ctrl",2) },
         };
 
+        const double N = 1.3;
         NavRows = new List<IReadOnlyList<KeyCap>>
         {
-            new[]{ Key("PrtSc","PrintScreen"), Key("ScrLk","ScrollLock"), Key("Pause","Pause") },
-            new[]{ Key("Ins","Insert"), Key("Home","Home"), Key("PgUp","PageUp") },
-            new[]{ Key("Del","Delete"), Key("End","End"), Key("PgDn","PageDown") },
-            new[]{ Sp(3) },
-            new[]{ Sp(1), Key("↑","Up"), Sp(1) },
-            new[]{ Key("←","Left"), Key("↓","Down"), Key("→","Right") },
+            // Version 31: these keys are 1.3 units wide, so that PrtSc, ScrLk, Pause, Home, PgUp and PgDn are not cut off.
+            new[]{ Key("PrtSc","PrintScreen",N), Key("ScrLk","ScrollLock",N), Key("Pause","Pause",N) },
+            new[]{ Key("Ins","Insert",N), Key("Home","Home",N), Key("PgUp","PageUp",N) },
+            new[]{ Key("Del","Delete",N), Key("End","End",N), Key("PgDn","PageDown",N) },
+            new[]{ Sp(3 * N) },
+            new[]{ Sp(N), Key("↑","Up",N), Sp(N) },
+            new[]{ Key("←","Left",N), Key("↓","Down",N), Key("→","Right",N) },
         };
 
+        // Version 31: 1.15 units each, so that "Num" is not cut off.
+        const double M = 1.15;
         NumpadRows = new List<IReadOnlyList<KeyCap>>
         {
-            new[]{ Sp(4) },
-            new[]{ Key("Num","NumberLock"), Key("/","Divide"), Key("*","Multiply"), Key("-","Subtract") },
-            new[]{ Key("7","Keypad7"), Key("8","Keypad8"), Key("9","Keypad9"), Key("+","Add") },
-            new[]{ Key("4","Keypad4"), Key("5","Keypad5"), Key("6","Keypad6"), Sp(1) },
-            new[]{ Key("1","Keypad1"), Key("2","Keypad2"), Key("3","Keypad3"), Sp(1) },
-            new[]{ Key("0","Keypad0",2), Key(".","Decimal"), Key("=","KeypadEqual") },
+            new[]{ Sp(4 * M) },
+            new[]{ Key("Num","NumberLock",M), Key("/","Divide",M), Key("*","Multiply",M), Key("-","Subtract",M) },
+            new[]{ Key("7","Keypad7",M), Key("8","Keypad8",M), Key("9","Keypad9",M), Key("+","Add",M) },
+            new[]{ Key("4","Keypad4",M), Key("5","Keypad5",M), Key("6","Keypad6",M), Sp(M) },
+            new[]{ Key("1","Keypad1",M), Key("2","Keypad2",M), Key("3","Keypad3",M), Sp(M) },
+            new[]{ Key("0","Keypad0",2 * M), Key(".","Decimal",M), Key("=","KeypadEqual",M) },
         };
 
         var modifiers = new HashSet<string>
